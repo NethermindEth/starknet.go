@@ -259,22 +259,22 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	if casted, ok := t.(map[string]interface{}); ok {
 		switch TransactionType(casted["type"].(string)) {
-		case TransactionType_Declare:
+		case TransactionTypeDeclare:
 			var txn DeclareTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case TransactionType_DeployAccount:
+		case TransactionTypeDeployAccount:
 			var txn DeployAccountTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case TransactionType_Invoke:
+		case TransactionTypeInvoke:
 			var txn InvokeTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case TransactionType_L1Handler:
+		case TransactionTypeL1Handler:
 			var txn L1HandlerTxnTrace
 			err := remarshal(casted, &txn)
 

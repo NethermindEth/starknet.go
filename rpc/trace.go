@@ -34,7 +34,7 @@ func (provider *Provider) TraceTransaction(
 	}
 
 	switch rawTxnTrace["type"] {
-	case string(TransactionType_Invoke):
+	case string(TransactionTypeInvoke):
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -42,7 +42,7 @@ func (provider *Provider) TraceTransaction(
 		}
 
 		return trace, nil
-	case string(TransactionType_Declare):
+	case string(TransactionTypeDeclare):
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -50,7 +50,7 @@ func (provider *Provider) TraceTransaction(
 		}
 
 		return trace, nil
-	case string(TransactionType_DeployAccount):
+	case string(TransactionTypeDeployAccount):
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -58,7 +58,7 @@ func (provider *Provider) TraceTransaction(
 		}
 
 		return trace, nil
-	case string(TransactionType_L1Handler):
+	case string(TransactionTypeL1Handler):
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -84,7 +84,7 @@ func (provider *Provider) TraceBlockTransactions(
 	ctx context.Context,
 	blockID BlockID,
 ) ([]Trace, error) {
-	err := checkForPre_confirmed(blockID)
+	err := checkForPreConfirmed(blockID)
 	if err != nil {
 		return nil, err
 	}

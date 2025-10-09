@@ -151,7 +151,7 @@ func TestSimulateTransaction(t *testing.T) {
 			{
 				SimulateTxnInputFile: expectedInputFile,
 				ExpectedRespFile:     expectedRespFile,
-				AnotherBlockID:       &BlockID{Tag: BlockTagPre_confirmed},
+				AnotherBlockID:       &BlockID{Tag: BlockTagPreConfirmed},
 			},
 			{
 				SimulateTxnInputFile: expectedInputFile,

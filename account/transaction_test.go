@@ -228,7 +228,7 @@ func transferSTRKAndWaitConfirmation(
 		context.Background(),
 		acc.Provider,
 		resp.Hash,
-		rpc.TxnStatus_Accepted_On_L2,
+		rpc.TxnStatusAcceptedOnL2,
 		500*time.Millisecond,
 	)
 	require.NoError(t, err, "Error waiting for transfer transaction status")
@@ -525,7 +525,7 @@ func TestSendInvokeTxn(t *testing.T) {
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
 				InvokeTx: rpc.BroadcastInvokeTxnV3{
 					Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
-					Type:    rpc.TransactionType_Invoke,
+					Type:    rpc.TransactionTypeInvoke,
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
@@ -658,7 +658,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	broadcastTx := rpc.BroadcastDeclareTxnV3{
-		Type:              rpc.TransactionType_Declare,
+		Type:              rpc.TransactionTypeDeclare,
 		SenderAddress:     AccountAddress,
 		CompiledClassHash: compClassHash,
 		Version:           rpc.TransactionV3,
@@ -751,7 +751,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := rpc.DeployAccountTxnV3{
-		Type:                rpc.TransactionType_DeployAccount,
+		Type:                rpc.TransactionTypeDeployAccount,
 		Version:             rpc.TransactionV3,
 		Signature:           []*felt.Felt{},
 		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.

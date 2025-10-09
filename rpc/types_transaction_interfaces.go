@@ -47,7 +47,7 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 	}
 
 	switch TransactionType(txnAsMap["type"].(string)) {
-	case TransactionType_Declare:
+	case TransactionTypeDeclare:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV0:
 			return unmarshalTxnToType[DeclareTxnV0](data)
@@ -62,16 +62,16 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 				"internal error with Declare transaction version and unmarshalTxn()",
 			)
 		}
-	case TransactionType_Deploy:
+	case TransactionTypeDeploy:
 		return unmarshalTxnToType[DeployTxn](data)
-	case TransactionType_DeployAccount:
+	case TransactionTypeDeployAccount:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV1:
 			return unmarshalTxnToType[DeployAccountTxnV1](data)
 		case TransactionV3:
 			return unmarshalTxnToType[DeployAccountTxnV3](data)
 		}
-	case TransactionType_Invoke:
+	case TransactionTypeInvoke:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV0:
 			return unmarshalTxnToType[InvokeTxnV0](data)
@@ -80,7 +80,7 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 		case TransactionV3:
 			return unmarshalTxnToType[InvokeTxnV3](data)
 		}
-	case TransactionType_L1Handler:
+	case TransactionTypeL1Handler:
 		return unmarshalTxnToType[L1HandlerTxn](data)
 	}
 

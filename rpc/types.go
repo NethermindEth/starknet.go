@@ -86,11 +86,11 @@ type StateUpdateOutput struct {
 	BlockHash *felt.Felt `json:"block_hash"`
 	// NewRoot is the new global state root. Nil for pre_confirmed block.
 	NewRoot *felt.Felt `json:"new_root"`
-	Pre_confirmedStateUpdate
+	PreConfirmedStateUpdate
 }
 
 // PRE_CONFIRMED_STATE_UPDATE in spec
-type Pre_confirmedStateUpdate struct {
+type PreConfirmedStateUpdate struct {
 	// OldRoot is the previous global state root.
 	OldRoot   *felt.Felt `json:"old_root"`
 	StateDiff StateDiff  `json:"state_diff"`
@@ -306,9 +306,9 @@ func (s TxnExecutionStatus) String() string {
 type TxnFinalityStatus string
 
 const (
-	TxnFinalityStatusPre_confirmed TxnFinalityStatus = "PRE_CONFIRMED"
-	TxnFinalityStatusAcceptedOnL2  TxnFinalityStatus = "ACCEPTED_ON_L2"
-	TxnFinalityStatusAcceptedOnL1  TxnFinalityStatus = "ACCEPTED_ON_L1"
+	TxnFinalityStatusPreConfirmed TxnFinalityStatus = "PRE_CONFIRMED"
+	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
+	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
@@ -326,7 +326,7 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	}
 	switch unquoted {
 	case "PRE_CONFIRMED":
-		*ts = TxnFinalityStatusPre_confirmed
+		*ts = TxnFinalityStatusPreConfirmed
 	case "ACCEPTED_ON_L2":
 		*ts = TxnFinalityStatusAcceptedOnL2
 	case "ACCEPTED_ON_L1":

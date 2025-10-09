@@ -91,6 +91,9 @@ linters:
       allow-unused: false
       require-explanation: true
       require-specific: true
+    staticcheck:
+      checks:
+        - "all"
   exclusions:
     paths:
       - client/ # it comes from go-ethereum, let's refactor it another time
@@ -133,6 +136,9 @@ linters:
       - linters:
           - lll
         source: '^//go:generate '
+      - linters:
+          - staticcheck
+        path: rpc/mock_test.go
 formatters:
   enable:
     - gci
@@ -146,3 +152,6 @@ formatters:
     goimports:
       local-prefixes:
         - github.com/golangci/golangci-lint
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

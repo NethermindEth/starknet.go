@@ -148,11 +148,11 @@ type TransactionReceipt struct {
 type TransactionType string
 
 const (
-	TransactionType_Declare       TransactionType = "DECLARE"
-	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
-	TransactionType_Deploy        TransactionType = "DEPLOY"
-	TransactionType_Invoke        TransactionType = "INVOKE"
-	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
+	TransactionTypeDeclare       TransactionType = "DECLARE"
+	TransactionTypeDeployAccount TransactionType = "DEPLOY_ACCOUNT"
+	TransactionTypeDeploy        TransactionType = "DEPLOY"
+	TransactionTypeInvoke        TransactionType = "INVOKE"
+	TransactionTypeL1Handler     TransactionType = "L1_HANDLER"
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TransactionType.
@@ -183,15 +183,15 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 
 	switch unquoted {
 	case "DECLARE":
-		*tt = TransactionType_Declare
+		*tt = TransactionTypeDeclare
 	case "DEPLOY_ACCOUNT":
-		*tt = TransactionType_DeployAccount
+		*tt = TransactionTypeDeployAccount
 	case "DEPLOY":
-		*tt = TransactionType_Deploy
+		*tt = TransactionTypeDeploy
 	case "INVOKE":
-		*tt = TransactionType_Invoke
+		*tt = TransactionTypeInvoke
 	case "L1_HANDLER":
-		*tt = TransactionType_L1Handler
+		*tt = TransactionTypeL1Handler
 	default:
 		return fmt.Errorf("unsupported transaction type: %s", data)
 	}
@@ -221,11 +221,11 @@ type ExecutionResources struct {
 type TxnStatus string
 
 const (
-	TxnStatus_Received       TxnStatus = "RECEIVED"
-	TxnStatus_Candidate      TxnStatus = "CANDIDATE"
-	TxnStatus_Pre_confirmed  TxnStatus = "PRE_CONFIRMED"
-	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
-	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
+	TxnStatusReceived     TxnStatus = "RECEIVED"
+	TxnStatusCandidate    TxnStatus = "CANDIDATE"
+	TxnStatusPreConfirmed TxnStatus = "PRE_CONFIRMED"
+	TxnStatusAcceptedOnL2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatusAcceptedOnL1 TxnStatus = "ACCEPTED_ON_L1"
 )
 
 // Transaction status result, including finality status and execution status

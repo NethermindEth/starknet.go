@@ -241,7 +241,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
 				Txn: rpc.DeclareTxnV2{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x1"),
-					Type:    rpc.TransactionType_Declare,
+					Type:    rpc.TransactionTypeDeclare,
 					Version: rpc.TransactionV2,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
@@ -259,7 +259,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 				// https://sepolia.voyager.online/tx/0x30c852c522274765e1d681bc8a84ce7c41118370ef2ba7d18a427ed29f5b155
 				Txn: rpc.DeclareTxnV3{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x2b"),
-					Type:    rpc.TransactionType_Declare,
+					Type:    rpc.TransactionTypeDeclare,
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x5c6a94302ef4b6d80a4c6a3eaf5ad30e11fa13aa78f7397a4f69901ceb12b7"),
@@ -297,7 +297,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
 				Txn: rpc.DeclareTxnV2{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x1"),
-					Type:    rpc.TransactionType_Declare,
+					Type:    rpc.TransactionTypeDeclare,
 					Version: rpc.TransactionV2,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
@@ -365,7 +365,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 			// https://sepolia.voyager.online/tx/0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea
 			Txn: rpc.InvokeTxnV3{
 				Nonce:   internalUtils.TestHexToFelt(t, "0x9803"),
-				Type:    rpc.TransactionType_Invoke,
+				Type:    rpc.TransactionTypeInvoke,
 				Version: rpc.TransactionV3,
 				Signature: []*felt.Felt{
 					internalUtils.TestHexToFelt(
@@ -463,7 +463,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 			// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
 			Txn: rpc.DeployAccountTxnV1{
 				Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
-				Type:    rpc.TransactionType_DeployAccount,
+				Type:    rpc.TransactionTypeDeployAccount,
 				MaxFee:  internalUtils.TestHexToFelt(t, "0x1d2109b99cf94"),
 				Version: rpc.TransactionV1,
 				Signature: []*felt.Felt{
@@ -505,7 +505,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 			// https://sepolia.voyager.online/tx/0x32413f8cee053089d6d7026a72e4108262ca3cfe868dd9159bc1dd160aec975
 			Txn: rpc.DeployAccountTxnV3{
 				Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
-				Type:    rpc.TransactionType_DeployAccount,
+				Type:    rpc.TransactionTypeDeployAccount,
 				Version: rpc.TransactionV3,
 				Signature: []*felt.Felt{
 					internalUtils.TestHexToFelt(

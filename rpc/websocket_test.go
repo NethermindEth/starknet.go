@@ -365,7 +365,7 @@ func TestSubscribeEvents(t *testing.T) {
 				context.Background(),
 				events,
 				&EventSubscriptionInput{
-					FinalityStatus: TxnFinalityStatusPre_confirmed,
+					FinalityStatus: TxnFinalityStatusPreConfirmed,
 				},
 			)
 			if sub != nil {
@@ -390,7 +390,7 @@ func TestSubscribeEvents(t *testing.T) {
 					}
 
 					switch resp.FinalityStatus {
-					case TxnFinalityStatusPre_confirmed:
+					case TxnFinalityStatusPreConfirmed:
 						preConfirmedEventFound = true
 					case TxnFinalityStatusAcceptedOnL2:
 						acceptedOnL2EventFound = true
@@ -721,7 +721,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
 		options := &SubNewTxnReceiptsInput{
-			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed},
+			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactionReceipts(
@@ -741,7 +741,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			select {
 			case resp := <-txnReceipts:
 				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
-				assert.Equal(t, TxnFinalityStatusPre_confirmed, resp.FinalityStatus)
+				assert.Equal(t, TxnFinalityStatusPreConfirmed, resp.FinalityStatus)
 				assert.Empty(t, resp.BlockHash)
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
@@ -763,7 +763,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
 		options := &SubNewTxnReceiptsInput{
 			FinalityStatus: []TxnFinalityStatus{
-				TxnFinalityStatusPre_confirmed,
+				TxnFinalityStatusPreConfirmed,
 				TxnFinalityStatusAcceptedOnL2,
 			},
 		}
@@ -788,7 +788,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
 
-				if resp.FinalityStatus == TxnFinalityStatusPre_confirmed {
+				if resp.FinalityStatus == TxnFinalityStatusPreConfirmed {
 					preConfirmedReceived = true
 				}
 
@@ -934,7 +934,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 						assert.IsType(t, &TxnWithHashAndStatus{}, resp)
 						assert.Equal(
 							t,
-							TxnStatus_Accepted_On_L2,
+							TxnStatusAcceptedOnL2,
 							resp.FinalityStatus,
 						) // default finality status is ACCEPTED_ON_L2
 
@@ -956,7 +956,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -972,7 +972,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			select {
 			case resp := <-newTxns:
 				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus)
+				assert.Equal(t, TxnStatusAcceptedOnL2, resp.FinalityStatus)
 				assert.NotEmpty(t, resp.Transaction)
 				assert.NotEmpty(t, resp.Hash)
 
@@ -992,7 +992,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed},
+			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -1008,7 +1008,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			select {
 			case resp := <-newTxns:
 				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatus_Pre_confirmed, resp.FinalityStatus)
+				assert.Equal(t, TxnStatusPreConfirmed, resp.FinalityStatus)
 				assert.NotEmpty(t, resp.Hash)
 				assert.NotEmpty(t, resp.Transaction)
 
@@ -1028,7 +1028,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed, TxnStatusAcceptedOnL2},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -1049,11 +1049,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.NotEmpty(t, resp.Hash)
 				assert.NotEmpty(t, resp.Transaction)
 
-				if resp.FinalityStatus == TxnStatus_Pre_confirmed {
+				if resp.FinalityStatus == TxnStatusPreConfirmed {
 					preConfirmedReceived = true
 				}
 
-				if resp.FinalityStatus == TxnStatus_Accepted_On_L2 {
+				if resp.FinalityStatus == TxnStatusAcceptedOnL2 {
 					acceptedOnL2Received = true
 				}
 
@@ -1080,10 +1080,10 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
 			FinalityStatus: []TxnStatus{
-				TxnStatus_Received,
-				TxnStatus_Candidate,
-				TxnStatus_Pre_confirmed,
-				TxnStatus_Accepted_On_L2,
+				TxnStatusReceived,
+				TxnStatusCandidate,
+				TxnStatusPreConfirmed,
+				TxnStatusAcceptedOnL2,
 			},
 		}
 
@@ -1108,16 +1108,16 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.NotEmpty(t, resp.Transaction)
 
 				switch resp.FinalityStatus {
-				case TxnStatus_Received:
+				case TxnStatusReceived:
 					t.Log("RECEIVED txn received")
 					receivedReceived = true
-				case TxnStatus_Candidate:
+				case TxnStatusCandidate:
 					t.Log("CANDIDATE txn received")
 					candidateReceived = true
-				case TxnStatus_Pre_confirmed:
+				case TxnStatusPreConfirmed:
 					t.Log("PRE_CONFIRMED txn received")
 					preConfirmedReceived = true
-				case TxnStatus_Accepted_On_L2:
+				case TxnStatusAcceptedOnL2:
 					t.Log("ACCEPTED_ON_L2 txn received")
 					acceptedOnL2Received = true
 				}

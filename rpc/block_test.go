@@ -100,7 +100,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		BlockID                                BlockID
 		ExpectedErr                            error
 		ExpectedBlockWithTxHashes              *BlockTxHashes
-		ExpectedPre_confirmedBlockWithTxHashes *Pre_confirmedBlockTxHashes
+		ExpectedPre_confirmedBlockWithTxHashes *PreConfirmedBlockTxHashes
 	}
 
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
@@ -117,17 +117,17 @@ func TestBlockWithTxHashes(t *testing.T) {
 			Timestamp:        124,
 			SequencerAddress: internalUtils.RANDOM_FELT,
 		},
-		Status:       BlockStatus_AcceptedOnL1,
+		Status:       BlockStatusAcceptedOnL1,
 		Transactions: txHashesMock,
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:     BlockID{Tag: BlockTagPre_confirmed},
+				BlockID:     BlockID{Tag: BlockTagPreConfirmed},
 				ExpectedErr: nil,
-				ExpectedPre_confirmedBlockWithTxHashes: &Pre_confirmedBlockTxHashes{
-					Pre_confirmedBlockHeader{
+				ExpectedPre_confirmedBlockWithTxHashes: &PreConfirmedBlockTxHashes{
+					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        123,
 						SequencerAddress: internalUtils.RANDOM_FELT,
@@ -150,7 +150,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				BlockID:     WithBlockTag(BlockTagPreConfirmed),
 				ExpectedErr: nil,
 			},
 			{
@@ -174,7 +174,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				BlockID:     WithBlockTag(BlockTagPreConfirmed),
 				ExpectedErr: nil,
 			},
 			{
@@ -213,12 +213,12 @@ func TestBlockWithTxHashes(t *testing.T) {
 				if test.ExpectedBlockWithTxHashes != nil {
 					assert.Exactly(t, test.ExpectedBlockWithTxHashes, block)
 				}
-			case *Pre_confirmedBlockTxHashes:
-				pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
+			case *PreConfirmedBlockTxHashes:
+				pBlock, ok := result.(*PreConfirmedBlockTxHashes)
 				require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
 
 				if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
-					validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
+					validatePre_confirmedBlockHeader(t, &pBlock.PreConfirmedBlockHeader)
 				} else {
 					assert.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
 				}
@@ -250,7 +250,7 @@ func TestBlockWithTxs(t *testing.T) {
 	type testSetType struct {
 		BlockID                    BlockID
 		ExpectedBlock              *Block
-		ExpectedPre_confirmedBlock *Pre_confirmedBlock
+		ExpectedPre_confirmedBlock *PreConfirmedBlock
 		InvokeV0Index              int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
 		InvokeV1Index              int
 		InvokeV3Index              int
@@ -274,12 +274,12 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
-				ExpectedPre_confirmedBlock: &Pre_confirmedBlock{
-					Pre_confirmedBlockHeader{
+				ExpectedPre_confirmedBlock: &PreConfirmedBlock{
+					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        1234,
 						SequencerAddress: internalUtils.RANDOM_FELT,
@@ -317,7 +317,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -342,7 +342,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -366,9 +366,9 @@ func TestBlockWithTxs(t *testing.T) {
 			require.NoError(t, err, "Unable to fetch the given block.")
 
 			switch block := blockWithTxsInterface.(type) {
-			case *Pre_confirmedBlock:
+			case *PreConfirmedBlock:
 				if test.ExpectedPre_confirmedBlock == nil {
-					validatePre_confirmedBlockHeader(t, &block.Pre_confirmedBlockHeader)
+					validatePre_confirmedBlockHeader(t, &block.PreConfirmedBlockHeader)
 				} else {
 					assert.Exactly(t, test.ExpectedPre_confirmedBlock, block)
 				}
@@ -465,7 +465,7 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedCount: 10,
 			},
 			{
-				BlockID:       WithBlockTag(BlockTagPre_confirmed),
+				BlockID:       WithBlockTag(BlockTagPreConfirmed),
 				ExpectedCount: 10,
 			},
 			{
@@ -483,7 +483,7 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedCount: 58,
 			},
 			{
-				BlockID:       WithBlockTag(BlockTagPre_confirmed),
+				BlockID:       WithBlockTag(BlockTagPreConfirmed),
 				ExpectedCount: -1,
 			},
 			{
@@ -619,7 +619,7 @@ func TestStateUpdate(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -638,7 +638,7 @@ func TestStateUpdate(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -744,7 +744,7 @@ func assertStateUpdateJSONEquality(t *testing.T, subfield string, expectedResult
 	assert.ElementsMatch(t, expectedResultMap["replaced_classes"], resultMap["replaced_classes"])
 }
 
-func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {
+func validatePre_confirmedBlockHeader(t *testing.T, pBlock *PreConfirmedBlockHeader) {
 	assert.NotZero(t, pBlock.Number)
 	assert.NotZero(t, pBlock.Timestamp)
 	assert.NotZero(t, pBlock.SequencerAddress)

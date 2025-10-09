@@ -83,7 +83,7 @@ func BuildInvokeTxn(
 	}
 
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
-		Type:                  rpc.TransactionType_Invoke,
+		Type:                  rpc.TransactionTypeInvoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
 		Version:               opts.TxnVersion(),
@@ -132,7 +132,7 @@ func BuildDeclareTxn(
 	}
 
 	declareTxn := rpc.BroadcastDeclareTxnV3{
-		Type:                  rpc.TransactionType_Declare,
+		Type:                  rpc.TransactionTypeDeclare,
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
 		Version:               opts.TxnVersion(),
@@ -177,7 +177,7 @@ func BuildDeployAccountTxn(
 	}
 
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
-		Type:                rpc.TransactionType_DeployAccount,
+		Type:                rpc.TransactionTypeDeployAccount,
 		Version:             opts.TxnVersion(),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,

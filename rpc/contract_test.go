@@ -66,7 +66,7 @@ func TestClassAt(t *testing.T) {
 			{
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedOperation: internalUtils.GetSelectorFromNameFelt("name_get").String(),
-				Block:             WithBlockTag(BlockTagPre_confirmed),
+				Block:             WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
@@ -205,7 +205,7 @@ func TestClassHashAt(t *testing.T) {
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 			{
-				Block:             WithBlockTag(BlockTagPre_confirmed),
+				Block:             WithBlockTag(BlockTagPreConfirmed),
 				ContractHash:      internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
@@ -289,7 +289,7 @@ func TestClass(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:         WithBlockTag(BlockTagPre_confirmed),
+				BlockID:         WithBlockTag(BlockTagPreConfirmed),
 				ClassHash:       internalUtils.RANDOM_FELT,
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
@@ -315,7 +315,7 @@ func TestClass(t *testing.T) {
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 			{
-				BlockID:                       WithBlockTag(BlockTagPre_confirmed),
+				BlockID:                       WithBlockTag(BlockTagPreConfirmed),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
@@ -410,7 +410,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				ContractHash:  internalUtils.RANDOM_FELT,
 				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagPre_confirmed),
+				Block:         WithBlockTag(BlockTagPreConfirmed),
 				ExpectedValue: internalUtils.RANDOM_FELT.String(),
 			},
 			{
@@ -444,7 +444,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagPre_confirmed),
+				Block:         WithBlockTag(BlockTagPreConfirmed),
 				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
 			},
 			{
@@ -548,7 +548,7 @@ func TestNonce(t *testing.T) {
 			},
 			{
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           WithBlockTag(BlockTagPre_confirmed),
+				Block:           WithBlockTag(BlockTagPreConfirmed),
 				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
 			{
@@ -674,7 +674,7 @@ func TestEstimateMessageFee(t *testing.T) {
 			},
 			{
 				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagPre_confirmed),
+				BlockID:        WithBlockTag(BlockTagPreConfirmed),
 				ExpectedFeeEst: nil,
 			},
 			{
@@ -864,7 +864,7 @@ func TestEstimateFee(t *testing.T) {
 					bradcastInvokeV3WithNewNonce,
 				},
 				simFlags:      []SimulationFlag{SKIP_VALIDATE},
-				blockID:       WithBlockTag(BlockTagPre_confirmed),
+				blockID:       WithBlockTag(BlockTagPreConfirmed),
 				expectedError: nil,
 				expectedResp:  nil,
 			},
@@ -896,7 +896,7 @@ func TestEstimateFee(t *testing.T) {
 								MaxPricePerUnit: "0x18955dc56",
 							},
 						},
-						Type:                  TransactionType_Invoke,
+						Type:                  TransactionTypeInvoke,
 						Version:               TransactionV3,
 						SenderAddress:         internalUtils.RANDOM_FELT,
 						Nonce:                 &felt.Zero,
@@ -965,7 +965,7 @@ func TestEstimateFee(t *testing.T) {
 								MaxPricePerUnit: "0x18955dc56",
 							},
 						},
-						Type:                  TransactionType_Invoke,
+						Type:                  TransactionTypeInvoke,
 						Version:               TransactionV3,
 						SenderAddress:         internalUtils.RANDOM_FELT,
 						Nonce:                 &felt.Zero,
@@ -1116,7 +1116,7 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagPre_confirmed),
+					BlockID: WithBlockTag(BlockTagPreConfirmed),
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},
@@ -1212,7 +1212,7 @@ func TestGetStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagPre_confirmed),
+					BlockID: WithBlockTag(BlockTagPreConfirmed),
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},

@@ -102,15 +102,15 @@ func TestBlockStatus(t *testing.T) {
 	}{
 		{
 			status: `"PRE_CONFIRMED"`,
-			want:   BlockStatus_Pre_confirmed,
+			want:   BlockStatusPreConfirmed,
 		},
 		{
 			status: `"ACCEPTED_ON_L2"`,
-			want:   BlockStatus_AcceptedOnL2,
+			want:   BlockStatusAcceptedOnL2,
 		},
 		{
 			status: `"ACCEPTED_ON_L1"`,
-			want:   BlockStatus_AcceptedOnL1,
+			want:   BlockStatusAcceptedOnL1,
 		},
 	} {
 		tx := new(BlockStatus)
@@ -151,7 +151,7 @@ func TestBlockWithReceipts(t *testing.T) {
 	type testSetType struct {
 		BlockID                                BlockID
 		ExpectedBlockWithReceipts              *BlockWithReceipts
-		ExpectedPre_confirmedBlockWithReceipts *Pre_confirmedBlockWithReceipts
+		ExpectedPre_confirmedBlockWithReceipts *PreConfirmedBlockWithReceipts
 	}
 
 	var blockWithReceipt BlockWithReceipts
@@ -196,8 +196,8 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	pre_confirmedBlockMock123 := Pre_confirmedBlockWithReceipts{
-		Pre_confirmedBlockHeader{
+	pre_confirmedBlockMock123 := PreConfirmedBlockWithReceipts{
+		PreConfirmedBlockHeader{
 			Number: 1234,
 		},
 		BlockBodyWithReceipts{
@@ -239,7 +239,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				ExpectedPre_confirmedBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                                WithBlockTag(BlockTagPre_confirmed),
+				BlockID:                                WithBlockTag(BlockTagPreConfirmed),
 				ExpectedBlockWithReceipts:              nil,
 				ExpectedPre_confirmedBlockWithReceipts: &pre_confirmedBlockMock123,
 			},
@@ -252,7 +252,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID:                   WithBlockNumber(64159),
@@ -267,7 +267,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID:                   WithBlockNumber(1_300_000),
@@ -301,8 +301,8 @@ func TestBlockWithReceipts(t *testing.T) {
 				if test.ExpectedBlockWithReceipts != nil {
 					assert.Exactly(t, block, test.ExpectedBlockWithReceipts)
 				}
-			case *Pre_confirmedBlockWithReceipts:
-				pBlock, ok := result.(*Pre_confirmedBlockWithReceipts)
+			case *PreConfirmedBlockWithReceipts:
+				pBlock, ok := result.(*PreConfirmedBlockWithReceipts)
 				require.True(t, ok, fmt.Sprintf("should return *Pre_confirmedBlockWithReceipts, instead: %T\n", result))
 
 				if tests.TEST_ENV == tests.MockEnv {

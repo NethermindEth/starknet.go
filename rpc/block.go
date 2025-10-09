@@ -113,8 +113,8 @@ func (provider *Provider) BlockWithTxHashes(
 
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &Pre_confirmedBlockTxHashes{
-			Pre_confirmedBlockHeader{
+		return &PreConfirmedBlockTxHashes{
+			PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -192,8 +192,8 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 	}
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &Pre_confirmedBlock{
-			Pre_confirmedBlockHeader{
+		return &PreConfirmedBlock{
+			PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -234,7 +234,7 @@ func (provider *Provider) BlockWithReceipts(
 
 		return &block, nil
 	} else {
-		var pre_confirmedBlock Pre_confirmedBlockWithReceipts
+		var pre_confirmedBlock PreConfirmedBlockWithReceipts
 		if err := json.Unmarshal(result, &pre_confirmedBlock); err != nil {
 			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}

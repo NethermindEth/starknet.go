@@ -138,7 +138,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		require.NoError(t, innerErr, "Error subscribing to txn status")
 		defer sub.Unsubscribe()
 
-		expectedStatus := rpc.TxnStatus_Received
+		expectedStatus := rpc.TxnStatusReceived
 
 		for {
 			select {
@@ -147,37 +147,37 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 				// (e.g: it can go directly from RECEIVED to ACCEPTED_ON_L2),
 				// we'll only check if the txn has been marked at least as received
 				switch txnStatus.Status.FinalityStatus {
-				case rpc.TxnStatus_Received:
+				case rpc.TxnStatusReceived:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.Equal(t, expectedStatus, rpc.TxnStatus_Received)
+					assert.Equal(t, expectedStatus, rpc.TxnStatusReceived)
 
-					expectedStatus = rpc.TxnStatus_Candidate
-				case rpc.TxnStatus_Candidate:
+					expectedStatus = rpc.TxnStatusCandidate
+				case rpc.TxnStatusCandidate:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
 					assert.NotEqual(
 						t,
 						expectedStatus,
-						rpc.TxnStatus_Received,
+						rpc.TxnStatusReceived,
 						"txn should have been marked as received first",
 					)
 
-					expectedStatus = rpc.TxnStatus_Pre_confirmed
-				case rpc.TxnStatus_Pre_confirmed:
+					expectedStatus = rpc.TxnStatusPreConfirmed
+				case rpc.TxnStatusPreConfirmed:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
 					assert.NotEqual(
 						t,
 						expectedStatus,
-						rpc.TxnStatus_Received,
+						rpc.TxnStatusReceived,
 						"txn should have been marked as received first",
 					)
 
-					expectedStatus = rpc.TxnStatus_Accepted_On_L2
-				case rpc.TxnStatus_Accepted_On_L2:
+					expectedStatus = rpc.TxnStatusAcceptedOnL2
+				case rpc.TxnStatusAcceptedOnL2:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
 					assert.NotEqual(
 						t,
 						expectedStatus,
-						rpc.TxnStatus_Received,
+						rpc.TxnStatusReceived,
 						"txn should have been marked as received first",
 					)
 

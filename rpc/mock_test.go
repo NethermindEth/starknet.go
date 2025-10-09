@@ -1151,10 +1151,10 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 		return errWrongArgs
 	}
 
-	if blockId.Tag == BlockTagPre_confirmed {
+	if blockId.Tag == BlockTagPreConfirmed {
 		pBlock, err := json.Marshal(
-			Pre_confirmedBlock{
-				Pre_confirmedBlockHeader{
+			PreConfirmedBlock{
+				PreConfirmedBlockHeader{
 					Number:           1234,
 					Timestamp:        1234,
 					SequencerAddress: internalUtils.RANDOM_FELT,
@@ -1228,10 +1228,10 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		return err
 	}
 
-	if blockId.Tag == BlockTagPre_confirmed {
+	if blockId.Tag == BlockTagPreConfirmed {
 		pBlock, innerErr := json.Marshal(
-			Pre_confirmedBlockTxHashes{
-				Pre_confirmedBlockHeader{
+			PreConfirmedBlockTxHashes{
+				PreConfirmedBlockHeader{
 					Number:           1234,
 					Timestamp:        123,
 					SequencerAddress: internalUtils.RANDOM_FELT,
@@ -1254,7 +1254,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 					Timestamp:        124,
 					SequencerAddress: internalUtils.RANDOM_FELT,
 				},
-				Status:       BlockStatus_AcceptedOnL1,
+				Status:       BlockStatusAcceptedOnL1,
 				Transactions: txHashes,
 			})
 		if innerErr != nil {
@@ -1284,10 +1284,10 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		return errWrongArgs
 	}
 
-	if blockId.Tag == BlockTagPre_confirmed {
+	if blockId.Tag == BlockTagPreConfirmed {
 		pBlock, innerErr := json.Marshal(
-			Pre_confirmedBlockWithReceipts{
-				Pre_confirmedBlockHeader{
+			PreConfirmedBlockWithReceipts{
+				PreConfirmedBlockHeader{
 					Number: 1234,
 				},
 				BlockBodyWithReceipts{

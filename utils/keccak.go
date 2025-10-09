@@ -213,7 +213,7 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 //   - fact_low: The low part of the fact string in hexadecimal format
 //   - fact_high: The high part of the fact string in hexadecimal format
 //   - err: An error if any
-func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
+func SplitFactStr(fact string) (factLow, factHigh string, err error) {
 	return internalUtils.SplitFactStr(fact)
 }
 

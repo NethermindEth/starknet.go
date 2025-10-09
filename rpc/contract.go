@@ -246,7 +246,7 @@ func (provider *Provider) GetStorageProof(
 	ctx context.Context,
 	storageProofInput StorageProofInput,
 ) (*StorageProofResult, error) {
-	err := checkForPre_confirmed(storageProofInput.BlockID)
+	err := checkForPreConfirmed(storageProofInput.BlockID)
 	if err != nil {
 		return nil, err
 	}

@@ -47,7 +47,7 @@ func (opts *TxnOptions) BlockID() rpc.BlockID {
 		return rpc.WithBlockTag(rpc.BlockTagLatest)
 	}
 
-	return rpc.WithBlockTag(rpc.BlockTagPre_confirmed)
+	return rpc.WithBlockTag(rpc.BlockTagPreConfirmed)
 }
 
 // Returns a `[]rpc.SimulationFlag` containing the SimulationFlag.

@@ -20,8 +20,8 @@ type Block struct {
 	Transactions []BlockTransaction `json:"transactions"`
 }
 
-type Pre_confirmedBlock struct {
-	Pre_confirmedBlockHeader
+type PreConfirmedBlock struct {
+	PreConfirmedBlockHeader
 	Transactions []BlockTransaction `json:"transactions"`
 }
 
@@ -43,8 +43,8 @@ type TransactionWithReceipt struct {
 
 // The dynamic block being constructed by the sequencer. Note that this object
 // will be deprecated upon decentralisation.
-type Pre_confirmedBlockWithReceipts struct {
-	Pre_confirmedBlockHeader
+type PreConfirmedBlockWithReceipts struct {
+	PreConfirmedBlockHeader
 	BlockBodyWithReceipts
 }
 
@@ -55,8 +55,8 @@ type BlockTxHashes struct {
 	Transactions []*felt.Felt `json:"transactions"`
 }
 
-type Pre_confirmedBlockTxHashes struct {
-	Pre_confirmedBlockHeader
+type PreConfirmedBlockTxHashes struct {
+	PreConfirmedBlockHeader
 	Transactions []*felt.Felt `json:"transactions"`
 }
 
@@ -85,7 +85,7 @@ type BlockHeader struct {
 	StarknetVersion string `json:"starknet_version"`
 }
 
-type Pre_confirmedBlockHeader struct {
+type PreConfirmedBlockHeader struct {
 	// The block number of the block that the proposer is currently building.
 	// Note that this is a local view of the node, whose accuracy depends on its
 	// polling interval length.
@@ -117,7 +117,7 @@ type BlockTag string
 
 const (
 	// The block which is currently being built by the block proposer in height `latest` + 1.
-	BlockTagPre_confirmed BlockTag = "pre_confirmed"
+	BlockTagPreConfirmed BlockTag = "pre_confirmed"
 	// The latest Starknet block finalised by the consensus on L2.
 	BlockTagLatest BlockTag = "latest"
 	// The latest Starknet block which was included in a state update on L1 and
@@ -176,7 +176,7 @@ func (b *BlockID) UnmarshalJSON(data []byte) error {
 	var tag string
 
 	if err := json.Unmarshal(data, &tag); err == nil {
-		if tag == string(BlockTagPre_confirmed) || tag == string(BlockTagLatest) ||
+		if tag == string(BlockTagPreConfirmed) || tag == string(BlockTagLatest) ||
 			tag == string(BlockTagL1Accepted) {
 			b.Tag = BlockTag(tag)
 
@@ -201,7 +201,7 @@ func (b *SubscriptionBlockID) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if aux.Tag == BlockTagPre_confirmed || aux.Tag == BlockTagL1Accepted {
+	if aux.Tag == BlockTagPreConfirmed || aux.Tag == BlockTagL1Accepted {
 		return fmt.Errorf("invalid block tag for this type: %s", aux.Tag)
 	}
 
@@ -224,7 +224,7 @@ func (b *SubscriptionBlockID) UnmarshalJSON(data []byte) error {
 //   - []byte: the JSON representation of the BlockID
 //   - error: any error that occurred during the marshalling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
-	if b.Tag == BlockTagPre_confirmed || b.Tag == BlockTagLatest || b.Tag == BlockTagL1Accepted {
+	if b.Tag == BlockTagPreConfirmed || b.Tag == BlockTagLatest || b.Tag == BlockTagL1Accepted {
 		return []byte(strconv.Quote(string(b.Tag))), nil
 	}
 
@@ -244,18 +244,18 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 }
 
 func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
-	if b.Tag == BlockTagPre_confirmed || b.Tag == BlockTagL1Accepted {
+	if b.Tag == BlockTagPreConfirmed || b.Tag == BlockTagL1Accepted {
 		return nil, fmt.Errorf("invalid block tag for this type: %s", b.Tag)
 	}
 
 	return BlockID(b).MarshalJSON()
 }
 
-// checkForPre_confirmed checks if the block ID has the 'pre_confirmed' tag. If it
+// checkForPreConfirmed checks if the block ID has the 'pre_confirmed' tag. If it
 // does, it returns an error. This is used to prevent the user from using the
 // 'pre_confirmed' tag on methods that do not support it.
-func checkForPre_confirmed(b BlockID) error {
-	if b.Tag == BlockTagPre_confirmed {
+func checkForPreConfirmed(b BlockID) error {
+	if b.Tag == BlockTagPreConfirmed {
 		return errors.Join(
 			ErrInvalidBlockID,
 			errors.New("'pre_confirmed' tag is not supported on this method"),
@@ -268,9 +268,9 @@ func checkForPre_confirmed(b BlockID) error {
 type BlockStatus string
 
 const (
-	BlockStatus_Pre_confirmed BlockStatus = "PRE_CONFIRMED"
-	BlockStatus_AcceptedOnL2  BlockStatus = "ACCEPTED_ON_L2"
-	BlockStatus_AcceptedOnL1  BlockStatus = "ACCEPTED_ON_L1"
+	BlockStatusPreConfirmed BlockStatus = "PRE_CONFIRMED"
+	BlockStatusAcceptedOnL2 BlockStatus = "ACCEPTED_ON_L2"
+	BlockStatusAcceptedOnL1 BlockStatus = "ACCEPTED_ON_L1"
 )
 
 // UnmarshalJSON unmarshals the JSON representation of a BlockStatus.
@@ -292,11 +292,11 @@ func (bs *BlockStatus) UnmarshalJSON(data []byte) error {
 
 	switch unquoted {
 	case "PRE_CONFIRMED":
-		*bs = BlockStatus_Pre_confirmed
+		*bs = BlockStatusPreConfirmed
 	case "ACCEPTED_ON_L2":
-		*bs = BlockStatus_AcceptedOnL2
+		*bs = BlockStatusAcceptedOnL2
 	case "ACCEPTED_ON_L1":
-		*bs = BlockStatus_AcceptedOnL1
+		*bs = BlockStatusAcceptedOnL1
 	default:
 		return fmt.Errorf("unsupported status: %s", data)
 	}

@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `curve.SignFelts` function for signing messages with felt.Felt parameters.
 
 ### Changed
+- Major refactoring in types/functions names to match the Go naming conventions.
+  - The majority of types/functions names that contained `_` were renamed to remove the underscore.
 - The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.
   There are some changes in the new package:
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.
@@ -37,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 old `rpc/spy_test.go` file was removed.
 - New `mocks/mock_client.go` file containing a mock of the `client.Client` type (`client.ClientI` interface).
 - New benchmarks and tests for the `typedData` pkg.
+- New linter rules in the `.golangci.yaml` file, thus, a lot of changes in the codebase to fix the new rules.
 
 ## [0.15.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.15.0) - 2025-09-03
 ### Changed

@@ -89,7 +89,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag(BlockTagPre_confirmed),
+				BlockID:               WithBlockTag(BlockTagPreConfirmed),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
