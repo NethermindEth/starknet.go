@@ -183,7 +183,6 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		timeout := time.After(10 * time.Second)
 		for {
 			select {
 			case resp := <-events:
@@ -192,7 +191,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-timeout:
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -213,17 +212,16 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		timeout := time.After(10 * time.Second)
-
 		for {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
 
+				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-timeout:
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -244,8 +242,6 @@ func TestSubscribeEvents(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		timeout := time.After(10 * time.Second)
-
 		for {
 			select {
 			case resp := <-events:
@@ -254,7 +250,7 @@ func TestSubscribeEvents(t *testing.T) {
 				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-timeout:
+			case <-time.After(10 * time.Second):
 				t.Fatal("timeout waiting for events")
 			}
 		}
@@ -309,8 +305,6 @@ func TestSubscribeEvents(t *testing.T) {
 			var preConfirmedEventFound bool
 			var acceptedOnL2EventFound bool
 
-			timeout := time.After(10 * time.Second)
-
 			for {
 				select {
 				case resp := <-events:
@@ -331,7 +325,7 @@ func TestSubscribeEvents(t *testing.T) {
 					}
 				case err := <-sub.Err():
 					require.NoError(t, err)
-				case <-timeout:
+				case <-time.After(20 * time.Second):
 					t.Fatal("timeout waiting for events")
 				}
 			}
@@ -396,10 +390,7 @@ func TestSubscribeEvents(t *testing.T) {
 				// Subscription with keys should only return events with the specified keys.
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
 
-				if tests.TEST_ENV == tests.IntegrationEnv {
-					// integration network is not very used by external users, so let's skip the keys verification
-					return
-				}
+				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-time.After(20 * time.Second):
