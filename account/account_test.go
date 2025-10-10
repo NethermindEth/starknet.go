@@ -91,7 +91,7 @@ func TestFmtCallData(t *testing.T) {
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().
 			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.RANDOM_FELT, nil)
+			Return(internalUtils.DeadBeef, nil)
 		acc, err := account.NewAccount(
 			mockRpcProvider,
 			&felt.Zero,
@@ -150,7 +150,7 @@ func TestChainIdMOCK(t *testing.T) {
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().
 			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.RANDOM_FELT, nil)
+			Return(internalUtils.DeadBeef, nil)
 		acc, err := account.NewAccount(
 			mockRpcProvider,
 			&felt.Zero,
@@ -240,7 +240,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 				ExpectedOutput: true,
 			},
 			{
-				ClassHash:      internalUtils.RANDOM_FELT,
+				ClassHash:      internalUtils.DeadBeef,
 				ExpectedOutput: false,
 			},
 		},
@@ -263,7 +263,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 			// Create the account
 			_, err = account.NewAccount(
 				mockRpcProvider,
-				internalUtils.RANDOM_FELT,
+				internalUtils.DeadBeef,
 				"pubkey",
 				account.NewMemKeystore(),
 				account.CairoV2,

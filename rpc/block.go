@@ -234,11 +234,11 @@ func (provider *Provider) BlockWithReceipts(
 
 		return &block, nil
 	} else {
-		var pre_confirmedBlock PreConfirmedBlockWithReceipts
-		if err := json.Unmarshal(result, &pre_confirmedBlock); err != nil {
+		var preConfirmedBlock PreConfirmedBlockWithReceipts
+		if err := json.Unmarshal(result, &preConfirmedBlock); err != nil {
 			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
-		return &pre_confirmedBlock, nil
+		return &preConfirmedBlock, nil
 	}
 }

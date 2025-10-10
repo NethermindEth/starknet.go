@@ -45,8 +45,8 @@ func TestClassAt(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				ContractAddress:   internalUtils.RANDOM_FELT,
-				ExpectedOperation: internalUtils.RANDOM_FELT.String(),
+				ContractAddress:   internalUtils.DeadBeef,
+				ExpectedOperation: internalUtils.DeadBeef.String(),
 				Block:             WithBlockNumber(58344),
 			},
 		},
@@ -175,8 +175,8 @@ func TestClassHashAt(t *testing.T) {
 		tests.MockEnv: {
 			{
 				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.RANDOM_FELT,
-				ExpectedClassHash: internalUtils.RANDOM_FELT,
+				ContractHash:      internalUtils.DeadBeef,
+				ExpectedClassHash: internalUtils.DeadBeef,
 			},
 		},
 		tests.DevnetEnv: {
@@ -290,7 +290,7 @@ func TestClass(t *testing.T) {
 		tests.MockEnv: {
 			{
 				BlockID:         WithBlockTag(BlockTagPreConfirmed),
-				ClassHash:       internalUtils.RANDOM_FELT,
+				ClassHash:       internalUtils.DeadBeef,
 				ExpectedProgram: "H4sIAAAAAAAA",
 			},
 		},
@@ -408,22 +408,22 @@ func TestStorageAt(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				ContractHash:  internalUtils.RANDOM_FELT,
+				ContractHash:  internalUtils.DeadBeef,
 				StorageKey:    "_signer",
 				Block:         WithBlockTag(BlockTagPreConfirmed),
-				ExpectedValue: internalUtils.RANDOM_FELT.String(),
+				ExpectedValue: internalUtils.DeadBeef.String(),
 			},
 			{
-				ContractHash:  internalUtils.RANDOM_FELT,
+				ContractHash:  internalUtils.DeadBeef,
 				StorageKey:    "_signer",
 				Block:         WithBlockTag(BlockTagLatest),
-				ExpectedValue: internalUtils.RANDOM_FELT.String(),
+				ExpectedValue: internalUtils.DeadBeef.String(),
 			},
 			{
-				ContractHash:  internalUtils.RANDOM_FELT,
+				ContractHash:  internalUtils.DeadBeef,
 				StorageKey:    "_signer",
 				Block:         WithBlockTag(BlockTagL1Accepted),
-				ExpectedValue: internalUtils.RANDOM_FELT.String(),
+				ExpectedValue: internalUtils.DeadBeef.String(),
 			},
 		},
 		tests.DevnetEnv: {
@@ -638,13 +638,13 @@ func TestEstimateMessageFee(t *testing.T) {
 				BlockID:   BlockID{Tag: "latest"},
 				ExpectedFeeEst: &MessageFeeEstimation{
 					FeeEstimationCommon: FeeEstimationCommon{
-						L1GasConsumed:     internalUtils.RANDOM_FELT,
-						L1GasPrice:        internalUtils.RANDOM_FELT,
-						L2GasConsumed:     internalUtils.RANDOM_FELT,
-						L2GasPrice:        internalUtils.RANDOM_FELT,
-						L1DataGasConsumed: internalUtils.RANDOM_FELT,
-						L1DataGasPrice:    internalUtils.RANDOM_FELT,
-						OverallFee:        internalUtils.RANDOM_FELT,
+						L1GasConsumed:     internalUtils.DeadBeef,
+						L1GasPrice:        internalUtils.DeadBeef,
+						L2GasConsumed:     internalUtils.DeadBeef,
+						L2GasPrice:        internalUtils.DeadBeef,
+						L1DataGasConsumed: internalUtils.DeadBeef,
+						L1DataGasPrice:    internalUtils.DeadBeef,
+						OverallFee:        internalUtils.DeadBeef,
 					},
 					Unit: WeiUnit,
 				},
@@ -685,8 +685,8 @@ func TestEstimateMessageFee(t *testing.T) {
 			{ // invalid msg data
 				MsgFromL1: MsgFromL1{
 					FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-					ToAddress:   internalUtils.RANDOM_FELT,
-					Selector:    internalUtils.RANDOM_FELT,
+					ToAddress:   internalUtils.DeadBeef,
+					Selector:    internalUtils.DeadBeef,
 					Payload:     []*felt.Felt{},
 				},
 				BlockID:       WithBlockNumber(523066),
@@ -765,13 +765,13 @@ func TestEstimateFee(t *testing.T) {
 				expectedResp: []FeeEstimation{
 					{
 						FeeEstimationCommon: FeeEstimationCommon{
-							L1GasConsumed:     internalUtils.RANDOM_FELT,
-							L1GasPrice:        internalUtils.RANDOM_FELT,
-							L2GasConsumed:     internalUtils.RANDOM_FELT,
-							L2GasPrice:        internalUtils.RANDOM_FELT,
-							L1DataGasConsumed: internalUtils.RANDOM_FELT,
-							L1DataGasPrice:    internalUtils.RANDOM_FELT,
-							OverallFee:        internalUtils.RANDOM_FELT,
+							L1GasConsumed:     internalUtils.DeadBeef,
+							L1GasPrice:        internalUtils.DeadBeef,
+							L2GasConsumed:     internalUtils.DeadBeef,
+							L2GasPrice:        internalUtils.DeadBeef,
+							L1DataGasConsumed: internalUtils.DeadBeef,
+							L1DataGasPrice:    internalUtils.DeadBeef,
+							OverallFee:        internalUtils.DeadBeef,
 						},
 						Unit: FriUnit,
 					},
@@ -898,7 +898,7 @@ func TestEstimateFee(t *testing.T) {
 						},
 						Type:                  TransactionTypeInvoke,
 						Version:               TransactionV3,
-						SenderAddress:         internalUtils.RANDOM_FELT,
+						SenderAddress:         internalUtils.DeadBeef,
 						Nonce:                 &felt.Zero,
 						Calldata:              []*felt.Felt{},
 						Signature:             []*felt.Felt{},
@@ -967,7 +967,7 @@ func TestEstimateFee(t *testing.T) {
 						},
 						Type:                  TransactionTypeInvoke,
 						Version:               TransactionV3,
-						SenderAddress:         internalUtils.RANDOM_FELT,
+						SenderAddress:         internalUtils.DeadBeef,
 						Nonce:                 &felt.Zero,
 						Calldata:              []*felt.Felt{},
 						Signature:             []*felt.Felt{},

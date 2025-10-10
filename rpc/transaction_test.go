@@ -291,12 +291,12 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x123",
 				ExpectedResp: []MessageStatus{
 					{
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
 					{
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},

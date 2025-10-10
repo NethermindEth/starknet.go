@@ -63,12 +63,12 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.RANDOM_FELT,
+					ContractAddress:    internalUtils.DeadBeef,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag(BlockTagLatest),
-				ExpectedPatternResult: internalUtils.RANDOM_FELT,
+				ExpectedPatternResult: internalUtils.DeadBeef,
 			},
 		},
 		tests.TestnetEnv: {
@@ -135,7 +135,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "ContractNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.RANDOM_FELT,
+					ContractAddress:    internalUtils.DeadBeef,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},

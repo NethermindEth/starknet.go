@@ -21,12 +21,12 @@ func init() {
 }
 
 // Validates whether the RPC_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
-func GetRpcProviderUrl() string {
+func GetRPCProviderURL() string {
 	return getEnv("RPC_PROVIDER_URL")
 }
 
 // Validates whether the WS_PROVIDER_URL variable has been set in the '.env' file and returns it; panics otherwise.
-func GetWsProviderUrl() string {
+func GetWsProviderURL() string {
 	return getEnv("WS_PROVIDER_URL")
 }
 

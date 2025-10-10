@@ -28,7 +28,7 @@ func main() {
 	fmt.Println("Starting deployContractUDC example")
 
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderUrl := setup.GetRPCProviderURL()
 	accountAddress := setup.GetAccountAddress()
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()

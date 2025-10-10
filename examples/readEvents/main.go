@@ -25,11 +25,11 @@ import (
 // different ways of narrowing down event queries for efficient data retrieval.
 func main() {
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
-	wsProviderUrl := setup.GetWsProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
+	wsProviderURL := setup.GetWsProviderURL()
 
 	// Initialise connection to RPC provider
-	provider, err := rpc.NewProvider(rpcProviderUrl)
+	provider, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %v", err))
 	}
@@ -47,7 +47,7 @@ func main() {
 	// optional: filter with websocket
 	filterWithWebsocket(
 		provider,
-		wsProviderUrl,
+		wsProviderURL,
 	) // if the wsProviderUrl is empty, the websocket example will be skipped
 
 	// after all, here is a call with all filters combined
@@ -319,8 +319,8 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	)
 }
 
-func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
-	if websocketUrl == "" {
+func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
+	if websocketURL == "" {
 		fmt.Println("\nNo websocket URL provided. Skipping websocket filter...")
 
 		return
@@ -329,7 +329,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	fmt.Println()
 	fmt.Println(" ----- 4. filter with websocket -----")
 
-	wsProvider, err := rpc.NewWebsocketProvider(websocketUrl)
+	wsProvider, err := rpc.NewWebsocketProvider(websocketURL)
 	if err != nil {
 		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}

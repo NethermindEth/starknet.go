@@ -297,12 +297,12 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		// called when instantiating the account
 		mockRpcProvider.EXPECT().
 			ClassHashAt(gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.RANDOM_FELT, nil).
+			Return(internalUtils.DeadBeef, nil).
 			Times(1)
 		mockRpcProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
 		acnt, err := account.NewAccount(
 			mockRpcProvider,
-			internalUtils.RANDOM_FELT,
+			internalUtils.DeadBeef,
 			pub.String(),
 			ks,
 			account.CairoV2,
@@ -354,7 +354,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 			_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 				{
-					ContractAddress: internalUtils.RANDOM_FELT,
+					ContractAddress: internalUtils.DeadBeef,
 					FunctionName:    "transfer",
 				},
 			}, &account.TxnOptions{
@@ -391,7 +391,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
 				context.Background(),
 				pub,
-				internalUtils.RANDOM_FELT,
+				internalUtils.DeadBeef,
 				[]*felt.Felt{pub},
 				&account.TxnOptions{
 					UseQueryBit: true,
@@ -826,7 +826,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRpcProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.RANDOM_FELT, nil)
+		Return(internalUtils.DeadBeef, nil)
 	acnt, err := account.NewAccount(
 		mockRpcProvider,
 		&felt.Zero,
@@ -1014,7 +1014,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 			nil,
 			nil,
 			&utils.UDCOptions{
-				Salt:              internalUtils.RANDOM_FELT,
+				Salt:              internalUtils.DeadBeef,
 				UDCVersion:        utils.UDCCairoV0,
 				OriginIndependent: true,
 			},
@@ -1061,7 +1061,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 			nil,
 			nil,
 			&utils.UDCOptions{
-				Salt:              internalUtils.RANDOM_FELT,
+				Salt:              internalUtils.DeadBeef,
 				UDCVersion:        utils.UDCCairoV2,
 				OriginIndependent: true,
 			},
@@ -1115,7 +1115,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 			constructorCalldata,
 			nil,
 			&utils.UDCOptions{
-				Salt:              internalUtils.RANDOM_FELT,
+				Salt:              internalUtils.DeadBeef,
 				UDCVersion:        utils.UDCCairoV0,
 				OriginIndependent: true,
 			},
@@ -1154,7 +1154,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 			constructorCalldata,
 			nil,
 			&utils.UDCOptions{
-				Salt:              internalUtils.RANDOM_FELT,
+				Salt:              internalUtils.DeadBeef,
 				UDCVersion:        utils.UDCCairoV2,
 				OriginIndependent: true,
 			},

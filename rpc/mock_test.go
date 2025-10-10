@@ -191,7 +191,7 @@ func mock_starknet_blockHashAndNumber(result interface{}, args ...interface{}) e
 
 	blockData := BlockHashAndNumberOutput{
 		Number: 1234,
-		Hash:   internalUtils.RANDOM_FELT,
+		Hash:   internalUtils.DeadBeef,
 	}
 
 	resp, err := json.Marshal(blockData)
@@ -246,11 +246,11 @@ func mock_starknet_syncing(result interface{}, args ...interface{}) error {
 
 	value := SyncStatus{
 		IsSyncing:         true,
-		StartingBlockHash: internalUtils.RANDOM_FELT,
+		StartingBlockHash: internalUtils.DeadBeef,
 		StartingBlockNum:  1234,
-		CurrentBlockHash:  internalUtils.RANDOM_FELT,
+		CurrentBlockHash:  internalUtils.DeadBeef,
 		CurrentBlockNum:   1234,
-		HighestBlockHash:  internalUtils.RANDOM_FELT,
+		HighestBlockHash:  internalUtils.DeadBeef,
 		HighestBlockNum:   1234,
 	}
 
@@ -791,13 +791,13 @@ func mock_starknet_estimateFee(result interface{}, args ...interface{}) error {
 	} else {
 		output = FeeEstimation{
 			FeeEstimationCommon: FeeEstimationCommon{
-				L1GasConsumed:     internalUtils.RANDOM_FELT,
-				L1GasPrice:        internalUtils.RANDOM_FELT,
-				L2GasConsumed:     internalUtils.RANDOM_FELT,
-				L2GasPrice:        internalUtils.RANDOM_FELT,
-				L1DataGasConsumed: internalUtils.RANDOM_FELT,
-				L1DataGasPrice:    internalUtils.RANDOM_FELT,
-				OverallFee:        internalUtils.RANDOM_FELT,
+				L1GasConsumed:     internalUtils.DeadBeef,
+				L1GasPrice:        internalUtils.DeadBeef,
+				L2GasConsumed:     internalUtils.DeadBeef,
+				L2GasPrice:        internalUtils.DeadBeef,
+				L1DataGasConsumed: internalUtils.DeadBeef,
+				L1DataGasPrice:    internalUtils.DeadBeef,
+				OverallFee:        internalUtils.DeadBeef,
 			},
 			Unit: FriUnit,
 		}
@@ -847,13 +847,13 @@ func mock_starknet_estimateMessageFee(result interface{}, args ...interface{}) e
 
 	output := MessageFeeEstimation{
 		FeeEstimationCommon: FeeEstimationCommon{
-			L1DataGasConsumed: internalUtils.RANDOM_FELT,
-			L1DataGasPrice:    internalUtils.RANDOM_FELT,
-			L1GasConsumed:     internalUtils.RANDOM_FELT,
-			L1GasPrice:        internalUtils.RANDOM_FELT,
-			L2GasConsumed:     internalUtils.RANDOM_FELT,
-			L2GasPrice:        internalUtils.RANDOM_FELT,
-			OverallFee:        internalUtils.RANDOM_FELT,
+			L1DataGasConsumed: internalUtils.DeadBeef,
+			L1DataGasPrice:    internalUtils.DeadBeef,
+			L1GasConsumed:     internalUtils.DeadBeef,
+			L1GasPrice:        internalUtils.DeadBeef,
+			L2GasConsumed:     internalUtils.DeadBeef,
+			L2GasPrice:        internalUtils.DeadBeef,
+			OverallFee:        internalUtils.DeadBeef,
 		},
 		Unit: WeiUnit,
 	}
@@ -1157,18 +1157,18 @@ func mock_starknet_getBlockWithTxs(result interface{}, args ...interface{}) erro
 				PreConfirmedBlockHeader{
 					Number:           1234,
 					Timestamp:        1234,
-					SequencerAddress: internalUtils.RANDOM_FELT,
+					SequencerAddress: internalUtils.DeadBeef,
 					L1GasPrice: ResourcePrice{
-						PriceInFRI: internalUtils.RANDOM_FELT,
-						PriceInWei: internalUtils.RANDOM_FELT,
+						PriceInFRI: internalUtils.DeadBeef,
+						PriceInWei: internalUtils.DeadBeef,
 					},
 					L2GasPrice: ResourcePrice{
-						PriceInFRI: internalUtils.RANDOM_FELT,
-						PriceInWei: internalUtils.RANDOM_FELT,
+						PriceInFRI: internalUtils.DeadBeef,
+						PriceInWei: internalUtils.DeadBeef,
 					},
 					L1DataGasPrice: ResourcePrice{
-						PriceInFRI: internalUtils.RANDOM_FELT,
-						PriceInWei: internalUtils.RANDOM_FELT,
+						PriceInFRI: internalUtils.DeadBeef,
+						PriceInWei: internalUtils.DeadBeef,
 					},
 					L1DAMode:        L1DAModeBlob,
 					StarknetVersion: "0.14.0",
@@ -1234,7 +1234,7 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 				PreConfirmedBlockHeader{
 					Number:           1234,
 					Timestamp:        123,
-					SequencerAddress: internalUtils.RANDOM_FELT,
+					SequencerAddress: internalUtils.DeadBeef,
 				},
 				txHashes,
 			})
@@ -1249,10 +1249,10 @@ func mock_starknet_getBlockWithTxHashes(result interface{}, args ...interface{})
 		block, innerErr := json.Marshal(
 			BlockTxHashes{
 				BlockHeader: BlockHeader{
-					Hash:             internalUtils.RANDOM_FELT,
-					ParentHash:       internalUtils.RANDOM_FELT,
+					Hash:             internalUtils.DeadBeef,
+					ParentHash:       internalUtils.DeadBeef,
 					Timestamp:        124,
-					SequencerAddress: internalUtils.RANDOM_FELT,
+					SequencerAddress: internalUtils.DeadBeef,
 				},
 				Status:       BlockStatusAcceptedOnL1,
 				Transactions: txHashes,
@@ -1294,20 +1294,20 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								Hash: internalUtils.RANDOM_FELT,
+								Hash: internalUtils.DeadBeef,
 								Transaction: InvokeTxnV1{
 									Type:          "INVOKE",
 									Version:       TransactionV1,
-									SenderAddress: internalUtils.RANDOM_FELT,
+									SenderAddress: internalUtils.DeadBeef,
 								},
 							},
 							Receipt: TransactionReceipt{
 								Type:            "INVOKE",
-								Hash:            internalUtils.RANDOM_FELT,
+								Hash:            internalUtils.DeadBeef,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 								ActualFee: FeePayment{
-									Amount: internalUtils.RANDOM_FELT,
+									Amount: internalUtils.DeadBeef,
 									Unit:   UnitFri,
 								},
 							},
@@ -1327,27 +1327,27 @@ func mock_starknet_getBlockWithReceipts(result interface{}, args ...interface{})
 		block, innerErr := json.Marshal(
 			BlockWithReceipts{
 				BlockHeader{
-					Hash: internalUtils.RANDOM_FELT,
+					Hash: internalUtils.DeadBeef,
 				},
 				"ACCEPTED_ON_L1",
 				BlockBodyWithReceipts{
 					Transactions: []TransactionWithReceipt{
 						{
 							Transaction: BlockTransaction{
-								Hash: internalUtils.RANDOM_FELT,
+								Hash: internalUtils.DeadBeef,
 								Transaction: InvokeTxnV1{
 									Type:          "INVOKE",
 									Version:       TransactionV1,
-									SenderAddress: internalUtils.RANDOM_FELT,
+									SenderAddress: internalUtils.DeadBeef,
 								},
 							},
 							Receipt: TransactionReceipt{
 								Type:            "INVOKE",
-								Hash:            internalUtils.RANDOM_FELT,
+								Hash:            internalUtils.DeadBeef,
 								ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 								FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 								ActualFee: FeePayment{
-									Amount: internalUtils.RANDOM_FELT,
+									Amount: internalUtils.DeadBeef,
 									Unit:   UnitFri,
 								},
 							},
@@ -1507,7 +1507,7 @@ func mock_starknet_getCompiledCasm(result interface{}, args ...interface{}) erro
 	}
 
 	// Return error for specific test case
-	if classHash != internalUtils.RANDOM_FELT {
+	if classHash != internalUtils.DeadBeef {
 		return ErrClassHashNotFound
 	}
 
@@ -1551,12 +1551,12 @@ func mock_starknet_getMessagesStatus(result interface{}, args ...interface{}) er
 	// Return mock response for successful case
 	response := []MessageStatus{
 		{
-			Hash:            internalUtils.RANDOM_FELT,
+			Hash:            internalUtils.DeadBeef,
 			FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 		},
 		{
-			Hash:            internalUtils.RANDOM_FELT,
+			Hash:            internalUtils.DeadBeef,
 			FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 			ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 		},

@@ -26,11 +26,11 @@ func main() {
 	fmt.Println("Starting simpleCall example")
 
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
 	accountAddress := setup.GetAccountAddress()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}

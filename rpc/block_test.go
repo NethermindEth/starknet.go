@@ -57,7 +57,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 	if tests.TEST_ENV == tests.MockEnv {
 		require.Equal(
 			t,
-			&BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT},
+			&BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.DeadBeef},
 			blockHashAndNumber,
 		)
 	}
@@ -112,10 +112,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 	})
 	blockMock := BlockTxHashes{
 		BlockHeader: BlockHeader{
-			Hash:             internalUtils.RANDOM_FELT,
-			ParentHash:       internalUtils.RANDOM_FELT,
+			Hash:             internalUtils.DeadBeef,
+			ParentHash:       internalUtils.DeadBeef,
 			Timestamp:        124,
-			SequencerAddress: internalUtils.RANDOM_FELT,
+			SequencerAddress: internalUtils.DeadBeef,
 		},
 		Status:       BlockStatusAcceptedOnL1,
 		Transactions: txHashesMock,
@@ -130,13 +130,13 @@ func TestBlockWithTxHashes(t *testing.T) {
 					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        123,
-						SequencerAddress: internalUtils.RANDOM_FELT,
+						SequencerAddress: internalUtils.DeadBeef,
 					},
 					txHashesMock,
 				},
 			},
 			{
-				BlockID:                   BlockID{Hash: internalUtils.RANDOM_FELT},
+				BlockID:                   BlockID{Hash: internalUtils.DeadBeef},
 				ExpectedBlockWithTxHashes: &blockMock,
 			},
 			{
@@ -282,18 +282,18 @@ func TestBlockWithTxs(t *testing.T) {
 					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        1234,
-						SequencerAddress: internalUtils.RANDOM_FELT,
+						SequencerAddress: internalUtils.DeadBeef,
 						L1GasPrice: ResourcePrice{
-							PriceInFRI: internalUtils.RANDOM_FELT,
-							PriceInWei: internalUtils.RANDOM_FELT,
+							PriceInFRI: internalUtils.DeadBeef,
+							PriceInWei: internalUtils.DeadBeef,
 						},
 						L2GasPrice: ResourcePrice{
-							PriceInFRI: internalUtils.RANDOM_FELT,
-							PriceInWei: internalUtils.RANDOM_FELT,
+							PriceInFRI: internalUtils.DeadBeef,
+							PriceInWei: internalUtils.DeadBeef,
 						},
 						L1DataGasPrice: ResourcePrice{
-							PriceInFRI: internalUtils.RANDOM_FELT,
-							PriceInWei: internalUtils.RANDOM_FELT,
+							PriceInFRI: internalUtils.DeadBeef,
+							PriceInWei: internalUtils.DeadBeef,
 						},
 						L1DAMode:        L1DAModeBlob,
 						StarknetVersion: "0.14.0",

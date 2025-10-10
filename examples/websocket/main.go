@@ -13,10 +13,10 @@ func main() {
 	fmt.Println("Starting websocket example")
 
 	// Load variables from '.env' file
-	wsProviderUrl := setup.GetWsProviderUrl()
+	wsProviderURL := setup.GetWsProviderURL()
 
 	// Initialise connection to WS provider
-	wsClient, err := rpc.NewWebsocketProvider(wsProviderUrl)
+	wsClient, err := rpc.NewWebsocketProvider(wsProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the WS provider: %s", err))
 	}

@@ -167,27 +167,27 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	blockMock123 := BlockWithReceipts{
 		BlockHeader{
-			Hash: internalUtils.RANDOM_FELT,
+			Hash: internalUtils.DeadBeef,
 		},
 		"ACCEPTED_ON_L1",
 		BlockBodyWithReceipts{
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						Hash: internalUtils.RANDOM_FELT,
+						Hash: internalUtils.DeadBeef,
 						Transaction: InvokeTxnV1{
 							Type:          "INVOKE",
 							Version:       TransactionV1,
-							SenderAddress: internalUtils.RANDOM_FELT,
+							SenderAddress: internalUtils.DeadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
 						Type:            "INVOKE",
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 						ActualFee: FeePayment{
-							Amount: internalUtils.RANDOM_FELT,
+							Amount: internalUtils.DeadBeef,
 							Unit:   UnitFri,
 						},
 					},
@@ -204,20 +204,20 @@ func TestBlockWithReceipts(t *testing.T) {
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						Hash: internalUtils.RANDOM_FELT,
+						Hash: internalUtils.DeadBeef,
 						Transaction: InvokeTxnV1{
 							Type:          "INVOKE",
 							Version:       TransactionV1,
-							SenderAddress: internalUtils.RANDOM_FELT,
+							SenderAddress: internalUtils.DeadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
 						Type:            "INVOKE",
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 						ActualFee: FeePayment{
-							Amount: internalUtils.RANDOM_FELT,
+							Amount: internalUtils.DeadBeef,
 							Unit:   UnitFri,
 						},
 					},

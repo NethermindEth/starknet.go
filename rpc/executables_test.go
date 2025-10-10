@@ -29,7 +29,7 @@ func TestCompiledCasm(t *testing.T) {
 		tests.MockEnv: {
 			{
 				Description:        "success - get compiled CASM",
-				ClassHash:          internalUtils.RANDOM_FELT,
+				ClassHash:          internalUtils.DeadBeef,
 				ExpectedResultPath: "./testData/compiledCasm/sepolia.json",
 			},
 			{

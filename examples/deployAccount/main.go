@@ -22,7 +22,7 @@ var predeployedClassHash = "0x61dac032f228abef9c6626f995015233097ae253a7f72d6855
 // and prepares for the account deployment transaction.
 func main() {
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderUrl := setup.GetRPCProviderURL()
 
 	// Initialise the client.
 	client, err := rpc.NewProvider(rpcProviderUrl)

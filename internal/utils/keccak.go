@@ -307,7 +307,7 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 //   - err: An error if any
 //
 //nolint:mnd // There's a comment explaining each magic number.
-func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
+func SplitFactStr(fact string) (factLow, factHigh string, err error) {
 	numStr := strings.ReplaceAll(fact, "0x", "")
 	factBN, ok := new(big.Int).SetString(numStr, 16) // hex base
 	if !ok {

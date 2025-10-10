@@ -68,11 +68,11 @@ func TestSyncing(t *testing.T) {
 	if tests.TEST_ENV == tests.MockEnv {
 		value := SyncStatus{
 			IsSyncing:         true,
-			StartingBlockHash: internalUtils.RANDOM_FELT,
+			StartingBlockHash: internalUtils.DeadBeef,
 			StartingBlockNum:  1234,
-			CurrentBlockHash:  internalUtils.RANDOM_FELT,
+			CurrentBlockHash:  internalUtils.DeadBeef,
 			CurrentBlockNum:   1234,
-			HighestBlockHash:  internalUtils.RANDOM_FELT,
+			HighestBlockHash:  internalUtils.DeadBeef,
 			HighestBlockNum:   1234,
 		}
 		assert.Exactly(t, value, sync)

@@ -141,7 +141,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 				mockRpcProvider.EXPECT().
 					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-					Return(internalUtils.RANDOM_FELT, nil)
+					Return(internalUtils.DeadBeef, nil)
 				acc, err = account.NewAccount(
 					mockRpcProvider,
 					test.AccountAddress,
@@ -207,7 +207,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRpcProvider.EXPECT().
 			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.RANDOM_FELT, nil)
+			Return(internalUtils.DeadBeef, nil)
 		acnt, err = account.NewAccount(
 			mockRpcProvider,
 			&felt.Zero,
@@ -345,7 +345,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRpcProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.RANDOM_FELT, nil)
+		Return(internalUtils.DeadBeef, nil)
 	acnt, err := account.NewAccount(
 		mockRpcProvider,
 		&felt.Zero,
@@ -441,7 +441,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRpcProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.RANDOM_FELT, nil)
+		Return(internalUtils.DeadBeef, nil)
 
 	acnt, err := account.NewAccount(
 		mockRpcProvider,

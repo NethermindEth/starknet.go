@@ -25,7 +25,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 	}{
 		{
 			name:      "UDC Cairo V0 with default options",
-			classHash: internalUtils.RANDOM_FELT,
+			classHash: internalUtils.DeadBeef,
 			constructorCalldata: []*felt.Felt{
 				new(felt.Felt).SetUint64(100),
 				new(felt.Felt).SetUint64(200),
@@ -38,7 +38,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:                  "UDC Cairo V0 with custom salt",
-			classHash:             internalUtils.RANDOM_FELT,
+			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{new(felt.Felt).SetUint64(100)},
 			opts:                  &UDCOptions{Salt: new(felt.Felt).SetUint64(999)},
 			expectedUDCAddress:    udcAddressCairoV0,
@@ -48,7 +48,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:                  "UDC Cairo V0 with origin independent",
-			classHash:             internalUtils.RANDOM_FELT,
+			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{},
 			opts:                  &UDCOptions{OriginIndependent: true},
 			expectedUDCAddress:    udcAddressCairoV0,
@@ -58,7 +58,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:      "UDC Cairo V2 with default options",
-			classHash: internalUtils.RANDOM_FELT,
+			classHash: internalUtils.DeadBeef,
 			constructorCalldata: []*felt.Felt{
 				new(felt.Felt).SetUint64(100),
 				new(felt.Felt).SetUint64(200),
@@ -71,7 +71,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:                  "UDC Cairo V2 with origin independent",
-			classHash:             internalUtils.RANDOM_FELT,
+			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{new(felt.Felt).SetUint64(100)},
 			opts:                  &UDCOptions{UDCVersion: UDCCairoV2, OriginIndependent: true},
 			expectedUDCAddress:    udcAddressCairoV2,
@@ -81,7 +81,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:                "UDC Cairo V2 with custom salt and origin independent",
-			classHash:           internalUtils.RANDOM_FELT,
+			classHash:           internalUtils.DeadBeef,
 			constructorCalldata: []*felt.Felt{},
 			opts: &UDCOptions{
 				UDCVersion:        UDCCairoV2,
@@ -95,7 +95,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:                  "Empty constructor calldata",
-			classHash:             internalUtils.RANDOM_FELT,
+			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{},
 			opts:                  nil,
 			expectedUDCAddress:    udcAddressCairoV0,
@@ -112,7 +112,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 		},
 		{
 			name:                "Invalid UDC version",
-			classHash:           internalUtils.RANDOM_FELT,
+			classHash:           internalUtils.DeadBeef,
 			constructorCalldata: []*felt.Felt{new(felt.Felt).SetUint64(100)},
 			opts:                &UDCOptions{UDCVersion: 999}, // Invalid version
 			expectedError:       errInvalidUDCVersion,

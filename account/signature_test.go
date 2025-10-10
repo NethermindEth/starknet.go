@@ -27,7 +27,7 @@ func TestVerify(t *testing.T) {
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRpcProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.RANDOM_FELT, nil)
+		Return(internalUtils.DeadBeef, nil)
 
 	ks := account.NewMemKeystore()
 	accAddress := internalUtils.TestHexToFelt(
