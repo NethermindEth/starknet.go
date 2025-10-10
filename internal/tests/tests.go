@@ -12,11 +12,12 @@ import (
 )
 
 // The environment for the test defined by the `-env` flag. If not set, default: mock
-var TEST_ENV TestEnv
+var TEST_ENV TestEnv //nolint:staticcheck //Only used in tests
 
 // An enum representing the environments for the test.
 type TestEnv string
 
+//nolint:staticcheck // Only used in tests
 const (
 	MockEnv           TestEnv = "mock"
 	IntegrationEnv    TestEnv = "integration"

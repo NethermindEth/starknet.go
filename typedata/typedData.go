@@ -29,13 +29,13 @@ type TypedData struct {
 type Domain struct {
 	Name     string `json:"name"`
 	Version  string `json:"version"`
-	ChainId  string `json:"chainId"`
+	ChainID  string `json:"chainId"`
 	Revision uint8  `json:"revision,omitempty"`
 
 	// Flags to deal with edge cases, used to marshal the `Domain` exactly
 	// as it is in the original JSON.
-	hasStringChainId  bool `json:"-"`
-	hasOldChainIdName bool `json:"-"`
+	hasStringChainID  bool `json:"-"`
+	hasOldChainIDName bool `json:"-"`
 	HasStringRevision bool `json:"-"`
 }
 
@@ -1058,7 +1058,7 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 
 	// Custom logic to handle the `chainId` field,
 	// used to marshal the ChainId exactly as it is in the original JSON.
-	rawChainId, ok := dec["chainId"]
+	rawChainID, ok := dec["chainId"]
 	if !ok {
 		err = errors.New("error getting the value of 'chainId' from 'domain' JSON field")
 		if numRevision == 1 {
@@ -1067,32 +1067,32 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 
 		// `chain_id` was also used in the past, so we check for it if the `chainId` field is not found
 		// ref: https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66
-		rawChainId, ok = dec["chain_id"]
+		rawChainID, ok = dec["chain_id"]
 		if !ok {
 			err2 := errors.New("error getting the value of 'chain_id' from 'domain' JSON field")
 
 			return fmt.Errorf("%w: %w", err, err2)
 		}
-		domain.hasOldChainIdName = true
+		domain.hasOldChainIDName = true
 	}
 
-	switch rawChainId.(type) {
+	switch rawChainID.(type) {
 	case string:
-		domain.hasStringChainId = true
+		domain.hasStringChainID = true
 	case float64:
-		domain.hasStringChainId = false
+		domain.hasStringChainID = false
 	}
-	chainId := fmt.Sprintf("%v", rawChainId)
+	chainID := fmt.Sprintf("%v", rawChainID)
 
 	// Final step
 	*domain = Domain{
 		Name:     name,
 		Version:  version,
-		ChainId:  chainId,
+		ChainID:  chainID,
 		Revision: uint8(numRevision),
 
-		hasStringChainId:  domain.hasStringChainId,
-		hasOldChainIdName: domain.hasOldChainIdName,
+		hasStringChainID:  domain.hasStringChainID,
+		hasOldChainIDName: domain.hasOldChainIDName,
 		HasStringRevision: domain.HasStringRevision,
 	}
 
@@ -1102,15 +1102,15 @@ func (domain *Domain) UnmarshalJSON(data []byte) error {
 // MarshalJSON implements the json.Marshaler interface for Domain.
 // Some logic was added to marshal the `Domain` exactly as it is in the original JSON.
 func (domain Domain) MarshalJSON() ([]byte, error) {
-	var chainId any
+	var chainID any
 	var revision any
 	var err error
 
 	// E.g: if it's `1`, we will marshal it as `1`, not `"1"`.
-	if domain.hasStringChainId {
-		chainId = domain.ChainId
+	if domain.hasStringChainID {
+		chainID = domain.ChainID
 	} else {
-		chainId, err = strconv.Atoi(domain.ChainId)
+		chainID, err = strconv.Atoi(domain.ChainID)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse 'chain_id' value: %w", err)
 		}
@@ -1134,21 +1134,21 @@ func (domain Domain) MarshalJSON() ([]byte, error) {
 	var temp struct {
 		Name       string `json:"name"`
 		Version    string `json:"version"`
-		ChainIdOld any    `json:"chain_id,omitempty"` // old chainId json name
-		ChainIdNew any    `json:"chainId,omitempty"`  // new chainId json name
+		ChainIDOld any    `json:"chain_id,omitempty"` // old chainId json name
+		ChainIDNew any    `json:"chainId,omitempty"`  // new chainId json name
 		Revision   any    `json:"revision,omitempty"`
 	}
 	temp.Name = domain.Name
 	temp.Version = domain.Version
 	temp.Revision = revision
 
-	if domain.hasOldChainIdName {
-		temp.ChainIdOld = chainId
+	if domain.hasOldChainIDName {
+		temp.ChainIDOld = chainID
 
 		return json.Marshal(temp)
 	}
 
-	temp.ChainIdNew = chainId
+	temp.ChainIDNew = chainID
 
 	return json.Marshal(temp)
 }

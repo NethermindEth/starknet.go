@@ -138,8 +138,8 @@ func FeltArrToStringArr(f []*felt.Felt) []string {
 func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	// TODO: make this helper return no error
 
-	const SHORT_LENGTH = 31
-	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
+	const shortLength = 31
+	exp := fmt.Sprintf(".{1,%d}", shortLength)
 	r := regexp.MustCompile(exp)
 
 	arr := r.FindAllString(s, -1)
@@ -151,7 +151,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	var count, size uint64
 
 	for _, val := range arr {
-		if len(val) == SHORT_LENGTH {
+		if len(val) == shortLength {
 			count += 1
 		} else {
 			size = uint64(len(val))
@@ -191,7 +191,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 //
 //nolint:lll // The link would be unclickable if we break the line.
 func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
-	const SHORT_LENGTH = 31
+	const shortLength = 31
 
 	if len(arr) < 3 {
 		return "", errors.New("invalid felt array, require atleast 3 elements in array")
@@ -201,7 +201,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	pendingWordLength := arr[len(arr)-1].Uint64()
 
 	// pending word length is in the range [0, SHORT_LENGTH-1]
-	if pendingWordLength > SHORT_LENGTH-1 {
+	if pendingWordLength > shortLength-1 {
 		return "", errors.New("invalid felt array, invalid pending word length")
 	}
 
@@ -221,7 +221,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	}
 
 	for index := range count {
-		res[index] = bytesFeltToString(arr[1+index], SHORT_LENGTH)
+		res[index] = bytesFeltToString(arr[1+index], shortLength)
 	}
 
 	if pendingWordLength != 0 {

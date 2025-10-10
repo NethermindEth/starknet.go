@@ -20,10 +20,10 @@ type SimulateTransactionInput struct {
 type SimulationFlag string
 
 const (
-	SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"
+	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
 	// Flags that indicate how to simulate a given transaction. By default, the
 	// sequencer behaviour is replicated locally
-	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
+	SkipValidate SimulationFlag = "SKIP_VALIDATE"
 )
 
 type SimulatedTransaction struct {

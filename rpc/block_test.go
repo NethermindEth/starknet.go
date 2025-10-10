@@ -97,10 +97,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                                BlockID
-		ExpectedErr                            error
-		ExpectedBlockWithTxHashes              *BlockTxHashes
-		ExpectedPre_confirmedBlockWithTxHashes *PreConfirmedBlockTxHashes
+		BlockID                               BlockID
+		ExpectedErr                           error
+		ExpectedBlockWithTxHashes             *BlockTxHashes
+		ExpectedPreConfirmedBlockWithTxHashes *PreConfirmedBlockTxHashes
 	}
 
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
@@ -126,7 +126,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			{
 				BlockID:     BlockID{Tag: BlockTagPreConfirmed},
 				ExpectedErr: nil,
-				ExpectedPre_confirmedBlockWithTxHashes: &PreConfirmedBlockTxHashes{
+				ExpectedPreConfirmedBlockWithTxHashes: &PreConfirmedBlockTxHashes{
 					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        123,
@@ -217,10 +217,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 				pBlock, ok := result.(*PreConfirmedBlockTxHashes)
 				require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
 
-				if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
-					validatePre_confirmedBlockHeader(t, &pBlock.PreConfirmedBlockHeader)
+				if test.ExpectedPreConfirmedBlockWithTxHashes == nil {
+					validatePreConfirmedBlockHeader(t, &pBlock.PreConfirmedBlockHeader)
 				} else {
-					assert.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
+					assert.Exactly(t, test.ExpectedPreConfirmedBlockWithTxHashes, pBlock)
 				}
 			default:
 				t.Fatalf("unexpected block type, found: %T\n", resultType)
@@ -248,20 +248,20 @@ func TestBlockWithTxs(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                    BlockID
-		ExpectedBlock              *Block
-		ExpectedPre_confirmedBlock *PreConfirmedBlock
-		InvokeV0Index              int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		InvokeV1Index              int
-		InvokeV3Index              int
-		DeclareV0Index             int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		DeclareV1Index             int
-		DeclareV2Index             int
-		DeclareV3Index             int // TODO: implement testcase
-		DeployAccountV1Index       int
-		DeployAccountV3Index       int // TODO: implement testcase
-		L1HandlerV0Index           int
-		DeployV0Index              int // TODO: implement testcase
+		BlockID                   BlockID
+		ExpectedBlock             *Block
+		ExpectedPreConfirmedBlock *PreConfirmedBlock
+		InvokeV0Index             int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		InvokeV1Index             int
+		InvokeV3Index             int
+		DeclareV0Index            int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		DeclareV1Index            int
+		DeclareV2Index            int
+		DeclareV3Index            int // TODO: implement testcase
+		DeployAccountV1Index      int
+		DeployAccountV3Index      int // TODO: implement testcase
+		L1HandlerV0Index          int
+		DeployV0Index             int // TODO: implement testcase
 	}
 
 	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs65083.json", "result")
@@ -278,7 +278,7 @@ func TestBlockWithTxs(t *testing.T) {
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
-				ExpectedPre_confirmedBlock: &PreConfirmedBlock{
+				ExpectedPreConfirmedBlock: &PreConfirmedBlock{
 					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        1234,
@@ -367,10 +367,10 @@ func TestBlockWithTxs(t *testing.T) {
 
 			switch block := blockWithTxsInterface.(type) {
 			case *PreConfirmedBlock:
-				if test.ExpectedPre_confirmedBlock == nil {
-					validatePre_confirmedBlockHeader(t, &block.PreConfirmedBlockHeader)
+				if test.ExpectedPreConfirmedBlock == nil {
+					validatePreConfirmedBlockHeader(t, &block.PreConfirmedBlockHeader)
 				} else {
-					assert.Exactly(t, test.ExpectedPre_confirmedBlock, block)
+					assert.Exactly(t, test.ExpectedPreConfirmedBlock, block)
 				}
 			case *Block:
 				if test.ExpectedBlock == nil {
@@ -744,7 +744,7 @@ func assertStateUpdateJSONEquality(t *testing.T, subfield string, expectedResult
 	assert.ElementsMatch(t, expectedResultMap["replaced_classes"], resultMap["replaced_classes"])
 }
 
-func validatePre_confirmedBlockHeader(t *testing.T, pBlock *PreConfirmedBlockHeader) {
+func validatePreConfirmedBlockHeader(t *testing.T, pBlock *PreConfirmedBlockHeader) {
 	assert.NotZero(t, pBlock.Number)
 	assert.NotZero(t, pBlock.Timestamp)
 	assert.NotZero(t, pBlock.SequencerAddress)

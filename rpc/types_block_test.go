@@ -149,9 +149,9 @@ func TestBlockWithReceipts(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                                BlockID
-		ExpectedBlockWithReceipts              *BlockWithReceipts
-		ExpectedPre_confirmedBlockWithReceipts *PreConfirmedBlockWithReceipts
+		BlockID                               BlockID
+		ExpectedBlockWithReceipts             *BlockWithReceipts
+		ExpectedPreConfirmedBlockWithReceipts *PreConfirmedBlockWithReceipts
 	}
 
 	var blockWithReceipt BlockWithReceipts
@@ -196,7 +196,7 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	pre_confirmedBlockMock123 := PreConfirmedBlockWithReceipts{
+	preConfirmedBlockMock123 := PreConfirmedBlockWithReceipts{
 		PreConfirmedBlockHeader{
 			Number: 1234,
 		},
@@ -229,19 +229,19 @@ func TestBlockWithReceipts(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:                                WithBlockTag(BlockTagLatest),
-				ExpectedBlockWithReceipts:              &blockMock123,
-				ExpectedPre_confirmedBlockWithReceipts: nil,
+				BlockID:                               WithBlockTag(BlockTagLatest),
+				ExpectedBlockWithReceipts:             &blockMock123,
+				ExpectedPreConfirmedBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                                WithBlockTag(BlockTagL1Accepted),
-				ExpectedBlockWithReceipts:              &blockMock123,
-				ExpectedPre_confirmedBlockWithReceipts: nil,
+				BlockID:                               WithBlockTag(BlockTagL1Accepted),
+				ExpectedBlockWithReceipts:             &blockMock123,
+				ExpectedPreConfirmedBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                                WithBlockTag(BlockTagPreConfirmed),
-				ExpectedBlockWithReceipts:              nil,
-				ExpectedPre_confirmedBlockWithReceipts: &pre_confirmedBlockMock123,
+				BlockID:                               WithBlockTag(BlockTagPreConfirmed),
+				ExpectedBlockWithReceipts:             nil,
+				ExpectedPreConfirmedBlockWithReceipts: &preConfirmedBlockMock123,
 			},
 		},
 		tests.TestnetEnv: {
@@ -306,7 +306,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				require.True(t, ok, fmt.Sprintf("should return *Pre_confirmedBlockWithReceipts, instead: %T\n", result))
 
 				if tests.TEST_ENV == tests.MockEnv {
-					assert.Exactly(t, pBlock, test.ExpectedPre_confirmedBlockWithReceipts)
+					assert.Exactly(t, pBlock, test.ExpectedPreConfirmedBlockWithReceipts)
 				} else {
 					assert.NotEmpty(t, pBlock.Number, "Error in Pre_confirmedBlockWithReceipts ParentHash")
 					assert.NotEmpty(t, pBlock.SequencerAddress, "Error in Pre_confirmedBlockWithReceipts SequencerAddress")

@@ -31,6 +31,8 @@ func debugProof(t *testing.T, proofs []*big.Int) {
 // Returns:
 //
 //	none
+//
+//nolint:staticcheck // Best readability
 func TestGeneral_FixedSizeMerkleTree_Check1(t *testing.T) {
 	leaves := []*big.Int{
 		big.NewInt(1),

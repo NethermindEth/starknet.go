@@ -782,7 +782,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					bradcastInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockTag("latest"),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
@@ -830,7 +830,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					bradcastInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{
@@ -853,7 +853,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					bradcastInvokeV3WithNewNonce,
 				},
-				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockTag(BlockTagLatest),
 				expectedError: nil,
 				expectedResp:  nil,
@@ -863,7 +863,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					bradcastInvokeV3WithNewNonce,
 				},
-				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockTag(BlockTagPreConfirmed),
 				expectedError: nil,
 				expectedResp:  nil,
@@ -873,7 +873,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					bradcastInvokeV3WithNewNonce,
 				},
-				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockTag(BlockTagL1Accepted),
 				expectedError: nil,
 				expectedResp:  nil,
@@ -929,7 +929,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SKIP_VALIDATE},
+				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 				expectedResp: []FeeEstimation{

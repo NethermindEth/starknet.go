@@ -127,16 +127,16 @@ func TestTxnOptions(t *testing.T) {
 			{
 				name: "SKIP_VALIDATE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SKIP_VALIDATE,
+					SimulationFlag: rpc.SkipValidate,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_VALIDATE},
+				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipValidate},
 			},
 			{
 				name: "SKIP_FEE_CHARGE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SKIP_FEE_CHARGE,
+					SimulationFlag: rpc.SkipFeeCharge,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_FEE_CHARGE},
+				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipFeeCharge},
 			},
 		}
 
