@@ -33,12 +33,11 @@ type SimulatedTransaction struct {
 
 type TxnTrace interface{}
 
-//nolint:exhaustruct // Just asserting interface implementations.
 var (
-	_ TxnTrace = InvokeTxnTrace{}
-	_ TxnTrace = DeclareTxnTrace{}
-	_ TxnTrace = DeployAccountTxnTrace{}
-	_ TxnTrace = L1HandlerTxnTrace{}
+	_ TxnTrace = (*InvokeTxnTrace)(nil)
+	_ TxnTrace = (*DeclareTxnTrace)(nil)
+	_ TxnTrace = (*DeployAccountTxnTrace)(nil)
+	_ TxnTrace = (*L1HandlerTxnTrace)(nil)
 )
 
 // the execution trace of an invoke transaction

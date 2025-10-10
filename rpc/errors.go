@@ -16,12 +16,11 @@ type (
 	StringErrData = rpcerr.StringErrData
 )
 
-//nolint:exhaustruct // Just asserting interface implementations.
 var (
-	_ rpcerr.RPCData = &CompilationErrData{}
-	_ rpcerr.RPCData = &ContractErrData{}
-	_ rpcerr.RPCData = &TransactionExecErrData{}
-	_ rpcerr.RPCData = &TraceStatusErrData{}
+	_ rpcerr.RPCData = (*CompilationErrData)(nil)
+	_ rpcerr.RPCData = (*ContractErrData)(nil)
+	_ rpcerr.RPCData = (*TransactionExecErrData)(nil)
+	_ rpcerr.RPCData = (*TraceStatusErrData)(nil)
 )
 
 //nolint:exhaustruct // Omitting the Data field for errors that don't have data.

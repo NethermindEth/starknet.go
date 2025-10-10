@@ -71,7 +71,7 @@ type AccountInterface interface {
 	) (*rpc.TransactionReceiptWithBlockInfo, error)
 }
 
-var _ AccountInterface = &Account{} //nolint:exhaustruct // Just asserting interface implementation.
+var _ AccountInterface = (*Account)(nil)
 
 type Account struct {
 	Provider     rpc.RpcProvider

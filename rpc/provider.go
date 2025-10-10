@@ -209,8 +209,7 @@ type WebsocketProvider interface {
 	) (*client.ClientSubscription, error)
 }
 
-//nolint:exhaustruct // Just asserting interface implementations.
 var (
-	_ RpcProvider       = &Provider{}
-	_ WebsocketProvider = &WsProvider{}
+	_ RpcProvider       = (*Provider)(nil)
+	_ WebsocketProvider = (*WsProvider)(nil)
 )

@@ -67,7 +67,7 @@ func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error) {
 //   - s: The s component of the signature
 //   - error: An error if any occurred during the signing process
 func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
-	g1Affline := starkcurve.G1Affine{} //nolint:exhaustruct // just a struct initialization
+	var g1Affline starkcurve.G1Affine
 	// generating pub and priv key types from the 'privKey' parameter
 	g1a := g1Affline.ScalarMultiplicationBase(privKey)
 
@@ -161,7 +161,7 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 //   - x: The x-coordinate of the point on the curve
 //   - y: The y-coordinate of the point on the curve
 func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
-	g1Affline := starkcurve.G1Affine{} //nolint:exhaustruct // just a struct initialization
+	var g1Affline starkcurve.G1Affine
 	res := g1Affline.ScalarMultiplicationBase(privKey)
 
 	return res.X.BigInt(new(big.Int)), res.Y.BigInt(new(big.Int))
