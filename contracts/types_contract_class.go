@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -122,7 +123,9 @@ func encodeProgram(content []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	gzipContent.Close()
+	if err := gzipContent.Close(); err != nil {
+		log.Printf("Error closing gzip content: %v", err)
+	}
 	program := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 	return program, nil

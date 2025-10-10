@@ -71,8 +71,6 @@ linters:
         - "1"
         - "2"
         - "3"
-      ignored-functions:
-        - strings.SplitN
     nolintlint:
       allow-unused: false
       require-explanation: true
@@ -87,8 +85,6 @@ linters:
     presets:
       - comments
       - common-false-positives
-      - legacy
-      - std-error-handling
     rules:
       - linters:
           - exhaustruct

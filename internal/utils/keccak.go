@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"hash"
-	"log"
 	"math/big"
 	"strings"
 
@@ -202,11 +201,14 @@ func Keccak256(data ...[]byte) []byte {
 	b := make([]byte, 32) //nolint:mnd // 32 bytes = 256 bits, necessary for keccak256
 	d := NewKeccakState()
 	for _, b := range data {
-		d.Write(b)
+		_, err := d.Write(b)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if _, err := d.Read(b); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return b

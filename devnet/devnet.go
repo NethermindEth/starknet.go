@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"strings"
@@ -84,7 +85,7 @@ func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	var accounts []TestAccount
 	err = json.NewDecoder(resp.Body).Decode(&accounts)
@@ -117,7 +118,7 @@ func (devnet *DevNet) IsAlive() bool {
 	if err != nil {
 		return false
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	return resp.StatusCode == http.StatusOK
 }
@@ -160,7 +161,7 @@ func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	var mint MintResponse
 	err = json.NewDecoder(resp.Body).Decode(&mint)
@@ -195,10 +196,17 @@ func (devnet *DevNet) FeeToken() (*FeeToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	var token FeeToken
 	err = json.NewDecoder(resp.Body).Decode(&token)
 
 	return &token, err
+}
+
+// closeBody closes the response body and logs any errors.
+func closeBody(resp *http.Response) {
+	if err := resp.Body.Close(); err != nil {
+		log.Printf("Error closing response body: %v", err)
+	}
 }

@@ -271,7 +271,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 			require.NoError(t, err)
 
 			// Close the writer and restore stdout
-			w.Close()
+			require.NoError(t, w.Close())
 			os.Stdout = oldStdout
 
 			// Read the captured output
