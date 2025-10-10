@@ -33,7 +33,7 @@ func TestFmtCallData(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		CairoVersion     account.CairoVersion
@@ -126,7 +126,7 @@ func TestChainIdMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		ChainID    string
@@ -211,7 +211,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		ClassHash      *felt.Felt

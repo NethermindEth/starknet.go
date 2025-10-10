@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Major refactoring in types/functions names to match the Go naming conventions.
   - All type/function names that contained `_` have been renamed to remove the underscore.
   - The `typedData` pkg was renamed to `typedata`.
+  - The `rpc.Provider.GetStorageProof` method was renamed to `rpc.Provider.StorageProof`.
+  - The `rpc.Provider.GetTransactionStatus` method was renamed to `rpc.Provider.TransactionStatus`.
+  - The `rpc.Provider.GetMessagesStatus` method was renamed to `rpc.Provider.MessagesStatus`.
+  - The `rpc.Provider.TransactionByBlockIdAndIndex` method was renamed to `rpc.Provider.TransactionByBlockIDAndIndex` (see the 'ID').
+  - The `rpc.RpcProvider` interface was renamed to `rpc.RPCProvider`.
   - Other renames in exported types/fields/variables:
     - `typedData.Domain.ChainId` -> `typedData.Domain.ChainID`
     - `rpc.SKIP_FEE_CHARGE` -> `rpc.SkipFeeCharge`

@@ -156,7 +156,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
-			tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(
+			tx, err := testConfig.Provider.TransactionByBlockIDAndIndex(
 				context.Background(),
 				test.BlockID,
 				test.Index,
@@ -264,7 +264,7 @@ func TestGetTransactionStatus(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.GetTransactionStatus(context.Background(), test.TxnHash)
+		resp, err := testConfig.Provider.TransactionStatus(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, resp.FinalityStatus, test.ExpectedResp.FinalityStatus)
 		require.Equal(t, resp.ExecutionStatus, test.ExpectedResp.ExecutionStatus)
@@ -332,7 +332,7 @@ func TestGetMessagesStatus(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(string(test.TxHash), func(t *testing.T) {
-			resp, err := testConfig.Provider.GetMessagesStatus(context.Background(), test.TxHash)
+			resp, err := testConfig.Provider.MessagesStatus(context.Background(), test.TxHash)
 			if test.ExpectedErr != nil {
 				require.EqualError(t, err, test.ExpectedErr.Error())
 			} else {

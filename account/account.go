@@ -74,7 +74,7 @@ type AccountInterface interface {
 var _ AccountInterface = (*Account)(nil)
 
 type Account struct {
-	Provider     rpc.RpcProvider
+	Provider     rpc.RPCProvider
 	ChainID      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string
@@ -106,7 +106,7 @@ const (
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
 func NewAccount(
-	provider rpc.RpcProvider,
+	provider rpc.RPCProvider,
 	accountAddress *felt.Felt,
 	publicKey string,
 	keystore Keystore,

@@ -28,7 +28,7 @@ func (provider *Provider) TransactionByHash(
 	return &tx, nil
 }
 
-// TransactionByBlockIdAndIndex retrieves a transaction by its block ID and index.
+// TransactionByBlockIDAndIndex retrieves a transaction by its block ID and index.
 //
 // Parameters:
 //   - ctx: The context.Context object for the request.
@@ -38,7 +38,7 @@ func (provider *Provider) TransactionByHash(
 // Returns:
 //   - BlockTransaction: The retrieved Transaction object
 //   - error: An error, if any
-func (provider *Provider) TransactionByBlockIdAndIndex(
+func (provider *Provider) TransactionByBlockIDAndIndex(
 	ctx context.Context,
 	blockID BlockID,
 	index uint64,
@@ -75,7 +75,7 @@ func (provider *Provider) TransactionReceipt(
 	return &receipt, nil
 }
 
-// GetTransactionStatus gets the transaction status (possibly reflecting that
+// TransactionStatus gets the transaction status (possibly reflecting that
 // the tx is still in the mempool, or dropped from it)
 // Parameters:
 //   - ctx: the context.Context object for cancellation and timeouts.
@@ -85,7 +85,7 @@ func (provider *Provider) TransactionReceipt(
 //   - *TxnStatusResult: Transaction status result, including finality status
 //     and execution status
 //   - error, if one arose.
-func (provider *Provider) GetTransactionStatus(
+func (provider *Provider) TransactionStatus(
 	ctx context.Context,
 	transactionHash *felt.Felt,
 ) (*TxnStatusResult, error) {
@@ -109,7 +109,7 @@ func (provider *Provider) GetTransactionStatus(
 //   - [] MessageStatusResp: An array containing the status of the messages sent
 //     by the L1 transaction
 //   - error, if one arose.
-func (provider *Provider) GetMessagesStatus(
+func (provider *Provider) MessagesStatus(
 	ctx context.Context,
 	transactionHash NumAsHex,
 ) ([]MessageStatus, error) {

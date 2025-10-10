@@ -239,7 +239,7 @@ func transferSTRKAndWaitConfirmation(
 // TODO: make it an exported utility function
 func waitForTransactionStatus(
 	ctx context.Context,
-	provider rpc.RpcProvider,
+	provider rpc.RPCProvider,
 	transactionHash *felt.Felt,
 	txnStatus rpc.TxnStatus,
 	pollInterval time.Duration,
@@ -250,7 +250,7 @@ func waitForTransactionStatus(
 		case <-ctx.Done():
 			return rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
-			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
+			returnedTxnStatus, err := provider.TransactionStatus(ctx, transactionHash)
 			if err != nil {
 				rpcErr := err.(*rpc.RPCError)
 				if rpcErr.Code == rpc.ErrHashNotFound.Code &&
@@ -286,7 +286,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
 
 		ctrl := gomock.NewController(t)
-		mockRPCProvider := mocks.NewMockRpcProvider(ctrl)
+		mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
 
 		mockRPCProvider.EXPECT().
 			Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -820,7 +820,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691

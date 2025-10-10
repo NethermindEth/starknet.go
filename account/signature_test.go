@@ -22,7 +22,7 @@ func TestVerify(t *testing.T) {
 
 	// setup mock account
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRPCProvider.EXPECT().

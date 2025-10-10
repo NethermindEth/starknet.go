@@ -242,7 +242,7 @@ func (provider *Provider) EstimateMessageFee(
 //   - error: an error if any occurred during the execution
 //
 //nolint:gocritic //TODO: pass the input as a pointer
-func (provider *Provider) GetStorageProof(
+func (provider *Provider) StorageProof(
 	ctx context.Context,
 	storageProofInput StorageProofInput,
 ) (*StorageProofResult, error) {

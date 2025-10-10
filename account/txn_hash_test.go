@@ -35,7 +35,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		ExpectedHash   *felt.Felt
@@ -202,7 +202,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	if tests.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
-		mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+		mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 		mockRPCProvider.EXPECT().
@@ -340,7 +340,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRPCProvider.EXPECT().
@@ -436,7 +436,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
 	mockRPCProvider.EXPECT().

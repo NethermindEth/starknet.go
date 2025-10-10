@@ -1235,7 +1235,7 @@ func TestGetStorageProof(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			result, err := testConfig.Provider.GetStorageProof(
+			result, err := testConfig.Provider.StorageProof(
 				context.Background(),
 				test.StorageProofInput,
 			)

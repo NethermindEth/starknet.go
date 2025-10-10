@@ -104,7 +104,7 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 }
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
-type RpcProvider interface {
+type RPCProvider interface {
 	AddInvokeTransaction(
 		ctx context.Context,
 		invokeTxn *BroadcastInvokeTxnV3,
@@ -145,12 +145,7 @@ type RpcProvider interface {
 		blockID BlockID,
 	) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
-	GetStorageProof(
-		ctx context.Context,
-		storageProofInput StorageProofInput,
-	) (*StorageProofResult, error)
-	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
-	GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
+	MessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	SimulateTransactions(
 		ctx context.Context,
@@ -158,6 +153,7 @@ type RpcProvider interface {
 		txns []BroadcastTxn,
 		simulationFlags []SimulationFlag,
 	) ([]SimulatedTransaction, error)
+	SpecVersion(ctx context.Context) (string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(
 		ctx context.Context,
@@ -165,10 +161,14 @@ type RpcProvider interface {
 		key string,
 		blockID BlockID,
 	) (string, error)
-	SpecVersion(ctx context.Context) (string, error)
+	StorageProof(
+		ctx context.Context,
+		storageProofInput StorageProofInput,
+	) (*StorageProofResult, error)
 	Syncing(ctx context.Context) (SyncStatus, error)
 	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
-	TransactionByBlockIdAndIndex(
+	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
+	TransactionByBlockIDAndIndex(
 		ctx context.Context,
 		blockID BlockID,
 		index uint64,
@@ -178,7 +178,7 @@ type RpcProvider interface {
 		ctx context.Context,
 		transactionHash *felt.Felt,
 	) (*TransactionReceiptWithBlockInfo, error)
-	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
+	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
 }
 
 type WebsocketProvider interface {
@@ -210,6 +210,6 @@ type WebsocketProvider interface {
 }
 
 var (
-	_ RpcProvider       = (*Provider)(nil)
+	_ RPCProvider       = (*Provider)(nil)
 	_ WebsocketProvider = (*WsProvider)(nil)
 )
