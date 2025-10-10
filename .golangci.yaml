@@ -52,9 +52,10 @@ linters:
     gocyclo:
       min-complexity: 15
     govet:
-      enable:
-        - nilness
-        - shadow
+      enable-all: true
+      disable:
+        # Since we are a library, we need to also take into account the UX when aligning fields.
+        - fieldalignment
     lll:
       line-length: 100
     misspell:
