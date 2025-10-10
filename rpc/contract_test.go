@@ -954,6 +954,11 @@ func TestGetStorageProof(t *testing.T) {
 
 	testConfig := BeforeEach(t, false)
 
+	provider, err := NewProvider(testConfig.Base)
+	require.NoError(t, err)
+	spy := tests.NewJSONRPCSpy(provider.c)
+	provider.c = spy
+
 	type testSetType struct {
 		Description       string
 		StorageProofInput StorageProofInput
@@ -1163,7 +1168,7 @@ func TestGetStorageProof(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			result, err := testConfig.Provider.GetStorageProof(context.Background(), test.StorageProofInput)
+			result, err := provider.GetStorageProof(context.Background(), test.StorageProofInput)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
@@ -1175,27 +1180,11 @@ func TestGetStorageProof(t *testing.T) {
 			require.NotNil(t, result, "empty result from starknet_getStorageProof")
 
 			// verify JSON equality
-			var rawResult any
-
-			// call the RPC method directly to get the raw result
-			input := test.StorageProofInput
-			input.BlockID = WithBlockHash(
-				result.GlobalRoots.BlockHash,
-			) // using the same block returned by GetStorageProof to avoid temporal coupling
-			err = testConfig.Provider.c.CallContext(
-				context.Background(),
-				&rawResult,
-				"starknet_getStorageProof",
-				input,
-			)
-			require.NoError(t, err)
-			// marshal the results to JSON
-			rawResultJSON, err := json.Marshal(rawResult)
-			require.NoError(t, err)
-			resultJSON, err := json.Marshal(result)
+			rawResult := spy.LastResponse()
+			marshalledResult, err := json.Marshal(result)
 			require.NoError(t, err)
 
-			assertStorageProofJSONEquality(t, rawResultJSON, resultJSON)
+			assertStorageProofJSONEquality(t, rawResult, marshalledResult)
 		})
 	}
 }
