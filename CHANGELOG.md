@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Major refactoring in types/functions names to match the Go naming conventions.
-  - The majority of types/functions names that contained `_` were renamed to remove the underscore.
+  - All type/function names that contained `_` have been renamed to remove the underscore.
+  - The `typedData` pkg was renamed to `typedata`.
 - The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.
   There are some changes in the new package:
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.

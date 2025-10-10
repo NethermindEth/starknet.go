@@ -1,4 +1,4 @@
-package typedData
+package typedata
 
 import (
 	"bytes"
