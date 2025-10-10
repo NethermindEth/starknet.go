@@ -1,0 +1,149 @@
+# BlockTransactionCount
+
+Gets the number of transactions in a specific block.
+
+## Method Signature
+
+```go
+func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - Block identifier (number, hash, or tag)
+
+## Returns
+
+- `uint64` - Number of transactions in the block
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get transaction count for latest block
+    blockID := rpc.WithBlockTag("latest")
+    txCount, err := client.BlockTransactionCount(context.Background(), blockID)
+    if err != nil {
+        log.Fatal("Failed to get transaction count:", err)
+    }
+
+    fmt.Printf("Latest block contains %d transactions\n", txCount)
+}
+```
+
+## Expected Output
+
+```
+Latest block contains 1 transactions
+```
+
+## Historical Analysis Example
+
+```go
+// Analyze transaction volume over multiple blocks
+blockNumbers := []uint64{1500000, 1500001, 1500002, 1500003, 1500004}
+totalTxs := uint64(0)
+
+for _, blockNum := range blockNumbers {
+    blockID := rpc.WithBlockNumber(blockNum)
+    txCount, err := client.BlockTransactionCount(context.Background(), blockID)
+    if err != nil {
+        log.Printf("Failed to get tx count for block %d: %v", blockNum, err)
+        continue
+    }
+    
+    fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
+    totalTxs += txCount
+}
+
+fmt.Printf("Total transactions across %d blocks: %d\n", len(blockNumbers), totalTxs)
+fmt.Printf("Average transactions per block: %.2f\n", float64(totalTxs)/float64(len(blockNumbers)))
+```
+
+## Use Cases
+
+- **Network Analytics** - Monitor transaction volume trends
+- **Performance Monitoring** - Track network activity levels
+- **Block Analysis** - Quick block size assessment without downloading full data
+- **Capacity Planning** - Understand network usage patterns
+- **Lightweight Monitoring** - Efficient way to track blockchain activity
+- **Data Validation** - Verify expected transaction counts
+
+## Performance Benefits
+
+- **Minimal Data Transfer** - Returns only a single number
+- **Fast Response** - No need to transfer transaction data
+- **Efficient for Monitoring** - Perfect for dashboards and alerts
+- **Low Resource Usage** - Minimal memory and bandwidth requirements
+
+## Monitoring Example
+
+```go
+// Monitor network activity
+func monitorNetworkActivity(client *rpc.Provider) {
+    ticker := time.NewTicker(30 * time.Second)
+    defer ticker.Stop()
+    
+    for {
+        select {
+        case <-ticker.C:
+            blockID := rpc.WithBlockTag("latest")
+            txCount, err := client.BlockTransactionCount(context.Background(), blockID)
+            if err != nil {
+                log.Printf("Failed to get tx count: %v", err)
+                continue
+            }
+            
+            blockNum, err := client.BlockNumber(context.Background())
+            if err != nil {
+                log.Printf("Failed to get block number: %v", err)
+                continue
+            }
+            
+            fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
+        }
+    }
+}
+```
+
+## Error Handling
+
+```go
+txCount, err := client.BlockTransactionCount(ctx, blockID)
+if err != nil {
+    log.Printf("Error getting transaction count: %v", err)
+    return
+}
+
+if txCount == 0 {
+    fmt.Printf("Block is empty (no transactions)\n")
+} else {
+    fmt.Printf("Block contains %d transactions\n", txCount)
+}
+```
+
+## Comparison with Full Block Methods
+
+| Method | Returns | Use Case |
+|--------|---------|----------|
+| `BlockTransactionCount` | Count only | Quick stats |
+| `BlockWithTxHashes` | Hashes | Transaction references |
+| `BlockWithTxs` | Full transactions | Complete analysis |

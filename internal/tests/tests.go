@@ -28,12 +28,12 @@ const (
 )
 
 func loadEnvFlag() {
-	var testEnvStr string
+	var envStr string
 	// set the environment for the test, default: mock
-	flag.StringVar(&testEnvStr, "env", string(MockEnv), "set the test environment")
+	flag.StringVar(&envStr, "env", string(MockEnv), "set the test environment")
 	flag.Parse()
 
-	TEST_ENV = TestEnv(testEnvStr)
+	TEST_ENV = TestEnv(envStr)
 }
 
 // Loads the environment for the tests. It must be called before `m.Run` in the TestMain function

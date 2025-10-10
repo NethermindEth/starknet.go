@@ -167,9 +167,9 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	// Fund the new account with STRK tokens
 	transferSTRKAndWaitConfirmation(t, acc, overallFee, precomputedAddress)
 
-	// There's something like a bug, a delay in the sequencer in fetching the balance, so let's wait for 2 seconds
+	// There's something like a bug, a delay in the sequencer in fetching the balance, so let's wait for 5 seconds
 	// to be sure that the balance is fetched
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	// Deploy the new account
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)

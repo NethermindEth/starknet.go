@@ -1,0 +1,155 @@
+# BlockWithTxs
+
+Gets a block with all its transactions included as full transaction objects.
+
+## Method Signature
+
+```go
+func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - Block identifier (number, hash, or tag)
+
+## Returns
+
+- `interface{}` - Block with full transaction details
+- `error` - Error if the request fails
+
+## BlockID Options
+
+```go
+// By block number
+blockID := rpc.WithBlockNumber(123456)
+
+// By block hash
+hash := new(felt.Felt).SetBytes([]byte("your_hash_here"))
+blockID := rpc.WithBlockHash(hash)
+
+// By block tag
+blockID := rpc.WithBlockTag("latest")
+```
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get latest block with transactions
+    blockID := rpc.WithBlockTag("latest")
+    block, err := client.BlockWithTxs(context.Background(), blockID)
+    if err != nil {
+        log.Fatal("Failed to get block:", err)
+    }
+
+    // Pretty print the result
+    blockJSON, _ := json.MarshalIndent(block, "", "  ")
+    fmt.Printf("Block with transactions:\n%s\n", blockJSON)
+}
+```
+
+## Expected Output
+
+```json
+{
+  "block_hash": "0x2e0ff7ce49b46b7b8751a08afa1f7f28ea5f0afc352542828372b7be0129bf5",
+  "parent_hash": "0x488d715367d94a233e612dfd6e4ff2a6346163a8aea6dcd0371ca6f675bad6f",
+  "block_number": 1672824,
+  "new_root": "0x178b2898ccffb80f6c443d3eded6b1a6dde475d73764e3f6e4327d93838d4e4",
+  "timestamp": 1755946479,
+  "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+  "l1_gas_price": {
+    "price_in_fri": "0x21de93bcdd19",
+    "price_in_wei": "0x3bc1ac63"
+  },
+  "l2_gas_price": {
+    "price_in_fri": "0xb2d05e00",
+    "price_in_wei": "0x13b7c"
+  },
+  "l1_data_gas_price": {
+    "price_in_fri": "0x9119",
+    "price_in_wei": "0x1"
+  },
+  "l1_da_mode": "BLOB",
+  "starknet_version": "0.14.0",
+  "status": "ACCEPTED_ON_L2",
+  "transactions": [
+    {
+      "transaction_hash": "0x1ccd86546cfb08633327f61cb355e0f3682e656187bfdcf744afdb8b694fff9",
+      "type": "INVOKE",
+      "version": "0x3",
+      "nonce": "0x94e4e",
+      "sender_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+      "calldata": ["0x1", "0x7a6f440b8632053d221c4bfa7fe9d7896a51f9752981934d8e1fe7c106e910b"],
+      "signature": ["0x7bb77924d0615e3e182fc82ec82b3b52645766096577e1e67a041e02c627e55"],
+      "resource_bounds": {
+        "l1_gas": {"max_amount": "0xc350", "max_price_per_unit": "0x8d79883d20000"},
+        "l2_gas": {"max_amount": "0x5f5e100", "max_price_per_unit": "0xba43b7400"}
+      }
+    }
+  ]
+}
+```
+
+The block contains 8 complete transactions with full details including calldata, signatures, and resource bounds.
+
+## Get Specific Block Example
+
+```go
+// Get block by number
+blockNumber := uint64(1500000)
+blockID := rpc.WithBlockNumber(blockNumber)
+block, err := client.BlockWithTxs(context.Background(), blockID)
+if err != nil {
+    log.Fatal("Failed to get block:", err)
+}
+
+fmt.Printf("Retrieved block %d with transactions\n", blockNumber)
+```
+
+## Use Cases
+
+- **Block Analysis** - Examine complete block structure and all transactions
+- **Transaction Verification** - Verify transaction inclusion and details
+- **Block Explorer Development** - Build comprehensive block viewing interfaces  
+- **Historical Data Processing** - Process complete blockchain data
+- **Smart Contract Monitoring** - Track contract interactions within blocks
+- **Fee Analysis** - Study gas usage patterns and resource consumption
+- **Protocol Research** - Analyze Starknet protocol features and usage
+
+## Performance Notes
+
+- Returns large amounts of data for blocks with many transactions
+- Consider using `BlockWithTxHashes()` if you only need transaction hashes
+- Use pagination for processing multiple blocks
+
+## Error Handling
+
+```go
+block, err := client.BlockWithTxs(ctx, blockID)
+if err != nil {
+    log.Printf("Error getting block: %v", err)
+    return
+}
+
+// Block data is ready to use
+fmt.Printf("Successfully retrieved block data\n")
+```
