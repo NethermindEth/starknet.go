@@ -26,12 +26,12 @@ import (
 //   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeEvents(
+func (ws *WsProvider) SubscribeEvents(
 	ctx context.Context,
 	events chan<- *EmittedEventWithFinalityStatus,
 	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
+	sub, err := ws.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
@@ -57,7 +57,7 @@ func (provider *WsProvider) SubscribeEvents(
 //   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeNewHeads(
+func (ws *WsProvider) SubscribeNewHeads(
 	ctx context.Context,
 	headers chan<- *BlockHeader,
 	subBlockID SubscriptionBlockID,
@@ -67,9 +67,9 @@ func (provider *WsProvider) SubscribeNewHeads(
 
 	// if subBlockID is empty, don't send it to the server to avoid it being marshalled as 'null'
 	if subBlockID == (SubscriptionBlockID{}) { //nolint:exhaustruct // Asserting the type
-		sub, err = provider.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
+		sub, err = ws.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
 	} else {
-		sub, err = provider.c.SubscribeWithSliceArgs(
+		sub, err = ws.c.SubscribeWithSliceArgs(
 			ctx, "starknet", "_subscribeNewHeads", headers, subBlockID,
 		)
 	}
@@ -98,12 +98,12 @@ func (provider *WsProvider) SubscribeNewHeads(
 //   - clientSubscription: The client subscription object, used to unsubscribe
 //     from the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeNewTransactionReceipts(
+func (ws *WsProvider) SubscribeNewTransactionReceipts(
 	ctx context.Context,
 	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
 	options *SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(
+	sub, err := ws.c.Subscribe(
 		ctx,
 		"starknet",
 		"_subscribeNewTransactionReceipts",
@@ -133,12 +133,12 @@ func (provider *WsProvider) SubscribeNewTransactionReceipts(
 //   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeNewTransactions(
+func (ws *WsProvider) SubscribeNewTransactions(
 	ctx context.Context,
 	newTxns chan<- *TxnWithHashAndStatus,
 	options *SubNewTxnsInput,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
+	sub, err := ws.c.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
@@ -160,12 +160,12 @@ func (provider *WsProvider) SubscribeNewTransactions(
 //   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
-func (provider *WsProvider) SubscribeTransactionStatus(
+func (ws *WsProvider) SubscribeTransactionStatus(
 	ctx context.Context,
 	newStatus chan<- *NewTxnStatus,
 	transactionHash *felt.Felt,
 ) (*client.ClientSubscription, error) {
-	sub, err := provider.c.SubscribeWithSliceArgs(
+	sub, err := ws.c.SubscribeWithSliceArgs(
 		ctx,
 		"starknet",
 		"_subscribeTransactionStatus",

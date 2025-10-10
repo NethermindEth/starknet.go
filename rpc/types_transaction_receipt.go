@@ -248,15 +248,15 @@ type TransactionReceiptWithBlockInfo struct {
 	BlockNumber uint       `json:"block_number,omitempty"`
 }
 
-func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
+func (tr *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 	aux := &struct {
 		TransactionReceipt
 		BlockHash   string `json:"block_hash,omitempty"`
 		BlockNumber uint   `json:"block_number,omitempty"`
 	}{
-		TransactionReceipt: t.TransactionReceipt,
-		BlockHash:          t.BlockHash.String(),
-		BlockNumber:        t.BlockNumber,
+		TransactionReceipt: tr.TransactionReceipt,
+		BlockHash:          tr.BlockHash.String(),
+		BlockNumber:        tr.BlockNumber,
 	}
 
 	return json.Marshal(aux)

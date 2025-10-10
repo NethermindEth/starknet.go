@@ -257,16 +257,16 @@ const (
 //
 // Returns:
 //   - error: an error if the unmarshaling fails
-func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
+func (ex *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
 	switch unquoted {
 	case "SUCCEEDED":
-		*ts = TxnExecutionStatusSUCCEEDED
+		*ex = TxnExecutionStatusSUCCEEDED
 	case "REVERTED":
-		*ts = TxnExecutionStatusREVERTED
+		*ex = TxnExecutionStatusREVERTED
 	default:
 		return fmt.Errorf("unsupported execution status: %s", data)
 	}
@@ -287,8 +287,8 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 // Returns:
 //   - []byte: the JSON encoding of the TxnExecutionStatus
 //   - error: the error if there was an issue marshalling
-func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(ts))), nil
+func (ex TxnExecutionStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(ex))), nil
 }
 
 // String returns the string representation of the TxnExecutionStatus.
@@ -299,8 +299,8 @@ func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 //
 // Returns:
 //   - string: the string representation of the TxnExecutionStatus
-func (s TxnExecutionStatus) String() string {
-	return string(s)
+func (ex TxnExecutionStatus) String() string {
+	return string(ex)
 }
 
 type TxnFinalityStatus string
@@ -319,18 +319,18 @@ const (
 //
 // Returns:
 //   - error: an error if the unmarshaling fails
-func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
+func (fs *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
 	switch unquoted {
 	case "PRE_CONFIRMED":
-		*ts = TxnFinalityStatusPreConfirmed
+		*fs = TxnFinalityStatusPreConfirmed
 	case "ACCEPTED_ON_L2":
-		*ts = TxnFinalityStatusAcceptedOnL2
+		*fs = TxnFinalityStatusAcceptedOnL2
 	case "ACCEPTED_ON_L1":
-		*ts = TxnFinalityStatusAcceptedOnL1
+		*fs = TxnFinalityStatusAcceptedOnL1
 	default:
 		return fmt.Errorf("unsupported finality status: %s", data)
 	}
@@ -347,8 +347,8 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 // Returns:
 //   - []byte: a byte slice
 //   - error: an error if any
-func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(ts))), nil
+func (fs TxnFinalityStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(fs))), nil
 }
 
 // String returns the string representation of the TxnFinalityStatus.
@@ -359,6 +359,6 @@ func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 //
 // Returns:
 //   - string: the string representation of the TxnFinalityStatus
-func (s TxnFinalityStatus) String() string {
-	return string(s)
+func (fs TxnFinalityStatus) String() string {
+	return string(fs)
 }

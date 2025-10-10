@@ -221,12 +221,12 @@ func (h Hints) MarshalJSON() ([]byte, error) {
 	return json.Marshal([2]interface{}{h.Int, h.HintArr})
 }
 
-func (hints *Hints) Values() (int, []Hint) {
-	return hints.Int, hints.HintArr
+func (h *Hints) Values() (int, []Hint) {
+	return h.Int, h.HintArr
 }
 
-func (hints *Hints) Tuple() [2]any {
-	return [2]any{hints.Int, hints.HintArr}
+func (h *Hints) Tuple() [2]any {
+	return [2]any{h.Int, h.HintArr}
 }
 
 // Can be one of various hint types described in the spec and in the

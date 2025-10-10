@@ -59,8 +59,8 @@ type WsProvider struct {
 }
 
 // Close closes the client, aborting any in-flight requests.
-func (p *WsProvider) Close() {
-	p.c.Close()
+func (ws *WsProvider) Close() {
+	ws.c.Close()
 }
 
 // NewProvider creates a new HTTP rpc Provider instance.
