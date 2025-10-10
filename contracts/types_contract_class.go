@@ -174,13 +174,13 @@ func (ns *NestedString) UnmarshalJSON(data []byte) error {
 		}
 
 		// Replace '\n' to ''
-		out_str := bytes.ReplaceAll(out.Bytes(), []byte{10}, []byte{})
+		outStr := bytes.ReplaceAll(out.Bytes(), []byte{10}, []byte{})
 		// Replace ',"' to ', "'
-		out_str = bytes.ReplaceAll(out_str, []byte{44, 34}, []byte{44, 32, 34})
+		outStr = bytes.ReplaceAll(outStr, []byte{44, 34}, []byte{44, 32, 34})
 		// Replace ',{' to ', {'
-		out_str = bytes.ReplaceAll(out_str, []byte{44, 123}, []byte{44, 32, 123})
+		outStr = bytes.ReplaceAll(outStr, []byte{44, 123}, []byte{44, 32, 123})
 
-		*ns = NestedString(out_str)
+		*ns = NestedString(outStr)
 	}
 
 	return nil

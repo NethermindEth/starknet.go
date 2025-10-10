@@ -22,10 +22,10 @@ func TestVerify(t *testing.T) {
 
 	// setup mock account
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().
+	mockRPCProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 		Return(internalUtils.DeadBeef, nil)
 
@@ -35,7 +35,7 @@ func TestVerify(t *testing.T) {
 		"0x2d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457",
 	)
 	acc, err := account.NewAccount(
-		mockRpcProvider,
+		mockRPCProvider,
 		accAddress,
 		"0x3904dda2cdd58e15dd8667b51a49deec6ce9c53e17b28fffb28fe9ccfddda92",
 		ks,

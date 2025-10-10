@@ -28,14 +28,14 @@ func (account *Account) TransactionHashDeployAccount(
 	switch txn := tx.(type) {
 	// deployAccTxn v1, pointer and struct
 	case *rpc.DeployAccountTxnV1:
-		return hash.TransactionHashDeployAccountV1(txn, contractAddress, account.ChainId)
+		return hash.TransactionHashDeployAccountV1(txn, contractAddress, account.ChainID)
 	case rpc.DeployAccountTxnV1:
-		return hash.TransactionHashDeployAccountV1(&txn, contractAddress, account.ChainId)
+		return hash.TransactionHashDeployAccountV1(&txn, contractAddress, account.ChainID)
 	// deployAccTxn v3, pointer and struct
 	case *rpc.DeployAccountTxnV3:
-		return hash.TransactionHashDeployAccountV3(txn, contractAddress, account.ChainId)
+		return hash.TransactionHashDeployAccountV3(txn, contractAddress, account.ChainID)
 	case rpc.DeployAccountTxnV3:
-		return hash.TransactionHashDeployAccountV3(&txn, contractAddress, account.ChainId)
+		return hash.TransactionHashDeployAccountV3(&txn, contractAddress, account.ChainID)
 	default:
 		return nil, fmt.Errorf(
 			"%w: got '%T' instead of a valid invoke txn type",
@@ -61,19 +61,19 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 	switch txn := tx.(type) {
 	// invoke v0, pointer and struct
 	case *rpc.InvokeTxnV0:
-		return hash.TransactionHashInvokeV0(txn, account.ChainId)
+		return hash.TransactionHashInvokeV0(txn, account.ChainID)
 	case rpc.InvokeTxnV0:
-		return hash.TransactionHashInvokeV0(&txn, account.ChainId)
+		return hash.TransactionHashInvokeV0(&txn, account.ChainID)
 	// invoke v1, pointer and struct
 	case *rpc.InvokeTxnV1:
-		return hash.TransactionHashInvokeV1(txn, account.ChainId)
+		return hash.TransactionHashInvokeV1(txn, account.ChainID)
 	case rpc.InvokeTxnV1:
-		return hash.TransactionHashInvokeV1(&txn, account.ChainId)
+		return hash.TransactionHashInvokeV1(&txn, account.ChainID)
 	// invoke v3, pointer and struct
 	case *rpc.InvokeTxnV3:
-		return hash.TransactionHashInvokeV3(txn, account.ChainId)
+		return hash.TransactionHashInvokeV3(txn, account.ChainID)
 	case rpc.InvokeTxnV3:
-		return hash.TransactionHashInvokeV3(&txn, account.ChainId)
+		return hash.TransactionHashInvokeV3(&txn, account.ChainID)
 	default:
 		return nil, fmt.Errorf(
 			"%w: got '%T' instead of a valid invoke txn type",
@@ -103,24 +103,24 @@ func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Fel
 		return nil, ErrTxnVersionUnSupported
 	// declare v1, pointer and struct
 	case *rpc.DeclareTxnV1:
-		return hash.TransactionHashDeclareV1(txn, account.ChainId)
+		return hash.TransactionHashDeclareV1(txn, account.ChainID)
 	case rpc.DeclareTxnV1:
-		return hash.TransactionHashDeclareV1(&txn, account.ChainId)
+		return hash.TransactionHashDeclareV1(&txn, account.ChainID)
 	// declare v2, pointer and struct
 	case *rpc.DeclareTxnV2:
-		return hash.TransactionHashDeclareV2(txn, account.ChainId)
+		return hash.TransactionHashDeclareV2(txn, account.ChainID)
 	case rpc.DeclareTxnV2:
-		return hash.TransactionHashDeclareV2(&txn, account.ChainId)
+		return hash.TransactionHashDeclareV2(&txn, account.ChainID)
 	// declare v3, pointer and struct
 	case *rpc.DeclareTxnV3:
-		return hash.TransactionHashDeclareV3(txn, account.ChainId)
+		return hash.TransactionHashDeclareV3(txn, account.ChainID)
 	case rpc.DeclareTxnV3:
-		return hash.TransactionHashDeclareV3(&txn, account.ChainId)
+		return hash.TransactionHashDeclareV3(&txn, account.ChainID)
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
-		return hash.TransactionHashBroadcastDeclareV3(txn, account.ChainId)
+		return hash.TransactionHashBroadcastDeclareV3(txn, account.ChainID)
 	case rpc.BroadcastDeclareTxnV3:
-		return hash.TransactionHashBroadcastDeclareV3(&txn, account.ChainId)
+		return hash.TransactionHashBroadcastDeclareV3(&txn, account.ChainID)
 	default:
 		return nil, fmt.Errorf(
 			"%w: got '%T' instead of a valid declare txn type",

@@ -35,7 +35,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
 		ExpectedHash   *felt.Felt
@@ -137,13 +137,13 @@ func TestTransactionHashInvoke(t *testing.T) {
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
 			if tests.TEST_ENV == "mock" {
-				mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+				mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-				mockRpcProvider.EXPECT().
+				mockRPCProvider.EXPECT().
 					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 					Return(internalUtils.DeadBeef, nil)
 				acc, err = account.NewAccount(
-					mockRpcProvider,
+					mockRPCProvider,
 					test.AccountAddress,
 					test.PubKey,
 					ks,
@@ -167,7 +167,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				"transaction hash does not match expected",
 			)
 
-			hash2, err := hash.TransactionHashInvokeV1(&invokeTxn, acc.ChainId)
+			hash2, err := hash.TransactionHashInvokeV1(&invokeTxn, acc.ChainID)
 			require.NoError(t, err)
 			assert.Equal(t, hashResp, hash2)
 		})
@@ -202,14 +202,14 @@ func TestTransactionHashDeclare(t *testing.T) {
 	if tests.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
-		mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+		mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().
+		mockRPCProvider.EXPECT().
 			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 			Return(internalUtils.DeadBeef, nil)
 		acnt, err = account.NewAccount(
-			mockRpcProvider,
+			mockRPCProvider,
 			&felt.Zero,
 			"",
 			account.NewMemKeystore(),
@@ -326,9 +326,9 @@ func TestTransactionHashDeclare(t *testing.T) {
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeclareTxnV2:
-			hash2, err = hash.TransactionHashDeclareV2(&txn, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeclareV2(&txn, acnt.ChainID)
 		case rpc.DeclareTxnV3:
-			hash2, err = hash.TransactionHashDeclareV3(&txn, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeclareV3(&txn, acnt.ChainID)
 		}
 		require.NoError(t, err)
 		assert.Equal(t, hashResp, hash2)
@@ -340,14 +340,14 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().
+	mockRPCProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 		Return(internalUtils.DeadBeef, nil)
 	acnt, err := account.NewAccount(
-		mockRpcProvider,
+		mockRPCProvider,
 		&felt.Zero,
 		"",
 		account.NewMemKeystore(),
@@ -425,7 +425,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 			"TransactionHashInvoke not what expected",
 		)
 
-		hash2, err := hash.TransactionHashInvokeV3(&test.Txn, acnt.ChainId)
+		hash2, err := hash.TransactionHashInvokeV3(&test.Txn, acnt.ChainID)
 		require.NoError(t, err)
 		assert.Equal(t, hashResp, hash2)
 	}
@@ -436,15 +436,15 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().
+	mockRPCProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 		Return(internalUtils.DeadBeef, nil)
 
 	acnt, err := account.NewAccount(
-		mockRpcProvider,
+		mockRPCProvider,
 		&felt.Zero,
 		"",
 		account.NewMemKeystore(),
@@ -572,9 +572,9 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
 		case rpc.DeployAccountTxnV1:
-			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainID)
 		case rpc.DeployAccountTxnV3:
-			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainId)
+			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainID)
 		}
 		require.NoError(t, err)
 		assert.Equal(t, hashResp, hash2)

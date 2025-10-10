@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/curve"
 )
 
-var PREFIX_CONTRACT_ADDRESS = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
+var prefixContractAddress = new(felt.Felt).SetBytes([]byte("STARKNET_CONTRACT_ADDRESS"))
 
 // UnmarshalCasmClass is a function that unmarshals a CasmClass object from a file.
 // CASM = Cairo instructions
@@ -48,7 +48,7 @@ func PrecomputeAddress(
 	constructorCalldata []*felt.Felt,
 ) *felt.Felt {
 	return curve.PedersenArray(
-		PREFIX_CONTRACT_ADDRESS,
+		prefixContractAddress,
 		deployerAddress,
 		salt,
 		classHash,

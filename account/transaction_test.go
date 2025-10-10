@@ -286,22 +286,22 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
 
 		ctrl := gomock.NewController(t)
-		mockRpcProvider := mocks.NewMockRpcProvider(ctrl)
+		mockRPCProvider := mocks.NewMockRpcProvider(ctrl)
 
-		mockRpcProvider.EXPECT().
+		mockRPCProvider.EXPECT().
 			Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(new(felt.Felt).SetUint64(1), nil).
 			Times(2)
 
 		ks, pub, _ := account.GetRandomKeys()
 		// called when instantiating the account
-		mockRpcProvider.EXPECT().
+		mockRPCProvider.EXPECT().
 			ClassHashAt(gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(internalUtils.DeadBeef, nil).
 			Times(1)
-		mockRpcProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+		mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
 		acnt, err := account.NewAccount(
-			mockRpcProvider,
+			mockRPCProvider,
 			internalUtils.DeadBeef,
 			pub.String(),
 			ks,
@@ -311,7 +311,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		// setting the expected behaviour for each call to EstimateFee,
 		// asserting if the passed txn has the query bit version
-		mockRpcProvider.EXPECT().
+		mockRPCProvider.EXPECT().
 			EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(
 				func(_, request, _, _ any) ([]rpc.FeeEstimation, error) {
@@ -340,7 +340,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			Times(3)
 
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
-			mockRpcProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			mockRPCProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddInvokeTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastInvokeTxnV3)
 					require.True(t, ok)
@@ -364,7 +364,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		})
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			mockRpcProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			mockRPCProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
 					require.True(t, ok)
@@ -820,15 +820,15 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
 
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().
+	mockRPCProvider.EXPECT().
 		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 		Return(internalUtils.DeadBeef, nil)
 	acnt, err := account.NewAccount(
-		mockRpcProvider,
+		mockRPCProvider,
 		&felt.Zero,
 		"",
 		account.NewMemKeystore(),
@@ -879,7 +879,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
 			defer cancel()
 			if test.ShouldCallTransactionReceipt {
-				mockRpcProvider.EXPECT().
+				mockRPCProvider.EXPECT().
 					TransactionReceipt(ctx, test.Hash).
 					Return(test.ExpectedReceipt, test.ExpectedErr)
 			}

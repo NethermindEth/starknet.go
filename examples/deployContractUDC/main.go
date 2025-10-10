@@ -28,14 +28,14 @@ func main() {
 	fmt.Println("Starting deployContractUDC example")
 
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRPCProviderURL()
+	rpcProviderURL := setup.GetRPCProviderURL()
 	accountAddress := setup.GetAccountAddress()
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}

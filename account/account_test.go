@@ -33,7 +33,7 @@ func TestFmtCallData(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
 		CairoVersion     account.CairoVersion
@@ -87,13 +87,13 @@ func TestFmtCallData(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().
+		mockRPCProvider.EXPECT().
 			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 			Return(internalUtils.DeadBeef, nil)
 		acc, err := account.NewAccount(
-			mockRpcProvider,
+			mockRPCProvider,
 			&felt.Zero,
 			"pubkey",
 			account.NewMemKeystore(),
@@ -112,7 +112,7 @@ func TestFmtCallData(t *testing.T) {
 // It creates a mock controller and a mock RpcProvider. It defines a test set
 // consisting of different ChainID and ExpectedID pairs. It then iterates over
 // the test set and sets the expected behaviour for the ChainID method of the
-// mockRpcProvider. It creates a new account using the mockRpcProvider,
+// mockRPCProvider. It creates a new account using the mockRPCProvider,
 // Zero value, "pubkey", and a new in-memory keystore. It asserts that the
 // account's ChainId matches the expected ID for each test case in the test set.
 //
@@ -126,7 +126,7 @@ func TestChainIdMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
 		ChainID    string
@@ -146,20 +146,20 @@ func TestChainIdMOCK(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().
+		mockRPCProvider.EXPECT().
 			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 			Return(internalUtils.DeadBeef, nil)
 		acc, err := account.NewAccount(
-			mockRpcProvider,
+			mockRPCProvider,
 			&felt.Zero,
 			"pubkey",
 			account.NewMemKeystore(),
 			account.CairoV0,
 		)
 		require.NoError(t, err)
-		require.Equal(t, test.ExpectedID, acc.ChainId.String())
+		require.Equal(t, test.ExpectedID, acc.ChainID.String())
 	}
 }
 
@@ -203,7 +203,7 @@ func TestChainId(t *testing.T) {
 			account.CairoV0,
 		)
 		require.NoError(t, err)
-		require.Equal(t, acc.ChainId.String(), test.ExpectedID)
+		require.Equal(t, acc.ChainID.String(), test.ExpectedID)
 	}
 }
 
@@ -211,7 +211,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRpcProvider(mockCtrl)
 
 	type testSetType struct {
 		ClassHash      *felt.Felt
@@ -249,10 +249,10 @@ func TestBraavosAccountWarning(t *testing.T) {
 	for _, test := range testSet {
 		t.Run("ClassHash_"+test.ClassHash.String(), func(t *testing.T) {
 			// Set up the mock to return the Braavos class hash
-			mockRpcProvider.EXPECT().
+			mockRPCProvider.EXPECT().
 				ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
 				Return(test.ClassHash, nil)
-			mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+			mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 			// Create a buffer to capture stdout
 			oldStdout := os.Stdout
@@ -262,7 +262,7 @@ func TestBraavosAccountWarning(t *testing.T) {
 
 			// Create the account
 			_, err = account.NewAccount(
-				mockRpcProvider,
+				mockRPCProvider,
 				internalUtils.DeadBeef,
 				"pubkey",
 				account.NewMemKeystore(),
@@ -281,10 +281,10 @@ func TestBraavosAccountWarning(t *testing.T) {
 
 			if test.ExpectedOutput {
 				// Check if the warning message was printed
-				assert.Contains(t, buf.String(), account.BRAAVOS_WARNING_MESSAGE)
+				assert.Contains(t, buf.String(), account.BraavosWarningMessage)
 			} else {
 				// Check if the warning message was not printed
-				assert.NotContains(t, buf.String(), account.BRAAVOS_WARNING_MESSAGE)
+				assert.NotContains(t, buf.String(), account.BraavosWarningMessage)
 			}
 		})
 	}

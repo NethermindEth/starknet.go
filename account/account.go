@@ -17,7 +17,7 @@ var (
 	ErrTxnVersionUnSupported = errors.New("unsupported transaction version")
 
 	//nolint:lll // The line break would be outputted in the warning message
-	BRAAVOS_WARNING_MESSAGE = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
+	BraavosWarningMessage = `WARNING: Currently, Braavos accounts are incompatible with transactions sent via RPC 0.8.0. Ref: https://community.starknet.io/t/starknet-devtools-for-0-13-5/115495#p-2359168-braavos-compatibility-issues-3`
 )
 
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
@@ -75,7 +75,7 @@ var _ AccountInterface = (*Account)(nil)
 
 type Account struct {
 	Provider     rpc.RpcProvider
-	ChainId      *felt.Felt
+	ChainID      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string
 	CairoVersion CairoVersion
@@ -136,7 +136,7 @@ func NewAccount(
 			"0x41bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
 		}
 		if slices.Contains(braavosClassHashes, accClassHash.String()) {
-			fmt.Print(BRAAVOS_WARNING_MESSAGE + "\n\n")
+			fmt.Print(BraavosWarningMessage + "\n\n")
 		}
 	}
 
@@ -151,7 +151,7 @@ func NewAccount(
 		publicKey:    publicKey,
 		ks:           keystore,
 		CairoVersion: cairoVersion,
-		ChainId:      new(felt.Felt).SetBytes([]byte(chainID)),
+		ChainID:      new(felt.Felt).SetBytes([]byte(chainID)),
 	}
 
 	return account, nil

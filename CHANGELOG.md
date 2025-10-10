@@ -27,8 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `typedData.Domain.ChainId` -> `typedData.Domain.ChainID`
     - `rpc.SKIP_FEE_CHARGE` -> `rpc.SkipFeeCharge`
     - `rpc.SKIP_VALIDATE` -> `rpc.SkipValidate`
-- Variables `hash.PREFIX_TRANSACTION`, `hash.PREFIX_DECLARE`, and `hash.PREFIX_DEPLOY_ACCOUNT` were renamed and
-are no longer exported.
+    - `account.Account.ChainId` -> `account.Account.ChainID`
+    - Variables `hash.PREFIX_TRANSACTION`, `hash.PREFIX_DECLARE`, and `hash.PREFIX_DEPLOY_ACCOUNT` were renamed and
+      are no longer exported.
+    - Variable `contracts.PREFIX_CONTRACT_ADDRESS` was renamed and is no longer exported.
 - The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.
   There are some changes in the new package:
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.
