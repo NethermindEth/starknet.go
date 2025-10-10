@@ -48,19 +48,7 @@ linters:
       min-len: 2
       min-occurrences: 3
     gocritic:
-      disabled-checks:
-        - sloppyReassign
-        - dupImport
-        - ifElseChain
-        - octalLiteral
-        - whyNoLint
-        - unnamedResult
-      enabled-tags:
-        - diagnostic
-        - experimental
-        - opinionated
-        - performance
-        - style
+      enable-all: true
     gocyclo:
       min-complexity: 15
     gosec:

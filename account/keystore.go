@@ -105,13 +105,15 @@ func (ks *MemKeystore) Sign(
 	ctx context.Context,
 	id string,
 	msgHash *big.Int,
-) (*big.Int, *big.Int, error) {
+) (r, s *big.Int, err error) {
 	k, err := ks.Get(id)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return sign(ctx, msgHash, k)
+	r, s, err = sign(ctx, msgHash, k)
+
+	return
 }
 
 // sign signs the given message hash with the provided key using the Curve.
@@ -146,7 +148,7 @@ func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error)
 //   - *MemKeystore: a pointer to a MemKeystore instance
 //   - *felt.Felt: a pointer to a public key as a felt.Felt
 //   - *felt.Felt: a pointer to a private key as a felt.Felt
-func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
+func GetRandomKeys() (ks *MemKeystore, pubKey, privKey *felt.Felt) {
 	// Get random keys
 	privateKey, pubX, _, err := curve.GetRandomKeys()
 	if err != nil {
@@ -154,12 +156,12 @@ func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 		os.Exit(1)
 	}
 
-	privFelt := internalUtils.BigIntToFelt(privateKey)
-	pubFelt := internalUtils.BigIntToFelt(pubX)
+	privKey = internalUtils.BigIntToFelt(privateKey)
+	pubKey = internalUtils.BigIntToFelt(pubX)
 
 	// set up keystore
-	ks := NewMemKeystore()
-	ks.Put(pubFelt.String(), privateKey)
+	ks = NewMemKeystore()
+	ks.Put(pubKey.String(), privateKey)
 
-	return ks, pubFelt, privFelt
+	return
 }

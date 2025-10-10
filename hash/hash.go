@@ -161,7 +161,7 @@ func getByteCodeSegmentHasher(
 	bytecodeSegmentLengths contracts.NestedUints,
 	visitedPcs *[]uint64,
 	bytecodeOffset uint64,
-) (hasherFunc, uint64, error) {
+) (hasherF hasherFunc, size uint64, err error) {
 	if !bytecodeSegmentLengths.IsArray {
 		segmentValue := *bytecodeSegmentLengths.Value
 		segmentEnd := bytecodeOffset + segmentValue

@@ -605,7 +605,7 @@ func (dd DoubleDeref) MarshalJSON() ([]byte, error) {
 	return json.Marshal([2]interface{}{dd.CellRef, dd.Offset})
 }
 
-func (dd *DoubleDeref) Values() (CellRef, int) {
+func (dd *DoubleDeref) Values() (cellRef CellRef, offset int) {
 	return dd.CellRef, dd.Offset
 }
 
