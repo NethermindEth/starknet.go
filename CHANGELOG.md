@@ -20,22 +20,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `curve.SignFelts` function for signing messages with felt.Felt parameters.
 
 ### Changed
-- Major refactoring in types/functions names to match the Go naming conventions.
-  - All type/function names that contained `_` have been renamed to remove the underscore.
-  - The `typedData` pkg was renamed to `typedata`.
-  - The `rpc.Provider.GetStorageProof` method was renamed to `rpc.Provider.StorageProof`.
-  - The `rpc.Provider.GetTransactionStatus` method was renamed to `rpc.Provider.TransactionStatus`.
-  - The `rpc.Provider.GetMessagesStatus` method was renamed to `rpc.Provider.MessagesStatus`.
-  - The `rpc.Provider.TransactionByBlockIdAndIndex` method was renamed to `rpc.Provider.TransactionByBlockIDAndIndex` (see the 'ID').
-  - The `rpc.RpcProvider` interface was renamed to `rpc.RPCProvider`.
-  - Other renames in exported types/fields/variables:
-    - `typedData.Domain.ChainId` -> `typedData.Domain.ChainID`
-    - `rpc.SKIP_FEE_CHARGE` -> `rpc.SkipFeeCharge`
-    - `rpc.SKIP_VALIDATE` -> `rpc.SkipValidate`
-    - `account.Account.ChainId` -> `account.Account.ChainID`
-    - Variables `hash.PREFIX_TRANSACTION`, `hash.PREFIX_DECLARE`, and `hash.PREFIX_DEPLOY_ACCOUNT` were renamed and
-      are no longer exported.
-    - Variable `contracts.PREFIX_CONTRACT_ADDRESS` was renamed and is no longer exported.
+- Major refactoring in the codebase to match Golang conventions.
+  - Renaming:
+    - All type/function names that contained `_` have been renamed to remove the underscore.
+    - The `typedData` pkg was renamed to `typedata`.
+    - The `rpc.Provider.GetStorageProof` method was renamed to `rpc.Provider.StorageProof`.
+    - The `rpc.Provider.GetTransactionStatus` method was renamed to `rpc.Provider.TransactionStatus`.
+    - The `rpc.Provider.GetMessagesStatus` method was renamed to `rpc.Provider.MessagesStatus`.
+    - The `rpc.Provider.TransactionByBlockIdAndIndex` method was renamed to `rpc.Provider.TransactionByBlockIDAndIndex` (see the 'ID').
+    - The `rpc.RpcProvider` interface was renamed to `rpc.RPCProvider`.
+    - Other renames in exported types/fields/variables:
+      - `typedData.Domain.ChainId` -> `typedData.Domain.ChainID`
+      - `rpc.SKIP_FEE_CHARGE` -> `rpc.SkipFeeCharge`
+      - `rpc.SKIP_VALIDATE` -> `rpc.SkipValidate`
+      - `account.Account.ChainId` -> `account.Account.ChainID`
+      - Variables `hash.PREFIX_TRANSACTION`, `hash.PREFIX_DECLARE`, and `hash.PREFIX_DEPLOY_ACCOUNT` were renamed and
+        are no longer exported.
+      - Variable `contracts.PREFIX_CONTRACT_ADDRESS` was renamed and is no longer exported.
+  - Changed types:
+    - `contracts.SierraEntryPoint.FunctionIdx` is now of type `uint`
+    - `contracts.CasmEntryPoint.Offset` is now of type `uint`
 - The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.
   There are some changes in the new package:
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.

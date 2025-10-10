@@ -51,9 +51,6 @@ linters:
       enable-all: true
     gocyclo:
       min-complexity: 15
-    gosec:
-      excludes:
-        - G115
     govet:
       enable:
         - nilness

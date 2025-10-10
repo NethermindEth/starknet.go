@@ -67,7 +67,7 @@ type CasmEntryPointsByType struct {
 
 type CasmEntryPoint struct {
 	Selector *felt.Felt `json:"selector"`
-	Offset   int        `json:"offset"`
+	Offset   uint       `json:"offset"`
 	Builtins []string   `json:"builtins"`
 }
 

@@ -779,7 +779,10 @@ func encodeData(
 				)
 			}
 
-			enc = append(enc, new(felt.Felt).SetUint64(uint64(paramIndex)))
+			enc = append(
+				enc,
+				new(felt.Felt).SetUint64(uint64(paramIndex)), //nolint:gosec // Never underflows
+			)
 
 			if len(dataArr) == 0 {
 				enc = append(enc, &felt.Zero)

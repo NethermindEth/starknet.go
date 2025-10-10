@@ -188,7 +188,7 @@ func (ns *NestedString) UnmarshalJSON(data []byte) error {
 
 type SierraEntryPoint struct {
 	// The index of the function in the program
-	FunctionIdx int `json:"function_idx"`
+	FunctionIdx uint `json:"function_idx"`
 	// A unique  identifier of the entry point (function) in the program
 	Selector *felt.Felt `json:"selector"`
 }
