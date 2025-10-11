@@ -317,14 +317,14 @@ func encodeTypes(
 		for i, param := range typeDef.Parameters {
 			if len(isEnum) != 0 {
 				typesArr := typeNameRegexp.FindAllString(param.Type, -1)
-				var fullTypeName string
+				var fullTypeName strings.Builder
 				for i, typeNam := range typesArr {
-					fullTypeName += `"` + typeNam + `"`
+					fullTypeName.WriteString(`"` + typeNam + `"`)
 					if i < (len(typesArr) - 1) {
-						fullTypeName += `,`
+						fullTypeName.WriteString(`,`)
 					}
 				}
-				buf.WriteString(fmt.Sprintf(quotationMark+"%s"+quotationMark+":"+`(`+"%s"+`)`, param.Name, fullTypeName))
+				buf.WriteString(fmt.Sprintf(quotationMark+"%s"+quotationMark+":"+`(`+"%s"+`)`, param.Name, fullTypeName.String()))
 
 				for _, typeNam := range typesArr {
 					err = verifyTypeName(TypeParameter{Type: typeNam, Name: "", Contains: ""})
