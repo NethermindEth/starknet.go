@@ -22,6 +22,7 @@ type Paymaster struct {
 //
 //nolint:lll // The link would be unclickable if we break the line.
 type paymasterInterface interface {
+	BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error)
 	IsAvailable(ctx context.Context) (bool, error)
 	// More methods coming...
 }
