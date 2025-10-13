@@ -19,6 +19,7 @@ type Paymaster struct {
 // Used to assert that the Paymaster struct implements all the paymaster methods.
 // Ref: https://github.com/starknet-io/SNIPs/blob/ea46a8777d8c8d53a43f45b7beb1abcc301a1a69/assets/snip-29/paymaster_api.json
 type paymasterInterface interface {
+	BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error)
 	IsAvailable(ctx context.Context) (bool, error)
 	// More methods coming...
 }
