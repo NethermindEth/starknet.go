@@ -12,11 +12,12 @@ import (
 )
 
 // Test the 'paymaster_isAvailable' method
+//
+//nolint:tparallel // Each subtest runs in different environments
 func TestIsAvailable(t *testing.T) {
 	t.Parallel()
 	t.Run("integration", func(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
-		t.Parallel()
 
 		pm, spy := SetupPaymaster(t)
 		available, err := pm.IsAvailable(context.Background())
@@ -28,7 +29,6 @@ func TestIsAvailable(t *testing.T) {
 
 	t.Run("mock", func(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
-		t.Parallel()
 
 		pm := SetupMockPaymaster(t)
 		pm.c.EXPECT().
