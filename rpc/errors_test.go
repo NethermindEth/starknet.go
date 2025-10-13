@@ -21,7 +21,10 @@ func TestRPCError(t *testing.T) {
 		_, err := testConfig.Provider.ChainID(context.Background())
 		require.NoError(t, err)
 
-		_, err = testConfig.Provider.Events(context.Background(), EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}})
+		_, err = testConfig.Provider.Events(
+			context.Background(),
+			EventsInput{ResultPageRequest: ResultPageRequest{ChunkSize: 0}},
+		)
 		require.Error(t, err)
 		rpcErr := err.(*RPCError)
 		assert.Equal(t, rpcErr.Code, rpcerr.InternalError)
@@ -40,12 +43,16 @@ func TestRPCError(t *testing.T) {
 	// invalid msg
 	msgFromL1 := MsgFromL1{
 		FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-		ToAddress:   internalUtils.RANDOM_FELT,
-		Selector:    internalUtils.RANDOM_FELT,
+		ToAddress:   internalUtils.DeadBeef,
+		Selector:    internalUtils.DeadBeef,
 		Payload:     []*felt.Felt{},
 	}
 
-	_, err := testConfig.Provider.EstimateMessageFee(context.Background(), msgFromL1, WithBlockNumber(523066))
+	_, err := testConfig.Provider.EstimateMessageFee(
+		context.Background(),
+		msgFromL1,
+		WithBlockNumber(523066),
+	)
 	require.Error(t, err)
 	rpcErr := err.(*RPCError)
 

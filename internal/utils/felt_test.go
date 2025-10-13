@@ -20,12 +20,22 @@ func TestStringToByteArrFelt(t *testing.T) {
 			out: []string{"0x0", "0x68656c6c6f", "0x5"},
 		},
 		{
-			in:  "Long string, more than 31 characters.",
-			out: []string{"0x1", "0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261", "0x63746572732e", "0x6"},
+			in: "Long string, more than 31 characters.",
+			out: []string{
+				"0x1",
+				"0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261",
+				"0x63746572732e",
+				"0x6",
+			},
 		},
 		{
-			in:  "Blockchain secure digital asset",
-			out: []string{"0x1", "0x426c6f636b636861696e20736563757265206469676974616c206173736574", "0x0", "0x0"},
+			in: "Blockchain secure digital asset",
+			out: []string{
+				"0x1",
+				"0x426c6f636b636861696e20736563757265206469676974616c206173736574",
+				"0x0",
+				"0x0",
+			},
 		},
 		{
 			in: "Decentralised applications offer transparency and user control",
@@ -42,12 +52,22 @@ func TestStringToByteArrFelt(t *testing.T) {
 			out: []string{"0x0", "0x3132333435", "0x5"},
 		},
 		{
-			in:  "1234567890123456789012345678901",
-			out: []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x0", "0x0"},
+			in: "1234567890123456789012345678901",
+			out: []string{
+				"0x1",
+				"0x31323334353637383930313233343536373839303132333435363738393031",
+				"0x0",
+				"0x0",
+			},
 		},
 		{
-			in:  "12345678901234567890123456789012",
-			out: []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x32", "0x1"},
+			in: "12345678901234567890123456789012",
+			out: []string{
+				"0x1",
+				"0x31323334353637383930313233343536373839303132333435363738393031",
+				"0x32",
+				"0x1",
+			},
 		},
 	}
 
@@ -72,11 +92,21 @@ func TestByteArrFeltToString(t *testing.T) {
 			out: "hello",
 		},
 		{
-			in:  []string{"0x1", "0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261", "0x63746572732e", "0x6"},
+			in: []string{
+				"0x1",
+				"0x4c6f6e6720737472696e672c206d6f7265207468616e203331206368617261",
+				"0x63746572732e",
+				"0x6",
+			},
 			out: "Long string, more than 31 characters.",
 		},
 		{
-			in:  []string{"0x1", "0x426c6f636b636861696e20736563757265206469676974616c206173736574", "0x0", "0x0"},
+			in: []string{
+				"0x1",
+				"0x426c6f636b636861696e20736563757265206469676974616c206173736574",
+				"0x0",
+				"0x0",
+			},
 			out: "Blockchain secure digital asset",
 		},
 		{
@@ -94,11 +124,21 @@ func TestByteArrFeltToString(t *testing.T) {
 			out: "12345",
 		},
 		{
-			in:  []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x0", "0x0"},
+			in: []string{
+				"0x1",
+				"0x31323334353637383930313233343536373839303132333435363738393031",
+				"0x0",
+				"0x0",
+			},
 			out: "1234567890123456789012345678901",
 		},
 		{
-			in:  []string{"0x1", "0x31323334353637383930313233343536373839303132333435363738393031", "0x32", "0x1"},
+			in: []string{
+				"0x1",
+				"0x31323334353637383930313233343536373839303132333435363738393031",
+				"0x32",
+				"0x1",
+			},
 			out: "12345678901234567890123456789012",
 		},
 		{
@@ -276,8 +316,18 @@ func TestU256FeltToHex(t *testing.T) {
 			// Round-trip test: Convert back to u256 felt representation
 			roundTrip, err := HexToU256Felt(result)
 			require.NoError(t, err, "failed in round-trip conversion")
-			assert.Equal(t, lowFelt.String(), roundTrip[0].String(), "round-trip low bits do not match")
-			assert.Equal(t, highFelt.String(), roundTrip[1].String(), "round-trip high bits do not match")
+			assert.Equal(
+				t,
+				lowFelt.String(),
+				roundTrip[0].String(),
+				"round-trip low bits do not match",
+			)
+			assert.Equal(
+				t,
+				highFelt.String(),
+				roundTrip[1].String(),
+				"round-trip high bits do not match",
+			)
 		})
 	}
 }

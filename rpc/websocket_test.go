@@ -33,7 +33,10 @@ func TestSubscribeNewHeads(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
+	latestBlockNumbers := []uint64{
+		blockNumber,
+		blockNumber + 1,
+	} // for the case the latest block number is updated
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
@@ -97,7 +100,11 @@ func TestSubscribeNewHeads(t *testing.T) {
 			wsProvider := testConfig.WsProvider
 
 			var sub *client.ClientSubscription
-			sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.subBlockID)
+			sub, err = wsProvider.SubscribeNewHeads(
+				context.Background(),
+				test.headers,
+				test.subBlockID,
+			)
 			if sub != nil {
 				defer sub.Unsubscribe()
 			}
@@ -134,7 +141,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeEvents(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -176,7 +183,11 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
@@ -206,9 +217,13 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
@@ -239,9 +254,13 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			SubBlockID: new(SubscriptionBlockID).WithLatestTag(),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithLatestTag(),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
@@ -274,9 +293,13 @@ func TestSubscribeEvents(t *testing.T) {
 			t.Parallel()
 
 			events := make(chan *EmittedEventWithFinalityStatus)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
-			})
+			sub, err := wsProvider.SubscribeEvents(
+				context.Background(),
+				events,
+				&EventSubscriptionInput{
+					FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+				},
+			)
 			if sub != nil {
 				defer sub.Unsubscribe()
 			}
@@ -305,9 +328,13 @@ func TestSubscribeEvents(t *testing.T) {
 			t.Parallel()
 
 			events := make(chan *EmittedEventWithFinalityStatus)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusPre_confirmed,
-			})
+			sub, err := wsProvider.SubscribeEvents(
+				context.Background(),
+				events,
+				&EventSubscriptionInput{
+					FinalityStatus: TxnFinalityStatusPreConfirmed,
+				},
+			)
 			if sub != nil {
 				defer sub.Unsubscribe()
 			}
@@ -331,7 +358,7 @@ func TestSubscribeEvents(t *testing.T) {
 					}
 
 					switch resp.FinalityStatus {
-					case TxnFinalityStatusPre_confirmed:
+					case TxnFinalityStatusPreConfirmed:
 						preConfirmedEventFound = true
 					case TxnFinalityStatusAcceptedOnL2:
 						acceptedOnL2EventFound = true
@@ -353,10 +380,14 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			FromAddress: testSet.fromAddressExample,
-			SubBlockID:  new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				FromAddress: testSet.fromAddressExample,
+				SubBlockID:  new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
@@ -389,10 +420,14 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			Keys:       [][]*felt.Felt{{testSet.keyExample}},
-			SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				Keys:       [][]*felt.Felt{{testSet.keyExample}},
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
@@ -426,12 +461,16 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-			FromAddress:    testSet.fromAddressExample,
-			Keys:           [][]*felt.Felt{{testSet.keyExample}},
-			FinalityStatus: TxnFinalityStatusAcceptedOnL2,
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				FromAddress:    testSet.fromAddressExample,
+				Keys:           [][]*felt.Felt{{testSet.keyExample}},
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
@@ -513,7 +552,7 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo
+//nolint:dupl,gocyclo // dupl: The tests are similar, but they are testing different things. //gocyclo: False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -560,7 +599,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			t.Run("test: "+test.description, func(t *testing.T) {
 				t.Parallel()
 
-				sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), test.txnReceipts, test.options)
+				sub, err := wsProvider.SubscribeNewTransactionReceipts(
+					context.Background(),
+					test.txnReceipts,
+					test.options,
+				)
 				if test.expectedError != nil {
 					require.EqualError(t, err, test.expectedError.Error())
 
@@ -575,7 +618,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					select {
 					case resp := <-test.txnReceipts:
 						assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
-						assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
+						assert.Equal(
+							t,
+							TxnFinalityStatusAcceptedOnL2,
+							resp.FinalityStatus,
+						) // default finality status is ACCEPTED_ON_L2
 
 						return
 					case err := <-sub.Err():
@@ -594,7 +641,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -628,10 +679,14 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
 		options := &SubNewTxnReceiptsInput{
-			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed},
+			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -644,7 +699,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			select {
 			case resp := <-txnReceipts:
 				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
-				assert.Equal(t, TxnFinalityStatusPre_confirmed, resp.FinalityStatus)
+				assert.Equal(t, TxnFinalityStatusPreConfirmed, resp.FinalityStatus)
 				assert.Empty(t, resp.BlockHash)
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
@@ -665,10 +720,17 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
 		options := &SubNewTxnReceiptsInput{
-			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed, TxnFinalityStatusAcceptedOnL2},
+			FinalityStatus: []TxnFinalityStatus{
+				TxnFinalityStatusPreConfirmed,
+				TxnFinalityStatusAcceptedOnL2,
+			},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -686,7 +748,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
 
-				if resp.FinalityStatus == TxnFinalityStatusPre_confirmed {
+				if resp.FinalityStatus == TxnFinalityStatusPreConfirmed {
 					preConfirmedReceived = true
 				}
 
@@ -701,7 +763,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				require.NoError(t, err)
 
 			case <-timeout:
-				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no txns received from both finality statuses")
+				assert.True(
+					t,
+					(preConfirmedReceived && acceptedOnL2Received),
+					"no txns received from both finality statuses",
+				)
 
 				return
 			}
@@ -712,7 +778,10 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		t.Parallel()
 
 		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(t, "0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43")
+		randAddress := internalUtils.TestHexToFelt(
+			t,
+			"0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+		)
 		provider := testConfig.Provider
 		tempStruct := struct {
 			SenderAddress *felt.Felt `json:"sender_address"`
@@ -723,7 +792,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			SenderAddress: []*felt.Felt{randAddress},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -760,7 +833,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo
+//nolint:dupl,gocyclo // dupl: The tests are similar, but they are testing different things. //gocyclo: False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeNewTransactions(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -807,7 +880,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			t.Run("test: "+test.description, func(t *testing.T) {
 				t.Parallel()
 
-				sub, err := wsProvider.SubscribeNewTransactions(context.Background(), test.newTxns, test.options)
+				sub, err := wsProvider.SubscribeNewTransactions(
+					context.Background(),
+					test.newTxns,
+					test.options,
+				)
 				if test.expectedError != nil {
 					require.EqualError(t, err, test.expectedError.Error())
 
@@ -824,7 +901,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 					select {
 					case resp := <-test.newTxns:
 						assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-						assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
+						assert.Equal(
+							t,
+							TxnStatusAcceptedOnL2,
+							resp.FinalityStatus,
+						) // default finality status is ACCEPTED_ON_L2
 
 						return
 					case <-timeout:
@@ -844,7 +925,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -861,7 +942,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			select {
 			case resp := <-newTxns:
 				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus)
+				assert.Equal(t, TxnStatusAcceptedOnL2, resp.FinalityStatus)
 				assert.NotEmpty(t, resp.Transaction)
 				assert.NotEmpty(t, resp.Hash)
 
@@ -881,7 +962,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed},
+			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -898,7 +979,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			select {
 			case resp := <-newTxns:
 				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatus_Pre_confirmed, resp.FinalityStatus)
+				assert.Equal(t, TxnStatusPreConfirmed, resp.FinalityStatus)
 				assert.NotEmpty(t, resp.Hash)
 				assert.NotEmpty(t, resp.Transaction)
 
@@ -918,7 +999,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed, TxnStatusAcceptedOnL2},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -940,11 +1021,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.NotEmpty(t, resp.Hash)
 				assert.NotEmpty(t, resp.Transaction)
 
-				if resp.FinalityStatus == TxnStatus_Pre_confirmed {
+				if resp.FinalityStatus == TxnStatusPreConfirmed {
 					preConfirmedReceived = true
 				}
 
-				if resp.FinalityStatus == TxnStatus_Accepted_On_L2 {
+				if resp.FinalityStatus == TxnStatusAcceptedOnL2 {
 					acceptedOnL2Received = true
 				}
 
@@ -954,7 +1035,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-timeout:
-				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no txns received from both finality statuses")
+				assert.True(
+					t,
+					(preConfirmedReceived && acceptedOnL2Received),
+					"no txns received from both finality statuses",
+				)
 
 				return
 			}
@@ -966,7 +1051,12 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Received, TxnStatus_Candidate, TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{
+				TxnStatusReceived,
+				TxnStatusCandidate,
+				TxnStatusPreConfirmed,
+				TxnStatusAcceptedOnL2,
+			},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -991,16 +1081,16 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.NotEmpty(t, resp.Transaction)
 
 				switch resp.FinalityStatus {
-				case TxnStatus_Received:
+				case TxnStatusReceived:
 					t.Log("RECEIVED txn received")
 					receivedReceived = true
-				case TxnStatus_Candidate:
+				case TxnStatusCandidate:
 					t.Log("CANDIDATE txn received")
 					candidateReceived = true
-				case TxnStatus_Pre_confirmed:
+				case TxnStatusPreConfirmed:
 					t.Log("PRE_CONFIRMED txn received")
 					preConfirmedReceived = true
-				case TxnStatus_Accepted_On_L2:
+				case TxnStatusAcceptedOnL2:
 					t.Log("ACCEPTED_ON_L2 txn received")
 					acceptedOnL2Received = true
 				}
@@ -1023,7 +1113,10 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		t.Parallel()
 
 		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(t, "0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43")
+		randAddress := internalUtils.TestHexToFelt(
+			t,
+			"0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+		)
 		provider := testConfig.Provider
 		tempStruct := struct {
 			SenderAddress *felt.Felt `json:"sender_address"`

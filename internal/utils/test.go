@@ -8,7 +8,7 @@ import (
 )
 
 // Just a random felt variable to use when needed. The value is "0xdeadbeef"
-var RANDOM_FELT = new(felt.Felt).SetUint64(3735928559) //nolint:mnd
+var DeadBeef = new(felt.Felt).SetUint64(3735928559) //nolint:mnd // 0xdeadbeef
 
 // TestHexToFelt generates a felt.Felt from a hexadecimal string.
 //
@@ -26,7 +26,8 @@ func TestHexToFelt(t testing.TB, hex string) *felt.Felt {
 	return f
 }
 
-// TestHexArrToFelt generates a slice of *felt.Felt from a slice of strings representing hexadecimal values.
+// TestHexArrToFelt generates a slice of *felt.Felt from a slice of strings
+// representing hexadecimal values.
 //
 // Parameters:
 //   - t: A testing.TB interface used for test logging and error reporting
@@ -42,7 +43,8 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 	return feltArr
 }
 
-// TestUnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// TestUnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it
+// into the specified type T.
 // If any error occurs during file reading or unmarshalling, it fails the test.
 //
 // Parameters:

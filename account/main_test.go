@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 }
 
 // returns a new account type from the provided account data in the tConfig
-func setupAcc(t *testing.T, provider rpc.RpcProvider) (*account.Account, error) {
+func setupAcc(t *testing.T, provider rpc.RPCProvider) (*account.Account, error) {
 	t.Helper()
 
 	ks := account.NewMemKeystore()

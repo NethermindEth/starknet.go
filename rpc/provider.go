@@ -15,7 +15,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// rpcVersion is the version of the Starknet JSON-RPC specification that this SDK is compatible with.
+// rpcVersion is the version of the Starknet JSON-RPC specification that
+// this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
 const rpcVersion = "0.9.0"
 
@@ -25,8 +26,9 @@ var (
 
 	// Warning messages for version compatibility
 	warnVersionCheckFailed = "warning: could not check RPC version compatibility"
-	//nolint:lll
-	warnVersionMismatch = "warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour."
+
+	//nolint:lll // The line break would be outputted in the warning message
+	warnVersionMismatch = `warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour.`
 )
 
 // Checks if the RPC provider version is compatible with the SDK version
@@ -57,8 +59,8 @@ type WsProvider struct {
 }
 
 // Close closes the client, aborting any in-flight requests.
-func (p *WsProvider) Close() {
-	p.c.Close()
+func (ws *WsProvider) Close() {
+	ws.c.Close()
 }
 
 // NewProvider creates a new HTTP rpc Provider instance.
@@ -67,7 +69,7 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 	if err != nil {
 		return nil, err
 	}
-	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct
+	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
 	c, err := client.DialOptions(context.Background(), url, options...)
@@ -89,7 +91,7 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 	if err != nil {
 		return nil, err
 	}
-	dialer := websocket.Dialer{Jar: jar} //nolint:exhaustruct
+	dialer := websocket.Dialer{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
 
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
@@ -102,9 +104,15 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 }
 
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
-type RpcProvider interface {
-	AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (AddInvokeTransactionResponse, error)
-	AddDeclareTransaction(ctx context.Context, declareTransaction *BroadcastDeclareTxnV3) (AddDeclareTransactionResponse, error)
+type RPCProvider interface {
+	AddInvokeTransaction(
+		ctx context.Context,
+		invokeTxn *BroadcastInvokeTxnV3,
+	) (AddInvokeTransactionResponse, error)
+	AddDeclareTransaction(
+		ctx context.Context,
+		declareTransaction *BroadcastDeclareTxnV3,
+	) (AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(
 		ctx context.Context,
 		deployAccountTransaction *BroadcastDeployAccountTxnV3,
@@ -119,14 +127,25 @@ type RpcProvider interface {
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
-	ClassHashAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
+	ClassHashAt(
+		ctx context.Context,
+		blockID BlockID,
+		contractAddress *felt.Felt,
+	) (*felt.Felt, error)
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
-	EstimateFee(ctx context.Context, requests []BroadcastTxn, simulationFlags []SimulationFlag, blockID BlockID) ([]FeeEstimation, error)
-	EstimateMessageFee(ctx context.Context, msg MsgFromL1, blockID BlockID) (MessageFeeEstimation, error)
+	EstimateFee(
+		ctx context.Context,
+		requests []BroadcastTxn,
+		simulationFlags []SimulationFlag,
+		blockID BlockID,
+	) ([]FeeEstimation, error)
+	EstimateMessageFee(
+		ctx context.Context,
+		msg MsgFromL1,
+		blockID BlockID,
+	) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
-	GetStorageProof(ctx context.Context, storageProofInput StorageProofInput) (*StorageProofResult, error)
-	GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
-	GetMessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
+	MessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	SimulateTransactions(
 		ctx context.Context,
@@ -134,15 +153,32 @@ type RpcProvider interface {
 		txns []BroadcastTxn,
 		simulationFlags []SimulationFlag,
 	) ([]SimulatedTransaction, error)
-	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
-	StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID BlockID) (string, error)
 	SpecVersion(ctx context.Context) (string, error)
+	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
+	StorageAt(
+		ctx context.Context,
+		contractAddress *felt.Felt,
+		key string,
+		blockID BlockID,
+	) (string, error)
+	StorageProof(
+		ctx context.Context,
+		storageProofInput StorageProofInput,
+	) (*StorageProofResult, error)
 	Syncing(ctx context.Context) (SyncStatus, error)
 	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
-	TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (*BlockTransaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
-	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, error)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
+	TransactionByBlockIDAndIndex(
+		ctx context.Context,
+		blockID BlockID,
+		index uint64,
+	) (*BlockTransaction, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+	TransactionReceipt(
+		ctx context.Context,
+		transactionHash *felt.Felt,
+	) (*TransactionReceiptWithBlockInfo, error)
+	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
 }
 
 type WebsocketProvider interface {
@@ -151,7 +187,11 @@ type WebsocketProvider interface {
 		events chan<- *EmittedEventWithFinalityStatus,
 		options *EventSubscriptionInput,
 	) (*client.ClientSubscription, error)
-	SubscribeNewHeads(ctx context.Context, headers chan<- *BlockHeader, subBlockID SubscriptionBlockID) (*client.ClientSubscription, error)
+	SubscribeNewHeads(
+		ctx context.Context,
+		headers chan<- *BlockHeader,
+		subBlockID SubscriptionBlockID,
+	) (*client.ClientSubscription, error)
 	SubscribeNewTransactions(
 		ctx context.Context,
 		newTxns chan<- *TxnWithHashAndStatus,
@@ -169,8 +209,7 @@ type WebsocketProvider interface {
 	) (*client.ClientSubscription, error)
 }
 
-//nolint:exhaustruct
 var (
-	_ RpcProvider       = &Provider{}
-	_ WebsocketProvider = &WsProvider{}
+	_ RPCProvider       = (*Provider)(nil)
+	_ WebsocketProvider = (*WsProvider)(nil)
 )

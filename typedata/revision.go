@@ -1,4 +1,4 @@
-package typedData
+package typedata
 
 import (
 	"errors"
@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	// There is also an array version of each type. The array is defined like this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
-	revision_0_basic_types []string = []string{
+	// There is also an array version of each type. The array is defined like
+	// this: 'type' + '*' (e.g.: "felt*", "bool*", "string*"...)
+	revision0BasicTypes []string = []string{
 		"felt",
 		"bool",
 		"string", // up to 31 ASCII characters
@@ -19,13 +20,14 @@ var (
 		"merkletree",
 	}
 
-	// Revision 1 includes all types from Revision 0 plus these. The only difference is that for Revision 1 "string"
-	// represents an arbitrary size string instead of having a 31 ASCII characters limit in Revision 0; for this limit,
+	// Revision 1 includes all types from Revision 0 plus these. The only difference is
+	// that for Revision 1 "string" represents an arbitrary size string instead of having
+	// a 31 ASCII characters limit in Revision 0; for this limit,
 	// use the new type "shortstring" instead.
 	//
 	// There is also an array version of each type. The array is defined like this:
 	// 'type' + '*' (e.g.: "ClassHash*", "timestamp*", "shortstring*"...)
-	revision_1_basic_types []string = []string{
+	revision1BasicTypes []string = []string{
 		"enum",
 		"u128",
 		"i128",
@@ -36,7 +38,7 @@ var (
 	}
 
 	//lint:ignore U1000 Variable used to check Preset types in other pieces of code
-	revision_1_preset_types []string = []string{
+	revision1PresetTypes []string = []string{
 		"NftId",
 		"TokenAmount",
 		"u256",
@@ -48,7 +50,7 @@ var (
 	RevisionV1 revision
 )
 
-//nolint:gochecknoinits
+//nolint:gochecknoinits // Setup for the revisions global variables
 func init() {
 	presetMap := make(map[string]TypeDefinition)
 
@@ -58,7 +60,7 @@ func init() {
 		hashMethod:       curve.PedersenArray,
 		hashMerkleMethod: curve.Pedersen,
 		types: RevisionTypes{
-			Basic:  revision_0_basic_types,
+			Basic:  revision0BasicTypes,
 			Preset: presetMap,
 		},
 	}
@@ -71,7 +73,7 @@ func init() {
 		hashMethod:       curve.PoseidonArray,
 		hashMerkleMethod: curve.Poseidon,
 		types: RevisionTypes{
-			Basic:  append(revision_1_basic_types, revision_0_basic_types...),
+			Basic:  append(revision1BasicTypes, revision0BasicTypes...),
 			Preset: presetMap,
 		},
 	}
@@ -131,15 +133,22 @@ func GetRevision(version uint8) (rev *revision, err error) {
 }
 
 func getRevisionV1PresetTypes() map[string]TypeDefinition {
-	NftIdEnc, _ := new(felt.Felt).SetString("0xaf7d0f5e34446178d80fadf5ddaaed52347121d2fac19ff184ff508d4776f2")
-	TokenAmountEnc, _ := new(felt.Felt).SetString("0x14648649d4413eb385eea9ac7e6f2b9769671f5d9d7ad40f7b4aadd67839d4")
-	u256dEnc, _ := new(felt.Felt).SetString("0x3b143be38b811560b45593fb2a071ec4ddd0a020e10782be62ffe6f39e0e82c")
+	NftIDEnc, _ := new(
+		felt.Felt,
+	).SetString("0xaf7d0f5e34446178d80fadf5ddaaed52347121d2fac19ff184ff508d4776f2")
+	TokenAmountEnc, _ := new(
+		felt.Felt,
+	).SetString("0x14648649d4413eb385eea9ac7e6f2b9769671f5d9d7ad40f7b4aadd67839d4")
+	u256dEnc, _ := new(
+		felt.Felt,
+	).SetString("0x3b143be38b811560b45593fb2a071ec4ddd0a020e10782be62ffe6f39e0e82c")
 
 	presetTypes := []TypeDefinition{
 		{
-			Name:               "NftId",
-			Encoding:           NftIdEnc,
-			EncoddingString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")"u256"("low":"u128","high":"u128")`,
+			Name:     "NftId",
+			Encoding: NftIDEnc,
+			EncoddingString: `"NftId"("collection_address":"ContractAddress",
+			"token_id":"u256")"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"NftId"("collection_address":"ContractAddress","token_id":"u256")`,
 			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
@@ -156,9 +165,10 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 			},
 		},
 		{
-			Name:               "TokenAmount",
-			Encoding:           TokenAmountEnc,
-			EncoddingString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")"u256"("low":"u128","high":"u128")`,
+			Name:     "TokenAmount",
+			Encoding: TokenAmountEnc,
+			EncoddingString: `"TokenAmount"("token_address":"ContractAddress","amount":"u256")
+			"u256"("low":"u128","high":"u128")`,
 			SingleEncString:    `"TokenAmount"("token_address":"ContractAddress","amount":"u256")`,
 			ReferencedTypesEnc: []string{`"u256"("low":"u128","high":"u128")`},
 			Parameters: []TypeParameter{
@@ -208,9 +218,9 @@ func getRevisionV1PresetTypes() map[string]TypeDefinition {
 func isStandardType(typeName string) bool {
 	typeName, _ = strings.CutSuffix(typeName, "*")
 
-	if slices.Contains(revision_0_basic_types, typeName) ||
-		slices.Contains(revision_1_basic_types, typeName) ||
-		slices.Contains(revision_1_preset_types, typeName) {
+	if slices.Contains(revision0BasicTypes, typeName) ||
+		slices.Contains(revision1BasicTypes, typeName) ||
+		slices.Contains(revision1PresetTypes, typeName) {
 		return true
 	}
 
@@ -221,8 +231,8 @@ func isStandardType(typeName string) bool {
 func isBasicType(typeName string) bool {
 	typeName, _ = strings.CutSuffix(typeName, "*")
 
-	if slices.Contains(revision_0_basic_types, typeName) ||
-		slices.Contains(revision_1_basic_types, typeName) {
+	if slices.Contains(revision0BasicTypes, typeName) ||
+		slices.Contains(revision1BasicTypes, typeName) {
 		return true
 	}
 
@@ -233,5 +243,5 @@ func isBasicType(typeName string) bool {
 func isPresetType(typeName string) bool {
 	typeName, _ = strings.CutSuffix(typeName, "*")
 
-	return slices.Contains(revision_1_preset_types, typeName)
+	return slices.Contains(revision1PresetTypes, typeName)
 }

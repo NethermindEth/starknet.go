@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"hash"
-	"log"
 	"math/big"
 	"strings"
 
@@ -157,21 +156,25 @@ func BigToHex(in *big.Int) string {
 }
 
 // GetSelectorFromName generates a selector from a given function name.
+// Ref: https://www.starknet.io/cairo-book/ch101-01-00-contract-storage.html#addresses-of-storage-variables
 //
 // Parameters:
 //   - funcName: the name of the function
 //
 // Returns:
 //   - *big.Int: the selector
+//
+//nolint:lll // The link would be unclickable if we break the line.
 func GetSelectorFromName(funcName string) *big.Int {
 	kec := Keccak256([]byte(funcName))
 
-	maskedKec := MaskBits(250, 8, kec) //nolint:mnd
+	maskedKec := MaskBits(250, 8, kec) //nolint:mnd // Values taken from the starknet documentation.
 
 	return new(big.Int).SetBytes(maskedKec)
 }
 
-// GetSelectorFromNameFelt returns a *felt.Felt based on the given function name.
+// GetSelectorFromNameFelt does the same as GetSelectorFromName, but returns
+// the result as a *felt.Felt.
 //
 // Parameters:
 //   - funcName: the name of the function
@@ -181,7 +184,7 @@ func GetSelectorFromName(funcName string) *big.Int {
 func GetSelectorFromNameFelt(funcName string) *felt.Felt {
 	kec := Keccak256([]byte(funcName))
 
-	maskedKec := MaskBits(250, 8, kec) //nolint:mnd
+	maskedKec := MaskBits(250, 8, kec) //nolint:mnd // Values taken from the starknet documentation.
 
 	return new(felt.Felt).SetBytes(maskedKec)
 }
@@ -195,14 +198,17 @@ func GetSelectorFromNameFelt(funcName string) *felt.Felt {
 // Returns:
 //   - []byte: a 32-byte hash output
 func Keccak256(data ...[]byte) []byte {
-	b := make([]byte, 32) //nolint:mnd
+	b := make([]byte, 32) //nolint:mnd // 32 bytes = 256 bits, necessary for keccak256
 	d := NewKeccakState()
 	for _, b := range data {
-		d.Write(b)
+		_, err := d.Write(b)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if _, err := d.Read(b); err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return b
@@ -249,7 +255,8 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 	return ret
 }
 
-// ComputeFact computes the factorial of a given number.
+// ComputeFact computes a cryptographic hash from a program hash and its outputs.
+// It combines the program hash with a hash of all program outputs using Keccak256.
 //
 // Parameters:
 //   - programHash: a pointer to a big.Int representing the program hash
@@ -258,31 +265,40 @@ func MaskBits(mask, wordSize int, slice []byte) (ret []byte) {
 // Returns:
 //   - *big.Int: a pointer to a big.Int representing the computed factorial
 //
-//nolint:mnd
+//nolint:mnd // 32 bytes = 256 bits, necessary for keccak256
 func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 	var progOutBuf []byte
 	for _, programOutput := range programOutputs {
-		inBuf := FmtKecBytes(programOutput, 32)
+		inBuf := FmtKecBytes(
+			programOutput,
+			32,
+		)
 		progOutBuf = append(progOutBuf, inBuf...)
 	}
 
-	kecBuf := FmtKecBytes(programHash, 32)
+	kecBuf := FmtKecBytes(
+		programHash,
+		32,
+	)
 	kecBuf = append(kecBuf, Keccak256(progOutBuf)...)
 
 	return new(big.Int).SetBytes(Keccak256(kecBuf))
 }
 
-// SplitFactStr splits a given fact, with maximum 256 bits size, into two parts (felts): fact_low and fact_high.
+// SplitFactStr splits a given fact, with maximum 256 bits size, into two
+// parts (felts): fact_low and fact_high.
 //
-// The function takes a fact string as input and converts it to a big number using the HexToBN function.
-// It then converts the big number to bytes using the Bytes method.
-// If the length of the bytes is less than 32, it pads the bytes with zeros using the bytes.Repeat method.
+// The function takes a fact string as input and converts it to a big number
+// using the HexToBN function. It then converts the big number to bytes using
+// the Bytes method. If the length of the bytes is less than 32, it pads the
+// bytes with zeros using the bytes.Repeat method.
 // The padded bytes are then appended to the original bytes.
-// The function then extracts the low part of the bytes by taking the last 16 bytes and converts it
-// to a big number using the BytesToBig function.
-// It also extracts the high part of the bytes by taking the first 16 bytes and converts it to a big number
-// using the BytesToBig function.
-// Finally, it converts the low and high big numbers to hexadecimal strings using the BigToHex function and returns them.
+// The function then extracts the low part of the bytes by taking the last 16
+// bytes and converts it to a big number using the BytesToBig function.
+// It also extracts the high part of the bytes by taking the first 16 bytes and
+// converts it to a big number using the BytesToBig function.
+// Finally, it converts the low and high big numbers to hexadecimal strings using
+// the BigToHex function and returns them.
 //
 // Parameters:
 //   - fact: The fact string to be split
@@ -292,36 +308,38 @@ func ComputeFact(programHash *big.Int, programOutputs []*big.Int) *big.Int {
 //   - fact_high: The high part of the fact string in hexadecimal format
 //   - err: An error if any
 //
-//nolint:mnd
-func SplitFactStr(fact string) (fact_low, fact_high string, err error) {
+//nolint:mnd // There's a comment explaining each magic number.
+func SplitFactStr(fact string) (factLow, factHigh string, err error) {
 	numStr := strings.ReplaceAll(fact, "0x", "")
-	factBN, ok := new(big.Int).SetString(numStr, 16)
+	factBN, ok := new(big.Int).SetString(numStr, 16) // hex base
 	if !ok {
 		return "", "", errors.New("failed to convert fact string to big.Int")
 	}
-	if factBN.BitLen() > 256 {
+	if factBN.BitLen() > 256 { // max 256 bits
 		return "", "", errors.New("fact string is too large")
 	}
 	factBytes := factBN.Bytes()
-	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes))
+	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes)) // left pad with zeros
 	factBytes = append(lpadfactBytes, factBytes...)
-	low := BytesToBig(factBytes[16:])
-	high := BytesToBig(factBytes[:16])
+	high := BytesToBig(factBytes[:16]) // first 16 bytes
+	low := BytesToBig(factBytes[16:])  // last 16 bytes
 
 	return BigToHex(low), BigToHex(high), nil
 }
 
-// FmtKecBytes formats the given big.Int as a byte slice (Keccak hash) with a specified length.
+// FmtKecBytes formats the given big.Int as a byte slice (Keccak hash) with
+// a specified length.
 //
 // The function appends the bytes of the big.Int to a buffer and returns it.
-// If the length of the buffer is less than the specified length, the function pads the buffer with zeros.
+// If the length of the buffer is less than the specified length, the function
+// pads the buffer with zeros.
 //
 // Parameters:
 //   - in: the big.Int to be formatted
 //   - rolen: the length of the buffer
 //
 // Returns:
-// buf: the formatted buffer
+//   - buf: the formatted buffer
 func FmtKecBytes(in *big.Int, rolen int) (buf []byte) {
 	buf = append(buf, in.Bytes()...)
 
