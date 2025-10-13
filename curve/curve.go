@@ -213,7 +213,7 @@ func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 
 	hash = internalUtils.FeltToBigInt(feltHash)
 
-	return
+	return hash
 }
 
 // ComputeHashOnElements computes the hash on the given elements using a

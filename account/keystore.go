@@ -113,7 +113,7 @@ func (ks *MemKeystore) Sign(
 
 	r, s, err = sign(ctx, msgHash, k)
 
-	return
+	return r, s, err
 }
 
 // sign signs the given message hash with the provided key using the Curve.
@@ -163,5 +163,5 @@ func GetRandomKeys() (ks *MemKeystore, pubKey, privKey *felt.Felt) {
 	ks = NewMemKeystore()
 	ks.Put(pubKey.String(), privateKey)
 
-	return
+	return ks, pubKey, privKey
 }

@@ -58,6 +58,7 @@ old `rpc/spy_test.go` file was removed.
 - New `mocks/mock_client.go` file containing a mock of the `client.Client` type (`client.ClientI` interface).
 - New benchmarks and tests for the `typedData` pkg.
 - New linter rules in the `.golangci.yaml` file, thus, a lot of changes in the codebase to fix the new rules.
+- Updated `golangci-lint` to v2.5.0.
 
 ## [0.15.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.15.0) - 2025-09-03
 ### Changed
