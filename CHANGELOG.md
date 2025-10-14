@@ -45,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.
   - The `Err` function now have a specific case for the `InternalError` code.
 
+### Removed
+- Braavos warning when instantiating a new `account.Account` instance.
+The issue was fixed by starkware in Starknet v0.14.0.
+
 ### Fixed
 - The `typedData.TypedData` was not being marshaled exactly as it is in the original JSON. Now, the original JSON is preserved,
   so the output of `TypedData.MarshalJSON()` is exactly as the original JSON.

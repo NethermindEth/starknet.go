@@ -1,10 +1,7 @@
 package account_test
 
 import (
-	"bytes"
 	"context"
-	"io"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -88,10 +85,6 @@ func TestFmtCallData(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRPCProvider.EXPECT().
-			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.DeadBeef, nil)
 		acc, err := account.NewAccount(
 			mockRPCProvider,
 			&felt.Zero,
@@ -147,10 +140,6 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRPCProvider.EXPECT().
-			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.DeadBeef, nil)
 		acc, err := account.NewAccount(
 			mockRPCProvider,
 			&felt.Zero,
@@ -204,88 +193,5 @@ func TestChainId(t *testing.T) {
 		)
 		require.NoError(t, err)
 		require.Equal(t, acc.ChainID.String(), test.ExpectedID)
-	}
-}
-
-func TestBraavosAccountWarning(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
-
-	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
-
-	type testSetType struct {
-		ClassHash      *felt.Felt
-		ExpectedOutput bool
-	}
-
-	// Known Braavos class hashes
-	braavosClassHashes := []string{
-		"0x2c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc",
-		"0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253",
-		"0x41bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
-	}
-
-	testSet := map[tests.TestEnv][]testSetType{
-		tests.MockEnv: {
-			{
-				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[0]),
-				ExpectedOutput: true,
-			},
-			{
-				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[1]),
-				ExpectedOutput: true,
-			},
-			{
-				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[2]),
-				ExpectedOutput: true,
-			},
-			{
-				ClassHash:      internalUtils.DeadBeef,
-				ExpectedOutput: false,
-			},
-		},
-	}[tests.TEST_ENV]
-
-	for _, test := range testSet {
-		t.Run("ClassHash_"+test.ClassHash.String(), func(t *testing.T) {
-			// Set up the mock to return the Braavos class hash
-			mockRPCProvider.EXPECT().
-				ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-				Return(test.ClassHash, nil)
-			mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-
-			// Create a buffer to capture stdout
-			oldStdout := os.Stdout
-			r, w, err := os.Pipe()
-			require.NoError(t, err)
-			os.Stdout = w
-
-			// Create the account
-			_, err = account.NewAccount(
-				mockRPCProvider,
-				internalUtils.DeadBeef,
-				"pubkey",
-				account.NewMemKeystore(),
-				account.CairoV2,
-			)
-			require.NoError(t, err)
-
-			// Close the writer and restore stdout
-			require.NoError(t, w.Close())
-			os.Stdout = oldStdout
-
-			// Read the captured output
-			var buf bytes.Buffer
-			_, err = io.Copy(&buf, r)
-			require.NoError(t, err)
-
-			if test.ExpectedOutput {
-				// Check if the warning message was printed
-				assert.Contains(t, buf.String(), account.BraavosWarningMessage)
-			} else {
-				// Check if the warning message was not printed
-				assert.NotContains(t, buf.String(), account.BraavosWarningMessage)
-			}
-		})
 	}
 }

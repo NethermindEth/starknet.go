@@ -294,12 +294,10 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			Times(2)
 
 		ks, pub, _ := account.GetRandomKeys()
+
 		// called when instantiating the account
-		mockRPCProvider.EXPECT().
-			ClassHashAt(gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.DeadBeef, nil).
-			Times(1)
 		mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+
 		acnt, err := account.NewAccount(
 			mockRPCProvider,
 			internalUtils.DeadBeef,
@@ -823,10 +821,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRPCProvider.EXPECT().
-		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.DeadBeef, nil)
+
 	acnt, err := account.NewAccount(
 		mockRPCProvider,
 		&felt.Zero,

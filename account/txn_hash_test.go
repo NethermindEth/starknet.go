@@ -138,10 +138,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			}
 			if tests.TEST_ENV == "mock" {
 				mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-				// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-				mockRPCProvider.EXPECT().
-					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-					Return(internalUtils.DeadBeef, nil)
+
 				acc, err = account.NewAccount(
 					mockRPCProvider,
 					test.AccountAddress,
@@ -204,10 +201,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 
 		mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRPCProvider.EXPECT().
-			ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-			Return(internalUtils.DeadBeef, nil)
+
 		acnt, err = account.NewAccount(
 			mockRPCProvider,
 			&felt.Zero,
@@ -342,10 +336,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRPCProvider.EXPECT().
-		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.DeadBeef, nil)
+
 	acnt, err := account.NewAccount(
 		mockRPCProvider,
 		&felt.Zero,
@@ -438,10 +429,6 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRPCProvider.EXPECT().
-		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.DeadBeef, nil)
 
 	acnt, err := account.NewAccount(
 		mockRPCProvider,
