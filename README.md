@@ -1,7 +1,7 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/Starknet.Go_Vertical_Dark.png">
-    <img src="docs/images/Starknet.Go_Vertical_Light.png" height="256">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/docs/public/starknetgo_vertical_dark.png">
+    <img src="docs/docs/public/starknetgo_vertical_dark.png" height="256">
   </picture>
 </div>
 
