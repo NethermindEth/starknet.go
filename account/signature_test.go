@@ -24,10 +24,6 @@ func TestVerify(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
-	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRPCProvider.EXPECT().
-		ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
-		Return(internalUtils.DeadBeef, nil)
 
 	ks := account.NewMemKeystore()
 	accAddress := internalUtils.TestHexToFelt(
