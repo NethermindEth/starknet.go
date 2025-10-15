@@ -59,7 +59,7 @@ func TestExecuteTransaction(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
-			t.Logf("Tracking ID: %s", resp.TrackingId)
+			t.Logf("Tracking ID: %s", resp.TrackingID)
 			t.Logf("Transaction Hash: %s", resp.TransactionHash)
 
 			rawResp, err := json.Marshal(resp)
@@ -113,7 +113,7 @@ func TestExecuteTransaction(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
-			t.Logf("Tracking ID: %s", resp.TrackingId)
+			t.Logf("Tracking ID: %s", resp.TrackingID)
 			t.Logf("Transaction Hash: %s", resp.TransactionHash)
 
 			rawResp, err := json.Marshal(resp)
@@ -166,7 +166,7 @@ func TestExecuteTransaction(t *testing.T) {
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
-			t.Logf("Tracking ID: %s", resp.TrackingId)
+			t.Logf("Tracking ID: %s", resp.TrackingID)
 			t.Logf("Transaction Hash: %s", resp.TransactionHash)
 
 			rawResp, err := json.Marshal(resp)

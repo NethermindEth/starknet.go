@@ -14,10 +14,10 @@ import (
 )
 
 var (
-	AVNU_PAYMASTER_URL = "https://sepolia.paymaster.avnu.fi"
+	AVNUPaymasterURL = "https://sepolia.paymaster.avnu.fi"
 
 	// A simple ERC20 contract with a public mint function
-	RAND_ERC20_CONTRACT_ADDRESS, _ = utils.HexToFelt(
+	RandERC20ContractAddress, _ = utils.HexToFelt(
 		"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
 	)
 )
@@ -39,10 +39,10 @@ func main() {
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
-	rpcProviderUrl := setup.GetRPCProviderURL()
+	rpcProviderURL := setup.GetRPCProviderURL()
 
 	// Connect to a RPC provider to instantiate the account
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
@@ -53,7 +53,7 @@ func main() {
 	// ************* done *************
 
 	// Initialise connection to the paymaster provider - AVNU Sepolia in this case
-	paymaster, err := pm.New(AVNU_PAYMASTER_URL)
+	paymaster, err := pm.New(AVNUPaymasterURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to the paymaster provider: %s", err))
 	}
@@ -95,7 +95,7 @@ func main() {
 		UserAddress: acc.Address,
 		Calls: []pm.Call{
 			{
-				To:       RAND_ERC20_CONTRACT_ADDRESS,
+				To:       RandERC20ContractAddress,
 				Selector: utils.GetSelectorFromNameFelt("mint"),
 				Calldata: amount,
 			},
@@ -214,7 +214,7 @@ func main() {
 	}
 
 	fmt.Println("Transaction successfully executed by the paymaster")
-	fmt.Println("Tracking ID:", response.TrackingId)
+	fmt.Println("Tracking ID:", response.TrackingID)
 	fmt.Println("Transaction Hash:", response.TransactionHash)
 
 	// There are more two files in this example:

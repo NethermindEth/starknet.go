@@ -16,14 +16,17 @@ import (
 //   - error: An error if any
 func (p *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error) {
 	var response []TokenData
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_getSupportedTokens"); err != nil {
+	if err := p.c.CallContextWithSliceArgs(
+		ctx, &response, "paymaster_getSupportedTokens",
+	); err != nil {
 		return nil, err
 	}
 
 	return response, nil
 }
 
-// Object containing data about the token: contract address, number of decimals and current price in STRK
+// Object containing data about the token: contract address, number of
+// decimals and current price in STRK
 type TokenData struct {
 	// Token contract address
 	TokenAddress *felt.Felt `json:"token_address"`

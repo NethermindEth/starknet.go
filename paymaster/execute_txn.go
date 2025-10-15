@@ -23,7 +23,12 @@ func (p *Paymaster) ExecuteTransaction(
 	request *ExecuteTransactionRequest,
 ) (*ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", request); err != nil {
+	if err := p.c.CallContextWithSliceArgs(
+		ctx,
+		&response,
+		"paymaster_executeTransaction",
+		request,
+	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInvalidAddress,
@@ -39,7 +44,8 @@ func (p *Paymaster) ExecuteTransaction(
 	return &response, nil
 }
 
-// ExecuteTransactionRequest is the request to execute a transaction via the paymaster (transaction + parameters).
+// ExecuteTransactionRequest is the request to execute a transaction
+// via the paymaster (transaction + parameters).
 type ExecuteTransactionRequest struct {
 	// Typed data build by calling paymaster_buildTransaction signed by the
 	// user to be executed by the paymaster service
@@ -48,11 +54,13 @@ type ExecuteTransactionRequest struct {
 	Parameters *UserParameters `json:"parameters"`
 }
 
-// ExecutableUserTransaction is a user transaction ready for execution (deploy, invoke, or both).
+// ExecutableUserTransaction is a user transaction ready for execution
+// (deploy, invoke, or both).
 type ExecutableUserTransaction struct {
 	// The type of the transaction to be executed by the paymaster
 	Type UserTxnType `json:"type"`
-	// The deployment data for the transaction, used for `deploy` and `deploy_and_invoke` transaction types.
+	// The deployment data for the transaction, used for `deploy` and
+	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `invoke` transaction types.
 	Deployment *AccDeploymentData `json:"deployment,omitempty"`
 	// Invoke data signed by the user to be executed by the paymaster service, used for`invoke` and
@@ -61,7 +69,8 @@ type ExecutableUserTransaction struct {
 	Invoke *ExecutableUserInvoke `json:"invoke,omitempty"`
 }
 
-// ExecutableUserInvoke is a signed typed data of an invoke transaction ready to be executed by the paymaster service.
+// ExecutableUserInvoke is a signed typed data of an invoke transaction ready
+// to be executed by the paymaster service.
 type ExecutableUserInvoke struct {
 	// The address of the user account
 	UserAddress *felt.Felt `json:"user_address"`
@@ -71,12 +80,13 @@ type ExecutableUserInvoke struct {
 	Signature []*felt.Felt `json:"signature"`
 }
 
-// ExecuteTransactionResponse is the response from executing a transaction (tracking ID and transaction hash).
+// ExecuteTransactionResponse is the response from executing a transaction
+// (tracking ID and transaction hash).
 type ExecuteTransactionResponse struct {
 	// A unique identifier used to track an execution request of a user. Its purpose is to track
 	// possibly different transactions sent by the paymaster and which are associated with a same
 	// user request. Such cases can happen during congestion, where a fee or tip bump may be needed
 	// in order for a transaction to enter a block
-	TrackingId      *felt.Felt `json:"tracking_id"`
+	TrackingID      *felt.Felt `json:"tracking_id"`
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 }

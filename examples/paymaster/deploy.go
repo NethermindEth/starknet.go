@@ -13,14 +13,14 @@ import (
 )
 
 // OpenZeppelin account class hash that supports outside executions
-const OZ_ACCOUNT_CLASS_HASH = "0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564"
+const OZAccountClassHash = "0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564"
 
 // An example of how to deploy a contract with a paymaster.
 func deployWithPaymaster() {
 	fmt.Println("Starting paymaster example - deploying an account")
 
 	// Load variables from '.env' file
-	AVNU_API_KEY := setup.GetAvnuApiKey()
+	AVNUApiKey := setup.GetAVNUApiKey()
 
 	// Since all accounts in Starknet are smart contracts, we need to deploy them first before we can use them.
 	// And to do so, we need to calculate the address of the new account and fund it with
@@ -35,8 +35,8 @@ func deployWithPaymaster() {
 	// In the AVNU paymaster, the API key is a http header called `x-paymaster-api-key`.
 	// In the current Starknet.go client, you can set a custom http header using the `client.WithHeader` option.
 	paymaster, err := pm.New(
-		AVNU_PAYMASTER_URL,
-		client.WithHeader("x-paymaster-api-key", AVNU_API_KEY),
+		AVNUPaymasterURL,
+		client.WithHeader("x-paymaster-api-key", AVNUApiKey),
 	)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to the paymaster provider with the API key: %s", err))
@@ -50,7 +50,7 @@ func deployWithPaymaster() {
 	fmt.Println("Public key:", pubKey)
 	fmt.Println("Private key:", privK)
 	classHash, _ := utils.HexToFelt(
-		OZ_ACCOUNT_CLASS_HASH,
+		OZAccountClassHash,
 	) // It needs to be an SNIP-9 compatible account
 	constructorCalldata := []*felt.Felt{
 		pubKey,
@@ -127,6 +127,6 @@ func deployWithPaymaster() {
 	}
 
 	fmt.Println("Deploy transaction successfully executed by the paymaster")
-	fmt.Println("Tracking ID:", response.TrackingId)
+	fmt.Println("Tracking ID:", response.TrackingID)
 	fmt.Println("Transaction Hash:", response.TransactionHash)
 }

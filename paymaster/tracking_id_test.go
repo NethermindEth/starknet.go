@@ -66,24 +66,24 @@ func TestTrackingIdToLatestHash(t *testing.T) {
 		"status": "active"
 	}`
 
-	var expectedResp TrackingIdResponse
+	var expectedResp TrackingIDResponse
 	err := json.Unmarshal([]byte(expectedRawResp), &expectedResp)
 	require.NoError(t, err)
 
-	trackingId := internalUtils.DeadBeef
+	trackingID := internalUtils.DeadBeef
 
 	pm := SetupMockPaymaster(t)
 	pm.c.EXPECT().
 		CallContextWithSliceArgs(
 			context.Background(),
-			gomock.AssignableToTypeOf(new(TrackingIdResponse)),
+			gomock.AssignableToTypeOf(new(TrackingIDResponse)),
 			"paymaster_trackingIdToLatestHash",
-			trackingId,
+			trackingID,
 		).
 		SetArg(1, expectedResp).
 		Return(nil)
 
-	response, err := pm.TrackingIdToLatestHash(context.Background(), trackingId)
+	response, err := pm.TrackingIDToLatestHash(context.Background(), trackingID)
 	require.NoError(t, err)
 	assert.Equal(t, TxnActive, response.Status)
 	assert.Equal(t, expectedResp.TransactionHash, response.TransactionHash)

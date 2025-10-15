@@ -63,7 +63,7 @@ func GetAccountCairoVersion() account.CairoVersion {
 }
 
 // Validates whether the AVNU_API_KEY variable has been set in the '.env' file and returns it; panics otherwise.
-func GetAvnuApiKey() string {
+func GetAVNUApiKey() string {
 	return getEnv("AVNU_API_KEY")
 }
 

@@ -9,34 +9,39 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
-// TrackingIdToLatestHash gets the latest transaction hash and status for a given tracking ID.
+// TrackingIDToLatestHash gets the latest transaction hash and status for a given tracking ID.
 // Returns a TrackingIdResponse.
 //
 // Parameters:
 //   - ctx: The context.Context object for controlling the function call
-//   - trackingId: A unique identifier used to track an execution request of a user.
+//   - trackingID: A unique identifier used to track an execution request of a user.
 //     This identitifier is returned by the paymaster after a successful call to `execute`.
 //     Its purpose is to track the possibly different transaction hashes in the mempool which
 //     are associated with a same user request.
 //
 // Returns:
-//   - *TrackingIdResponse: The hash of the latest transaction broadcasted by the paymaster
+//   - *TrackingIDResponse: The hash of the latest transaction broadcasted by the paymaster
 //     corresponding to the requested ID and the status of the ID.
 //   - error: An error if any
-func (p *Paymaster) TrackingIdToLatestHash(
+func (p *Paymaster) TrackingIDToLatestHash(
 	ctx context.Context,
-	trackingId *felt.Felt,
-) (TrackingIdResponse, error) {
-	var response TrackingIdResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_trackingIdToLatestHash", trackingId); err != nil {
-		return TrackingIdResponse{}, rpcerr.UnwrapToRPCErr(err, ErrInvalidID)
+	trackingID *felt.Felt,
+) (TrackingIDResponse, error) {
+	var response TrackingIDResponse
+	if err := p.c.CallContextWithSliceArgs(
+		ctx,
+		&response,
+		"paymaster_trackingIdToLatestHash",
+		trackingID,
+	); err != nil {
+		return TrackingIDResponse{}, rpcerr.UnwrapToRPCErr(err, ErrInvalidID)
 	}
 
 	return response, nil
 }
 
-// TrackingIdResponse is the response for the `paymaster_trackingIdToLatestHash` method.
-type TrackingIdResponse struct {
+// TrackingIDResponse is the response for the `paymaster_trackingIdToLatestHash` method.
+type TrackingIDResponse struct {
 	// The hash of the most recent tx sent by the paymaster and corresponding to the ID
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	// The status of the transaction associated with the ID

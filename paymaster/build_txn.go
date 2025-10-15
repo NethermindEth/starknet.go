@@ -25,7 +25,9 @@ func (p *Paymaster) BuildTransaction(
 	request *BuildTransactionRequest,
 ) (*BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
-	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", request); err != nil {
+	if err := p.c.CallContextWithSliceArgs(
+		ctx, &response, "paymaster_buildTransaction", request,
+	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInvalidAddress,
@@ -41,7 +43,8 @@ func (p *Paymaster) BuildTransaction(
 	return &response, nil
 }
 
-// BuildTransactionRequest is the request to build a transaction for the paymaster (transaction + parameters).
+// BuildTransactionRequest is the request to build a transaction for
+// the paymaster (transaction + parameters).
 type BuildTransactionRequest struct {
 	// The transaction to be executed by the paymaster
 	Transaction *UserTransaction `json:"transaction"`
@@ -49,19 +52,23 @@ type BuildTransactionRequest struct {
 	Parameters *UserParameters `json:"parameters"`
 }
 
-// UserTransaction represents a user transaction (deploy, invoke, or deploy_and_invoke).
+// UserTransaction represents a user transaction (deploy, invoke,
+// or deploy_and_invoke).
 type UserTransaction struct {
 	// The type of the transaction to be executed by the paymaster
 	Type UserTxnType `json:"type"`
-	// The deployment data for the transaction, used for `deploy` and `deploy_and_invoke` transaction types.
+	// The deployment data for the transaction, used for `deploy` and
+	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `invoke` transaction types.
 	Deployment *AccDeploymentData `json:"deployment,omitempty"`
-	// The invoke data for the transaction, used for `invoke` and `deploy_and_invoke` transaction types.
+	// The invoke data for the transaction, used for `invoke` and
+	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `deploy` transaction types.
 	Invoke *UserInvoke `json:"invoke,omitempty"`
 }
 
-// An enum representing the type of the transaction to be executed by the paymaster
+// An enum representing the type of the transaction to be executed
+// by the paymaster
 type UserTxnType string
 
 const (
@@ -216,20 +223,23 @@ func (feeMode *FeeModeType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Specify how the transaction should be paid. Either by the user specifying a gas token or through sponsorship
+// Specify how the transaction should be paid. Either by the user
+// specifying a gas token or through sponsorship
 type FeeMode struct {
 	// The fee mode type to use for the transaction
 	Mode FeeModeType `json:"mode"`
 	// The gas token to use for the transaction. Should be omitted for `sponsored` fee mode
 	GasToken *felt.Felt `json:"gas_token,omitempty"`
-	// Relative tip priority or a custom tip value. If not provided/is `nil`, the paymaster will use the `normal` tip priority by default.
+	// Relative tip priority or a custom tip value. If not provided/is `nil`,
+	// the paymaster will use the `normal` tip priority by default.
 	Tip *TipPriority `json:"tip,omitempty"`
 }
 
 // Relative tip priority or a custom tip value.
 //
 // The user must specify either the priority or the custom tip value.
-// If both fields are omitted (or TipPriority is `nil`), the paymaster will use the `normal` tip priority by default.
+// If both fields are omitted (or TipPriority is `nil`), the paymaster will
+// use the `normal` tip priority by default.
 type TipPriority struct {
 	// The relative tip priority
 	Priority TipPriorityEnum `json:"-"`
@@ -322,7 +332,8 @@ type FeeEstimate struct {
 }
 
 // BuildTransactionResponse is the response from the `paymaster_buildTransaction` method.
-// It contains the transaction data required for the paymaster to execute, along with an estimation of the fee.
+// It contains the transaction data required for the paymaster to execute, along with
+// an estimation of the fee.
 type BuildTransactionResponse struct {
 	// The type of the transaction
 	Type UserTxnType `json:"type"`

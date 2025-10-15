@@ -18,7 +18,7 @@ func deployAndInvokeWithPaymaster() {
 	fmt.Println("Starting paymaster example - deploy_and_invoke")
 
 	// Load variables from '.env' file
-	AVNU_API_KEY := setup.GetAvnuApiKey()
+	AVNUApiKey := setup.GetAVNUApiKey()
 
 	// Since all accounts in Starknet are smart contracts, we need to deploy them first before we can use them.
 	// And to do so, we need to calculate the address of the new account and fund it with
@@ -32,7 +32,10 @@ func deployAndInvokeWithPaymaster() {
 	// Let's initialise the paymaster client, but now, we will also pass our API key to the client.
 	// In the AVNU paymaster, the API key is a http header called `x-paymaster-api-key`.
 	// In the current Starknet.go client, you can set a custom http header using the `client.WithHeader` option.
-	paymaster, err := pm.New(AVNU_PAYMASTER_URL, client.WithHeader("x-paymaster-api-key", AVNU_API_KEY))
+	paymaster, err := pm.New(
+		AVNUPaymasterURL,
+		client.WithHeader("x-paymaster-api-key", AVNUApiKey),
+	)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to the paymaster provider with the API key: %s", err))
 	}
@@ -44,9 +47,13 @@ func deployAndInvokeWithPaymaster() {
 	_, pubKey, privK := account.GetRandomKeys() // Get random keys for the account
 	fmt.Println("Public key:", pubKey)
 	fmt.Println("Private key:", privK)
-	classHash, _ := utils.HexToFelt(OZ_ACCOUNT_CLASS_HASH) // It needs to be an SNIP-9 compatible account
-	constructorCalldata := []*felt.Felt{pubKey}            // The OZ account constructor requires the public key
-	salt, _ := utils.HexToFelt("0xdeadbeef")               // Just a random salt
+	classHash, _ := utils.HexToFelt(
+		OZAccountClassHash,
+	) // It needs to be an SNIP-9 compatible account
+	constructorCalldata := []*felt.Felt{
+		pubKey,
+	} // The OZ account constructor requires the public key
+	salt, _ := utils.HexToFelt("0xdeadbeef") // Just a random salt
 	// Precompute the address of the new account based on the salt, class hash and constructor calldata
 	precAddress := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
@@ -72,7 +79,7 @@ func deployAndInvokeWithPaymaster() {
 		UserAddress: precAddress, // The `user_address` is the address of the account that will be deployed.
 		Calls: []pm.Call{
 			{ // These fields were explained in the `main.go` file of this same example.
-				To:       RAND_ERC20_CONTRACT_ADDRESS,
+				To:       RandERC20ContractAddress,
 				Selector: utils.GetSelectorFromNameFelt("mint"),
 				Calldata: amount,
 			},
@@ -123,7 +130,10 @@ func deployAndInvokeWithPaymaster() {
 	fmt.Println("Message hash of the typed data:", messageHash)
 
 	// Now, we sign the message hash using our account.
-	r, s, err := curve.SignFelts(messageHash, privK) // You can also use the `curve` package to sign the message hash.
+	r, s, err := curve.SignFelts(
+		messageHash,
+		privK,
+	) // You can also use the `curve` package to sign the message hash.
 	if err != nil {
 		panic(fmt.Sprintf("Error signing the transaction: %s", err))
 	}
@@ -135,35 +145,43 @@ func deployAndInvokeWithPaymaster() {
 	fmt.Println("Step 3: Send the signed transaction")
 
 	// With our built deploy_and_invoke transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
-	response, err := paymaster.ExecuteTransaction(context.Background(), &pm.ExecuteTransactionRequest{
-		Transaction: &pm.ExecutableUserTransaction{
-			Type: pm.UserTxnDeployAndInvoke,
+	response, err := paymaster.ExecuteTransaction(
+		context.Background(),
+		&pm.ExecuteTransactionRequest{
+			Transaction: &pm.ExecutableUserTransaction{
+				Type: pm.UserTxnDeployAndInvoke,
 
-			Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
-			// the `builtTxn.Deployment` value.
-			Invoke: &pm.ExecutableUserInvoke{
-				UserAddress: precAddress,        // The `user_address` is the address of the account that will be deployed.
-				TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method.
-				Signature:   signature,          // The signature of the message hash made in the previous step.
+				Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
+				// the `builtTxn.Deployment` value.
+				Invoke: &pm.ExecutableUserInvoke{
+					UserAddress: precAddress,        // The `user_address` is the address of the account that will be deployed.
+					TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method.
+					Signature:   signature,          // The signature of the message hash made in the previous step.
+				},
 			},
-		},
-		Parameters: &pm.UserParameters{
-			Version: pm.UserParamV1,
+			Parameters: &pm.UserParameters{
+				Version: pm.UserParamV1,
 
-			// Using the same fee options as in the `paymaster_buildTransaction` method.
-			FeeMode: pm.FeeMode{
-				Mode: pm.FeeModeSponsored,
-				Tip: &pm.TipPriority{
-					Priority: pm.TipPriorityNormal,
+				// Using the same fee options as in the `paymaster_buildTransaction` method.
+				FeeMode: pm.FeeMode{
+					Mode: pm.FeeModeSponsored,
+					Tip: &pm.TipPriority{
+						Priority: pm.TipPriorityNormal,
+					},
 				},
 			},
 		},
-	})
+	)
 	if err != nil {
-		panic(fmt.Sprintf("Error executing the deploy_and_invoke transaction with the paymaster: %s", err))
+		panic(
+			fmt.Sprintf(
+				"Error executing the deploy_and_invoke transaction with the paymaster: %s",
+				err,
+			),
+		)
 	}
 
 	fmt.Println("Deploy_and_invoke transaction successfully executed by the paymaster")
-	fmt.Println("Tracking ID:", response.TrackingId)
+	fmt.Println("Tracking ID:", response.TrackingID)
 	fmt.Println("Transaction Hash:", response.TransactionHash)
 }
