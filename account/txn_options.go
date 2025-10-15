@@ -47,7 +47,7 @@ func (opts *TxnOptions) BlockID() rpc.BlockID {
 		return rpc.WithBlockTag(rpc.BlockTagLatest)
 	}
 
-	return rpc.WithBlockTag(rpc.BlockTagPre_confirmed)
+	return rpc.WithBlockTag(rpc.BlockTagPreConfirmed)
 }
 
 // Returns a `[]rpc.SimulationFlag` containing the SimulationFlag.
@@ -60,7 +60,8 @@ func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
 	return []rpc.SimulationFlag{opts.SimulationFlag}
 }
 
-// takes a pointer to a TxnOptions struct and formats the tip and multiplier according to the default values
+// takes a pointer to a TxnOptions struct and formats the tip and multiplier according
+// to the default values
 func fmtTipAndMultiplier(opts *TxnOptions) {
 	if opts.Multiplier <= 0 {
 		opts.Multiplier = 1.5

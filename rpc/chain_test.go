@@ -13,7 +13,14 @@ import (
 
 // TestChainID is a function that tests the ChainID function in the Go test file.
 func TestChainID(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
@@ -61,11 +68,11 @@ func TestSyncing(t *testing.T) {
 	if tests.TEST_ENV == tests.MockEnv {
 		value := SyncStatus{
 			IsSyncing:         true,
-			StartingBlockHash: internalUtils.RANDOM_FELT,
+			StartingBlockHash: internalUtils.DeadBeef,
 			StartingBlockNum:  1234,
-			CurrentBlockHash:  internalUtils.RANDOM_FELT,
+			CurrentBlockHash:  internalUtils.DeadBeef,
 			CurrentBlockNum:   1234,
-			HighestBlockHash:  internalUtils.RANDOM_FELT,
+			HighestBlockHash:  internalUtils.DeadBeef,
 			HighestBlockNum:   1234,
 		}
 		assert.Exactly(t, value, sync)

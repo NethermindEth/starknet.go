@@ -38,7 +38,9 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 // Returns:
 //   - *BlockHashAndNumberOutput: The hash and number of the current block
 //   - error: An error if any
-func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error) {
+func (provider *Provider) BlockHashAndNumber(
+	ctx context.Context,
+) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
 	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrNoBlocks)
@@ -55,10 +57,10 @@ func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAnd
 // Returns:
 //   - BlockID: A BlockID struct with the specified block number
 func WithBlockNumber(n uint64) BlockID {
-	//nolint:exhaustruct
-	return BlockID{
-		Number: &n,
-	}
+	var blockID BlockID
+	blockID.Number = &n
+
+	return blockID
 }
 
 // WithBlockHash returns a BlockID with the given hash.
@@ -69,10 +71,10 @@ func WithBlockNumber(n uint64) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified hash
 func WithBlockHash(h *felt.Felt) BlockID {
-	//nolint:exhaustruct
-	return BlockID{
-		Hash: h,
-	}
+	var blockID BlockID
+	blockID.Hash = h
+
+	return blockID
 }
 
 // WithBlockTag creates a new BlockID with the specified tag.
@@ -83,10 +85,10 @@ func WithBlockHash(h *felt.Felt) BlockID {
 // Returns:
 //   - BlockID: A BlockID struct with the specified tag
 func WithBlockTag(tag BlockTag) BlockID {
-	//nolint:exhaustruct
-	return BlockID{
-		Tag: tag,
-	}
+	var blockID BlockID
+	blockID.Tag = tag
+
+	return blockID
 }
 
 // BlockWithTxHashes retrieves the block with transaction hashes for the given block ID.
@@ -99,8 +101,11 @@ func WithBlockTag(tag BlockTag) BlockID {
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
-//nolint:dupl
-func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error) {
+//nolint:dupl // Similar to BlockWithTxs, but it's a different method.
+func (provider *Provider) BlockWithTxHashes(
+	ctx context.Context,
+	blockID BlockID,
+) (interface{}, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
@@ -108,8 +113,8 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &Pre_confirmedBlockTxHashes{
-			Pre_confirmedBlockHeader{
+		return &PreConfirmedBlockTxHashes{
+			PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -136,7 +141,10 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 // Returns:
 //   - *StateUpdateOutput: The retrieved state update
 //   - error: An error, if any
-func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error) {
+func (provider *Provider) StateUpdate(
+	ctx context.Context,
+	blockID BlockID,
+) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
 	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
@@ -154,7 +162,10 @@ func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*St
 // Returns:
 //   - uint64: The number of transactions in the block
 //   - error: An error, if any
-func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error) {
+func (provider *Provider) BlockTransactionCount(
+	ctx context.Context,
+	blockID BlockID,
+) (uint64, error) {
 	var result uint64
 	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
 		return 0, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
@@ -173,7 +184,7 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
-//nolint:dupl
+//nolint:dupl // Similar to BlockWithTxHashes, but it's a different method.
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
@@ -181,8 +192,8 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 	}
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &Pre_confirmedBlock{
-			Pre_confirmedBlockHeader{
+		return &PreConfirmedBlock{
+			PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -200,7 +211,10 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 }
 
 // Get block information with full transactions and receipts given the block id
-func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithReceipts(
+	ctx context.Context,
+	blockID BlockID,
+) (interface{}, error) {
 	var result json.RawMessage
 	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
@@ -220,11 +234,11 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 
 		return &block, nil
 	} else {
-		var pre_confirmedBlock Pre_confirmedBlockWithReceipts
-		if err := json.Unmarshal(result, &pre_confirmedBlock); err != nil {
+		var preConfirmedBlock PreConfirmedBlockWithReceipts
+		if err := json.Unmarshal(result, &preConfirmedBlock); err != nil {
 			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
-		return &pre_confirmedBlock, nil
+		return &preConfirmedBlock, nil
 	}
 }

@@ -39,9 +39,12 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// same ERC20 contract as in examples/simpleInvoke
-			ContractAddress: internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
-			FunctionName:    "mint",
-			CallData:        []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
+			ContractAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+			),
+			FunctionName: "mint",
+			CallData:     []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
 	}, nil)
 	require.NoError(t, err, "Error building and sending invoke txn")
@@ -50,7 +53,11 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NotNil(t, resp.Hash)
 	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+	txReceipt, err := acc.WaitForTransactionReceipt(
+		context.Background(),
+		resp.Hash,
+		500*time.Millisecond,
+	)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -100,7 +107,11 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	t.Logf("Declare transaction hash: %s", resp.Hash)
 	t.Logf("Class hash: %s", resp.ClassHash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+	txReceipt, err := acc.WaitForTransactionReceipt(
+		context.Background(),
+		resp.Hash,
+		500*time.Millisecond,
+	)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -132,7 +143,10 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	}
 
 	// OpenZeppelin Account Class Hash in Sepolia
-	classHash := internalUtils.TestHexToFelt(t, "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+	classHash := internalUtils.TestHexToFelt(
+		t,
+		"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
+	)
 
 	// Build, estimate the fee and precompute the address of the new account
 	deployAccTxn, precomputedAddress, err := tempAcc.BuildAndEstimateDeployAccountTxn(
@@ -153,9 +167,9 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	// Fund the new account with STRK tokens
 	transferSTRKAndWaitConfirmation(t, acc, overallFee, precomputedAddress)
 
-	// There's something like a bug, a delay in the sequencer in fetching the balance, so let's wait for 2 seconds
+	// There's something like a bug, a delay in the sequencer in fetching the balance, so let's wait for 5 seconds
 	// to be sure that the balance is fetched
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	// Deploy the new account
 	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
@@ -165,7 +179,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	t.Logf("Deploy account transaction hash: %s", resp.Hash)
 	require.NotNil(t, resp.ContractAddress)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+	txReceipt, err := acc.WaitForTransactionReceipt(
+		context.Background(),
+		resp.Hash,
+		500*time.Millisecond,
+	)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -173,7 +191,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
 // used to fund the new account with STRK tokens in the TestBuildAndEstimateDeployAccountTxn test
-func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount, recipient *felt.Felt) {
+func transferSTRKAndWaitConfirmation(
+	t *testing.T,
+	acc *account.Account,
+	amount, recipient *felt.Felt,
+) {
 	t.Helper()
 	// Build and send invoke txn
 	u256Amount, err := internalUtils.HexToU256Felt(amount.String())
@@ -181,9 +203,12 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 		{
 			// STRK contract address in Sepolia
-			ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-			FunctionName:    "transfer",
-			CallData:        append([]*felt.Felt{recipient}, u256Amount...),
+			ContractAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+			),
+			FunctionName: "transfer",
+			CallData:     append([]*felt.Felt{recipient}, u256Amount...),
 		},
 	}, nil)
 	require.NoError(t, err, "Error transferring STRK tokens")
@@ -192,10 +217,20 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 	require.NotNil(t, resp.Hash)
 	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
-	txReceipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+	txReceipt, err := acc.WaitForTransactionReceipt(
+		context.Background(),
+		resp.Hash,
+		500*time.Millisecond,
+	)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
-	err = waitForTransactionStatus(context.Background(), acc.Provider, resp.Hash, rpc.TxnStatus_Accepted_On_L2, 500*time.Millisecond)
+	err = waitForTransactionStatus(
+		context.Background(),
+		acc.Provider,
+		resp.Hash,
+		rpc.TxnStatusAcceptedOnL2,
+		500*time.Millisecond,
+	)
 	require.NoError(t, err, "Error waiting for transfer transaction status")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
@@ -204,7 +239,7 @@ func transferSTRKAndWaitConfirmation(t *testing.T, acc *account.Account, amount,
 // TODO: make it an exported utility function
 func waitForTransactionStatus(
 	ctx context.Context,
-	provider rpc.RpcProvider,
+	provider rpc.RPCProvider,
 	transactionHash *felt.Felt,
 	txnStatus rpc.TxnStatus,
 	pollInterval time.Duration,
@@ -215,10 +250,11 @@ func waitForTransactionStatus(
 		case <-ctx.Done():
 			return rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
 		case <-t.C:
-			returnedTxnStatus, err := provider.GetTransactionStatus(ctx, transactionHash)
+			returnedTxnStatus, err := provider.TransactionStatus(ctx, transactionHash)
 			if err != nil {
 				rpcErr := err.(*rpc.RPCError)
-				if rpcErr.Code == rpc.ErrHashNotFound.Code && rpcErr.Message == rpc.ErrHashNotFound.Message {
+				if rpcErr.Code == rpc.ErrHashNotFound.Code &&
+					rpcErr.Message == rpc.ErrHashNotFound.Message {
 					continue
 				} else {
 					return err
@@ -250,46 +286,59 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
 
 		ctrl := gomock.NewController(t)
-		mockRpcProvider := mocks.NewMockRpcProvider(ctrl)
+		mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
 
-		mockRpcProvider.EXPECT().Nonce(gomock.Any(), gomock.Any(), gomock.Any()).Return(new(felt.Felt).SetUint64(1), nil).Times(2)
+		mockRPCProvider.EXPECT().
+			Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(new(felt.Felt).SetUint64(1), nil).
+			Times(2)
 
 		ks, pub, _ := account.GetRandomKeys()
+
 		// called when instantiating the account
-		mockRpcProvider.EXPECT().ClassHashAt(gomock.Any(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil).Times(1)
-		mockRpcProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
-		acnt, err := account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, pub.String(), ks, account.CairoV2)
+		mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+
+		acnt, err := account.NewAccount(
+			mockRPCProvider,
+			internalUtils.DeadBeef,
+			pub.String(),
+			ks,
+			account.CairoV2,
+		)
 		require.NoError(t, err)
 
 		// setting the expected behaviour for each call to EstimateFee,
 		// asserting if the passed txn has the query bit version
-		mockRpcProvider.EXPECT().EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
-			func(_, request, _, _ any) ([]rpc.FeeEstimation, error) {
-				reqArr, ok := request.([]rpc.BroadcastTxn)
-				require.True(t, ok)
-				txn, ok := reqArr[0].(rpc.Transaction)
-				require.True(t, ok)
+		mockRPCProvider.EXPECT().
+			EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			DoAndReturn(
+				func(_, request, _, _ any) ([]rpc.FeeEstimation, error) {
+					reqArr, ok := request.([]rpc.BroadcastTxn)
+					require.True(t, ok)
+					txn, ok := reqArr[0].(rpc.Transaction)
+					require.True(t, ok)
 
-				// assert that the transaction being estimated has the query bit version
-				assert.Equal(t, txn.GetVersion(), rpc.TransactionV3WithQueryBit)
+					// assert that the transaction being estimated has the query bit version
+					assert.Equal(t, txn.GetVersion(), rpc.TransactionV3WithQueryBit)
 
-				return []rpc.FeeEstimation{
-					{
-						FeeEstimationCommon: rpc.FeeEstimationCommon{
-							L1GasPrice:        new(felt.Felt).SetUint64(10),
-							L1GasConsumed:     new(felt.Felt).SetUint64(100),
-							L1DataGasPrice:    new(felt.Felt).SetUint64(5),
-							L1DataGasConsumed: new(felt.Felt).SetUint64(50),
-							L2GasPrice:        new(felt.Felt).SetUint64(3),
-							L2GasConsumed:     new(felt.Felt).SetUint64(200),
+					return []rpc.FeeEstimation{
+						{
+							FeeEstimationCommon: rpc.FeeEstimationCommon{
+								L1GasPrice:        new(felt.Felt).SetUint64(10),
+								L1GasConsumed:     new(felt.Felt).SetUint64(100),
+								L1DataGasPrice:    new(felt.Felt).SetUint64(5),
+								L1DataGasConsumed: new(felt.Felt).SetUint64(50),
+								L2GasPrice:        new(felt.Felt).SetUint64(3),
+								L2GasConsumed:     new(felt.Felt).SetUint64(200),
+							},
 						},
-					},
-				}, nil
-			},
-		).Times(3)
+					}, nil
+				},
+			).
+			Times(3)
 
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
-			mockRpcProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			mockRPCProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddInvokeTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastInvokeTxnV3)
 					require.True(t, ok)
@@ -303,7 +352,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 			_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 				{
-					ContractAddress: internalUtils.RANDOM_FELT,
+					ContractAddress: internalUtils.DeadBeef,
 					FunctionName:    "transfer",
 				},
 			}, &account.TxnOptions{
@@ -313,7 +362,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		})
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			mockRpcProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
+			mockRPCProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
 					require.True(t, ok)
@@ -325,9 +374,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				},
 			)
 
-			_, err = acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
-				UseQueryBit: true,
-			})
+			_, err = acnt.BuildAndSendDeclareTxn(
+				context.Background(),
+				&casmClass,
+				&class,
+				&account.TxnOptions{
+					UseQueryBit: true,
+				},
+			)
 			require.NoError(t, err)
 		})
 
@@ -335,7 +389,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
 				context.Background(),
 				pub,
-				internalUtils.RANDOM_FELT,
+				internalUtils.DeadBeef,
 				[]*felt.Felt{pub},
 				&account.TxnOptions{
 					UseQueryBit: true,
@@ -360,9 +414,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		acnt := newDevnetAccount(t, client, acnts[0], account.CairoV2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
-			resp, err := acnt.BuildAndSendDeclareTxn(context.Background(), &casmClass, &class, &account.TxnOptions{
-				UseQueryBit: true,
-			})
+			resp, err := acnt.BuildAndSendDeclareTxn(
+				context.Background(),
+				&casmClass,
+				&class,
+				&account.TxnOptions{
+					UseQueryBit: true,
+				},
+			)
 			require.NoError(t, err)
 
 			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
@@ -381,9 +440,12 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			resp, err := acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
 				{
 					// STRK contract address in Sepolia
-					ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-					FunctionName:    "transfer",
-					CallData:        append([]*felt.Felt{acntaddr2}, u256Amount...),
+					ContractAddress: internalUtils.TestHexToFelt(
+						t,
+						"0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+					),
+					FunctionName: "transfer",
+					CallData:     append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
 			}, &account.TxnOptions{
 				UseQueryBit: true,
@@ -461,7 +523,7 @@ func TestSendInvokeTxn(t *testing.T) {
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
 				InvokeTx: rpc.BroadcastInvokeTxnV3{
 					Nonce:   internalUtils.TestHexToFelt(t, "0xd"),
-					Type:    rpc.TransactionType_Invoke,
+					Type:    rpc.TransactionTypeInvoke,
 					Version: rpc.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x7bff07f1c2f6dc0eeaa9e622a0ee35f6e2e9855b39ed757236970a71b7c9e2e"),
@@ -512,7 +574,13 @@ func TestSendInvokeTxn(t *testing.T) {
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(client, test.AccountAddress, test.PubKey.String(), ks, account.CairoV2)
+		acnt, err := account.NewAccount(
+			client,
+			test.AccountAddress,
+			test.PubKey.String(),
+			ks,
+			account.CairoV2,
+		)
 		require.NoError(t, err)
 
 		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
@@ -521,7 +589,12 @@ func TestSendInvokeTxn(t *testing.T) {
 		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
 		if err != nil {
 			rpcErr := err.(*rpc.RPCError)
-			require.Equal(t, test.ExpectedErr.Code, rpcErr.Code, "AddInvokeTransaction returned an unexpected error")
+			require.Equal(
+				t,
+				test.ExpectedErr.Code,
+				rpcErr.Code,
+				"AddInvokeTransaction returned an unexpected error",
+			)
 			require.Zero(t, resp)
 		}
 	}
@@ -541,12 +614,27 @@ func TestSendInvokeTxn(t *testing.T) {
 func TestSendDeclareTxn(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	expectedTxHash := internalUtils.TestHexToFelt(t, "0x1c3df33f06f0da7f5df72bbc02fb8caf33e91bdd2433305dd007c6cd6acc6d0")
-	expectedClassHash := internalUtils.TestHexToFelt(t, "0x06ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17")
+	expectedTxHash := internalUtils.TestHexToFelt(
+		t,
+		"0x1c3df33f06f0da7f5df72bbc02fb8caf33e91bdd2433305dd007c6cd6acc6d0",
+	)
+	expectedClassHash := internalUtils.TestHexToFelt(
+		t,
+		"0x06ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
+	)
 
-	AccountAddress := internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9")
-	PubKey := internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e")
-	PrivKey := internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9")
+	AccountAddress := internalUtils.TestHexToFelt(
+		t,
+		"0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9",
+	)
+	PubKey := internalUtils.TestHexToFelt(
+		t,
+		"0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e",
+	)
+	PrivKey := internalUtils.TestHexToFelt(
+		t,
+		"0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9",
+	)
 
 	ks := account.NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
@@ -568,13 +656,19 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	broadcastTx := rpc.BroadcastDeclareTxnV3{
-		Type:              rpc.TransactionType_Declare,
+		Type:              rpc.TransactionTypeDeclare,
 		SenderAddress:     AccountAddress,
 		CompiledClassHash: compClassHash,
 		Version:           rpc.TransactionV3,
 		Signature: []*felt.Felt{
-			internalUtils.TestHexToFelt(t, "0x74a20e84469ecf7bfaa7eb82a803621357b695af5ac6f857c0615c7e9fa94e3"),
-			internalUtils.TestHexToFelt(t, "0x3a79c411c05fc60fe6da68bd4a1cc57745a7e1e6cfa95dd7c3466fae384cfc3"),
+			internalUtils.TestHexToFelt(
+				t,
+				"0x74a20e84469ecf7bfaa7eb82a803621357b695af5ac6f857c0615c7e9fa94e3",
+			),
+			internalUtils.TestHexToFelt(
+				t,
+				"0x3a79c411c05fc60fe6da68bd4a1cc57745a7e1e6cfa95dd7c3466fae384cfc3",
+			),
 		},
 		Nonce:         internalUtils.TestHexToFelt(t, "0xe"),
 		ContractClass: &class,
@@ -606,7 +700,12 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	if err != nil {
 		rpcErr := err.(*rpc.RPCError)
-		require.Equal(t, rpc.ErrInvalidTransactionNonce.Code, rpcErr.Code, "AddDeclareTransaction error not what expected")
+		require.Equal(
+			t,
+			rpc.ErrInvalidTransactionNonce.Code,
+			rpcErr.Code,
+			"AddDeclareTransaction error not what expected",
+		)
 	} else {
 		require.Equal(t, expectedTxHash.String(), resp.Hash.String(), "AddDeclareTransaction TxHash not what expected")
 		require.Equal(t, expectedClassHash.String(), resp.ClassHash.String(), "AddDeclareTransaction ClassHash not what expected")
@@ -650,7 +749,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	require.NoError(t, err)
 
 	tx := rpc.DeployAccountTxnV3{
-		Type:                rpc.TransactionType_DeployAccount,
+		Type:                rpc.TransactionTypeDeployAccount,
 		Version:             rpc.TransactionV3,
 		Signature:           []*felt.Felt{},
 		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
@@ -677,8 +776,15 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 		FeeMode:       rpc.DAModeL1,
 	}
 
-	precomputedAddress := account.PrecomputeAccountAddress(fakeUserPub, classHash, tx.ConstructorCalldata)
-	require.NoError(t, acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress))
+	precomputedAddress := account.PrecomputeAccountAddress(
+		fakeUserPub,
+		classHash,
+		tx.ConstructorCalldata,
+	)
+	require.NoError(
+		t,
+		acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress),
+	)
 
 	_, err = devnetClient.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
@@ -712,12 +818,17 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
-	mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-	// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-	mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-	acnt, err := account.NewAccount(mockRpcProvider, &felt.Zero, "", account.NewMemKeystore(), account.CairoV0)
+	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
+
+	acnt, err := account.NewAccount(
+		mockRPCProvider,
+		&felt.Zero,
+		"",
+		account.NewMemKeystore(),
+		account.CairoV0,
+	)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -763,7 +874,9 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
 			defer cancel()
 			if test.ShouldCallTransactionReceipt {
-				mockRpcProvider.EXPECT().TransactionReceipt(ctx, test.Hash).Return(test.ExpectedReceipt, test.ExpectedErr)
+				mockRPCProvider.EXPECT().
+					TransactionReceipt(ctx, test.Hash).
+					Return(test.ExpectedReceipt, test.ExpectedErr)
 			}
 			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
 
@@ -805,7 +918,13 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	client, err := rpc.NewProvider(tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
-	acnt, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
+	acnt, err := account.NewAccount(
+		client,
+		&felt.Zero,
+		"pubkey",
+		account.NewMemKeystore(),
+		account.CairoV0,
+	)
 	require.NoError(t, err, "error returned from account.NewAccount()")
 
 	type testSetType struct {
@@ -827,7 +946,10 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 
 	for _, test := range testSet {
 		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(test.Timeout)*time.Second)
+			ctx, cancel := context.WithTimeout(
+				context.Background(),
+				time.Duration(test.Timeout)*time.Second,
+			)
 			defer cancel()
 
 			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
@@ -857,59 +979,95 @@ func TestDeployContractWithUDC(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	t.Run("UDCCairoV0, no constructor, udcOptions nil", func(t *testing.T) {
-		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+		classHash, _ := utils.HexToFelt(
+			"0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8",
+		)
 
 		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, nil)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
 
-		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		txReceipt, err := accnt.WaitForTransactionReceipt(
+			context.Background(),
+			resp.Hash,
+			500*time.Millisecond,
+		)
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 	})
 
 	t.Run("error, UDCCairoV0, no constructor, all udcOptions set", func(t *testing.T) {
-		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+		classHash, _ := utils.HexToFelt(
+			"0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8",
+		)
 
-		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
-			Salt:              internalUtils.RANDOM_FELT,
-			UDCVersion:        utils.UDCCairoV0,
-			OriginIndependent: true,
-		})
+		_, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			nil,
+			nil,
+			&utils.UDCOptions{
+				Salt:              internalUtils.DeadBeef,
+				UDCVersion:        utils.UDCCairoV0,
+				OriginIndependent: true,
+			},
+		)
 		assert.ErrorContains(t, err, "contract already deployed")
 	})
 
 	t.Run("UDCCairoV2, no constructor, only UDCVersion set", func(t *testing.T) {
-		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+		classHash, _ := utils.HexToFelt(
+			"0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8",
+		)
 
-		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
-			UDCVersion: utils.UDCCairoV2,
-		})
+		resp, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			nil,
+			nil,
+			&utils.UDCOptions{
+				UDCVersion: utils.UDCCairoV2,
+			},
+		)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
 
-		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		txReceipt, err := accnt.WaitForTransactionReceipt(
+			context.Background(),
+			resp.Hash,
+			500*time.Millisecond,
+		)
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 	})
 
 	t.Run("error, UDCCairoV2, no constructor, all udcOptions set", func(t *testing.T) {
-		classHash, _ := utils.HexToFelt("0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8")
+		classHash, _ := utils.HexToFelt(
+			"0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8",
+		)
 
-		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, &utils.UDCOptions{
-			Salt:              internalUtils.RANDOM_FELT,
-			UDCVersion:        utils.UDCCairoV2,
-			OriginIndependent: true,
-		})
+		_, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			nil,
+			nil,
+			&utils.UDCOptions{
+				Salt:              internalUtils.DeadBeef,
+				UDCVersion:        utils.UDCCairoV2,
+				OriginIndependent: true,
+			},
+		)
 		assert.ErrorContains(t, err, "contract already deployed")
 	})
 
 	// erc20 calldata:
-	classHash, _ := utils.HexToFelt("0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
+	classHash, _ := utils.HexToFelt(
+		"0x73d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6",
+	)
 	name, _ := utils.StringToByteArrFelt("My Test Token")
 	symbol, _ := utils.StringToByteArrFelt("MTT")
 	supply, _ := utils.HexToU256Felt("0x200000000000000000")
@@ -924,46 +1082,78 @@ func TestDeployContractWithUDC(t *testing.T) {
 	constructorCalldata = append(constructorCalldata, recipient, owner)
 
 	t.Run("UDCCairoV0, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
-		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, nil)
+		resp, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			constructorCalldata,
+			nil,
+			nil,
+		)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
 
-		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		txReceipt, err := accnt.WaitForTransactionReceipt(
+			context.Background(),
+			resp.Hash,
+			500*time.Millisecond,
+		)
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 	})
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
-		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
-			Salt:              internalUtils.RANDOM_FELT,
-			UDCVersion:        utils.UDCCairoV0,
-			OriginIndependent: true,
-		})
+		_, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			constructorCalldata,
+			nil,
+			&utils.UDCOptions{
+				Salt:              internalUtils.DeadBeef,
+				UDCVersion:        utils.UDCCairoV0,
+				OriginIndependent: true,
+			},
+		)
 		assert.ErrorContains(t, err, "contract already deployed")
 	})
 
 	t.Run("UDCCairoV2, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
-		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
-			UDCVersion: utils.UDCCairoV2,
-		})
+		resp, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			constructorCalldata,
+			nil,
+			&utils.UDCOptions{
+				UDCVersion: utils.UDCCairoV2,
+			},
+		)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
 
-		txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, 500*time.Millisecond)
+		txReceipt, err := accnt.WaitForTransactionReceipt(
+			context.Background(),
+			resp.Hash,
+			500*time.Millisecond,
+		)
 		require.NoError(t, err, "Waiting for tx receipt failed")
 
 		assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 	})
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
-		_, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, constructorCalldata, nil, &utils.UDCOptions{
-			Salt:              internalUtils.RANDOM_FELT,
-			UDCVersion:        utils.UDCCairoV2,
-			OriginIndependent: true,
-		})
+		_, _, err := accnt.DeployContractWithUDC(
+			context.Background(),
+			classHash,
+			constructorCalldata,
+			nil,
+			&utils.UDCOptions{
+				Salt:              internalUtils.DeadBeef,
+				UDCVersion:        utils.UDCCairoV2,
+				OriginIndependent: true,
+			},
+		)
 		assert.ErrorContains(t, err, "contract already deployed")
 	})
 }

@@ -1,0 +1,121 @@
+# AddInvokeTransaction
+
+Submits an invoke transaction to the network for execution.
+
+## Method Signature
+
+```go
+func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (*AddInvokeTransactionResponse, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `invokeTxn` - The invoke transaction to submit
+
+## Returns
+
+- `*AddInvokeTransactionResponse` - Response containing transaction hash
+- `error` - Error if the submission fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Create a V3 invoke transaction
+    accountAddr, _ := new(felt.Felt).SetString("0x0517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802")
+    getPubKeySelector, _ := new(felt.Felt).SetString("0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b")
+    
+    invokeTransaction := &rpc.BroadcastInvokeTxnV3{
+        Type:          rpc.TransactionType("INVOKE"),
+        Version:       rpc.TransactionVersion("0x3"),
+        SenderAddress: accountAddr,
+        Calldata: []*felt.Felt{
+            new(felt.Felt).SetUint64(1),    // call_array_len: 1 call
+            accountAddr,                    // contract_address to call
+            getPubKeySelector,              // get_public_key selector  
+            new(felt.Felt).SetUint64(0),    // calldata_len: 0 parameters
+        },
+        Signature: []*felt.Felt{
+            new(felt.Felt).SetString("0x164c0c437039f691c167ad0d0611d97987c07b03bec4191134ce2b83c4ac062"),
+            new(felt.Felt).SetString("0x1a806c406f4641ec8d962172e81991343157377d2416edb12246f5a51c452c8"),
+        },
+        Nonce: new(felt.Felt).SetUint64(1),
+        ResourceBounds: &rpc.ResourceBoundsMapping{
+            L1Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x0"),
+                MaxPricePerUnit: rpc.U128("0x33a937098d80"),
+            },
+            L2Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x15c2a0"),
+                MaxPricePerUnit: rpc.U128("0x10c388d00"),
+            },
+            L1DataGas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0xc0"),
+                MaxPricePerUnit: rpc.U128("0xdb31"),
+            },
+        },
+        Tip:                   rpc.U64("0x0"),
+        PayMasterData:         []*felt.Felt{},
+        AccountDeploymentData: []*felt.Felt{},
+        NonceDataMode:         rpc.DAModeL1,
+        FeeMode:               rpc.DAModeL1,
+    }
+
+    // Submit the transaction
+    result, err := client.AddInvokeTransaction(context.Background(), invokeTransaction)
+    if err != nil {
+        log.Fatal("Failed to add invoke transaction:", err)
+    }
+
+    // Pretty print the result
+    resultJSON, _ := json.MarshalIndent(result, "", "  ")
+    fmt.Printf("Transaction submitted:\n%s\n", resultJSON)
+}
+```
+
+## Expected Output
+
+```json
+{
+  "transaction_hash": "0x033d1aea5d06db63b8989fb8afbc08c20315460de752414bd6bc2fe23ea570dc"
+}
+```
+
+## Use Cases
+
+- Execute contract functions
+- Transfer tokens (ERC-20, ERC-721)
+- Interact with DeFi protocols
+- Update contract state
+
+## Error Handling
+
+Common errors include invalid signatures, insufficient balance, and wrong nonce values. Always verify transaction parameters before submission.
+
+```go
+result, err := client.AddInvokeTransaction(ctx, invokeTransaction)
+if err != nil {
+    log.Printf("Transaction failed: %v", err)
+    return
+}
+// Safe to use result.TransactionHash
+```

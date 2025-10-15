@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/typedData"
+	"github.com/NethermindEth/starknet.go/typedata"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	fmt.Println("Account address:", accnt.Address)
 
 	// This is how you can initialise a typed data from a JSON file
-	ttd, err := utils.UnmarshalJSONFileToType[typedData.TypedData]("./baseExample.json", "")
+	ttd, err := utils.UnmarshalJSONFileToType[typedata.TypedData]("./baseExample.json", "")
 	if err != nil {
 		panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
 	}
@@ -50,14 +50,14 @@ func main() {
 
 func localSetup() *account.Account {
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
 	accountAddress := setup.GetAccountAddress()
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
@@ -77,7 +77,13 @@ func localSetup() *account.Account {
 		panic(err)
 	}
 	// Initialise the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
 	if err != nil {
 		panic(err)
 	}

@@ -29,7 +29,8 @@ func UnwrapJSON(data map[string]any, tag string) (map[string]any, error) {
 	return data, nil
 }
 
-// GetAndUnmarshalJSONFromMap retrieves and unmarshals a JSON value from a map into the specified type T.
+// GetAndUnmarshalJSONFromMap retrieves and unmarshals a JSON value from a map
+// into the specified type T.
 //
 // Parameters:
 //   - aMap: A map containing JSON raw messages
@@ -38,7 +39,10 @@ func UnwrapJSON(data map[string]any, tag string) (map[string]any, error) {
 // Returns:
 //   - T: The unmarshaled value of type T
 //   - error: An error if the key is not found or unmarshaling fails
-func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key string) (result T, err error) {
+func GetAndUnmarshalJSONFromMap[T any](
+	aMap map[string]json.RawMessage,
+	key string,
+) (result T, err error) {
 	value, ok := aMap[key]
 	if !ok {
 		return result, fmt.Errorf("invalid json: missing field %s", key)
@@ -52,7 +56,8 @@ func GetAndUnmarshalJSONFromMap[T any](aMap map[string]json.RawMessage, key stri
 	return result, nil
 }
 
-// UnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// UnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it
+// into the specified type T.
 // If any error occurs during file reading or unmarshalling, it returns an error.
 //
 // Parameters:

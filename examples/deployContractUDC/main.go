@@ -17,7 +17,9 @@ import (
 // NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
 var (
 	// This is the class hash of a modern (Sierra) OpenZeppelin ERC20 contract.
-	erc20ContractHash, _ = utils.HexToFelt("0x073d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
+	erc20ContractHash, _ = utils.HexToFelt(
+		"0x073d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6",
+	)
 )
 
 // Example successful transaction created from this example on Sepolia
@@ -26,14 +28,14 @@ func main() {
 	fmt.Println("Starting deployContractUDC example")
 
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
 	accountAddress := setup.GetAccountAddress()
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
@@ -55,7 +57,13 @@ func main() {
 	fmt.Println("Established connection with the client")
 
 	// Initialise the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +92,13 @@ func main() {
 	constructorCalldata = append(constructorCalldata, recipient, owner)
 
 	// Deploy the contract with UDC
-	resp, salt, err := accnt.DeployContractWithUDC(context.Background(), erc20ContractHash, constructorCalldata, nil, nil)
+	resp, salt, err := accnt.DeployContractWithUDC(
+		context.Background(),
+		erc20ContractHash,
+		constructorCalldata,
+		nil,
+		nil,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -102,7 +116,13 @@ func main() {
 	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
 
 	// Compute the contract address
-	contractAddress := utils.PrecomputeAddressForUDC(erc20ContractHash, salt, constructorCalldata, utils.UDCCairoV0, accnt.Address)
+	contractAddress := utils.PrecomputeAddressForUDC(
+		erc20ContractHash,
+		salt,
+		constructorCalldata,
+		utils.UDCCairoV0,
+		accnt.Address,
+	)
 
 	fmt.Printf("Contract deployed address: %s\n", contractAddress)
 }

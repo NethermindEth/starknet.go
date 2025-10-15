@@ -36,11 +36,12 @@ func HexToFelt(hexVal string) (*felt.Felt, error) {
 
 // HexArrToFelt converts an array of hexadecimal strings to an array of felt objects.
 //
-// The function iterates over each element in the hexArr array and calls the HexToFelt function to
-// convert each hexadecimal value to a felt object. If any error occurs during the conversion, the
-// function will return nil and the corresponding error. Otherwise, it appends the converted felt
-// object to the feltArr array. Finally, the function returns the feltArr array containing all the
-// converted felt objects.
+// The function iterates over each element in the hexArr array and calls the HexToFelt
+// function to convert each hexadecimal value to a felt object.
+// If any error occurs during the conversion, the function will return nil and the
+// corresponding error.
+// Otherwise, it appends the converted felt object to the feltArr array.
+// Finally, the function returns the feltArr array containing all the converted felt objects.
 //
 // Parameters:
 //   - hexArr: an array of strings representing hexadecimal values
@@ -120,26 +121,25 @@ func FeltArrToStringArr(f []*felt.Felt) []string {
 // StringToByteArrFelt converts string to array of Felt objects.
 // The returned array of felts will be of the format
 //
-// [number of felts with 31 characters in length, 31 byte felts..., pending word with max size of 30 bytes, pending words bytes size]
-//
+// [number of felts with 31 characters in length, 31 byte felts..., pending word with
+// max size of 30 bytes, pending words bytes size]
 // For further explanation, refer the [article]
 //
 // Parameters:
-//
 //   - s: string/bytearray to convert
 //
 // Returns:
-//
 //   - []*felt.Felt: the array of felt.Felt objects
-//
 //   - error: an error, if any
 //
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
+//
+//nolint:lll // The link would be unclickable if we break the line.
 func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	// TODO: make this helper return no error
 
-	const SHORT_LENGTH = 31
-	exp := fmt.Sprintf(".{1,%d}", SHORT_LENGTH)
+	const shortLength = 31
+	exp := fmt.Sprintf(".{1,%d}", shortLength)
 	r := regexp.MustCompile(exp)
 
 	arr := r.FindAllString(s, -1)
@@ -151,7 +151,7 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 	var count, size uint64
 
 	for _, val := range arr {
-		if len(val) == SHORT_LENGTH {
+		if len(val) == shortLength {
 			count += 1
 		} else {
 			size = uint64(len(val))
@@ -176,23 +176,22 @@ func StringToByteArrFelt(s string) ([]*felt.Felt, error) {
 // ByteArrFeltToString converts array of Felts to string.
 // The input array of felts will be of the format
 //
-// [number of felts with 31 characters in length, 31 byte felts..., pending word with max size of 30 bytes, pending words bytes size]
-//
+// [number of felts with 31 characters in length, 31 byte felts..., pending word with
+// max size of 30 bytes, pending words bytes size]
 // For further explanation, refer the [article]
 //
 // Parameters:
-//
 //   - []*felt.Felt: the array of felt.Felt objects
 //
 // Returns:
-//
 //   - s: string/bytearray
-//
 //   - error: an error, if any
 //
 // [article]: https://docs.starknet.io/architecture-and-concepts/smart-contracts/serialization-of-cairo-types/#serialization_of_byte_arrays
+//
+//nolint:lll // The link would be unclickable if we break the line.
 func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
-	const SHORT_LENGTH = 31
+	const shortLength = 31
 
 	if len(arr) < 3 {
 		return "", errors.New("invalid felt array, require atleast 3 elements in array")
@@ -202,12 +201,16 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	pendingWordLength := arr[len(arr)-1].Uint64()
 
 	// pending word length is in the range [0, SHORT_LENGTH-1]
-	if pendingWordLength > SHORT_LENGTH-1 {
+	if pendingWordLength > shortLength-1 {
 		return "", errors.New("invalid felt array, invalid pending word length")
 	}
 
 	if uint64(len(arr)) != 3+count {
-		return "", fmt.Errorf("invalid felt array, invalid length got %d expected %d", len(arr), 3+count)
+		return "", fmt.Errorf(
+			"invalid felt array, invalid length got %d expected %d",
+			len(arr),
+			3+count,
+		)
 	}
 
 	var res []string
@@ -218,7 +221,7 @@ func ByteArrFeltToString(arr []*felt.Felt) (string, error) {
 	}
 
 	for index := range count {
-		res[index] = bytesFeltToString(arr[1+index], SHORT_LENGTH)
+		res[index] = bytesFeltToString(arr[1+index], shortLength)
 	}
 
 	if pendingWordLength != 0 {
@@ -262,7 +265,7 @@ func BigIntArrToFeltArr(bigArr []*big.Int) []*felt.Felt {
 //   - []*felt.Felt: a slice containing two felt.Felt values [low, high]
 //   - error: if conversion fails
 //
-//nolint:mnd
+//nolint:mnd // There are comments explaining each magic number.
 func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 	// Ensure the hex string has the 0x prefix
 	if !strings.HasPrefix(hexStr, "0x") && !strings.HasPrefix(hexStr, "0X") {
@@ -271,7 +274,7 @@ func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 
 	// Parse the hex string to a big.Int
 	value := new(big.Int)
-	value, success := value.SetString(hexStr[2:], 16)
+	value, success := value.SetString(hexStr[2:], 16) // hex base
 	if !success {
 		return nil, fmt.Errorf("failed to parse hex string: %s", hexStr)
 	}
@@ -296,7 +299,8 @@ func HexToU256Felt(hexStr string) ([]*felt.Felt, error) {
 	return []*felt.Felt{lowFelt, highFelt}, nil
 }
 
-// U256FeltToHex converts a Cairo u256 representation (two felt.Felt values) back to a hexadecimal string.
+// U256FeltToHex converts a Cairo u256 representation (two felt.Felt values)
+// back to a hexadecimal string.
 // The Cairo u256 is represented as two felt.Felt values:
 //   - The first felt.Felt contains the 128 least significant bits (low part)
 //   - The second felt.Felt contains the 128 most significant bits (high part)

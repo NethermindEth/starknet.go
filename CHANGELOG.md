@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.15.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.16.0...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -15,27 +15,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added
 - New `client/rpcerr` package for handling RPC errors.
 - New `curve.SignFelts` function for signing messages with felt.Felt parameters.
 
 ### Changed
+- Major refactoring in the codebase to match Golang conventions.
+  - Renaming:
+    - All type/function names that contained `_` have been renamed to remove the underscore.
+    - The `typedData` pkg was renamed to `typedata`.
+    - The `rpc.Provider.GetStorageProof` method was renamed to `rpc.Provider.StorageProof`.
+    - The `rpc.Provider.GetTransactionStatus` method was renamed to `rpc.Provider.TransactionStatus`.
+    - The `rpc.Provider.GetMessagesStatus` method was renamed to `rpc.Provider.MessagesStatus`.
+    - The `rpc.Provider.TransactionByBlockIdAndIndex` method was renamed to `rpc.Provider.TransactionByBlockIDAndIndex` (see the 'ID').
+    - The `rpc.RpcProvider` interface was renamed to `rpc.RPCProvider`.
+    - Other renames in exported types/fields/variables:
+      - `typedData.Domain.ChainId` -> `typedData.Domain.ChainID`
+      - `rpc.SKIP_FEE_CHARGE` -> `rpc.SkipFeeCharge`
+      - `rpc.SKIP_VALIDATE` -> `rpc.SkipValidate`
+      - `account.Account.ChainId` -> `account.Account.ChainID`
+      - Variables `hash.PREFIX_TRANSACTION`, `hash.PREFIX_DECLARE`, and `hash.PREFIX_DEPLOY_ACCOUNT` were renamed and
+        are no longer exported.
+      - Variable `contracts.PREFIX_CONTRACT_ADDRESS` was renamed and is no longer exported.
+  - Changed types:
+    - `contracts.SierraEntryPoint.FunctionIdx` is now of type `uint`
+    - `contracts.CasmEntryPoint.Offset` is now of type `uint`
 - The `rpc.RPCError` type and logic was refactored and moved to the new `client/rpcerr` package.
   There are some changes in the new package:
   - The internal `tryUnwrapToRPCErr` func of the `rpc` pkg was renamed to `UnwrapToRPCErr` and moved to the new package.
   - The `Err` function now have a specific case for the `InternalError` code.
+
+### Removed
+- Braavos warning when instantiating a new `account.Account` instance.
+The issue was fixed by starkware in Starknet v0.14.0.
 
 ### Fixed
 - The `typedData.TypedData` was not being marshaled exactly as it is in the original JSON. Now, the original JSON is preserved,
   so the output of `TypedData.MarshalJSON()` is exactly as the original JSON.
 - Wrong encoding of the `selector` type in the `typedData` pkg for a specific case, when the value was already a hashed selector.
   More details in the PR [793](https://github.com/NethermindEth/starknet.go/pull/793).
+- Not using the provided `context.Context` in the `account.Nonce` method when calling the `rpc.Nonce` method.
 
 ### Dev updates
 - New `internal/tests/jsonrpc_spy.go` file containing a `Spy` type for spying JSON-RPC calls in tests. The
 old `rpc/spy_test.go` file was removed.
 - New `mocks/mock_client.go` file containing a mock of the `client.Client` type (`client.ClientI` interface).
 - New benchmarks and tests for the `typedData` pkg.
+- New linter rules in the `.golangci.yaml` file, thus, a lot of changes in the codebase to fix the new rules.
+- Updated `golangci-lint` to v2.5.0.
 
 ## [0.15.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.15.0) - 2025-09-03
 ### Changed

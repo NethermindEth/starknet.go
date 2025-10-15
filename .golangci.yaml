@@ -48,30 +48,16 @@ linters:
       min-len: 2
       min-occurrences: 3
     gocritic:
-      disabled-checks:
-        - sloppyReassign
-        - dupImport
-        - ifElseChain
-        - octalLiteral
-        - whyNoLint
-        - unnamedResult
-      enabled-tags:
-        - diagnostic
-        - experimental
-        - opinionated
-        - performance
-        - style
+      enable-all: true
     gocyclo:
       min-complexity: 15
-    gosec:
-      excludes:
-        - G115
     govet:
-      enable:
-        - nilness
-        - shadow
+      enable-all: true
+      disable:
+        # Since we are a library, we need to also take into account the UX when aligning fields.
+        - fieldalignment
     lll:
-      line-length: 140
+      line-length: 100
     misspell:
       locale: UK
     mnd:
@@ -85,12 +71,13 @@ linters:
         - "1"
         - "2"
         - "3"
-      ignored-functions:
-        - strings.SplitN
     nolintlint:
-      require-explanation: false
-      require-specific: false
       allow-unused: false
+      require-explanation: true
+      require-specific: true
+    staticcheck:
+      checks:
+        - "all"
   exclusions:
     paths:
       - client/ # it comes from go-ethereum, let's refactor it another time
@@ -98,8 +85,6 @@ linters:
     presets:
       - comments
       - common-false-positives
-      - legacy
-      - std-error-handling
     rules:
       - linters:
           - exhaustruct
@@ -138,6 +123,9 @@ linters:
       - linters:
           - lll
         source: '^//go:generate '
+      - linters:
+          - staticcheck
+        path: rpc/mock_test.go
 formatters:
   enable:
     - gci
@@ -147,7 +135,10 @@ formatters:
     - golines
   settings:
     golines:
-      max-len: 140
+      max-len: 100
     goimports:
       local-prefixes:
         - github.com/golangci/golangci-lint
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
