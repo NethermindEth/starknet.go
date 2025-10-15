@@ -12,14 +12,18 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
-// BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the given function calls.
-// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
+// BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the
+// given function calls. It automatically calculates the nonce, formats the
+// calldata, estimates fees, and signs the transaction with the account's private
+// key.
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function calls for the transaction, allowing either single or
-//     multiple function calls in the same transaction.
-//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
+//   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function
+//     calls for the transaction, allowing either single or multiple function calls
+//     in the same transaction.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use
+//     default values.
 //
 // Returns:
 //   - rpc.AddInvokeTransactionResponse: the response of the submitted transaction.
@@ -75,10 +79,12 @@ func (account *Account) BuildAndSendInvokeTxn(
 	txnFee := estimateFee[0]
 	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
-	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
+	// txn version is only used for estimation/simulation
 	broadcastInvokeTxnV3.Version = rpc.TransactionV3
 
-	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	// signing the txn again with the estimated fee, as the fee value is used in
+	// the txn hash calculation
 	err = account.SignInvokeTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return response, err
@@ -92,14 +98,16 @@ func (account *Account) BuildAndSendInvokeTxn(
 	return response, nil
 }
 
-// BuildAndSendDeclareTxn builds and sends a v3 declare transaction.
-// It automatically calculates the nonce, formats the calldata, estimates fees, and signs the transaction with the account's private key.
+// BuildAndSendDeclareTxn builds and sends a v3 declare transaction. It
+// automatically calculates the nonce, formats the calldata, estimates fees, and
+// signs the transaction with the account's private key.
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The sierra contract class of the contract to be declared
-//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use
+//     default values.
 //
 // Returns:
 //   - rpc.AddDeclareTransactionResponse: the response of the submitted transaction.
@@ -155,10 +163,12 @@ func (account *Account) BuildAndSendDeclareTxn(
 	txnFee := estimateFee[0]
 	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
-	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
+	// txn version is only used for estimation/simulation
 	broadcastDeclareTxnV3.Version = rpc.TransactionV3
 
-	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	// signing the txn again with the estimated fee, as the fee value is used in
+	// the txn hash calculation
 	err = account.SignDeclareTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return response, err
@@ -172,22 +182,28 @@ func (account *Account) BuildAndSendDeclareTxn(
 	return response, nil
 }
 
-// BuildAndEstimateDeployAccountTxn builds and signs a v3 deploy account transaction, estimates the fee, and computes the address.
+// BuildAndEstimateDeployAccountTxn builds and signs a v3 deploy account
+// transaction, estimates the fee, and computes the address.
 //
-// This function doesn't send the transaction because the precomputed account address requires funding first. This address is calculated
-// deterministically and returned by this function, and must be funded with the appropriate amount of STRK tokens. Without sufficient
-// funds, the transaction will fail. See the 'examples/deployAccount/' for more details on how to do this.
+// This function doesn't send the transaction because the precomputed account
+// address requires funding first. This address is calculated deterministically
+// and returned by this function, and must be funded with the appropriate amount
+// of STRK tokens. Without sufficient funds, the transaction will fail. See the
+// 'examples/deployAccount/' for more details on how to do this.
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
 //   - salt: the salt for the address of the deployed contract
 //   - classHash: the class hash of the contract to be deployed
 //   - constructorCalldata: the parameters passed to the constructor
-//   - opts: options for building/estimating the transaction. Pass `nil` to use default values.
+//   - opts: options for building/estimating the transaction. Pass `nil` to use
+//     default values.
 //
 // Returns:
-//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed and with the estimated fee based on the multiplier
-//   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be funded with appropriate amount of tokens
+//   - *rpc.BroadcastDeployAccountTxnV3: the transaction to be broadcasted, signed
+//     and with the estimated fee based on the multiplier
+//   - *felt.Felt: the precomputed account address as a *felt.Felt, it needs to be
+//     funded with appropriate amount of tokens
 //   - error: an error if any
 func (account *Account) BuildAndEstimateDeployAccountTxn(
 	ctx context.Context,
@@ -234,10 +250,12 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	txnFee := estimateFee[0]
 	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
 
-	// assuring the signed txn version will be rpc.TransactionV3, since queryBit txn version is only used for estimation/simulation
+	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
+	// txn version is only used for estimation/simulation
 	broadcastDepAccTxnV3.Version = rpc.TransactionV3
 
-	// signing the txn again with the estimated fee, as the fee value is used in the txn hash calculation
+	// signing the txn again with the estimated fee, as the fee value is used in
+	// the txn hash calculation
 	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
@@ -251,13 +269,18 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // Parameters:
 //   - ctx: The context.Context for the request.
 //   - classHash: The class hash of the contract to be deployed.
-//   - constructorCalldata: The parameters passed to the constructor. Pass `nil` if the constructor has no arguments.
-//   - txnOpts: The options for building/estimating the transaction. Pass `nil` to use default values.
-//   - udcOpts: The options for building the UDC calldata. Pass `nil` to use default values.
+//   - constructorCalldata: The parameters passed to the constructor. Pass `nil` if
+//     the constructor has no arguments.
+//   - txnOpts: The options for building/estimating the transaction. Pass `nil` to
+//     use default values.
+//   - udcOpts: The options for building the UDC calldata. Pass `nil` to use
+//     default values.
 //
 // Returns:
-//   - *rpc.AddInvokeTransactionResponse: the response of the submitted UDC transaction.
-//   - *felt.Felt: the salt used for the UDC deployment (either the provided one or the random one)
+//   - *rpc.AddInvokeTransactionResponse: the response of the submitted UDC
+//     transaction.
+//   - *felt.Felt: the salt used for the UDC deployment (either the provided one or
+//     the random one)
 //   - error: An error if any.
 func (account *Account) DeployContractWithUDC(
 	ctx context.Context,
@@ -272,7 +295,11 @@ func (account *Account) DeployContractWithUDC(
 		return response, nil, err
 	}
 
-	response, err = account.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{udcCallData}, txnOpts)
+	response, err = account.BuildAndSendInvokeTxn(
+		context.Background(),
+		[]rpc.InvokeFunctionCall{udcCallData},
+		txnOpts,
+	)
 	if err != nil {
 		return response, nil, err
 	}
@@ -280,17 +307,23 @@ func (account *Account) DeployContractWithUDC(
 	return response, salt, nil
 }
 
-// SendTransaction can send Invoke, Declare, and Deploy transactions. It provides a unified way to send different transactions.
-// It can only send v3 transactions.
+// SendTransaction can send Invoke, Declare, and Deploy transactions. It
+// provides a unified way to send different transactions. It can only send v3
+// transactions.
 //
 // Parameters:
 //   - ctx: the context.Context object for the transaction.
-//   - txn: the Broadcast V3 Transaction to be sent.
+//   - txn: the Broadcast V3 Transaction to be sent
 //
 // Returns:
-//   - rpc.TransactionResponse: the transaction response.
-//   - error: an error if any.
-func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error) {
+//   - rpc.TransactionResponse: the transaction response for each TransactionResponse
+//   - error: an error if any
+//
+//nolint:exhaustruct // Setting only the correct fields
+func (account *Account) SendTransaction(
+	ctx context.Context,
+	txn rpc.BroadcastTxn,
+) (rpc.TransactionResponse, error) {
 	var response rpc.TransactionResponse
 	switch tx := txn.(type) {
 	// broadcast invoke v3, pointer and struct
@@ -300,14 +333,14 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash}, nil
 	case rpc.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{Hash: resp.Hash}, nil
 	// broadcast declare v3, pointer and struct
 	case *rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
@@ -315,14 +348,20 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{
+			Hash:      resp.Hash,
+			ClassHash: resp.ClassHash,
+		}, nil
 	case rpc.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash, ClassHash: resp.ClassHash}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{
+			Hash:      resp.Hash,
+			ClassHash: resp.ClassHash,
+		}, nil
 	// broadcast deploy account v3, pointer and struct
 	case *rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
@@ -330,29 +369,39 @@ func (account *Account) SendTransaction(ctx context.Context, txn rpc.BroadcastTx
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{
+			Hash:            resp.Hash,
+			ContractAddress: resp.ContractAddress,
+		}, nil
 	case rpc.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash, ContractAddress: resp.ContractAddress}, nil //nolint:exhaustruct
+		return rpc.TransactionResponse{
+			Hash:            resp.Hash,
+			ContractAddress: resp.ContractAddress,
+		}, nil
 	default:
-		return response, fmt.Errorf("unsupported transaction type: should be a v3 transaction, instead got %T", tx)
+		return response, fmt.Errorf(
+			"unsupported transaction type: should be a v3 transaction, instead got %T",
+			tx,
+		)
 	}
 }
 
-// WaitForTransactionReceipt waits for the transaction receipt of the given transaction hash to succeed or fail.
+// WaitForTransactionReceipt waits for the transaction receipt of the given
+// transaction hash to succeed or fail.
 //
 // Parameters:
 //   - ctx: The context
 //   - transactionHash: The hash
 //   - pollInterval: The time interval to poll the transaction receipt
 //
-// It returns:
+// Returns:
 //   - *rpc.TransactionReceiptWithBlockInfo: the transaction receipt
-//   - error: an error
+//   - error: an error if any
 func (account *Account) WaitForTransactionReceipt(
 	ctx context.Context,
 	transactionHash *felt.Felt,
@@ -367,7 +416,8 @@ func (account *Account) WaitForTransactionReceipt(
 			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, transactionHash)
 			if err != nil {
 				rpcErr := err.(*rpc.RPCError)
-				if rpcErr.Code == rpc.ErrHashNotFound.Code && rpcErr.Message == rpc.ErrHashNotFound.Message {
+				if rpcErr.Code == rpc.ErrHashNotFound.Code &&
+					rpcErr.Message == rpc.ErrHashNotFound.Message {
 					continue
 				} else {
 					return nil, err

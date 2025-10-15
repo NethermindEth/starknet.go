@@ -34,7 +34,10 @@ func TestDeclareTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeclareTransaction(context.Background(), &test.DeclareTx)
+		resp, err := testConfig.Provider.AddDeclareTransaction(
+			context.Background(),
+			&test.DeclareTx,
+		)
 		if test.ExpectedError != nil {
 			require.Error(t, err)
 			rpcErr, ok := err.(*RPCError)
@@ -63,7 +66,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		tests.MockEnv: {
 			{
 				InvokeTx: BroadcastInvokeTxnV3{
-					Type:    TransactionType_Invoke,
+					Type:    TransactionTypeInvoke,
 					Version: TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x71a9b2cd8a8a6a4ca284dcddcdefc6c4fd20b92c1b201bd9836e4ce376fad16"),
@@ -134,7 +137,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		tests.MockEnv: {
 			{
 				DeployTx: BroadcastDeployAccountTxnV3{
-					Type:      TransactionType_DeployAccount,
+					Type:      TransactionTypeDeployAccount,
 					Version:   TransactionV3,
 					ClassHash: internalUtils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
 					Signature: []*felt.Felt{
@@ -171,7 +174,10 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeployAccountTransaction(context.Background(), &test.DeployTx)
+		resp, err := testConfig.Provider.AddDeployAccountTransaction(
+			context.Background(),
+			&test.DeployTx,
+		)
 		if err != nil {
 			require.Equal(t, err.Error(), test.ExpectedError)
 		} else {

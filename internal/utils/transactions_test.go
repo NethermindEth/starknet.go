@@ -30,8 +30,11 @@ func TestWeiToETH(t *testing.T) {
 			expected: 0.001,
 		},
 		{
-			name:     "Large amount",
-			wei:      new(big.Int).Mul(big.NewInt(1000), new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)), // 1000 ETH
+			name: "Large amount",
+			wei: new(
+				big.Int,
+			).Mul(big.NewInt(1000), new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)),
+			// 1000 ETH
 			expected: 1000.0,
 		},
 	}
@@ -72,16 +75,25 @@ func TestETHToWei(t *testing.T) {
 			expected: big.NewInt(1000000000000000), // 0.001 ETH
 		},
 		{
-			name:     "Large amount",
-			eth:      1000.0,
-			expected: new(big.Int).Mul(big.NewInt(1000), new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)), // 1000 ETH
+			name: "Large amount",
+			eth:  1000.0,
+			expected: new(
+				big.Int,
+			).Mul(big.NewInt(1000), new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)),
+			// 1000 ETH
 		},
 		{
 			name: "Fractional amount",
 			eth:  1.5,
 			expected: new(big.Int).Add(
-				new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil),                                   // 1 ETH
-				new(big.Int).Div(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil), big.NewInt(2))), // 0.5 ETH
+				new(
+					big.Int,
+				).Exp(big.NewInt(10), big.NewInt(18), nil), // 1 ETH
+				new(
+					big.Int,
+				).Div(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil), big.NewInt(2)),
+			),
+			// 0.5 ETH
 		},
 	}
 

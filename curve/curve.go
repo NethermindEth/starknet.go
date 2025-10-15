@@ -14,7 +14,8 @@ import (
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/fp"
 )
 
-// Verify verifies the validity of the signature for a given message hash using the StarkCurve.
+// Verify verifies the validity of the signature for a given message hash using
+// the StarkCurve.
 //
 // Parameters:
 //   - msgHash: The message hash to be verified
@@ -35,7 +36,8 @@ func Verify(msgHash, r, s, pubX *big.Int) (bool, error) {
 	return pubKey.Verify(&junoCrypto.Signature{R: *rFelt, S: *sFelt}, msgHashFelt)
 }
 
-// VerifyFelts verifies the validity of the signature for a given message hash using the StarkCurve.
+// VerifyFelts verifies the validity of the signature for a given message hash
+// using the StarkCurve.
 // It does the same as Verify, but with felt.Felt parameters.
 //
 // Parameters:
@@ -65,7 +67,7 @@ func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error) {
 //   - s: The s component of the signature
 //   - error: An error if any occurred during the signing process
 func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error) {
-	g1Affline := starkcurve.G1Affine{} //nolint:exhaustruct // just a struct initialization
+	var g1Affline starkcurve.G1Affine
 	// generating pub and priv key types from the 'privKey' parameter
 	g1a := g1Affline.ScalarMultiplicationBase(privKey)
 
@@ -159,7 +161,7 @@ func GetRandomKeys() (privKey, x, y *big.Int, err error) {
 //   - x: The x-coordinate of the point on the curve
 //   - y: The y-coordinate of the point on the curve
 func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
-	g1Affline := starkcurve.G1Affine{} //nolint:exhaustruct // just a struct initialization
+	var g1Affline starkcurve.G1Affine
 	res := g1Affline.ScalarMultiplicationBase(privKey)
 
 	return res.X.BigInt(new(big.Int)), res.Y.BigInt(new(big.Int))
@@ -173,6 +175,7 @@ func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int) {
 // Returns:
 //   - *big.Int: The y-coordinate of the point
 func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// ref: https://github.com/NethermindEth/juno/blob/7d64642de90b6957c40a3b3ea75e6ad548a37f39/core/crypto/ecdsa.go#L26
 	xEl := starkX.Impl()
 
@@ -189,7 +192,9 @@ func GetYCoordinate(starkX *felt.Felt) *felt.Felt {
 	return &yFelt
 }
 
-// HashPedersenElements calculates the hash of a list of elements using a golang Pedersen Hash.
+// HashPedersenElements calculates the hash of a list of elements using a
+// golang Pedersen Hash.
+//
 // Parameters:
 //   - elems: slice of big.Int pointers to be hashed
 //
@@ -208,13 +213,15 @@ func HashPedersenElements(elems []*big.Int) (hash *big.Int) {
 
 	hash = internalUtils.FeltToBigInt(feltHash)
 
-	return
+	return hash
 }
 
-// ComputeHashOnElements computes the hash on the given elements using a golang Pedersen Hash implementation.
+// ComputeHashOnElements computes the hash on the given elements using a
+// golang Pedersen Hash implementation.
 //
-// The function appends the length of `elems` to the slice and then calls the `HashPedersenElements` method
-// passing in `elems` as an argument. The resulting hash is returned.
+// The function appends the length of `elems` to the slice and then calls the
+// `HashPedersenElements` method passing in `elems` as an argument. The
+// resulting hash is returned.
 //
 // Parameters:
 //   - elems: slice of big.Int pointers to be hashed
@@ -251,8 +258,9 @@ func Poseidon(a, b *felt.Felt) *felt.Felt {
 	return junoCrypto.Poseidon(a, b)
 }
 
-// PedersenArray is a function that takes a variadic number of felt.Felt pointers as parameters and
-// calls the PedersenArray function from the junoCrypto package with the provided parameters.
+// PedersenArray is a function that takes a variadic number of felt.Felt
+// pointers as parameters and calls the PedersenArray function from the
+// junoCrypto package with the provided parameters.
 //
 // Parameters:
 //   - felts: A variadic number of pointers to felt.Felt
@@ -263,8 +271,9 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 	return junoCrypto.PedersenArray(felts...)
 }
 
-// PoseidonArray is a function that takes a variadic number of felt.Felt pointers as parameters and
-// calls the PoseidonArray function from the junoCrypto package with the provided parameters.
+// PoseidonArray is a function that takes a variadic number of felt.Felt
+// pointers as parameters and calls the PoseidonArray function from the
+// junoCrypto package with the provided parameters.
 //
 // Parameters:
 //   - felts: A variadic number of pointers to felt.Felt
@@ -290,5 +299,5 @@ func StarknetKeccak(b []byte) *felt.Felt {
 // fmtPrivKey formats a private key to a 32 bytes array by padding it
 // with leading zeroes if necessary, which is required by the ecdsa.PrivateKey type.
 func fmtPrivKey(privKey *big.Int) ([]byte, error) {
-	return hex.DecodeString(fmt.Sprintf("%064s", privKey.Text(16))) //nolint:mnd
+	return hex.DecodeString(fmt.Sprintf("%064s", privKey.Text(16))) //nolint:mnd // hex base
 }

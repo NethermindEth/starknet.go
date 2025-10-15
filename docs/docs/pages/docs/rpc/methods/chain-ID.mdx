@@ -1,0 +1,70 @@
+# ChainID Method Usage
+
+
+
+
+
+
+```go
+ChainID(ctx context.Context) (string, error)
+```
+
+## Parameters
+
+- `ctx` - Context for the request
+
+## Returns
+
+- `string` - The chain ID for transaction replay protection
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get chain ID
+    chainID, err := client.ChainID(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get chain ID:", err)
+    }
+
+    fmt.Printf("Chain ID: %s\n", chainID)
+}
+```
+
+## Expected Output
+
+```
+Chain ID: SN_SEPOLIA
+```
+
+## Chain ID Values
+
+- **SN_MAIN** - Starknet Mainnet
+- **SN_SEPOLIA** - Starknet Sepolia Testnet
+
+## Use Cases
+
+- **Transaction Signing**: Chain ID is used for transaction replay protection
+- **Network Verification**: Confirm you're connected to the expected network
+- **Multi-Chain Applications**: Determine which Starknet network you're interacting with
+
+---
+
+*ChainID is essential for transaction replay protection and network identification.*

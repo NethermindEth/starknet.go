@@ -1,0 +1,108 @@
+# Getting Started
+
+This guide walks you through creating your first Starknet.go application. You'll build a simple program that connects to Starknet and retrieves blockchain data.
+
+## Prerequisites
+
+- Go 1.20 or higher installed
+- [Starknet.go installed](/docs/introduction/installation) in your project
+- Basic understanding of Go programming
+
+## Your First Application
+
+We'll create an application that connects to Starknet and retrieves the latest block information.
+
+### Step 1: Project Setup
+
+Create a new directory and initialize a Go module:
+
+```bash
+mkdir my-starknet-app
+cd my-starknet-app
+go mod init my-starknet-app
+```
+
+Add Starknet.go dependency:
+
+```bash
+go get github.com/NethermindEth/starknet.go
+go mod tidy
+```
+
+### Step 2: Create the Application
+
+Create `main.go` with the following code:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Connect to Starknet Sepolia testnet
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get chain information
+    chainID, err := client.ChainID(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get chain ID:", err)
+    }
+
+    blockNumber, err := client.BlockNumber(context.Background())
+    if err != nil {
+        log.Fatal("Failed to get block number:", err)
+    }
+
+    fmt.Printf("Connected to Starknet\n")
+    fmt.Printf("Chain ID: %s\n", chainID)
+    fmt.Printf("Latest block: %d\n", blockNumber)
+}
+```
+
+### Step 3: Run the Application
+
+```bash
+go run main.go
+```
+
+Expected output:
+```
+Connected to Starknet
+Chain ID: SN_SEPOLIA
+Latest block: 1506321
+```
+
+## Understanding the Code
+
+**RPC Client**: The `rpc.NewProvider()` function creates a client that communicates with Starknet nodes via JSON-RPC.
+
+**Context**: Go's context package manages request timeouts and cancellation. Use `context.Background()` for simple operations.
+
+**Error Handling**: Always check for errors when making RPC calls, as network operations can fail.
+
+
+## Next Steps
+
+Now that you have a basic application working, you can explore more features:
+
+1. [Client Configuration](/docs/client/configuration) - Learn how to configure your Starknet client
+2. [Client Methods](/docs/client/methods) - Explore available methods for interacting with Starknet
+3. [Examples](/docs/client/examples) - See more examples of using Starknet.go
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Make sure your Starknet node URL is correct and accessible
+2. Check that you have the latest version of Starknet.go installed
+3. Verify your Go version meets the minimum requirement (1.20 or higher)
+4. Avoid naming your module after Go standard library packages

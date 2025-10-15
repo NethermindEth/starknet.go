@@ -12,7 +12,12 @@ import (
 )
 
 // simpleInvoke is a function that shows how to easily send an invoke transaction.
-func simpleInvoke(accnt *account.Account, contractAddress *felt.Felt, contractMethod string, amount *felt.Felt) {
+func simpleInvoke(
+	accnt *account.Account,
+	contractAddress *felt.Felt,
+	contractMethod string,
+	amount *felt.Felt,
+) {
 	u256Amount, err := utils.HexToU256Felt(amount.String())
 	if err != nil {
 		panic(err)

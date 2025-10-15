@@ -29,7 +29,7 @@ func TestCompiledCasm(t *testing.T) {
 		tests.MockEnv: {
 			{
 				Description:        "success - get compiled CASM",
-				ClassHash:          internalUtils.RANDOM_FELT,
+				ClassHash:          internalUtils.DeadBeef,
 				ExpectedResultPath: "./testData/compiledCasm/sepolia.json",
 			},
 			{
@@ -71,7 +71,10 @@ func TestCompiledCasm(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](test.ExpectedResultPath, "result")
+		expectedResult, err := internalUtils.UnmarshalJSONFileToType[contracts.CasmClass](
+			test.ExpectedResultPath,
+			"result",
+		)
 		if test.ExpectedResultPath != "" {
 			require.NoError(t, err)
 		}

@@ -84,7 +84,10 @@ func TestTransactionTrace(t *testing.T) {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
 			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
 
-			resp, err := testConfig.Provider.TraceTransaction(context.Background(), test.TransactionHash)
+			resp, err := testConfig.Provider.TraceTransaction(
+				context.Background(),
+				test.TransactionHash,
+			)
 			if test.ExpectedError != nil {
 				assert.EqualError(t, test.ExpectedError, err.Error())
 
@@ -148,7 +151,7 @@ func TestSimulateTransaction(t *testing.T) {
 			{
 				SimulateTxnInputFile: expectedInputFile,
 				ExpectedRespFile:     expectedRespFile,
-				AnotherBlockID:       &BlockID{Tag: BlockTagPre_confirmed},
+				AnotherBlockID:       &BlockID{Tag: BlockTagPreConfirmed},
 			},
 			{
 				SimulateTxnInputFile: expectedInputFile,
@@ -186,7 +189,7 @@ func TestSimulateTransaction(t *testing.T) {
 			// read file to compare JSONs
 			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
 
-			//nolint:dupl
+			//nolint:dupl // Similar to TestTraceBlockTransactions, but they're testing different things.
 			for i, trace := range resp {
 				assert.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
 				compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
@@ -280,7 +283,10 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
-			resp, err := testConfig.Provider.TraceBlockTransactions(context.Background(), test.BlockID)
+			resp, err := testConfig.Provider.TraceBlockTransactions(
+				context.Background(),
+				test.BlockID,
+			)
 			if test.ExpectedErr != nil {
 				require.Equal(t, test.ExpectedErr, err)
 
@@ -301,7 +307,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			expectedRespArr := make([]any, 0)
 			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
 
-			//nolint:dupl
+			//nolint:dupl // Similar to TestSimulateTransaction, but they're testing different things.
 			for i, actualTrace := range resp {
 				require.Equal(t, expectedTrace[i].TxnHash, actualTrace.TxnHash)
 				compareTraceTxs(t, expectedTrace[i].TraceRoot, actualTrace.TraceRoot)
@@ -377,7 +383,11 @@ func compareStateDiffs(t *testing.T, stateDiff1, stateDiff2 *StateDiff) {
 		return
 	}
 
-	assert.ElementsMatch(t, stateDiff1.DeprecatedDeclaredClasses, stateDiff2.DeprecatedDeclaredClasses)
+	assert.ElementsMatch(
+		t,
+		stateDiff1.DeprecatedDeclaredClasses,
+		stateDiff2.DeprecatedDeclaredClasses,
+	)
 	assert.ElementsMatch(t, stateDiff1.DeclaredClasses, stateDiff2.DeclaredClasses)
 	assert.ElementsMatch(t, stateDiff1.DeployedContracts, stateDiff2.DeployedContracts)
 	assert.ElementsMatch(t, stateDiff1.ReplacedClasses, stateDiff2.ReplacedClasses)

@@ -22,10 +22,10 @@ var predeployedClassHash = "0x61dac032f228abef9c6626f995015233097ae253a7f72d6855
 // and prepares for the account deployment transaction.
 func main() {
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
 
 	// Initialise the client.
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(err)
 	}
@@ -74,10 +74,18 @@ func main() {
 	// At this point you need to add funds to precomputed address to use it.
 	var input string
 
-	fmt.Println("\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.")
-	fmt.Printf("You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n", feeInSTRK)
+	fmt.Println(
+		"\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.",
+	)
+	fmt.Printf(
+		"You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n",
+		feeInSTRK,
+	)
 	fmt.Println("When your account has been funded, press any key, then `enter` to continue: ")
-	fmt.Scan(&input) //nolint:errcheck
+	_, err = fmt.Scan(&input)
+	if err != nil {
+		panic(err)
+	}
 
 	// Send transaction to the network
 	resp, err := accnt.SendTransaction(context.Background(), deployAccountTxn)
@@ -86,7 +94,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")
+	fmt.Println(
+		"BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.",
+	)
 	fmt.Printf("Transaction hash: %v \n", resp.Hash)
 	fmt.Printf("Contract address: %v \n", setup.PadZerosInFelt(resp.ContractAddress))
 }

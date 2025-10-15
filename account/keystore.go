@@ -38,7 +38,8 @@ func NewMemKeystore() *MemKeystore {
 	}
 }
 
-// SetNewMemKeystore returns a new instance of MemKeystore and sets the given public key and private key in it.
+// SetNewMemKeystore returns a new instance of MemKeystore and sets the given
+// public key and private key in it.
 //
 // Parameters:
 //   - pub: a string representing the public key
@@ -79,7 +80,11 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 	defer ks.mu.Unlock()
 	k, exists := ks.keys[senderAddress]
 	if !exists {
-		return nil, fmt.Errorf("error getting key for sender %s: %w", senderAddress, ErrSenderNoExist)
+		return nil, fmt.Errorf(
+			"error getting key for sender %s: %w",
+			senderAddress,
+			ErrSenderNoExist,
+		)
 	}
 
 	return k, nil
@@ -96,13 +101,19 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error) {
 //   - *big.Int: the R component of the signature as *big.Int
 //   - *big.Int: the S component of the signature as *big.Int
 //   - error: an error if any
-func (ks *MemKeystore) Sign(ctx context.Context, id string, msgHash *big.Int) (*big.Int, *big.Int, error) {
+func (ks *MemKeystore) Sign(
+	ctx context.Context,
+	id string,
+	msgHash *big.Int,
+) (r, s *big.Int, err error) {
 	k, err := ks.Get(id)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return sign(ctx, msgHash, k)
+	r, s, err = sign(ctx, msgHash, k)
+
+	return r, s, err
 }
 
 // sign signs the given message hash with the provided key using the Curve.
@@ -137,7 +148,7 @@ func sign(ctx context.Context, msgHash, key *big.Int) (x, y *big.Int, err error)
 //   - *MemKeystore: a pointer to a MemKeystore instance
 //   - *felt.Felt: a pointer to a public key as a felt.Felt
 //   - *felt.Felt: a pointer to a private key as a felt.Felt
-func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
+func GetRandomKeys() (ks *MemKeystore, pubKey, privKey *felt.Felt) {
 	// Get random keys
 	privateKey, pubX, _, err := curve.GetRandomKeys()
 	if err != nil {
@@ -145,12 +156,12 @@ func GetRandomKeys() (*MemKeystore, *felt.Felt, *felt.Felt) {
 		os.Exit(1)
 	}
 
-	privFelt := internalUtils.BigIntToFelt(privateKey)
-	pubFelt := internalUtils.BigIntToFelt(pubX)
+	privKey = internalUtils.BigIntToFelt(privateKey)
+	pubKey = internalUtils.BigIntToFelt(pubX)
 
 	// set up keystore
-	ks := NewMemKeystore()
-	ks.Put(pubFelt.String(), privateKey)
+	ks = NewMemKeystore()
+	ks.Put(pubKey.String(), privateKey)
 
-	return ks, pubFelt, privFelt
+	return ks, pubKey, privKey
 }

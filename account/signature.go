@@ -41,7 +41,10 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 //
 // Returns:
 //   - error: an error if there was an error in the signing or invoking process
-func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.InvokeTxnType) error {
+func (account *Account) SignInvokeTransaction(
+	ctx context.Context,
+	invokeTx rpc.InvokeTxnType,
+) error {
 	switch invoke := invokeTx.(type) {
 	case *rpc.InvokeTxnV0:
 		signature, err := signInvokeTransaction(ctx, account, invoke)
@@ -62,14 +65,21 @@ func (account *Account) SignInvokeTransaction(ctx context.Context, invokeTx rpc.
 		}
 		invoke.Signature = signature
 	default:
-		return fmt.Errorf("invalid invoke txn of type %T, did you pass a valid invoke txn pointer?", invoke)
+		return fmt.Errorf(
+			"invalid invoke txn of type %T, did you pass a valid invoke txn pointer?",
+			invoke,
+		)
 	}
 
 	return nil
 }
 
 // signInvokeTransaction is a generic helper function that signs an invoke transaction.
-func signInvokeTransaction[T rpc.InvokeTxnType](ctx context.Context, account *Account, invokeTx *T) ([]*felt.Felt, error) {
+func signInvokeTransaction[T rpc.InvokeTxnType](
+	ctx context.Context,
+	account *Account,
+	invokeTx *T,
+) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashInvoke(*invokeTx)
 	if err != nil {
 		return nil, err
@@ -91,7 +101,11 @@ func signInvokeTransaction[T rpc.InvokeTxnType](ctx context.Context, account *Ac
 //
 // Returns:
 //   - error: an error if any
-func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc.DeployAccountType, precomputeAddress *felt.Felt) error {
+func (account *Account) SignDeployAccountTransaction(
+	ctx context.Context,
+	tx rpc.DeployAccountType,
+	precomputeAddress *felt.Felt,
+) error {
 	switch deployAcc := tx.(type) {
 	case *rpc.DeployAccountTxnV1:
 		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
@@ -106,13 +120,17 @@ func (account *Account) SignDeployAccountTransaction(ctx context.Context, tx rpc
 		}
 		deployAcc.Signature = signature
 	default:
-		return fmt.Errorf("invalid deploy account txn of type %T, did you pass a valid deploy account txn pointer?", deployAcc)
+		return fmt.Errorf(
+			"invalid deploy account txn of type %T, did you pass a valid deploy account txn pointer?",
+			deployAcc,
+		)
 	}
 
 	return nil
 }
 
-// signDeployAccountTransaction is a generic helper function that signs a deploy account transaction.
+// signDeployAccountTransaction is a generic helper function that signs a deploy
+// account transaction.
 func signDeployAccountTransaction[T rpc.DeployAccountType](
 	ctx context.Context,
 	account *Account,
@@ -166,14 +184,22 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 		}
 		declare.Signature = signature
 	default:
-		return fmt.Errorf("invalid declare txn of type %T, did you pass a valid declare txn pointer?", declare)
+		return fmt.Errorf(
+			"invalid declare txn of type %T, did you pass a valid declare txn pointer?",
+			declare,
+		)
 	}
 
 	return nil
 }
 
-// signDeclareTransaction is a generic helper function that signs a declare transaction.
-func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *Account, tx *T) ([]*felt.Felt, error) {
+// signDeclareTransaction is a generic helper function that signs a declare
+// transaction.
+func signDeclareTransaction[T rpc.DeclareTxnType](
+	ctx context.Context,
+	account *Account,
+	tx *T,
+) ([]*felt.Felt, error) {
 	txHash, err := account.TransactionHashDeclare(*tx)
 	if err != nil {
 		return nil, err
@@ -186,7 +212,8 @@ func signDeclareTransaction[T rpc.DeclareTxnType](ctx context.Context, account *
 	return signature, nil
 }
 
-// Verifies the validity of the signature for a given message hash using the account's public key.
+// Verifies the validity of the signature for a given message hash using the
+// account's public key.
 //
 // Parameters:
 //   - msgHash: The message hash to be verified

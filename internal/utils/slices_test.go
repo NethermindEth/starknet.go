@@ -89,7 +89,7 @@ func TestMap(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			result := Map(tc.input, func(i int) string { return strconv.Itoa(i) }) //nolint:gocritic
+			result := Map(tc.input, strconv.Itoa)
 			assert.ElementsMatch(t, result, tc.expected)
 		})
 	}

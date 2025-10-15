@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"strings"
@@ -24,8 +25,9 @@ type TestAccount struct {
 
 // NewDevNet creates a new DevNet instance.
 //
-// It accepts an optional baseURL parameter, which is a string representing the base URL of the DevNet server.
-// If no baseURL is provided, the default value of "http://localhost:5050" is used.
+// It accepts an optional baseURL parameter, which is a string representing
+// the base URL of the DevNet server. If no baseURL is provided, the default
+// value of "http://localhost:5050" is used.
 //
 // Parameters:
 //   - baseURL: a string representing the base URL of the DevNet server
@@ -70,7 +72,11 @@ func (devnet *DevNet) api(uri string) string {
 // Returns:
 //   - []TestAccount: a slice of TestAccount structs
 func (devnet *DevNet) Accounts() ([]TestAccount, error) {
-	req, err := http.NewRequest(http.MethodGet, devnet.api("/predeployed_accounts"), http.NoBody)
+	req, err := http.NewRequest(
+		http.MethodGet,
+		devnet.api("/predeployed_accounts"),
+		http.NoBody,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +85,7 @@ func (devnet *DevNet) Accounts() ([]TestAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	var accounts []TestAccount
 	err = json.NewDecoder(resp.Body).Decode(&accounts)
@@ -112,7 +118,7 @@ func (devnet *DevNet) IsAlive() bool {
 	if err != nil {
 		return false
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	return resp.StatusCode == http.StatusOK
 }
@@ -155,7 +161,7 @@ func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	var mint MintResponse
 	err = json.NewDecoder(resp.Body).Decode(&mint)
@@ -190,10 +196,17 @@ func (devnet *DevNet) FeeToken() (*FeeToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp)
 
 	var token FeeToken
 	err = json.NewDecoder(resp.Body).Decode(&token)
 
 	return &token, err
+}
+
+// closeBody closes the response body and logs any errors.
+func closeBody(resp *http.Response) {
+	if err := resp.Body.Close(); err != nil {
+		log.Printf("Error closing response body: %v", err)
+	}
 }

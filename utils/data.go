@@ -2,7 +2,8 @@ package utils
 
 import internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 
-// UnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it into the specified type T.
+// UnmarshalJSONFileToType reads a JSON file at the given path and unmarshals it
+// into the specified type T.
 // If any error occurs during file reading or unmarshalling, it returns an error.
 //
 // Parameters:

@@ -30,19 +30,37 @@ func TestTransactionByHash(t *testing.T) {
 	}
 
 	BlockDeclareTxnV2Example := BlockTransaction{
-		Hash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+		Hash: internalUtils.TestHexToFelt(
+			t,
+			"0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda",
+		),
 		Transaction: DeclareTxnV2{
-			Type:              TransactionType_Declare,
-			Version:           TransactionV2,
-			MaxFee:            internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
-			ClassHash:         internalUtils.TestHexToFelt(t, "0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6"),
-			CompiledClassHash: internalUtils.TestHexToFelt(t, "0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252"),
-			Nonce:             internalUtils.TestHexToFelt(t, "0x16e"),
+			Type:    TransactionTypeDeclare,
+			Version: TransactionV2,
+			MaxFee:  internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
+			ClassHash: internalUtils.TestHexToFelt(
+				t,
+				"0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6",
+			),
+			CompiledClassHash: internalUtils.TestHexToFelt(
+				t,
+				"0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252",
+			),
+			Nonce: internalUtils.TestHexToFelt(t, "0x16e"),
 			Signature: []*felt.Felt{
-				internalUtils.TestHexToFelt(t, "0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0"),
-				internalUtils.TestHexToFelt(t, "0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92"),
+				internalUtils.TestHexToFelt(
+					t,
+					"0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0",
+				),
+				internalUtils.TestHexToFelt(
+					t,
+					"0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92",
+				),
 			},
-			SenderAddress: internalUtils.TestHexToFelt(t, "0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569"),
+			SenderAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569",
+			),
 		},
 	}
 
@@ -116,7 +134,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				ExpectedTxn: InvokeTxnV3example,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 				Index:   0,
 			},
 			{
@@ -138,7 +156,11 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
-			tx, err := testConfig.Provider.TransactionByBlockIdAndIndex(context.Background(), test.BlockID, test.Index)
+			tx, err := testConfig.Provider.TransactionByBlockIDAndIndex(
+				context.Background(),
+				test.BlockID,
+				test.Index,
+			)
 			if err != nil {
 				// in case the block has no transactions
 				assert.EqualError(t, err, ErrInvalidTxnIndex.Error())
@@ -198,7 +220,10 @@ func TestTransactionReceipt(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(context.Background(), test.TxnHash)
+		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(
+			context.Background(),
+			test.TxnHash,
+		)
 		require.Nil(t, err)
 		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
 	}
@@ -219,12 +244,12 @@ func TestGetTransactionStatus(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
-				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatus_Accepted_On_L1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatusAcceptedOnL1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
 			},
 			{
 				TxnHash: internalUtils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
 				ExpectedResp: TxnStatusResult{
-					FinalityStatus:  TxnStatus_Accepted_On_L1,
+					FinalityStatus:  TxnStatusAcceptedOnL1,
 					ExecutionStatus: TxnExecutionStatusREVERTED,
 					FailureReason:   "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x036d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06, class hash: 0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nError at pc=0:4835:\nCairo traceback (most recent call last):\nUnknown location (pc=0:67)\nUnknown location (pc=0:1835)\nUnknown location (pc=0:2554)\nUnknown location (pc=0:3436)\nUnknown location (pc=0:4040)\n\n1: Error in the called contract (contract address: 0x00000000000000000000000000000000000000000000000000000000ffffffff, class hash: 0x0000000000000000000000000000000000000000000000000000000000000000, selector: 0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354):\nRequested contract address 0x00000000000000000000000000000000000000000000000000000000ffffffff is not deployed.\n",
 				},
@@ -233,13 +258,13 @@ func TestGetTransactionStatus(t *testing.T) {
 		tests.IntegrationEnv: {
 			{
 				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
-				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatus_Accepted_On_L2, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatusAcceptedOnL2, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.GetTransactionStatus(context.Background(), test.TxnHash)
+		resp, err := testConfig.Provider.TransactionStatus(context.Background(), test.TxnHash)
 		require.Nil(t, err)
 		require.Equal(t, resp.FinalityStatus, test.ExpectedResp.FinalityStatus)
 		require.Equal(t, resp.ExecutionStatus, test.ExpectedResp.ExecutionStatus)
@@ -266,12 +291,12 @@ func TestGetMessagesStatus(t *testing.T) {
 				TxHash: "0x123",
 				ExpectedResp: []MessageStatus{
 					{
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
 					{
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 					},
@@ -307,7 +332,7 @@ func TestGetMessagesStatus(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(string(test.TxHash), func(t *testing.T) {
-			resp, err := testConfig.Provider.GetMessagesStatus(context.Background(), test.TxHash)
+			resp, err := testConfig.Provider.MessagesStatus(context.Background(), test.TxHash)
 			if test.ExpectedErr != nil {
 				require.EqualError(t, err, test.ExpectedErr.Error())
 			} else {

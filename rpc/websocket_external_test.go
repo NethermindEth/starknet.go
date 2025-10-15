@@ -34,7 +34,13 @@ func setupAcc(t *testing.T, tConfig *rpc.TestConfiguration) (*account.Account, e
 		return nil, fmt.Errorf("failed to convert accountAddress to felt: %w", err)
 	}
 
-	acc, err := account.NewAccount(tConfig.Provider, accAddress, tConfig.PubKey, ks, account.CairoV2)
+	acc, err := account.NewAccount(
+		tConfig.Provider,
+		accAddress,
+		tConfig.PubKey,
+		ks,
+		account.CairoV2,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
@@ -42,7 +48,7 @@ func setupAcc(t *testing.T, tConfig *rpc.TestConfiguration) (*account.Account, e
 	return acc, nil
 }
 
-//nolint:tparallel
+//nolint:tparallel // I want only sub-tests to run in parallel, but the main test to run sequentially with the others.
 func TestSubscribeTransactionStatus(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
@@ -63,7 +69,10 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	calldata, err := acc.FmtCalldata([]rpc.FunctionCall{
 		{
 			// same ERC20 contract as in examples/simpleInvoke
-			ContractAddress:    internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+			ContractAddress: internalUtils.TestHexToFelt(
+				t,
+				"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+			),
 			EntryPointSelector: utils.GetSelectorFromNameFelt("mint"),
 			Calldata:           []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 		},
@@ -121,11 +130,15 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		t.Parallel()
 
 		txnStatus := make(chan *rpc.NewTxnStatus)
-		sub, err := wsProvider.SubscribeTransactionStatus(context.Background(), txnStatus, txnHash) //nolint:govet
-		require.NoError(t, err, "Error subscribing to txn status")
+		sub, innerErr := wsProvider.SubscribeTransactionStatus(
+			context.Background(),
+			txnStatus,
+			txnHash,
+		)
+		require.NoError(t, innerErr, "Error subscribing to txn status")
 		defer sub.Unsubscribe()
 
-		expectedStatus := rpc.TxnStatus_Received
+		expectedStatus := rpc.TxnStatusReceived
 
 		for {
 			select {
@@ -134,29 +147,44 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 				// (e.g: it can go directly from RECEIVED to ACCEPTED_ON_L2),
 				// we'll only check if the txn has been marked at least as received
 				switch txnStatus.Status.FinalityStatus {
-				case rpc.TxnStatus_Received:
+				case rpc.TxnStatusReceived:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.Equal(t, expectedStatus, rpc.TxnStatus_Received)
+					assert.Equal(t, expectedStatus, rpc.TxnStatusReceived)
 
-					expectedStatus = rpc.TxnStatus_Candidate
-				case rpc.TxnStatus_Candidate:
+					expectedStatus = rpc.TxnStatusCandidate
+				case rpc.TxnStatusCandidate:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.NotEqual(t, expectedStatus, rpc.TxnStatus_Received, "txn should have been marked as received first")
+					assert.NotEqual(
+						t,
+						expectedStatus,
+						rpc.TxnStatusReceived,
+						"txn should have been marked as received first",
+					)
 
-					expectedStatus = rpc.TxnStatus_Pre_confirmed
-				case rpc.TxnStatus_Pre_confirmed:
+					expectedStatus = rpc.TxnStatusPreConfirmed
+				case rpc.TxnStatusPreConfirmed:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.NotEqual(t, expectedStatus, rpc.TxnStatus_Received, "txn should have been marked as received first")
+					assert.NotEqual(
+						t,
+						expectedStatus,
+						rpc.TxnStatusReceived,
+						"txn should have been marked as received first",
+					)
 
-					expectedStatus = rpc.TxnStatus_Accepted_On_L2
-				case rpc.TxnStatus_Accepted_On_L2:
+					expectedStatus = rpc.TxnStatusAcceptedOnL2
+				case rpc.TxnStatusAcceptedOnL2:
 					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.NotEqual(t, expectedStatus, rpc.TxnStatus_Received, "txn should have been marked as received first")
+					assert.NotEqual(
+						t,
+						expectedStatus,
+						rpc.TxnStatusReceived,
+						"txn should have been marked as received first",
+					)
 
 					return
 				}
-			case err = <-sub.Err():
-				t.Fatal("error in subscription: ", err)
+			case innerErr = <-sub.Err():
+				t.Fatal("error in subscription: ", innerErr)
 			}
 		}
 	})

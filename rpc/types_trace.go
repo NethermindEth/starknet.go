@@ -10,7 +10,8 @@ import (
 )
 
 type SimulateTransactionInput struct {
-	// a sequence of transactions to simulate, running each transaction on the state resulting from applying all the previous ones
+	// a sequence of transactions to simulate, running each transaction on the
+	// state resulting from applying all the previous ones
 	Txns            []BroadcastTxn   `json:"transactions"`
 	BlockID         BlockID          `json:"block_id"`
 	SimulationFlags []SimulationFlag `json:"simulation_flags"`
@@ -19,9 +20,10 @@ type SimulateTransactionInput struct {
 type SimulationFlag string
 
 const (
-	SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"
-	// Flags that indicate how to simulate a given transaction. By default, the sequencer behaviour is replicated locally
-	SKIP_VALIDATE SimulationFlag = "SKIP_VALIDATE"
+	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
+	// Flags that indicate how to simulate a given transaction. By default, the
+	// sequencer behaviour is replicated locally
+	SkipValidate SimulationFlag = "SKIP_VALIDATE"
 )
 
 type SimulatedTransaction struct {
@@ -31,12 +33,11 @@ type SimulatedTransaction struct {
 
 type TxnTrace interface{}
 
-//nolint:exhaustruct
 var (
-	_ TxnTrace = InvokeTxnTrace{}
-	_ TxnTrace = DeclareTxnTrace{}
-	_ TxnTrace = DeployAccountTxnTrace{}
-	_ TxnTrace = L1HandlerTxnTrace{}
+	_ TxnTrace = (*InvokeTxnTrace)(nil)
+	_ TxnTrace = (*DeclareTxnTrace)(nil)
+	_ TxnTrace = (*DeployAccountTxnTrace)(nil)
+	_ TxnTrace = (*L1HandlerTxnTrace)(nil)
 )
 
 // the execution trace of an invoke transaction
@@ -127,9 +128,11 @@ type FnInvocation struct {
 	IsReverted bool `json:"is_reverted"`
 }
 
-// the resources consumed by an inner call (does not account for state diffs since data is squashed across the transaction)
+// the resources consumed by an inner call (does not account for state diffs
+// since data is squashed across the transaction)
 type InnerCallExecutionResources struct {
-	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and
+	// state updates if blobs are not used
 	L1Gas uint `json:"l1_gas"`
 	// l2 gas consumed by this transaction, used for computation and calldata
 	L2Gas uint `json:"l2_gas"`
@@ -224,7 +227,9 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 	if txHashData, ok := dec["transaction_hash"]; ok {
 		txHashString, ok := txHashData.(string)
 		if !ok {
-			return errors.New("failed to unmarshal transaction hash, transaction_hash is not a string")
+			return errors.New(
+				"failed to unmarshal transaction hash, transaction_hash is not a string",
+			)
 		}
 		txHash, err = internalUtils.HexToFelt(txHashString)
 		if err != nil {
@@ -253,22 +258,22 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	if casted, ok := t.(map[string]interface{}); ok {
 		switch TransactionType(casted["type"].(string)) {
-		case TransactionType_Declare:
+		case TransactionTypeDeclare:
 			var txn DeclareTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case TransactionType_DeployAccount:
+		case TransactionTypeDeployAccount:
 			var txn DeployAccountTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case TransactionType_Invoke:
+		case TransactionTypeInvoke:
 			var txn InvokeTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case TransactionType_L1Handler:
+		case TransactionTypeL1Handler:
 			var txn L1HandlerTxnTrace
 			err := remarshal(casted, &txn)
 

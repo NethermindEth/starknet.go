@@ -27,7 +27,14 @@ import (
 //
 //	none
 func TestCall(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.DevnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(
+		t,
+		tests.MockEnv,
+		tests.TestnetEnv,
+		tests.MainnetEnv,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
@@ -56,12 +63,12 @@ func TestCall(t *testing.T) {
 			{
 				name: "Ok",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.RANDOM_FELT,
+					ContractAddress:    internalUtils.DeadBeef,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
 				BlockID:               WithBlockTag(BlockTagLatest),
-				ExpectedPatternResult: internalUtils.RANDOM_FELT,
+				ExpectedPatternResult: internalUtils.DeadBeef,
 			},
 		},
 		tests.TestnetEnv: {
@@ -82,7 +89,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag(BlockTagPre_confirmed),
+				BlockID:               WithBlockTag(BlockTagPreConfirmed),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
@@ -128,7 +135,7 @@ func TestCall(t *testing.T) {
 			{
 				name: "ContractNotFound",
 				FunctionCall: FunctionCall{
-					ContractAddress:    internalUtils.RANDOM_FELT,
+					ContractAddress:    internalUtils.DeadBeef,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
@@ -164,7 +171,11 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run("Test: "+test.name, func(t *testing.T) {
-			output, err := testConfig.Provider.Call(context.Background(), test.FunctionCall, test.BlockID)
+			output, err := testConfig.Provider.Call(
+				context.Background(),
+				test.FunctionCall,
+				test.BlockID,
+			)
 			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)
 				require.True(t, ok)

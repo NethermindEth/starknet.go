@@ -8,12 +8,19 @@ import (
 )
 
 type callCloser interface {
-	// CallContext calls the RPC method with the specified parameters and returns an error.
+	// CallContext calls the RPC method with the specified parameters and
+	// returns an error.
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
 	// CallContextWithSliceArgs call 'CallContext' with a slice of arguments.
-	// For RPC-Calls with optional arguments, use 'CallContext' instead and pass a struct containing
-	// the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
-	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	// For RPC-Calls with optional arguments, use 'CallContext' instead and
+	// pass a struct containing the arguments, because Juno doesn't support
+	// optional arguments being passed in an array, only within an object.
+	CallContextWithSliceArgs(
+		ctx context.Context,
+		result interface{},
+		method string,
+		args ...interface{},
+	) error
 	Close()
 }
 
@@ -31,8 +38,9 @@ type wsConn interface {
 		args interface{},
 	) (*client.ClientSubscription, error)
 	// SubscribeWithSliceArgs call 'Subscribe' with a slice of arguments.
-	// For RPC-Subscriptions with optional arguments, use 'Subscribe' instead and pass a struct containing
-	// the arguments, because Juno doesn't support optional arguments being passed in an array, only within an object.
+	// For RPC-Subscriptions with optional arguments, use 'Subscribe' instead and pass
+	// a struct containing the arguments, because Juno doesn't support optional arguments
+	// being passed in an array, only within an object.
 	SubscribeWithSliceArgs(
 		ctx context.Context,
 		namespace string,
@@ -42,7 +50,8 @@ type wsConn interface {
 	) (*client.ClientSubscription, error)
 }
 
-// do is a function that performs a remote procedure call (RPC) using the provided callCloser.
+// do is a function that performs a remote procedure call (RPC) using the
+// provided callCloser.
 // It passes the parameters as an array in the JSON-RPC call.
 //
 // Parameters:
@@ -54,7 +63,13 @@ type wsConn interface {
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func do(ctx context.Context, call callCloser, method string, data interface{}, args ...interface{}) error {
+func do(
+	ctx context.Context,
+	call callCloser,
+	method string,
+	data interface{},
+	args ...interface{},
+) error {
 	var raw json.RawMessage
 	err := call.CallContextWithSliceArgs(ctx, &raw, method, args...)
 	if err != nil {
@@ -70,9 +85,10 @@ func do(ctx context.Context, call callCloser, method string, data interface{}, a
 	return nil
 }
 
-// doAsObject is a function that performs a remote procedure call (RPC) using the provided callCloser.
-// It passes the parameter as an object in the JSON-RPC call, used for RPC-Calls with optional arguments
-// since Juno doesn't support optional arguments being passed in an array, only within an object.
+// doAsObject is a function that performs a remote procedure call (RPC) using
+// the provided callCloser. It passes the parameter as an object in the JSON-RPC
+// call, used for RPC-Calls with optional arguments since Juno doesn't support
+// optional arguments being passed in an array, only within an object.
 //
 // Parameters:
 //   - ctx: represents the current execution context

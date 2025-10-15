@@ -16,15 +16,14 @@ type (
 	StringErrData = rpcerr.StringErrData
 )
 
-//nolint:exhaustruct
 var (
-	_ rpcerr.RPCData = &CompilationErrData{}
-	_ rpcerr.RPCData = &ContractErrData{}
-	_ rpcerr.RPCData = &TransactionExecErrData{}
-	_ rpcerr.RPCData = &TraceStatusErrData{}
+	_ rpcerr.RPCData = (*CompilationErrData)(nil)
+	_ rpcerr.RPCData = (*ContractErrData)(nil)
+	_ rpcerr.RPCData = (*TransactionExecErrData)(nil)
+	_ rpcerr.RPCData = (*TraceStatusErrData)(nil)
 )
 
-//nolint:exhaustruct
+//nolint:exhaustruct // Omitting the Data field for errors that don't have data.
 var (
 	ErrFailedToReceiveTxn = &RPCError{
 		Code:    1,
@@ -115,7 +114,8 @@ var (
 		Message: "The transaction's resources don't cover validation or the minimal transaction fee",
 	}
 	ErrInsufficientAccountBalance = &RPCError{
-		Code:    54,
+		Code: 54,
+		//nolint:lll // The line break would be outputted in the error message
 		Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
 	}
 	ErrValidationFailure = &RPCError{

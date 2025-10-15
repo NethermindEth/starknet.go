@@ -13,7 +13,7 @@ type (
 
 // Paymaster-specific errors based on SNIP-29 specification
 //
-//nolint:exhaustruct
+//nolint:exhaustruct // Omitting the Data field for errors that don't have data.
 var (
 	ErrInvalidAddress = &RPCError{
 		Code:    150,

@@ -180,7 +180,7 @@ func TestVersionCompatibility(t *testing.T) {
 			require.NotNil(t, provider)
 
 			// Read captured output
-			w.Close()
+			require.NoError(t, w.Close())
 			os.Stdout = old
 			var buf bytes.Buffer
 			_, err = io.Copy(&buf, r)

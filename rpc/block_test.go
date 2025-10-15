@@ -48,10 +48,18 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	blockHashAndNumber, err := testConfig.Provider.BlockHashAndNumber(context.Background())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
-	require.True(t, strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"), "current block hash should return a string starting with 0x")
+	require.True(
+		t,
+		strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"),
+		"current block hash should return a string starting with 0x",
+	)
 
 	if tests.TEST_ENV == tests.MockEnv {
-		require.Equal(t, &BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.RANDOM_FELT}, blockHashAndNumber)
+		require.Equal(
+			t,
+			&BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.DeadBeef},
+			blockHashAndNumber,
+		)
 	}
 }
 
@@ -89,10 +97,10 @@ func TestBlockWithTxHashes(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                                BlockID
-		ExpectedErr                            error
-		ExpectedBlockWithTxHashes              *BlockTxHashes
-		ExpectedPre_confirmedBlockWithTxHashes *Pre_confirmedBlockTxHashes
+		BlockID                               BlockID
+		ExpectedErr                           error
+		ExpectedBlockWithTxHashes             *BlockTxHashes
+		ExpectedPreConfirmedBlockWithTxHashes *PreConfirmedBlockTxHashes
 	}
 
 	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
@@ -104,31 +112,31 @@ func TestBlockWithTxHashes(t *testing.T) {
 	})
 	blockMock := BlockTxHashes{
 		BlockHeader: BlockHeader{
-			Hash:             internalUtils.RANDOM_FELT,
-			ParentHash:       internalUtils.RANDOM_FELT,
+			Hash:             internalUtils.DeadBeef,
+			ParentHash:       internalUtils.DeadBeef,
 			Timestamp:        124,
-			SequencerAddress: internalUtils.RANDOM_FELT,
+			SequencerAddress: internalUtils.DeadBeef,
 		},
-		Status:       BlockStatus_AcceptedOnL1,
+		Status:       BlockStatusAcceptedOnL1,
 		Transactions: txHashesMock,
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:     BlockID{Tag: BlockTagPre_confirmed},
+				BlockID:     BlockID{Tag: BlockTagPreConfirmed},
 				ExpectedErr: nil,
-				ExpectedPre_confirmedBlockWithTxHashes: &Pre_confirmedBlockTxHashes{
-					Pre_confirmedBlockHeader{
+				ExpectedPreConfirmedBlockWithTxHashes: &PreConfirmedBlockTxHashes{
+					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        123,
-						SequencerAddress: internalUtils.RANDOM_FELT,
+						SequencerAddress: internalUtils.DeadBeef,
 					},
 					txHashesMock,
 				},
 			},
 			{
-				BlockID:                   BlockID{Hash: internalUtils.RANDOM_FELT},
+				BlockID:                   BlockID{Hash: internalUtils.DeadBeef},
 				ExpectedBlockWithTxHashes: &blockMock,
 			},
 			{
@@ -142,7 +150,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				BlockID:     WithBlockTag(BlockTagPreConfirmed),
 				ExpectedErr: nil,
 			},
 			{
@@ -166,7 +174,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:     WithBlockTag(BlockTagPre_confirmed),
+				BlockID:     WithBlockTag(BlockTagPreConfirmed),
 				ExpectedErr: nil,
 			},
 			{
@@ -205,14 +213,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 				if test.ExpectedBlockWithTxHashes != nil {
 					assert.Exactly(t, test.ExpectedBlockWithTxHashes, block)
 				}
-			case *Pre_confirmedBlockTxHashes:
-				pBlock, ok := result.(*Pre_confirmedBlockTxHashes)
+			case *PreConfirmedBlockTxHashes:
+				pBlock, ok := result.(*PreConfirmedBlockTxHashes)
 				require.Truef(t, ok, "should return *Pre_confirmedBlockTxHashes, instead: %T\n", result)
 
-				if test.ExpectedPre_confirmedBlockWithTxHashes == nil {
-					validatePre_confirmedBlockHeader(t, &pBlock.Pre_confirmedBlockHeader)
+				if test.ExpectedPreConfirmedBlockWithTxHashes == nil {
+					validatePreConfirmedBlockHeader(t, &pBlock.PreConfirmedBlockHeader)
 				} else {
-					assert.Exactly(t, test.ExpectedPre_confirmedBlockWithTxHashes, pBlock)
+					assert.Exactly(t, test.ExpectedPreConfirmedBlockWithTxHashes, pBlock)
 				}
 			default:
 				t.Fatalf("unexpected block type, found: %T\n", resultType)
@@ -240,20 +248,20 @@ func TestBlockWithTxs(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                    BlockID
-		ExpectedBlock              *Block
-		ExpectedPre_confirmedBlock *Pre_confirmedBlock
-		InvokeV0Index              int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		InvokeV1Index              int
-		InvokeV3Index              int
-		DeclareV0Index             int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
-		DeclareV1Index             int
-		DeclareV2Index             int
-		DeclareV3Index             int // TODO: implement testcase
-		DeployAccountV1Index       int
-		DeployAccountV3Index       int // TODO: implement testcase
-		L1HandlerV0Index           int
-		DeployV0Index              int // TODO: implement testcase
+		BlockID                   BlockID
+		ExpectedBlock             *Block
+		ExpectedPreConfirmedBlock *PreConfirmedBlock
+		InvokeV0Index             int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		InvokeV1Index             int
+		InvokeV3Index             int
+		DeclareV0Index            int // TODO: implement mainnet testcases as Sepolia doesn't contains V0 transactions
+		DeclareV1Index            int
+		DeclareV2Index            int
+		DeclareV3Index            int // TODO: implement testcase
+		DeployAccountV1Index      int
+		DeployAccountV3Index      int // TODO: implement testcase
+		L1HandlerV0Index          int
+		DeployV0Index             int // TODO: implement testcase
 	}
 
 	fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs65083.json", "result")
@@ -266,26 +274,26 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
-				ExpectedPre_confirmedBlock: &Pre_confirmedBlock{
-					Pre_confirmedBlockHeader{
+				ExpectedPreConfirmedBlock: &PreConfirmedBlock{
+					PreConfirmedBlockHeader{
 						Number:           1234,
 						Timestamp:        1234,
-						SequencerAddress: internalUtils.RANDOM_FELT,
+						SequencerAddress: internalUtils.DeadBeef,
 						L1GasPrice: ResourcePrice{
-							PriceInFRI: internalUtils.RANDOM_FELT,
-							PriceInWei: internalUtils.RANDOM_FELT,
+							PriceInFRI: internalUtils.DeadBeef,
+							PriceInWei: internalUtils.DeadBeef,
 						},
 						L2GasPrice: ResourcePrice{
-							PriceInFRI: internalUtils.RANDOM_FELT,
-							PriceInWei: internalUtils.RANDOM_FELT,
+							PriceInFRI: internalUtils.DeadBeef,
+							PriceInWei: internalUtils.DeadBeef,
 						},
 						L1DataGasPrice: ResourcePrice{
-							PriceInFRI: internalUtils.RANDOM_FELT,
-							PriceInWei: internalUtils.RANDOM_FELT,
+							PriceInFRI: internalUtils.DeadBeef,
+							PriceInWei: internalUtils.DeadBeef,
 						},
 						L1DAMode:        L1DAModeBlob,
 						StarknetVersion: "0.14.0",
@@ -309,7 +317,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -334,7 +342,7 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -351,15 +359,18 @@ func TestBlockWithTxs(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
-			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), test.BlockID)
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(
+				context.Background(),
+				test.BlockID,
+			)
 			require.NoError(t, err, "Unable to fetch the given block.")
 
 			switch block := blockWithTxsInterface.(type) {
-			case *Pre_confirmedBlock:
-				if test.ExpectedPre_confirmedBlock == nil {
-					validatePre_confirmedBlockHeader(t, &block.Pre_confirmedBlockHeader)
+			case *PreConfirmedBlock:
+				if test.ExpectedPreConfirmedBlock == nil {
+					validatePreConfirmedBlockHeader(t, &block.PreConfirmedBlockHeader)
 				} else {
-					assert.Exactly(t, test.ExpectedPre_confirmedBlock, block)
+					assert.Exactly(t, test.ExpectedPreConfirmedBlock, block)
 				}
 			case *Block:
 				if test.ExpectedBlock == nil {
@@ -454,7 +465,7 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedCount: 10,
 			},
 			{
-				BlockID:       WithBlockTag(BlockTagPre_confirmed),
+				BlockID:       WithBlockTag(BlockTagPreConfirmed),
 				ExpectedCount: 10,
 			},
 			{
@@ -472,7 +483,7 @@ func TestBlockTransactionCount(t *testing.T) {
 				ExpectedCount: 58,
 			},
 			{
-				BlockID:       WithBlockTag(BlockTagPre_confirmed),
+				BlockID:       WithBlockTag(BlockTagPreConfirmed),
 				ExpectedCount: -1,
 			},
 			{
@@ -504,22 +515,28 @@ func TestBlockTransactionCount(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("Count: %v, BlockID: %v", test.ExpectedCount, test.BlockID), func(t *testing.T) {
-			count, err := testConfig.Provider.BlockTransactionCount(context.Background(), test.BlockID)
-			if test.ExpectedError != nil {
-				require.EqualError(t, test.ExpectedError, err.Error())
+		t.Run(
+			fmt.Sprintf("Count: %v, BlockID: %v", test.ExpectedCount, test.BlockID),
+			func(t *testing.T) {
+				count, err := testConfig.Provider.BlockTransactionCount(
+					context.Background(),
+					test.BlockID,
+				)
+				if test.ExpectedError != nil {
+					require.EqualError(t, test.ExpectedError, err.Error())
 
-				return
-			}
-			require.NoError(t, err)
+					return
+				}
+				require.NoError(t, err)
 
-			if test.ExpectedCount == -1 {
-				// since 0 is the default value of an int64 var, let's set the expected count to -1 when we want to skip the count check
-				return
-			}
+				if test.ExpectedCount == -1 {
+					// since 0 is the default value of an int64 var, let's set the expected count to -1 when we want to skip the count check
+					return
+				}
 
-			assert.Equal(t, uint64(test.ExpectedCount), count)
-		})
+				assert.Equal(t, uint64(test.ExpectedCount), count)
+			},
+		)
 	}
 }
 
@@ -550,7 +567,10 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(context.Background(), WithBlockNumber(i))
+			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(
+				context.Background(),
+				WithBlockNumber(i),
+			)
 			require.NoError(t, err)
 			blockWithTxs, ok := blockWithTxsInterface.(*Block)
 			require.True(t, ok, "expecting *rpc.Block, instead %T", blockWithTxsInterface)
@@ -566,7 +586,9 @@ func TestCaptureUnsupportedBlockTxn(t *testing.T) {
 				_, okdec3 := v.Transaction.(DeclareTxnV3)
 				_, okdep := v.Transaction.(DeployTxn)
 				_, okdepac := v.Transaction.(DeployAccountTxnV1)
-				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 && !okdep && !okdepac {
+				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 &&
+					!okdep &&
+					!okdepac {
 					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
 				}
 			}
@@ -597,7 +619,7 @@ func TestStateUpdate(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -616,7 +638,7 @@ func TestStateUpdate(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
@@ -708,13 +730,21 @@ func assertStateUpdateJSONEquality(t *testing.T, subfield string, expectedResult
 
 	// other state diff fields
 	assert.ElementsMatch(t, expectedResultMap["nonces"], resultMap["nonces"])
-	assert.ElementsMatch(t, expectedResultMap["deployed_contracts"], resultMap["deployed_contracts"])
-	assert.ElementsMatch(t, expectedResultMap["deprecated_declared_classes"], resultMap["deprecated_declared_classes"])
+	assert.ElementsMatch(
+		t,
+		expectedResultMap["deployed_contracts"],
+		resultMap["deployed_contracts"],
+	)
+	assert.ElementsMatch(
+		t,
+		expectedResultMap["deprecated_declared_classes"],
+		resultMap["deprecated_declared_classes"],
+	)
 	assert.ElementsMatch(t, expectedResultMap["declared_classes"], resultMap["declared_classes"])
 	assert.ElementsMatch(t, expectedResultMap["replaced_classes"], resultMap["replaced_classes"])
 }
 
-func validatePre_confirmedBlockHeader(t *testing.T, pBlock *Pre_confirmedBlockHeader) {
+func validatePreConfirmedBlockHeader(t *testing.T, pBlock *PreConfirmedBlockHeader) {
 	assert.NotZero(t, pBlock.Number)
 	assert.NotZero(t, pBlock.Timestamp)
 	assert.NotZero(t, pBlock.SequencerAddress)

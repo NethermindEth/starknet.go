@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -78,7 +79,7 @@ func (c *DeprecatedContractClass) UnmarshalJSON(content []byte) error {
 		if !ok {
 			return fmt.Errorf("unknown abi type %v", checkABI["type"])
 		}
-		//nolint:exhaustruct
+		//nolint:exhaustruct // Just assigning the type
 		switch abiType {
 		case string(ABITypeConstructor), string(ABITypeFunction), string(ABITypeL1Handler):
 			ab = &FunctionABIEntry{}
@@ -122,7 +123,9 @@ func encodeProgram(content []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	gzipContent.Close()
+	if err := gzipContent.Close(); err != nil {
+		log.Printf("Error closing gzip content: %v", err)
+	}
 	program := base64.StdEncoding.EncodeToString(buf.Bytes())
 
 	return program, nil
@@ -174,13 +177,13 @@ func (ns *NestedString) UnmarshalJSON(data []byte) error {
 		}
 
 		// Replace '\n' to ''
-		out_str := bytes.ReplaceAll(out.Bytes(), []byte{10}, []byte{})
+		outStr := bytes.ReplaceAll(out.Bytes(), []byte{10}, []byte{})
 		// Replace ',"' to ', "'
-		out_str = bytes.ReplaceAll(out_str, []byte{44, 34}, []byte{44, 32, 34})
+		outStr = bytes.ReplaceAll(outStr, []byte{44, 34}, []byte{44, 32, 34})
 		// Replace ',{' to ', {'
-		out_str = bytes.ReplaceAll(out_str, []byte{44, 123}, []byte{44, 32, 123})
+		outStr = bytes.ReplaceAll(outStr, []byte{44, 123}, []byte{44, 32, 123})
 
-		*ns = NestedString(out_str)
+		*ns = NestedString(outStr)
 	}
 
 	return nil
@@ -188,7 +191,7 @@ func (ns *NestedString) UnmarshalJSON(data []byte) error {
 
 type SierraEntryPoint struct {
 	// The index of the function in the program
-	FunctionIdx int `json:"function_idx"`
+	FunctionIdx uint `json:"function_idx"`
 	// A unique  identifier of the entry point (function) in the program
 	Selector *felt.Felt `json:"selector"`
 }

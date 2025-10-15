@@ -9,7 +9,8 @@ import (
 )
 
 type ResultPageRequest struct {
-	// a pointer to the last element of the delivered page, use this token in a subsequent query to obtain the next page
+	// a pointer to the last element of the delivered page, use this token in a
+	// subsequent query to obtain the next page
 	ContinuationToken string `json:"continuation_token,omitempty"`
 	ChunkSize         int    `json:"chunk_size"`
 }
@@ -85,11 +86,11 @@ type StateUpdateOutput struct {
 	BlockHash *felt.Felt `json:"block_hash"`
 	// NewRoot is the new global state root. Nil for pre_confirmed block.
 	NewRoot *felt.Felt `json:"new_root"`
-	Pre_confirmedStateUpdate
+	PreConfirmedStateUpdate
 }
 
 // PRE_CONFIRMED_STATE_UPDATE in spec
-type Pre_confirmedStateUpdate struct {
+type PreConfirmedStateUpdate struct {
 	// OldRoot is the previous global state root.
 	OldRoot   *felt.Felt `json:"old_root"`
 	StateDiff StateDiff  `json:"state_diff"`
@@ -202,26 +203,30 @@ type TxDetails struct {
 
 // Fee estimation common fields
 type FeeEstimationCommon struct {
-	// The Ethereum gas consumption of the transaction, charged for L1->L2 messages and, depending on the block's DA_MODE, state diffs
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
 	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
 
-	// The gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
 	L1GasPrice *felt.Felt `json:"l1_gas_price"`
 
 	// The L2 gas consumption of the transaction
 	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
 
-	// The L2 gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
 	L2GasPrice *felt.Felt `json:"l2_gas_price"`
 
 	// The Ethereum data gas consumption of the transaction.
 	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
 
-	// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation.
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
 	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
 
-	// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to
-	// gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
 }
 
@@ -247,20 +252,21 @@ const (
 // UnmarshalJSON unmarshals the JSON data into a TxnExecutionStatus struct.
 //
 // Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+//   - data: It takes a byte slice as a parameter, which represents the JSON data to
+//     be unmarshalled
 //
 // Returns:
 //   - error: an error if the unmarshaling fails
-func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
+func (ex *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
 	switch unquoted {
 	case "SUCCEEDED":
-		*ts = TxnExecutionStatusSUCCEEDED
+		*ex = TxnExecutionStatusSUCCEEDED
 	case "REVERTED":
-		*ts = TxnExecutionStatusREVERTED
+		*ex = TxnExecutionStatusREVERTED
 	default:
 		return fmt.Errorf("unsupported execution status: %s", data)
 	}
@@ -270,7 +276,8 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 
 // MarshalJSON returns the JSON encoding of the TxnExecutionStatus.
 //
-// It marshals the TxnExecutionStatus into a byte slice by quoting its string representation.
+// It marshals the TxnExecutionStatus into a byte slice by quoting its string
+// representation.
 // The function returns the marshalled byte slice and a nil error.
 //
 // Parameters:
@@ -280,8 +287,8 @@ func (ts *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 // Returns:
 //   - []byte: the JSON encoding of the TxnExecutionStatus
 //   - error: the error if there was an issue marshalling
-func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(ts))), nil
+func (ex TxnExecutionStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(ex))), nil
 }
 
 // String returns the string representation of the TxnExecutionStatus.
@@ -292,37 +299,38 @@ func (ts TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 //
 // Returns:
 //   - string: the string representation of the TxnExecutionStatus
-func (s TxnExecutionStatus) String() string {
-	return string(s)
+func (ex TxnExecutionStatus) String() string {
+	return string(ex)
 }
 
 type TxnFinalityStatus string
 
 const (
-	TxnFinalityStatusPre_confirmed TxnFinalityStatus = "PRE_CONFIRMED"
-	TxnFinalityStatusAcceptedOnL2  TxnFinalityStatus = "ACCEPTED_ON_L2"
-	TxnFinalityStatusAcceptedOnL1  TxnFinalityStatus = "ACCEPTED_ON_L1"
+	TxnFinalityStatusPreConfirmed TxnFinalityStatus = "PRE_CONFIRMED"
+	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
+	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
 //
 // Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to be unmarshalled
+//   - data: It takes a byte slice as a parameter, which represents the JSON data to
+//     be unmarshalled
 //
 // Returns:
 //   - error: an error if the unmarshaling fails
-func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
+func (fs *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
 	switch unquoted {
 	case "PRE_CONFIRMED":
-		*ts = TxnFinalityStatusPre_confirmed
+		*fs = TxnFinalityStatusPreConfirmed
 	case "ACCEPTED_ON_L2":
-		*ts = TxnFinalityStatusAcceptedOnL2
+		*fs = TxnFinalityStatusAcceptedOnL2
 	case "ACCEPTED_ON_L1":
-		*ts = TxnFinalityStatusAcceptedOnL1
+		*fs = TxnFinalityStatusAcceptedOnL1
 	default:
 		return fmt.Errorf("unsupported finality status: %s", data)
 	}
@@ -339,8 +347,8 @@ func (ts *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 // Returns:
 //   - []byte: a byte slice
 //   - error: an error if any
-func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(ts))), nil
+func (fs TxnFinalityStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(fs))), nil
 }
 
 // String returns the string representation of the TxnFinalityStatus.
@@ -351,6 +359,6 @@ func (ts TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 //
 // Returns:
 //   - string: the string representation of the TxnFinalityStatus
-func (s TxnFinalityStatus) String() string {
-	return string(s)
+func (fs TxnFinalityStatus) String() string {
+	return string(fs)
 }

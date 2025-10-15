@@ -25,11 +25,11 @@ import (
 // different ways of narrowing down event queries for efficient data retrieval.
 func main() {
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
-	wsProviderUrl := setup.GetWsProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
+	wsProviderURL := setup.GetWsProviderURL()
 
 	// Initialise connection to RPC provider
-	provider, err := rpc.NewProvider(rpcProviderUrl)
+	provider, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %v", err))
 	}
@@ -45,7 +45,10 @@ func main() {
 	// 3. call with Keys filter
 	callWithKeysFilter(provider)
 	// optional: filter with websocket
-	filterWithWebsocket(provider, wsProviderUrl) // if the wsProviderUrl is empty, the websocket example will be skipped
+	filterWithWebsocket(
+		provider,
+		wsProviderURL,
+	) // if the wsProviderUrl is empty, the websocket example will be skipped
 
 	// after all, here is a call with all filters combined
 	fmt.Println("\n ----- 4. all filters -----")
@@ -56,7 +59,9 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
 	}
-	key3, err := utils.HexToFelt("0x1bfc84464f990c09cc0e5d64d18f54c3469fd5c467398bf31293051bade1c39")
+	key3, err := utils.HexToFelt(
+		"0x1bfc84464f990c09cc0e5d64d18f54c3469fd5c467398bf31293051bade1c39",
+	)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the provided key, error %v", err))
 	}
@@ -96,7 +101,10 @@ func main() {
 
 	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
 	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
-	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf(
+		"block number of the last event: %d\n",
+		eventChunk.Events[len(eventChunk.Events)-1].BlockNumber,
+	)
 	randomEvent := eventChunk.Events[rand.Intn(len(eventChunk.Events))] // get a random event from the chunk
 	fmt.Printf("random event block number: %d\n", randomEvent.BlockNumber)
 	fmt.Printf("random event tx hash: %s\n", randomEvent.TransactionHash.String())
@@ -125,8 +133,14 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 	fmt.Printf("number of returned events in the first chunk: %d\n", len(eventChunk.Events))
-	fmt.Printf("block number of the first event in the first chunk: %d\n", eventChunk.Events[0].BlockNumber)
-	fmt.Printf("block number of the last event in the first chunk: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf(
+		"block number of the first event in the first chunk: %d\n",
+		eventChunk.Events[0].BlockNumber,
+	)
+	fmt.Printf(
+		"block number of the last event in the first chunk: %d\n",
+		eventChunk.Events[len(eventChunk.Events)-1].BlockNumber,
+	)
 
 	// Now we will get the second chunk
 	secondEventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
@@ -139,7 +153,10 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 		panic(fmt.Sprintf("error retrieving events: %v", err))
 	}
 	fmt.Printf("number of returned events in the second chunk: %d\n", len(secondEventChunk.Events))
-	fmt.Printf("block number of the first event in the second chunk: %d\n", secondEventChunk.Events[0].BlockNumber)
+	fmt.Printf(
+		"block number of the first event in the second chunk: %d\n",
+		secondEventChunk.Events[0].BlockNumber,
+	)
 	fmt.Printf(
 		"block number of the last event in the second chunk: %d\n",
 		secondEventChunk.Events[len(secondEventChunk.Events)-1].BlockNumber,
@@ -149,7 +166,9 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	fmt.Println()
 	fmt.Println(" ----- 2. call with Block and Address filters -----")
-	contractAddress, err := utils.HexToFelt("0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7") // StarkGate: ETH Token
+	contractAddress, err := utils.HexToFelt(
+		"0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7",
+	) // StarkGate: ETH Token
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
 	}
@@ -177,8 +196,14 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	}
 	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
 	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
-	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
-	fmt.Printf("contract address of the first event: %s\n", eventChunk.Events[0].FromAddress.String())
+	fmt.Printf(
+		"block number of the last event: %d\n",
+		eventChunk.Events[len(eventChunk.Events)-1].BlockNumber,
+	)
+	fmt.Printf(
+		"contract address of the first event: %s\n",
+		eventChunk.Events[0].FromAddress.String(),
+	)
 }
 
 func callWithKeysFilter(provider *rpc.Provider) {
@@ -227,7 +252,10 @@ func callWithKeysFilter(provider *rpc.Provider) {
 
 	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
 	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
-	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf(
+		"block number of the last event: %d\n",
+		eventChunk.Events[len(eventChunk.Events)-1].BlockNumber,
+	)
 	fmt.Printf("first key of the first event: %s\n", eventChunk.Events[0].Keys[0].String())
 
 	fmt.Println()
@@ -260,13 +288,23 @@ func callWithKeysFilter(provider *rpc.Provider) {
 
 	fmt.Printf("'Transfer' hash selector: %s\n", utils.GetSelectorFromNameFelt("Transfer").String())
 	fmt.Printf("'Approval' hash selector: %s\n", utils.GetSelectorFromNameFelt("Approval").String())
-	fmt.Printf("'GameStarted' hash selector: %s\n", utils.GetSelectorFromNameFelt("GameStarted").String())
+	fmt.Printf(
+		"'GameStarted' hash selector: %s\n",
+		utils.GetSelectorFromNameFelt("GameStarted").String(),
+	)
 
 	fmt.Printf("number of returned events: %d\n", len(eventChunk.Events))
 	fmt.Printf("block number of the first event: %d\n", eventChunk.Events[0].BlockNumber)
-	fmt.Printf("block number of the last event: %d\n", eventChunk.Events[len(eventChunk.Events)-1].BlockNumber)
+	fmt.Printf(
+		"block number of the last event: %d\n",
+		eventChunk.Events[len(eventChunk.Events)-1].BlockNumber,
+	)
 	transferEvent := findEventInChunk(eventChunk, "Transfer")
-	fmt.Printf("'Transfer' event found in block %d, tx hash: %s\n", transferEvent.BlockNumber, transferEvent.TransactionHash.String())
+	fmt.Printf(
+		"'Transfer' event found in block %d, tx hash: %s\n",
+		transferEvent.BlockNumber,
+		transferEvent.TransactionHash.String(),
+	)
 	gameStartedEvent := findEventInChunk(eventChunk, "GameStarted")
 	fmt.Printf(
 		"'GameStarted' event found in block %d, tx hash: %s\n",
@@ -274,11 +312,15 @@ func callWithKeysFilter(provider *rpc.Provider) {
 		gameStartedEvent.TransactionHash.String(),
 	)
 	approvalEvent := findEventInChunk(eventChunk, "Approval")
-	fmt.Printf("'Approval' event found in block %d, tx hash: %s\n", approvalEvent.BlockNumber, approvalEvent.TransactionHash.String())
+	fmt.Printf(
+		"'Approval' event found in block %d, tx hash: %s\n",
+		approvalEvent.BlockNumber,
+		approvalEvent.TransactionHash.String(),
+	)
 }
 
-func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
-	if websocketUrl == "" {
+func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
+	if websocketURL == "" {
 		fmt.Println("\nNo websocket URL provided. Skipping websocket filter...")
 
 		return
@@ -287,11 +329,13 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	fmt.Println()
 	fmt.Println(" ----- 4. filter with websocket -----")
 
-	wsProvider, err := rpc.NewWebsocketProvider(websocketUrl)
+	wsProvider, err := rpc.NewWebsocketProvider(websocketURL)
 	if err != nil {
 		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}
-	contractAddress, err := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D") // StarkGate: ETH Token
+	contractAddress, err := utils.HexToFelt(
+		"0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+	) // StarkGate: ETH Token
 	if err != nil {
 		panic(fmt.Sprintf("failed to create felt from the contract address, error %v", err))
 	}
@@ -306,20 +350,24 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 	eventsChan := make(chan *rpc.EmittedEventWithFinalityStatus)
 
 	// Subscribe to events
-	sub, err := wsProvider.SubscribeEvents(context.Background(), eventsChan, &rpc.EventSubscriptionInput{
-		// Only events from this contract address
-		FromAddress: contractAddress,
-		// Subscribe to events from the latest block minus 10 (it'll return
-		// events from the last 10 blocks and progressively update as new blocks are added)
-		SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
-		Keys: [][]*felt.Felt{
-			// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
-			// So this will return all events that have the 'Transfer' selector as the first key.
-			{
-				utils.GetSelectorFromNameFelt("Transfer"),
+	sub, err := wsProvider.SubscribeEvents(
+		context.Background(),
+		eventsChan,
+		&rpc.EventSubscriptionInput{
+			// Only events from this contract address
+			FromAddress: contractAddress,
+			// Subscribe to events from the latest block minus 10 (it'll return
+			// events from the last 10 blocks and progressively update as new blocks are added)
+			SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
+			Keys: [][]*felt.Felt{
+				// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
+				// So this will return all events that have the 'Transfer' selector as the first key.
+				{
+					utils.GetSelectorFromNameFelt("Transfer"),
+				},
 			},
 		},
-	})
+	)
 	if err != nil {
 		panic(fmt.Sprintf("error subscribing to events: %v", err))
 	}
@@ -331,7 +379,11 @@ func filterWithWebsocket(provider *rpc.Provider, websocketUrl string) {
 		select {
 		case event := <-eventsChan:
 			// This case will be triggered when a new event is received.
-			fmt.Printf("New event received: Block %d, Event tx hash: %s\n", event.BlockNumber, event.TransactionHash.String())
+			fmt.Printf(
+				"New event received: Block %d, Event tx hash: %s\n",
+				event.BlockNumber,
+				event.TransactionHash.String(),
+			)
 		case err := <-sub.Err():
 			// This case will be triggered when an error occurs.
 			panic(err)

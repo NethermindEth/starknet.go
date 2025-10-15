@@ -1,10 +1,7 @@
 package account_test
 
 import (
-	"bytes"
 	"context"
-	"io"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -33,7 +30,7 @@ func TestFmtCallData(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		CairoVersion     account.CairoVersion
@@ -46,7 +43,10 @@ func TestFmtCallData(t *testing.T) {
 			CairoVersion: account.CairoV2,
 			ChainID:      "SN_SEPOLIA",
 			FnCall: rpc.FunctionCall{
-				ContractAddress:    internalUtils.TestHexToFelt(t, "0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902"),
+				ContractAddress: internalUtils.TestHexToFelt(
+					t,
+					"0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902",
+				),
 				EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
 				Calldata: []*felt.Felt{
 					internalUtils.TestHexToFelt(t, "0x617279616e5f676f64617261"),
@@ -64,7 +64,10 @@ func TestFmtCallData(t *testing.T) {
 			CairoVersion: account.CairoV2,
 			ChainID:      "SN_SEPOLIA",
 			FnCall: rpc.FunctionCall{
-				ContractAddress:    internalUtils.TestHexToFelt(t, "0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA"),
+				ContractAddress: internalUtils.TestHexToFelt(
+					t,
+					"0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA",
+				),
 				EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name_set"),
 				Calldata: []*felt.Felt{
 					internalUtils.TestHexToFelt(t, "0x737461726b6e6574"),
@@ -81,10 +84,14 @@ func TestFmtCallData(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), test.CairoVersion)
+		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		acc, err := account.NewAccount(
+			mockRPCProvider,
+			&felt.Zero,
+			"pubkey",
+			account.NewMemKeystore(),
+			test.CairoVersion,
+		)
 		require.NoError(t, err)
 
 		fmtCallData, err := acc.FmtCalldata([]rpc.FunctionCall{test.FnCall})
@@ -98,7 +105,7 @@ func TestFmtCallData(t *testing.T) {
 // It creates a mock controller and a mock RpcProvider. It defines a test set
 // consisting of different ChainID and ExpectedID pairs. It then iterates over
 // the test set and sets the expected behaviour for the ChainID method of the
-// mockRpcProvider. It creates a new account using the mockRpcProvider,
+// mockRPCProvider. It creates a new account using the mockRPCProvider,
 // Zero value, "pubkey", and a new in-memory keystore. It asserts that the
 // account's ChainId matches the expected ID for each test case in the test set.
 //
@@ -112,7 +119,7 @@ func TestChainIdMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
+	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		ChainID    string
@@ -132,12 +139,16 @@ func TestChainIdMOCK(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		mockRpcProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		// TODO: remove this once the braavos bug is fixed. Ref: https://github.com/NethermindEth/starknet.go/pull/691
-		mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(internalUtils.RANDOM_FELT, nil)
-		acc, err := account.NewAccount(mockRpcProvider, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
+		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
+		acc, err := account.NewAccount(
+			mockRPCProvider,
+			&felt.Zero,
+			"pubkey",
+			account.NewMemKeystore(),
+			account.CairoV0,
+		)
 		require.NoError(t, err)
-		require.Equal(t, test.ExpectedID, acc.ChainId.String())
+		require.Equal(t, test.ExpectedID, acc.ChainID.String())
 	}
 }
 
@@ -173,83 +184,14 @@ func TestChainId(t *testing.T) {
 		client, err := rpc.NewProvider(tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
-		acc, err := account.NewAccount(client, &felt.Zero, "pubkey", account.NewMemKeystore(), account.CairoV0)
+		acc, err := account.NewAccount(
+			client,
+			&felt.Zero,
+			"pubkey",
+			account.NewMemKeystore(),
+			account.CairoV0,
+		)
 		require.NoError(t, err)
-		require.Equal(t, acc.ChainId.String(), test.ExpectedID)
-	}
-}
-
-func TestBraavosAccountWarning(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
-
-	mockCtrl := gomock.NewController(t)
-	mockRpcProvider := mocks.NewMockRpcProvider(mockCtrl)
-
-	type testSetType struct {
-		ClassHash      *felt.Felt
-		ExpectedOutput bool
-	}
-
-	// Known Braavos class hashes
-	braavosClassHashes := []string{
-		"0x2c8c7e6fbcfb3e8e15a46648e8914c6aa1fc506fc1e7fb3d1e19630716174bc",
-		"0x816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253",
-		"0x41bf1e71792aecb9df3e9d04e1540091c5e13122a731e02bec588f71dc1a5c3",
-	}
-
-	testSet := map[tests.TestEnv][]testSetType{
-		tests.MockEnv: {
-			{
-				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[0]),
-				ExpectedOutput: true,
-			},
-			{
-				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[1]),
-				ExpectedOutput: true,
-			},
-			{
-				ClassHash:      internalUtils.TestHexToFelt(t, braavosClassHashes[2]),
-				ExpectedOutput: true,
-			},
-			{
-				ClassHash:      internalUtils.RANDOM_FELT,
-				ExpectedOutput: false,
-			},
-		},
-	}[tests.TEST_ENV]
-
-	for _, test := range testSet {
-		t.Run("ClassHash_"+test.ClassHash.String(), func(t *testing.T) {
-			// Set up the mock to return the Braavos class hash
-			mockRpcProvider.EXPECT().ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).Return(test.ClassHash, nil)
-			mockRpcProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
-
-			// Create a buffer to capture stdout
-			oldStdout := os.Stdout
-			r, w, err := os.Pipe()
-			require.NoError(t, err)
-			os.Stdout = w
-
-			// Create the account
-			_, err = account.NewAccount(mockRpcProvider, internalUtils.RANDOM_FELT, "pubkey", account.NewMemKeystore(), account.CairoV2)
-			require.NoError(t, err)
-
-			// Close the writer and restore stdout
-			w.Close()
-			os.Stdout = oldStdout
-
-			// Read the captured output
-			var buf bytes.Buffer
-			_, err = io.Copy(&buf, r)
-			require.NoError(t, err)
-
-			if test.ExpectedOutput {
-				// Check if the warning message was printed
-				assert.Contains(t, buf.String(), account.BRAAVOS_WARNING_MESSAGE)
-			} else {
-				// Check if the warning message was not printed
-				assert.NotContains(t, buf.String(), account.BRAAVOS_WARNING_MESSAGE)
-			}
-		})
+		require.Equal(t, acc.ChainID.String(), test.ExpectedID)
 	}
 }

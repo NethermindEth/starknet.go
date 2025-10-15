@@ -1,0 +1,297 @@
+# SimulateTransactions
+
+Simulates a given sequence of transactions on the requested state and generates execution traces. Each transaction is simulated on the state resulting from applying all the previous ones.
+
+## Method Signature
+
+```go
+func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastTxn, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - Block identifier to simulate against (number, hash, or tag)
+- `txns` - Array of transactions to simulate
+- `simulationFlags` - Flags describing what parts of the transaction should be executed
+
+## Transaction Reverts and Error Handling
+
+**Important:** SimulateTransactions has special error handling behavior:
+
+### Reverted Transactions
+- **No error is thrown** when transactions revert during simulation
+- Revert details are captured in the `revert_error` property of the trace
+- The simulation continues and returns results with revert information
+- Check the `is_reverted` field and `revert_reason` in execution traces
+
+### Error Types
+1. **Transaction Reverts**: Included in results with revert details
+2. **Validation Failures**: Result in `TRANSACTION_EXECUTION_ERROR` 
+3. **Unexpected Errors**: Result in `TRANSACTION_EXECUTION_ERROR`
+
+### Sequential Simulation
+When simulating multiple transactions, each transaction runs on the state resulting from applying all previous ones in the array.
+
+## Simulation Flags
+
+```go
+const (
+    SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"  // Skip fee charging
+    SKIP_VALIDATE   SimulationFlag = "SKIP_VALIDATE"    // Skip signature validation
+)
+```
+
+## Returns
+
+- `[]SimulatedTransaction` - Array of simulation results containing traces and fee estimates
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Create transaction for simulation
+    contractAddress, _ := new(felt.Felt).SetString("0x07065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a")
+    selectorFelt, _ := new(felt.Felt).SetString("0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b")
+    
+    invokeTxn := rpc.InvokeTxnV3{
+        Type:          rpc.TransactionType_Invoke,
+        SenderAddress: contractAddress,
+        Calldata: []*felt.Felt{
+            new(felt.Felt).SetUint64(1),
+            contractAddress,
+            selectorFelt,
+            new(felt.Felt).SetUint64(0),
+        },
+        Version: rpc.TransactionV3,
+        Nonce:   new(felt.Felt).SetUint64(3),
+        ResourceBounds: &rpc.ResourceBoundsMapping{
+            L1Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x0"),
+                MaxPricePerUnit: rpc.U128("0x51ecf881cce4"),
+            },
+            L2Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x15c2a0"),
+                MaxPricePerUnit: rpc.U128("0x10c388d00"),
+            },
+            L1DataGas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0xc0"),
+                MaxPricePerUnit: rpc.U128("0xdb61"),
+            },
+        },
+        Tip:                     rpc.U64("0x0"),
+        PayMasterData:           []*felt.Felt{},
+        AccountDeploymentData:   []*felt.Felt{},
+        NonceDataMode:           rpc.DAModeL1,
+        FeeMode:                 rpc.DAModeL1,
+        Signature:               []*felt.Felt{},
+    }
+
+    // Simulate transaction with SKIP_VALIDATE flag
+    simResult, err := client.SimulateTransactions(
+        context.Background(),
+        rpc.WithBlockTag("latest"),
+        []rpc.BroadcastTxn{invokeTxn},
+        []rpc.SimulationFlag{rpc.SKIP_VALIDATE},
+    )
+    if err != nil {
+        log.Fatal("Failed to simulate transaction:", err)
+    }
+
+    // Print simulation results
+    resultJSON, _ := json.MarshalIndent(simResult, "", "  ")
+    fmt.Printf("Simulation Result:\n%s\n", resultJSON)
+}
+```
+
+## Expected Output Structure
+
+The response contains an array of `SimulatedTransaction` objects, each with:
+
+### Transaction Trace
+Detailed execution flow of the transaction:
+
+```json
+{
+  "transaction_trace": {
+    "execute_invocation": {
+      "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+      "entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
+      "calldata": [...],
+      "result": ["0x1", "0x1", "0x79e27ef8b5e0a716b77dd2015329ce74b4b9b1628b546fe89298bc42db08808"],
+      "calls": [...],
+      "execution_resources": {
+        "l1_gas": 0,
+        "l2_gas": 280000
+      },
+      "is_reverted": false
+    },
+    "fee_transfer_invocation": {
+      "contract_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "calldata": ["0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8", "0x8beaaa91c9c00", "0x0"],
+      "execution_resources": {
+        "l1_gas": 0,
+        "l2_gas": 189030
+      }
+    },
+    "state_diff": {
+      "storage_diffs": [...],
+      "nonces": [
+        {
+          "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
+          "nonce": "0x4"
+        }
+      ]
+    },
+    "execution_resources": {
+      "l1_gas": 0,
+      "l1_data_gas": 128,
+      "l2_gas": 820480
+    }
+  }
+}
+```
+
+### Fee Estimation
+Comprehensive fee breakdown:
+
+```json
+{
+  "fee_estimation": {
+    "l1_gas_consumed": "0x0",
+    "l1_gas_price": "0x35955904c193",
+    "l2_gas_consumed": "0xc8500",
+    "l2_gas_price": "0xb2d05e00",
+    "l1_data_gas_consumed": "0x80",
+    "l1_data_gas_price": "0x8d38",
+    "overall_fee": "0x8beaaa91c9c00",
+    "unit": "FRI"
+  }
+}
+```
+
+## Output Field Explanations
+
+### Execute Invocation
+- `contract_address`: The account contract executing the transaction
+- `entry_point_selector`: The `__execute__` function selector
+- `calldata`: Parameters passed to the execute function
+- `result`: Return values from the execution
+- `calls`: Nested contract calls made during execution
+- `execution_resources`: Gas consumed by the execution
+
+### Fee Transfer Invocation  
+- `contract_address`: The ETH token contract for fee payment
+- `calldata`: [sequencer_address, fee_amount, 0]
+- Shows the fee transfer to the sequencer
+
+### State Diff
+- `storage_diffs`: Storage changes made by the transaction
+- `nonces`: Nonce updates (account nonce incremented from 0x3 to 0x4)
+- `deployed_contracts`, `declared_classes`: New contracts/classes (empty in this case)
+
+### Fee Estimation
+- `l1_gas_consumed`: L1 gas used (0 in this case)
+- `l2_gas_consumed`: L2 gas used (0xc8500 = 820,480 gas)
+- `l1_data_gas_consumed`: Data gas for L1 submission (0x80 = 128 gas)
+- `overall_fee`: Total fee in FRI (0x8beaaa91c9c00 = 2,470,000,000,000 FRI)
+- `unit`: Fee denomination (FRI = 10^-18 STRK)
+
+### Execution Resources
+- `l1_gas`: Gas for L1 operations
+- `l1_data_gas`: Gas for data availability on L1  
+- `l2_gas`: Gas for L2 computation
+
+## Use Cases
+
+- **Pre-flight checks**: Validate transactions before signing and submission
+- **Fee estimation**: Get accurate gas costs for transaction planning  
+- **Debug transactions**: Analyze execution flow and identify issues
+- **State analysis**: Preview state changes without executing
+- **Gas optimization**: Test different approaches to minimize costs
+
+## Transaction Reverts and Error Handling
+
+**Important:** SimulateTransactions has special error handling behavior:
+
+### Reverted Transactions
+- **No error is thrown** when transactions revert during simulation
+- Revert details are captured in the `revert_error` property of the trace
+- The simulation continues and returns results with revert information
+- Check the `is_reverted` field and `revert_reason` in execution traces
+
+### Error Types
+1. **Transaction Reverts**: Included in results with revert details
+2. **Validation Failures**: Result in `TRANSACTION_EXECUTION_ERROR` 
+3. **Unexpected Errors**: Result in `TRANSACTION_EXECUTION_ERROR`
+
+### Sequential Simulation
+When simulating multiple transactions, each transaction runs on the state resulting from applying all previous ones in the array.
+
+## Simulation Flags Usage
+
+### SKIP_VALIDATE
+Use when simulating unsigned transactions:
+```go
+[]rpc.SimulationFlag{rpc.SKIP_VALIDATE}
+```
+Skips signature validation, perfect for testing transaction logic.
+
+### SKIP_FEE_CHARGE  
+Use when testing without fee deduction:
+```go
+[]rpc.SimulationFlag{rpc.SKIP_FEE_CHARGE}
+```
+Simulates execution without charging fees from account balance.
+
+### Combined Flags
+Use both for maximum simulation flexibility:
+```go
+[]rpc.SimulationFlag{rpc.SKIP_VALIDATE, rpc.SKIP_FEE_CHARGE}
+```
+
+## Error Handling
+
+SimulateTransactions has unique error handling behavior:
+
+**Transaction Reverts:**
+```go
+// Reverted transactions don't cause method errors
+simResult, err := client.SimulateTransactions(ctx, blockID, txns, flags)
+if err != nil {
+    // Only validation failures or unexpected errors reach here
+    log.Printf("Simulation failed: %v", err)
+    return
+}
+
+// Check individual transactions for reverts
+for i, result := range simResult {
+    if result.TxnTrace.ExecuteInvocation.IsReverted {
+        fmt.Printf("Transaction %d reverted: %s\n", i, result.TxnTrace.ExecuteInvocation.RevertReason)
+    }
+}
+```
+
+**Error Categories:**
+- **Method errors** (`err != nil`): Validation failures, unexpected errors
+- **Transaction reverts**: Captured in trace with `is_reverted: true` and `revert_reason`
+- **Execution success**: Normal completion with `is_reverted: false`

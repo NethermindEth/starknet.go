@@ -28,11 +28,13 @@ type MsgFromL1 struct {
 	Payload []*felt.Felt `json:"payload"`
 }
 
-// MessageStatus represents the status of a message sent from an L1 transaction to an L2 contract.
+// MessageStatus represents the status of a message sent from an L1 transaction
+// to an L2 contract.
 type MessageStatus struct {
 	// The hash of the L1_HANDLER transaction in L2 that contains the message
 	Hash *felt.Felt `json:"transaction_hash"`
-	// The finality status of the L1_HANDLER transaction, including the case the txn is still in the mempool or
+	// The finality status of the L1_HANDLER transaction, including the case the txn
+	// is still in the mempool or
 	// failed validation during the block construction phase
 	FinalityStatus TxnFinalityStatus `json:"finality_status"`
 	// The execution status of the L1_HANDLER transaction
@@ -146,16 +148,17 @@ type TransactionReceipt struct {
 type TransactionType string
 
 const (
-	TransactionType_Declare       TransactionType = "DECLARE"
-	TransactionType_DeployAccount TransactionType = "DEPLOY_ACCOUNT"
-	TransactionType_Deploy        TransactionType = "DEPLOY"
-	TransactionType_Invoke        TransactionType = "INVOKE"
-	TransactionType_L1Handler     TransactionType = "L1_HANDLER"
+	TransactionTypeDeclare       TransactionType = "DECLARE"
+	TransactionTypeDeployAccount TransactionType = "DEPLOY_ACCOUNT"
+	TransactionTypeDeploy        TransactionType = "DEPLOY"
+	TransactionTypeInvoke        TransactionType = "INVOKE"
+	TransactionTypeL1Handler     TransactionType = "L1_HANDLER"
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TransactionType.
 //
-// The function modifies the value of the TransactionType pointer tt based on the unmarshaled data.
+// The function modifies the value of the TransactionType pointer tt based on the
+// unmarshaled data.
 // The supported JSON values and their corresponding TransactionType values are:
 //   - "DECLARE" maps to TransactionType_Declare
 //   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
@@ -180,15 +183,15 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 
 	switch unquoted {
 	case "DECLARE":
-		*tt = TransactionType_Declare
+		*tt = TransactionTypeDeclare
 	case "DEPLOY_ACCOUNT":
-		*tt = TransactionType_DeployAccount
+		*tt = TransactionTypeDeployAccount
 	case "DEPLOY":
-		*tt = TransactionType_Deploy
+		*tt = TransactionTypeDeploy
 	case "INVOKE":
-		*tt = TransactionType_Invoke
+		*tt = TransactionTypeInvoke
 	case "L1_HANDLER":
-		*tt = TransactionType_L1Handler
+		*tt = TransactionTypeL1Handler
 	default:
 		return fmt.Errorf("unsupported transaction type: %s", data)
 	}
@@ -206,7 +209,8 @@ func (tt TransactionType) MarshalJSON() ([]byte, error) {
 }
 
 type ExecutionResources struct {
-	// l1 gas consumed by this transaction, used for l2-->l1 messages and state updates if blobs are not used
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and state
+	// updates if blobs are not used
 	L1Gas uint `json:"l1_gas"`
 	// data gas consumed by this transaction, 0 if blobs are not used
 	L1DataGas uint `json:"l1_data_gas"`
@@ -217,11 +221,11 @@ type ExecutionResources struct {
 type TxnStatus string
 
 const (
-	TxnStatus_Received       TxnStatus = "RECEIVED"
-	TxnStatus_Candidate      TxnStatus = "CANDIDATE"
-	TxnStatus_Pre_confirmed  TxnStatus = "PRE_CONFIRMED"
-	TxnStatus_Accepted_On_L2 TxnStatus = "ACCEPTED_ON_L2"
-	TxnStatus_Accepted_On_L1 TxnStatus = "ACCEPTED_ON_L1"
+	TxnStatusReceived     TxnStatus = "RECEIVED"
+	TxnStatusCandidate    TxnStatus = "CANDIDATE"
+	TxnStatusPreConfirmed TxnStatus = "PRE_CONFIRMED"
+	TxnStatusAcceptedOnL2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatusAcceptedOnL1 TxnStatus = "ACCEPTED_ON_L1"
 )
 
 // Transaction status result, including finality status and execution status
@@ -244,15 +248,15 @@ type TransactionReceiptWithBlockInfo struct {
 	BlockNumber uint       `json:"block_number,omitempty"`
 }
 
-func (t *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
+func (tr *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
 	aux := &struct {
 		TransactionReceipt
 		BlockHash   string `json:"block_hash,omitempty"`
 		BlockNumber uint   `json:"block_number,omitempty"`
 	}{
-		TransactionReceipt: t.TransactionReceipt,
-		BlockHash:          t.BlockHash.String(),
-		BlockNumber:        t.BlockNumber,
+		TransactionReceipt: tr.TransactionReceipt,
+		BlockHash:          tr.BlockHash.String(),
+		BlockNumber:        tr.BlockNumber,
 	}
 
 	return json.Marshal(aux)
@@ -266,7 +270,8 @@ func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero to avoid nil pointer dereference
+	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero
+	// to avoid nil pointer dereference
 	if txnResp.BlockHash == nil {
 		txnResp.BlockHash = new(felt.Felt)
 	}

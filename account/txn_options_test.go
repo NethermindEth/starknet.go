@@ -78,7 +78,7 @@ func TestTxnOptions(t *testing.T) {
 			{
 				name:            "Default value (nil)",
 				opts:            nil,
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPre_confirmed),
+				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPreConfirmed),
 			},
 			{
 				name: "latest set to true",
@@ -92,7 +92,7 @@ func TestTxnOptions(t *testing.T) {
 				opts: &TxnOptions{
 					UseLatest: false,
 				},
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPre_confirmed),
+				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPreConfirmed),
 			},
 		}
 
@@ -127,16 +127,16 @@ func TestTxnOptions(t *testing.T) {
 			{
 				name: "SKIP_VALIDATE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SKIP_VALIDATE,
+					SimulationFlag: rpc.SkipValidate,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_VALIDATE},
+				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipValidate},
 			},
 			{
 				name: "SKIP_FEE_CHARGE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SKIP_FEE_CHARGE,
+					SimulationFlag: rpc.SkipFeeCharge,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SKIP_FEE_CHARGE},
+				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipFeeCharge},
 			},
 		}
 
