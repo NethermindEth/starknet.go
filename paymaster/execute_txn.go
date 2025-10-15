@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/typedData"
+	"github.com/NethermindEth/starknet.go/typedata"
 )
 
 // ExecuteTransaction sends the signed typed data to the paymaster service for execution
@@ -18,7 +18,10 @@ import (
 //   - *ExecuteTransactionResponse: The hash of the transaction broadcasted by the paymaster and
 //     the tracking ID corresponding to the user `execute` request
 //   - error: An error if any error occurs
-func (p *Paymaster) ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error) {
+func (p *Paymaster) ExecuteTransaction(
+	ctx context.Context,
+	request *ExecuteTransactionRequest,
+) (*ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_executeTransaction", request); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
@@ -63,7 +66,7 @@ type ExecutableUserInvoke struct {
 	// The address of the user account
 	UserAddress *felt.Felt `json:"user_address"`
 	// Typed data returned by the endpoint paymaster_buildTransaction
-	TypedData *typedData.TypedData `json:"typed_data"`
+	TypedData *typedata.TypedData `json:"typed_data"`
 	// Signature of the associated Typed Data
 	Signature []*felt.Felt `json:"signature"`
 }

@@ -13,7 +13,9 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-var STRKContractAddress, _ = internalUtils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
+var STRKContractAddress, _ = internalUtils.HexToFelt(
+	"0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+)
 
 // Test the UserTxnType type
 //
@@ -136,16 +138,22 @@ func TestBuildTransaction(t *testing.T) {
 	)
 
 	deploymentData := &AccDeploymentData{
-		Address:             internalUtils.TestHexToFelt(t, "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220"),
+		Address: internalUtils.TestHexToFelt(
+			t,
+			"0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220",
+		),
 		ClassHash:           classHash,
-		Salt:                internalUtils.RANDOM_FELT,
-		ConstructorCalldata: []*felt.Felt{internalUtils.RANDOM_FELT},
-		SignatureData:       []*felt.Felt{internalUtils.RANDOM_FELT},
+		Salt:                internalUtils.DeadBeef,
+		ConstructorCalldata: []*felt.Felt{internalUtils.DeadBeef},
+		SignatureData:       []*felt.Felt{internalUtils.DeadBeef},
 		Version:             2,
 	}
 
 	// *** setup for invoke type transactions
-	accountAddress := internalUtils.TestHexToFelt(t, "0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e")
+	accountAddress := internalUtils.TestHexToFelt(
+		t,
+		"0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",
+	)
 	transferAmount, _ := internalUtils.HexToU256Felt("0xfff")
 
 	invokeData := &UserInvoke{
@@ -158,7 +166,10 @@ func TestBuildTransaction(t *testing.T) {
 			},
 			{
 				// same ERC20 contract as in examples/simpleInvoke
-				To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+				To: internalUtils.TestHexToFelt(
+					t,
+					"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+				),
 				Selector: internalUtils.GetSelectorFromNameFelt("mint"),
 				Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 			},
@@ -215,7 +226,10 @@ func TestBuildTransaction(t *testing.T) {
 				}
 
 				_, err := pm.BuildTransaction(context.Background(), &request)
-				require.Error(t, err) // it seems that the default fee mode is not supported for the 'deploy' transaction type
+				require.Error(
+					t,
+					err,
+				) // it seems that the default fee mode is not supported for the 'deploy' transaction type
 			})
 		})
 
@@ -454,57 +468,60 @@ func TestBuildTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
-		t.Run("deploy-and-invoke transaction type - sponsored fee mode with slow tip priority", func(t *testing.T) {
-			t.Parallel()
-			// *** build request
-			request := BuildTransactionRequest{
-				Transaction: &UserTransaction{
-					Type:       UserTxnDeployAndInvoke,
-					Deployment: deploymentData,
-					Invoke:     invokeData,
-				},
-				Parameters: &UserParameters{
-					Version: UserParamV1,
-					FeeMode: FeeMode{
-						Mode: FeeModeSponsored,
-						Tip: &TipPriority{
-							Priority: TipPrioritySlow,
+		t.Run(
+			"deploy-and-invoke transaction type - sponsored fee mode with slow tip priority",
+			func(t *testing.T) {
+				t.Parallel()
+				// *** build request
+				request := BuildTransactionRequest{
+					Transaction: &UserTransaction{
+						Type:       UserTxnDeployAndInvoke,
+						Deployment: deploymentData,
+						Invoke:     invokeData,
+					},
+					Parameters: &UserParameters{
+						Version: UserParamV1,
+						FeeMode: FeeMode{
+							Mode: FeeModeSponsored,
+							Tip: &TipPriority{
+								Priority: TipPrioritySlow,
+							},
 						},
 					},
-				},
-			}
+				}
 
-			// *** assert the request marshalled is equal to the expected request
-			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-request.json", "params")
-			expectedReq := expectedReqs[0]
+				// *** assert the request marshalled is equal to the expected request
+				expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-request.json", "params")
+				expectedReq := expectedReqs[0]
 
-			rawReq, err := json.Marshal(request)
-			require.NoError(t, err)
+				rawReq, err := json.Marshal(request)
+				require.NoError(t, err)
 
-			assert.JSONEq(t, string(expectedReq), string(rawReq))
+				assert.JSONEq(t, string(expectedReq), string(rawReq))
 
-			// *** assert the response marshalled is equal to the expected response
-			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-response.json", "result")
+				// *** assert the response marshalled is equal to the expected response
+				expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-response.json", "result")
 
-			var response BuildTransactionResponse
-			err = json.Unmarshal(expectedResp, &response)
-			require.NoError(t, err)
+				var response BuildTransactionResponse
+				err = json.Unmarshal(expectedResp, &response)
+				require.NoError(t, err)
 
-			pm := SetupMockPaymaster(t)
-			pm.c.EXPECT().CallContextWithSliceArgs(
-				context.Background(),
-				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
-				"paymaster_buildTransaction",
-				&request,
-			).Return(nil).
-				SetArg(1, response)
+				pm := SetupMockPaymaster(t)
+				pm.c.EXPECT().CallContextWithSliceArgs(
+					context.Background(),
+					gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
+					"paymaster_buildTransaction",
+					&request,
+				).Return(nil).
+					SetArg(1, response)
 
-			resp, err := pm.BuildTransaction(context.Background(), &request)
-			require.NoError(t, err)
+				resp, err := pm.BuildTransaction(context.Background(), &request)
+				require.NoError(t, err)
 
-			rawResp, err := json.Marshal(resp)
-			require.NoError(t, err)
-			assert.JSONEq(t, string(expectedResp), string(rawResp))
-		})
+				rawResp, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(expectedResp), string(rawResp))
+			},
+		)
 	})
 }

@@ -34,7 +34,10 @@ func deployWithPaymaster() {
 	// Let's initialise the paymaster client, but now, we will also pass our API key to the client.
 	// In the AVNU paymaster, the API key is a http header called `x-paymaster-api-key`.
 	// In the current Starknet.go client, you can set a custom http header using the `client.WithHeader` option.
-	paymaster, err := pm.New(AVNU_PAYMASTER_URL, client.WithHeader("x-paymaster-api-key", AVNU_API_KEY))
+	paymaster, err := pm.New(
+		AVNU_PAYMASTER_URL,
+		client.WithHeader("x-paymaster-api-key", AVNU_API_KEY),
+	)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to the paymaster provider with the API key: %s", err))
 	}
@@ -46,9 +49,13 @@ func deployWithPaymaster() {
 	_, pubKey, privK := account.GetRandomKeys() // Get random keys for the account
 	fmt.Println("Public key:", pubKey)
 	fmt.Println("Private key:", privK)
-	classHash, _ := utils.HexToFelt(OZ_ACCOUNT_CLASS_HASH) // It needs to be an SNIP-9 compatible account
-	constructorCalldata := []*felt.Felt{pubKey}            // The OZ account constructor requires the public key
-	salt, _ := utils.HexToFelt("0xdeadbeef")               // Just a random salt
+	classHash, _ := utils.HexToFelt(
+		OZ_ACCOUNT_CLASS_HASH,
+	) // It needs to be an SNIP-9 compatible account
+	constructorCalldata := []*felt.Felt{
+		pubKey,
+	} // The OZ account constructor requires the public key
+	salt, _ := utils.HexToFelt("0xdeadbeef") // Just a random salt
 	// Precompute the address of the new account based on the salt, class hash and constructor calldata
 	precAddress := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
@@ -94,24 +101,27 @@ func deployWithPaymaster() {
 	fmt.Println("Step 2: Send the signed transaction")
 
 	// With our built deploy transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
-	response, err := paymaster.ExecuteTransaction(context.Background(), &pm.ExecuteTransactionRequest{
-		Transaction: &pm.ExecutableUserTransaction{
-			Type:       pm.UserTxnDeploy,
-			Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
-			// the `builtTxn.Deployment` value.
-		},
-		Parameters: &pm.UserParameters{
-			Version: pm.UserParamV1,
+	response, err := paymaster.ExecuteTransaction(
+		context.Background(),
+		&pm.ExecuteTransactionRequest{
+			Transaction: &pm.ExecutableUserTransaction{
+				Type:       pm.UserTxnDeploy,
+				Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
+				// the `builtTxn.Deployment` value.
+			},
+			Parameters: &pm.UserParameters{
+				Version: pm.UserParamV1,
 
-			// Using the same fee options as in the `paymaster_buildTransaction` method.
-			FeeMode: pm.FeeMode{
-				Mode: pm.FeeModeSponsored,
-				Tip: &pm.TipPriority{
-					Priority: pm.TipPriorityNormal,
+				// Using the same fee options as in the `paymaster_buildTransaction` method.
+				FeeMode: pm.FeeMode{
+					Mode: pm.FeeModeSponsored,
+					Tip: &pm.TipPriority{
+						Priority: pm.TipPriorityNormal,
+					},
 				},
 			},
 		},
-	})
+	)
 	if err != nil {
 		panic(fmt.Sprintf("Error executing the deploy transaction with the paymaster: %s", err))
 	}

@@ -23,8 +23,14 @@ type paymasterInterface interface {
 	IsAvailable(ctx context.Context) (bool, error)
 	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
 	TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (TrackingIdResponse, error)
-	BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error)
-	ExecuteTransaction(ctx context.Context, request *ExecuteTransactionRequest) (*ExecuteTransactionResponse, error)
+	BuildTransaction(
+		ctx context.Context,
+		request *BuildTransactionRequest,
+	) (*BuildTransactionResponse, error)
+	ExecuteTransaction(
+		ctx context.Context,
+		request *ExecuteTransactionRequest,
+	) (*ExecuteTransactionResponse, error)
 }
 
 var _ paymasterInterface = &Paymaster{} //nolint:exhaustruct
@@ -33,7 +39,12 @@ var _ paymasterInterface = &Paymaster{} //nolint:exhaustruct
 // It was created to match the Client struct from the 'client' package.
 type callCloser interface {
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
-	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	CallContextWithSliceArgs(
+		ctx context.Context,
+		result interface{},
+		method string,
+		args ...interface{},
+	) error
 	Close()
 }
 

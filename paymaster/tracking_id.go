@@ -23,7 +23,10 @@ import (
 //   - *TrackingIdResponse: The hash of the latest transaction broadcasted by the paymaster
 //     corresponding to the requested ID and the status of the ID.
 //   - error: An error if any
-func (p *Paymaster) TrackingIdToLatestHash(ctx context.Context, trackingId *felt.Felt) (TrackingIdResponse, error) {
+func (p *Paymaster) TrackingIdToLatestHash(
+	ctx context.Context,
+	trackingId *felt.Felt,
+) (TrackingIdResponse, error) {
 	var response TrackingIdResponse
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_trackingIdToLatestHash", trackingId); err != nil {
 		return TrackingIdResponse{}, rpcerr.UnwrapToRPCErr(err, ErrInvalidID)

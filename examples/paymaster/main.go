@@ -17,7 +17,9 @@ var (
 	AVNU_PAYMASTER_URL = "https://sepolia.paymaster.avnu.fi"
 
 	// A simple ERC20 contract with a public mint function
-	RAND_ERC20_CONTRACT_ADDRESS, _ = utils.HexToFelt("0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
+	RAND_ERC20_CONTRACT_ADDRESS, _ = utils.HexToFelt(
+		"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+	)
 )
 
 // This example shows how to build and execute an invoke transaction with a paymaster.
@@ -37,7 +39,7 @@ func main() {
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderUrl := setup.GetRPCProviderURL()
 
 	// Connect to a RPC provider to instantiate the account
 	client, err := rpc.NewProvider(rpcProviderUrl)
@@ -102,7 +104,9 @@ func main() {
 		},
 	}
 
-	STRKContractAddress, _ := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
+	STRKContractAddress, _ := utils.HexToFelt(
+		"0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+	)
 
 	// Now that we have the invoke data, we will build the transaction by calling the `paymaster_buildTransaction` method.
 	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
@@ -182,26 +186,29 @@ func main() {
 
 	// Now that we have the signature, we can send our signed transaction to the paymaster by calling the `paymaster_executeTransaction` method.
 	// NOTE: this is the final step, the transaction will be executed and the fees will be paid by us in the specified gas token.
-	response, err := paymaster.ExecuteTransaction(context.Background(), &pm.ExecuteTransactionRequest{
-		Transaction: &pm.ExecutableUserTransaction{
-			Type: pm.UserTxnInvoke,
-			Invoke: &pm.ExecutableUserInvoke{
-				UserAddress: acc.Address,        // Our account address
-				TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method
-				Signature:   signature,          // The signature of the message hash made in the previous step
+	response, err := paymaster.ExecuteTransaction(
+		context.Background(),
+		&pm.ExecuteTransactionRequest{
+			Transaction: &pm.ExecutableUserTransaction{
+				Type: pm.UserTxnInvoke,
+				Invoke: &pm.ExecutableUserInvoke{
+					UserAddress: acc.Address,        // Our account address
+					TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method
+					Signature:   signature,          // The signature of the message hash made in the previous step
+				},
 			},
-		},
-		Parameters: &pm.UserParameters{
-			Version: pm.UserParamV1,
+			Parameters: &pm.UserParameters{
+				Version: pm.UserParamV1,
 
-			// Using the same fee options as in the `paymaster_buildTransaction` method. A different fee mode here
-			// will result in a different fee cost than the one we got in the build step.
-			FeeMode: pm.FeeMode{
-				Mode:     pm.FeeModeDefault,
-				GasToken: STRKContractAddress,
+				// Using the same fee options as in the `paymaster_buildTransaction` method. A different fee mode here
+				// will result in a different fee cost than the one we got in the build step.
+				FeeMode: pm.FeeMode{
+					Mode:     pm.FeeModeDefault,
+					GasToken: STRKContractAddress,
+				},
 			},
 		},
-	})
+	)
 	if err != nil {
 		panic(fmt.Sprintf("Error executing the txn with the paymaster: %s", err))
 	}
@@ -255,7 +262,13 @@ func NewAccount(
 		panic(err)
 	}
 	// Initialise the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
 	if err != nil {
 		panic(err)
 	}

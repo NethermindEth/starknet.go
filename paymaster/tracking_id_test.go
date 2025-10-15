@@ -70,7 +70,7 @@ func TestTrackingIdToLatestHash(t *testing.T) {
 	err := json.Unmarshal([]byte(expectedRawResp), &expectedResp)
 	require.NoError(t, err)
 
-	trackingId := internalUtils.RANDOM_FELT
+	trackingId := internalUtils.DeadBeef
 
 	pm := SetupMockPaymaster(t)
 	pm.c.EXPECT().

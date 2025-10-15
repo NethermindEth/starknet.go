@@ -179,7 +179,10 @@ func TestExecuteTransaction(t *testing.T) {
 		t.Parallel()
 		tests.RunTestOn(t, tests.MockEnv)
 
-		pubKey := internalUtils.TestHexToFelt(t, "0x1cf6046c81f47d488c528e52066482f6756029bed10cf5df35608bb8eebac9")
+		pubKey := internalUtils.TestHexToFelt(
+			t,
+			"0x1cf6046c81f47d488c528e52066482f6756029bed10cf5df35608bb8eebac9",
+		)
 
 		t.Run("execute deploy transaction", func(t *testing.T) {
 			t.Parallel()
@@ -329,7 +332,10 @@ func TestExecuteTransaction(t *testing.T) {
 }
 
 // same as account.PrecomputeAccountAddress, but to avoid circular dependency
-func precomputeAccountAddress(salt, classHash *felt.Felt, constructorCalldata []*felt.Felt) *felt.Felt {
+func precomputeAccountAddress(
+	salt, classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+) *felt.Felt {
 	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
 }
 
@@ -340,15 +346,18 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
 	t.Log("creating deployment data")
 
 	// Argent account class hash that supports outside executions
-	classHash := internalUtils.TestHexToFelt(t, "0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
+	classHash := internalUtils.TestHexToFelt(
+		t,
+		"0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+	)
 	constructorCalldata := []*felt.Felt{&felt.Zero, pubKey, new(felt.Felt).SetUint64(1)}
-	precAddress := precomputeAccountAddress(internalUtils.RANDOM_FELT, classHash, constructorCalldata)
+	precAddress := precomputeAccountAddress(internalUtils.DeadBeef, classHash, constructorCalldata)
 	t.Log("precomputed address:", precAddress)
 
 	deploymentData := &AccDeploymentData{
 		Address:             precAddress,
 		ClassHash:           classHash,
-		Salt:                internalUtils.RANDOM_FELT,
+		Salt:                internalUtils.DeadBeef,
 		ConstructorCalldata: constructorCalldata,
 		SignatureData:       []*felt.Felt{},
 		Version:             2,
@@ -361,7 +370,11 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
 // buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
 //
 //nolint:dupl // It is similar to buildInvokeTxn, but it has small differences
-func buildDeployTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+func buildDeployTxn(
+	t *testing.T,
+	pm *Paymaster,
+	pubKey *felt.Felt,
+) (resp *BuildTransactionResponse) {
 	t.Helper()
 
 	t.Log("building deploy transaction")
@@ -400,7 +413,10 @@ func createInvokeData(t *testing.T, accAdd *felt.Felt) *UserInvoke {
 		Calls: []Call{
 			{
 				// same ERC20 contract as in examples/simpleInvoke
-				To:       internalUtils.TestHexToFelt(t, "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54"),
+				To: internalUtils.TestHexToFelt(
+					t,
+					"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+				),
 				Selector: internalUtils.GetSelectorFromNameFelt("mint"),
 				Calldata: []*felt.Felt{new(felt.Felt).SetUint64(10000), &felt.Zero},
 			},
@@ -414,7 +430,11 @@ func createInvokeData(t *testing.T, accAdd *felt.Felt) *UserInvoke {
 // buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
 //
 //nolint:dupl // It is similar to buildDeployTxn, but it has small differences
-func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *BuildTransactionResponse) {
+func buildInvokeTxn(
+	t *testing.T,
+	pm *Paymaster,
+	accAdd *felt.Felt,
+) (resp *BuildTransactionResponse) {
 	t.Helper()
 
 	t.Log("building deploy transaction")
@@ -443,7 +463,11 @@ func buildInvokeTxn(t *testing.T, pm *Paymaster, accAdd *felt.Felt) (resp *Build
 }
 
 // buildDeployAndInvokeTxn builds a deploy and invoke transaction calling the paymaster_buildTransaction method
-func buildDeployAndInvokeTxn(t *testing.T, pm *Paymaster, pubKey *felt.Felt) (resp *BuildTransactionResponse) {
+func buildDeployAndInvokeTxn(
+	t *testing.T,
+	pm *Paymaster,
+	pubKey *felt.Felt,
+) (resp *BuildTransactionResponse) {
 	t.Helper()
 
 	t.Log("building deploy_and_invoke transaction")

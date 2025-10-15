@@ -73,7 +73,7 @@ func GetStrkAccountData(t *testing.T) (privKey, pubKey, accountAddress *felt.Fel
 	pubKey = internalUtils.TestHexToFelt(t, strkPubKey)
 	accountAddress = internalUtils.TestHexToFelt(t, strkAccountAddress)
 
-	return
+	return privKey, pubKey, accountAddress
 }
 
 // CompareEnumsHelper compares an enum type with the expected value and error expected.

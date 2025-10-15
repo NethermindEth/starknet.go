@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/typedData"
+	"github.com/NethermindEth/starknet.go/typedata"
 )
 
 // BuildTransaction receives the transaction the user wants to execute. Returns the typed
@@ -20,7 +20,10 @@ import (
 // Returns:
 //   - *BuildTransactionResponse: The response containing typed data and fee estimate
 //   - error: An error if the request fails
-func (p *Paymaster) BuildTransaction(ctx context.Context, request *BuildTransactionRequest) (*BuildTransactionResponse, error) {
+func (p *Paymaster) BuildTransaction(
+	ctx context.Context,
+	request *BuildTransactionRequest,
+) (*BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(ctx, &response, "paymaster_buildTransaction", request); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
@@ -330,7 +333,7 @@ type BuildTransactionResponse struct {
 	Parameters *UserParameters `json:"parameters"`
 	// The typed data for for `invoke` and `deploy_and_invoke` transaction types.
 	// It's `nil` for `deploy` transaction types.
-	TypedData *typedData.TypedData `json:"typed_data,omitempty"`
+	TypedData *typedata.TypedData `json:"typed_data,omitempty"`
 	// The fee estimation for the transaction
 	Fee *FeeEstimate `json:"fee"`
 }
