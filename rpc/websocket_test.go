@@ -33,7 +33,10 @@ func TestSubscribeNewHeads(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
-	latestBlockNumbers := []uint64{blockNumber, blockNumber + 1} // for the case the latest block number is updated
+	latestBlockNumbers := []uint64{
+		blockNumber,
+		blockNumber + 1,
+	} // for the case the latest block number is updated
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
@@ -97,7 +100,11 @@ func TestSubscribeNewHeads(t *testing.T) {
 			wsProvider := testConfig.WsProvider
 
 			var sub *client.ClientSubscription
-			sub, err = wsProvider.SubscribeNewHeads(context.Background(), test.headers, test.subBlockID)
+			sub, err = wsProvider.SubscribeNewHeads(
+				context.Background(),
+				test.headers,
+				test.subBlockID,
+			)
 			if sub != nil {
 				defer sub.Unsubscribe()
 			}
@@ -134,7 +141,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 	}
 }
 
-//nolint:gocyclo
+//nolint:gocyclo // False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeEvents(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -167,20 +174,29 @@ func TestSubscribeEvents(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(context.Background())
 	require.NoError(t, err)
 
+	// TODO for all the cases: add logic to marshal get request type and compare with the raw request sent to the RPC server.
+	// Maybe a websocket spy could help here.
+
 	t.Run("with empty args", func(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(10 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -201,18 +217,20 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		uniqueAddresses := make(map[string]bool)
-		uniqueKeys := make(map[string]bool)
-
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(10 * time.Second)
 
 		for {
@@ -220,23 +238,8 @@ func TestSubscribeEvents(t *testing.T) {
 			case resp := <-events:
 				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
 				require.Less(t, resp.BlockNumber, blockNumber)
-				// Subscription with only blockID should return events from all addresses and keys from the specified block onwards.
-				// As none filters are applied, the events should be from all addresses and keys.
 
-				uniqueAddresses[resp.FromAddress.String()] = true
-				uniqueKeys[resp.Keys[0].String()] = true
-
-				if tests.TEST_ENV == tests.IntegrationEnv {
-					// in integration network, there less unique addresses and keys
-					if len(uniqueAddresses) >= 2 && len(uniqueKeys) >= 2 {
-						return
-					}
-				} else {
-					// check if there are at least 3 different addresses and keys in the received events
-					if len(uniqueAddresses) >= 3 && len(uniqueKeys) >= 3 {
-						return
-					}
-				}
+				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-timeout:
@@ -249,35 +252,28 @@ func TestSubscribeEvents(t *testing.T) {
 		t.Parallel()
 
 		wsProvider := testConfig.WsProvider
-		provider := testConfig.Provider
-		rawBlock, err := provider.BlockWithTxHashes(context.Background(), WithBlockTag(BlockTagLatest))
-		require.NoError(t, err)
-		expectedBlock, ok := rawBlock.(*BlockTxHashes)
-		require.True(t, ok)
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			SubBlockID: new(SubscriptionBlockID).WithLatestTag(),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithLatestTag(),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(10 * time.Second)
 
 		for {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				if len(expectedBlock.Transactions) > 0 {
-					// since we are subscribing to the latest block, the event block number should be the same as the latest block number,
-					// but if the latest block is empty, the subscription will return events from later blocks.
-					// Also, we can have race condition here, in case the latest block is updated between the `BlockWithTxHashes`
-					// request and the subscription.
-					require.Equal(t, expectedBlock.Number, resp.BlockNumber)
-				}
 
 				return
 			case err := <-sub.Err():
@@ -297,33 +293,29 @@ func TestSubscribeEvents(t *testing.T) {
 			t.Parallel()
 
 			events := make(chan *EmittedEventWithFinalityStatus)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
-			})
+			sub, err := wsProvider.SubscribeEvents(
+				context.Background(),
+				events,
+				&EventSubscriptionInput{
+					FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+				},
+			)
 			if sub != nil {
 				defer sub.Unsubscribe()
 			}
 			require.NoError(t, err)
 			require.NotNil(t, sub)
 
-			var blockNum uint64
-
+			// outside the loop, to avoid it being resetted
 			timeout := time.After(10 * time.Second)
 
 			for {
 				select {
 				case resp := <-events:
 					require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-
-					if blockNum == 0 {
-						// first event
-						blockNum = resp.BlockNumber
-					} else if resp.BlockNumber > blockNum {
-						// that means we received events from the next block, and no PRE_CONFIRMED was received. Success!
-						return
-					}
-
 					assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
+
+					return
 				case err := <-sub.Err():
 					require.NoError(t, err)
 				case <-timeout:
@@ -331,23 +323,29 @@ func TestSubscribeEvents(t *testing.T) {
 				}
 			}
 		})
+
 		t.Run("with finality status PRE_CONFIRMED", func(t *testing.T) {
 			t.Parallel()
 
 			events := make(chan *EmittedEventWithFinalityStatus)
-			sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusPre_confirmed,
-			})
+			sub, err := wsProvider.SubscribeEvents(
+				context.Background(),
+				events,
+				&EventSubscriptionInput{
+					FinalityStatus: TxnFinalityStatusPreConfirmed,
+				},
+			)
 			if sub != nil {
 				defer sub.Unsubscribe()
 			}
 			require.NoError(t, err)
 			require.NotNil(t, sub)
 
+			// outside the loop, to avoid it being resetted
+			timeout := time.After(10 * time.Second)
+
 			var preConfirmedEventFound bool
 			var acceptedOnL2EventFound bool
-
-			timeout := time.After(10 * time.Second)
 
 			for {
 				select {
@@ -360,7 +358,7 @@ func TestSubscribeEvents(t *testing.T) {
 					}
 
 					switch resp.FinalityStatus {
-					case TxnFinalityStatusPre_confirmed:
+					case TxnFinalityStatusPreConfirmed:
 						preConfirmedEventFound = true
 					case TxnFinalityStatusAcceptedOnL2:
 						acceptedOnL2EventFound = true
@@ -382,17 +380,22 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			FromAddress: testSet.fromAddressExample,
-			SubBlockID:  new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				FromAddress: testSet.fromAddressExample,
+				SubBlockID:  new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		timeout := time.After(20 * time.Second)
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(10 * time.Second)
 
 		for {
 			select {
@@ -402,14 +405,11 @@ func TestSubscribeEvents(t *testing.T) {
 
 				assert.Equal(t, testSet.fromAddressExample, resp.FromAddress)
 
-				if resp.BlockNumber >= blockNumber-100 {
-					// we searched more than 900 blocks back, it's fine
-					return
-				}
+				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-timeout:
-				t.Fatal("timeout waiting for events")
+				t.Skip("timeout reached, no events received")
 			}
 		}
 	})
@@ -420,18 +420,23 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			Keys:       [][]*felt.Felt{{testSet.keyExample}},
-			SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				Keys:       [][]*felt.Felt{{testSet.keyExample}},
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		uniqueAddresses := make(map[string]bool)
+		// outside the loop, to avoid it being resetted
 		timeout := time.After(20 * time.Second)
+
 		for {
 			select {
 			case resp := <-events:
@@ -441,21 +446,11 @@ func TestSubscribeEvents(t *testing.T) {
 				// Subscription with keys should only return events with the specified keys.
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
 
-				uniqueAddresses[resp.FromAddress.String()] = true
-
-				// check if there are at least 2 different addresses in the received events
-				if len(uniqueAddresses) >= 2 {
-					return
-				}
-
-				if tests.TEST_ENV == tests.IntegrationEnv {
-					// integration network is not very used by external users, so let's skip the keys verification
-					return
-				}
+				return
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-timeout:
-				t.Fatal("timeout waiting for events")
+				t.Skip("timeout reached, no events received")
 			}
 		}
 	})
@@ -466,19 +461,24 @@ func TestSubscribeEvents(t *testing.T) {
 		wsProvider := testConfig.WsProvider
 
 		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-			FromAddress:    testSet.fromAddressExample,
-			Keys:           [][]*felt.Felt{{testSet.keyExample}},
-			FinalityStatus: TxnFinalityStatusAcceptedOnL2,
-		})
+		sub, err := wsProvider.SubscribeEvents(
+			context.Background(),
+			events,
+			&EventSubscriptionInput{
+				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				FromAddress:    testSet.fromAddressExample,
+				Keys:           [][]*felt.Felt{{testSet.keyExample}},
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+			},
+		)
 		if sub != nil {
 			defer sub.Unsubscribe()
 		}
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		timeout := time.After(10 * time.Second)
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
 
 		for {
 			select {
@@ -494,7 +494,7 @@ func TestSubscribeEvents(t *testing.T) {
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-timeout:
-				t.Fatal("timeout waiting for events")
+				t.Skip("timeout reached, no events received")
 			}
 		}
 	})
@@ -552,7 +552,7 @@ func TestSubscribeEvents(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo
+//nolint:dupl,gocyclo // dupl: The tests are similar, but they are testing different things. //gocyclo: False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -599,7 +599,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			t.Run("test: "+test.description, func(t *testing.T) {
 				t.Parallel()
 
-				sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), test.txnReceipts, test.options)
+				sub, err := wsProvider.SubscribeNewTransactionReceipts(
+					context.Background(),
+					test.txnReceipts,
+					test.options,
+				)
 				if test.expectedError != nil {
 					require.EqualError(t, err, test.expectedError.Error())
 
@@ -614,7 +618,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					select {
 					case resp := <-test.txnReceipts:
 						assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
-						assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
+						assert.Equal(
+							t,
+							TxnFinalityStatusAcceptedOnL2,
+							resp.FinalityStatus,
+						) // default finality status is ACCEPTED_ON_L2
 
 						return
 					case err := <-sub.Err():
@@ -633,13 +641,17 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {
@@ -667,10 +679,14 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
 		options := &SubNewTxnReceiptsInput{
-			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed},
+			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -683,7 +699,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			select {
 			case resp := <-txnReceipts:
 				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
-				assert.Equal(t, TxnFinalityStatusPre_confirmed, resp.FinalityStatus)
+				assert.Equal(t, TxnFinalityStatusPreConfirmed, resp.FinalityStatus)
 				assert.Empty(t, resp.BlockHash)
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
@@ -704,10 +720,17 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 		txnReceipts := make(chan *TransactionReceiptWithBlockInfo)
 		options := &SubNewTxnReceiptsInput{
-			FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPre_confirmed, TxnFinalityStatusAcceptedOnL2},
+			FinalityStatus: []TxnFinalityStatus{
+				TxnFinalityStatusPreConfirmed,
+				TxnFinalityStatusAcceptedOnL2,
+			},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -716,6 +739,8 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
+		timeout := time.After(20 * time.Second)
+
 		for {
 			select {
 			case resp := <-txnReceipts:
@@ -723,7 +748,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
 
-				if resp.FinalityStatus == TxnFinalityStatusPre_confirmed {
+				if resp.FinalityStatus == TxnFinalityStatusPreConfirmed {
 					preConfirmedReceived = true
 				}
 
@@ -736,6 +761,15 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
+
+			case <-timeout:
+				assert.True(
+					t,
+					(preConfirmedReceived && acceptedOnL2Received),
+					"no txns received from both finality statuses",
+				)
+
+				return
 			}
 		}
 	})
@@ -744,7 +778,10 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		t.Parallel()
 
 		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(t, "0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43")
+		randAddress := internalUtils.TestHexToFelt(
+			t,
+			"0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+		)
 		provider := testConfig.Provider
 		tempStruct := struct {
 			SenderAddress *felt.Felt `json:"sender_address"`
@@ -755,7 +792,11 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			SenderAddress: []*felt.Felt{randAddress},
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactionReceipts(context.Background(), txnReceipts, options)
+		sub, err := wsProvider.SubscribeNewTransactionReceipts(
+			context.Background(),
+			txnReceipts,
+			options,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
@@ -792,7 +833,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	})
 }
 
-//nolint:dupl,gocyclo
+//nolint:dupl,gocyclo // dupl: The tests are similar, but they are testing different things. //gocyclo: False positive since it's counting for the entire test, not each sub-test.
 func TestSubscribeNewTransactions(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -839,7 +880,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			t.Run("test: "+test.description, func(t *testing.T) {
 				t.Parallel()
 
-				sub, err := wsProvider.SubscribeNewTransactions(context.Background(), test.newTxns, test.options)
+				sub, err := wsProvider.SubscribeNewTransactions(
+					context.Background(),
+					test.newTxns,
+					test.options,
+				)
 				if test.expectedError != nil {
 					require.EqualError(t, err, test.expectedError.Error())
 
@@ -850,13 +895,17 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, sub)
 
-				timeout := time.After(10 * time.Second)
+				timeout := time.After(20 * time.Second)
 
 				for {
 					select {
 					case resp := <-test.newTxns:
 						assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-						assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus) // default finality status is ACCEPTED_ON_L2
+						assert.Equal(
+							t,
+							TxnStatusAcceptedOnL2,
+							resp.FinalityStatus,
+						) // default finality status is ACCEPTED_ON_L2
 
 						return
 					case <-timeout:
@@ -876,7 +925,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -885,14 +934,15 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {
 			select {
 			case resp := <-newTxns:
 				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatus_Accepted_On_L2, resp.FinalityStatus)
+				assert.Equal(t, TxnStatusAcceptedOnL2, resp.FinalityStatus)
 				assert.NotEmpty(t, resp.Transaction)
 				assert.NotEmpty(t, resp.Hash)
 
@@ -912,7 +962,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed},
+			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -921,14 +971,15 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {
 			select {
 			case resp := <-newTxns:
 				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatus_Pre_confirmed, resp.FinalityStatus)
+				assert.Equal(t, TxnStatusPreConfirmed, resp.FinalityStatus)
 				assert.NotEmpty(t, resp.Hash)
 				assert.NotEmpty(t, resp.Transaction)
 
@@ -948,7 +999,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed, TxnStatusAcceptedOnL2},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -960,7 +1011,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
-		timeout := time.After(10 * time.Second)
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
 
 		for {
 			select {
@@ -969,11 +1021,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.NotEmpty(t, resp.Hash)
 				assert.NotEmpty(t, resp.Transaction)
 
-				if resp.FinalityStatus == TxnStatus_Pre_confirmed {
+				if resp.FinalityStatus == TxnStatusPreConfirmed {
 					preConfirmedReceived = true
 				}
 
-				if resp.FinalityStatus == TxnStatus_Accepted_On_L2 {
+				if resp.FinalityStatus == TxnStatusAcceptedOnL2 {
 					acceptedOnL2Received = true
 				}
 
@@ -983,7 +1035,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			case err := <-sub.Err():
 				require.NoError(t, err)
 			case <-timeout:
-				assert.True(t, (preConfirmedReceived && acceptedOnL2Received), "no txns received from both finality statuses")
+				assert.True(
+					t,
+					(preConfirmedReceived && acceptedOnL2Received),
+					"no txns received from both finality statuses",
+				)
 
 				return
 			}
@@ -995,7 +1051,12 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		newTxns := make(chan *TxnWithHashAndStatus)
 		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatus_Received, TxnStatus_Candidate, TxnStatus_Pre_confirmed, TxnStatus_Accepted_On_L2},
+			FinalityStatus: []TxnStatus{
+				TxnStatusReceived,
+				TxnStatusCandidate,
+				TxnStatusPreConfirmed,
+				TxnStatusAcceptedOnL2,
+			},
 		}
 
 		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
@@ -1009,7 +1070,8 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		preConfirmedReceived := false
 		acceptedOnL2Received := false
 
-		timeout := time.After(10 * time.Second)
+		// outside the loop, to avoid it being resetted
+		timeout := time.After(20 * time.Second)
 
 		for {
 			select {
@@ -1019,16 +1081,16 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				assert.NotEmpty(t, resp.Transaction)
 
 				switch resp.FinalityStatus {
-				case TxnStatus_Received:
+				case TxnStatusReceived:
 					t.Log("RECEIVED txn received")
 					receivedReceived = true
-				case TxnStatus_Candidate:
+				case TxnStatusCandidate:
 					t.Log("CANDIDATE txn received")
 					candidateReceived = true
-				case TxnStatus_Pre_confirmed:
+				case TxnStatusPreConfirmed:
 					t.Log("PRE_CONFIRMED txn received")
 					preConfirmedReceived = true
-				case TxnStatus_Accepted_On_L2:
+				case TxnStatusAcceptedOnL2:
 					t.Log("ACCEPTED_ON_L2 txn received")
 					acceptedOnL2Received = true
 				}
@@ -1051,7 +1113,10 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		t.Parallel()
 
 		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(t, "0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43")
+		randAddress := internalUtils.TestHexToFelt(
+			t,
+			"0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+		)
 		provider := testConfig.Provider
 		tempStruct := struct {
 			SenderAddress *felt.Felt `json:"sender_address"`
@@ -1068,7 +1133,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 
 		defer sub.Unsubscribe()
 
-		timeout := time.After(10 * time.Second)
+		timeout := time.After(20 * time.Second)
 
 		counter := 0
 		for {

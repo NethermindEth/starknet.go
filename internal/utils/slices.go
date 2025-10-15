@@ -26,7 +26,8 @@ func Map[T1, T2 any](slice []T1, f func(T1) T2) []T2 {
 	return result
 }
 
-// Filter filters a slice of type T using the given predicate, returning a new slice with the elements that match the predicate
+// Filter filters a slice of type T using the given predicate, returning a new slice with
+// the elements that match the predicate
 func Filter[T any](slice []T, f func(T) bool) []T {
 	if slice == nil {
 		return nil

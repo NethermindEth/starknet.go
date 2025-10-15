@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	PREFIX_TRANSACTION    = new(felt.Felt).SetBytes([]byte("invoke"))
-	PREFIX_DECLARE        = new(felt.Felt).SetBytes([]byte("declare"))
-	PREFIX_DEPLOY_ACCOUNT = new(felt.Felt).SetBytes([]byte("deploy_account"))
+	prefixInvoke        = new(felt.Felt).SetBytes([]byte("invoke"))
+	prefixDeclare       = new(felt.Felt).SetBytes([]byte("declare"))
+	prefixDeployAccount = new(felt.Felt).SetBytes([]byte("deploy_account"))
 )
 
 var (
@@ -23,8 +23,8 @@ var (
 	ErrFeltToBigInt        = errors.New("felt to BigInt error")
 )
 
-// CalculateDeprecatedTransactionHashCommon calculates the transaction hash common to be used
-// in the StarkNet network - a unique identifier of the transaction.
+// CalculateDeprecatedTransactionHashCommon calculates the transaction hash
+// common to be used in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
 //
 // Parameters:
@@ -34,13 +34,13 @@ var (
 //   - entryPointSelector: The selector of the entry point
 //   - calldata: The data of the transaction
 //   - maxFee: The maximum fee for the transaction
-//   - chainId: The ID of the blockchain
+//   - chainID: The ID of the blockchain
 //   - additionalData: Additional data to be included in the hash
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //
-//nolint:lll
+//nolint:lll // The link would be unclickable if we break the line.
 func CalculateDeprecatedTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version *felt.Felt,
@@ -48,7 +48,7 @@ func CalculateDeprecatedTransactionHashCommon(
 	entryPointSelector *felt.Felt,
 	calldata *felt.Felt,
 	maxFee *felt.Felt,
-	chainId *felt.Felt,
+	chainID *felt.Felt,
 	additionalData []*felt.Felt,
 ) *felt.Felt {
 	dataToHash := []*felt.Felt{
@@ -58,7 +58,7 @@ func CalculateDeprecatedTransactionHashCommon(
 		entryPointSelector,
 		calldata,
 		maxFee,
-		chainId,
+		chainID,
 	}
 	dataToHash = append(dataToHash, additionalData...)
 
@@ -67,13 +67,17 @@ func CalculateDeprecatedTransactionHashCommon(
 
 // ClassHash calculates the hash of a contract class.
 //
-// It takes a contract class as input and calculates the hash by combining various elements of the class.
-// The hash is calculated using the PoseidonArray function from the Curve package.
-// The elements used in the hash calculation include the contract class version, constructor entry point,
+// It takes a contract class as input and calculates the hash by combining
+// various elements of the class. The hash is calculated using the
+// PoseidonArray function from the Curve package. The elements used in the
+// hash calculation include the contract class version, constructor entry point,
 // external entry point, L1 handler entry point, ABI, and Sierra program.
-// The ABI is converted to bytes and then hashed using the StarknetKeccak function from the Curve package.
-// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, and
-// SierraProgamHash are combined using the PoseidonArray function from the Curve package.
+// The ABI is converted to bytes and then hashed using the StarknetKeccak
+// function from the Curve package.
+// Finally, the ContractClassVersionHash, ExternalHash, L1HandleHash,
+// ConstructorHash, ABIHash, and
+// SierraProgamHash are combined using the PoseidonArray function from the
+// Curve package.
 //
 // Parameters:
 //   - contract: A contract class object of type contracts.ContractClass.
@@ -93,7 +97,15 @@ func ClassHash(contract *contracts.ContractClass) *felt.Felt {
 	ABIHash := curve.StarknetKeccak([]byte(contract.ABI))
 
 	// https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/#computing_the_cairo_1_class_hash
-	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ABIHash, SierraProgamHash)
+	//nolint:lll // The link would be unclickable if we break the line.
+	return curve.PoseidonArray(
+		ContractClassVersionHash,
+		ExternalHash,
+		L1HandleHash,
+		ConstructorHash,
+		ABIHash,
+		SierraProgamHash,
+	)
 }
 
 // hashEntryPointByType calculates the hash of an entry point by type.
@@ -102,11 +114,16 @@ func ClassHash(contract *contracts.ContractClass) *felt.Felt {
 //   - entryPoint: A slice of contracts.SierraEntryPoint objects
 //
 // Returns:
-//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated
+//     hash.
 func hashEntryPointByType(entryPoint []contracts.SierraEntryPoint) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
-		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)))
+		flattened = append(
+			flattened,
+			elt.Selector,
+			new(felt.Felt).SetUint64(uint64(elt.FunctionIdx)),
+		)
 	}
 
 	return curve.PoseidonArray(flattened...)
@@ -119,28 +136,32 @@ type bytecodeSegment struct {
 	Size uint64
 }
 
-// getByteCodeSegmentHasher calculates hasher function for byte code array from casm file
-// this code is adaptation of:
+// getByteCodeSegmentHasher calculates hasher function for byte code array from
+// casm file. This code is adaptation of:
 // https://github.com/starkware-libs/cairo-lang/blob/efa9648f57568aad8f8a13fbf027d2de7c63c2c0/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
 //
 // Parameters:
 //   - bytecode: Array of compiled bytecode values from casm file
-//   - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths values from casm file
-//   - visitedPcs: array pointer for tracking which bytecode bits were already processed, needed for recursive processing
-//   - bytecodeOffset: pointer at current offset in bytecode array, needed for recursive processing organisation
+//   - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths
+//     values from casm file
+//   - visitedPcs: array pointer for tracking which bytecode bits were already
+//     processed, needed for recursive processing
+//   - bytecodeOffset: pointer at current offset in bytecode array, needed for
+//     recursive processing organisation
 //
 // Returns:
-//   - hasherFunc: closure that calculates hash for given bytecode array, or nil in case of error
+//   - hasherFunc: closure that calculates hash for given bytecode array, or nil
+//     in case of error
 //   - uint64: size of the current processed bytecode array, or nil in case of error
 //   - error: error if any happened or nil if everything fine
 //
-//nolint:lll
+//nolint:lll // The link would be unclickable if we break the line.
 func getByteCodeSegmentHasher(
 	bytecode []*felt.Felt,
 	bytecodeSegmentLengths contracts.NestedUints,
 	visitedPcs *[]uint64,
 	bytecodeOffset uint64,
-) (hasherFunc, uint64, error) {
+) (hasherF hasherFunc, size uint64, err error) {
 	if !bytecodeSegmentLengths.IsArray {
 		segmentValue := *bytecodeSegmentLengths.Value
 		segmentEnd := bytecodeOffset + segmentValue
@@ -194,9 +215,9 @@ func getByteCodeSegmentHasher(
 			visitedPcAfter = &visitedPcsData[len(visitedPcsData)-1]
 		}
 
-		is_used := visitedPcAfter != visitedPcBefore
+		isUsed := visitedPcAfter != visitedPcBefore
 
-		if is_used && *visitedPcBefore != bytecodeOffset {
+		if isUsed && *visitedPcBefore != bytecodeOffset {
 			return nil, 0, errors.New(
 				"invalid segment structure: PC {visited_pc_before} was visited, " +
 					"but the beginning of the segment ({bytecode_offset}) was not",
@@ -230,7 +251,8 @@ func getByteCodeSegmentHasher(
 //
 // Parameters:
 //   - bytecode: Array of compiled bytecode values from casm file
-//   - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths values from casm file
+//   - bytecodeSegmentLengths: Nested datastructure of bytecode_segment_lengths
+//     values from casm file
 //
 // Returns:
 //   - *felt.Felt: Hash value
@@ -242,7 +264,7 @@ func hashCasmClassByteCode(
 	visited := make([]uint64, len(bytecode))
 
 	for i := range bytecode {
-		visited[i] = uint64(i)
+		visited[i] = uint64(i) //nolint:gosec // Never underflows
 	}
 
 	slices.Reverse(visited)
@@ -274,7 +296,10 @@ func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
 	var err error
 
 	if casmClass.BytecodeSegmentLengths != nil {
-		ByteCodeHasH, err = hashCasmClassByteCode(casmClass.ByteCode, *casmClass.BytecodeSegmentLengths)
+		ByteCodeHasH, err = hashCasmClassByteCode(
+			casmClass.ByteCode,
+			*casmClass.BytecodeSegmentLengths,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -282,8 +307,15 @@ func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
 		ByteCodeHasH = curve.PoseidonArray(casmClass.ByteCode...)
 	}
 
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/hash/casm_class_hash.py#L18
-	return curve.PoseidonArray(ContractClassVersionHash, ExternalHash, L1HandleHash, ConstructorHash, ByteCodeHasH), nil
+	return curve.PoseidonArray(
+		ContractClassVersionHash,
+		ExternalHash,
+		L1HandleHash,
+		ConstructorHash,
+		ByteCodeHasH,
+	), nil
 }
 
 // hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
@@ -301,7 +333,12 @@ func hashCasmClassEntryPointByType(entryPoint []contracts.CasmEntryPoint) *felt.
 			builtInFlat = append(builtInFlat, new(felt.Felt).SetBytes([]byte(builtIn)))
 		}
 		builtInHash := curve.PoseidonArray(builtInFlat...)
-		flattened = append(flattened, elt.Selector, new(felt.Felt).SetUint64(uint64(elt.Offset)), builtInHash)
+		flattened = append(
+			flattened,
+			elt.Selector,
+			new(felt.Felt).SetUint64(uint64(elt.Offset)),
+			builtInHash,
+		)
 	}
 
 	return curve.PoseidonArray(flattened...)
@@ -311,14 +348,16 @@ func hashCasmClassEntryPointByType(entryPoint []contracts.CasmEntryPoint) *felt.
 //
 // Parameters:
 //   - txn: The invoke V0 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainID *felt.Felt) (*felt.Felt, error) {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
-	if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil || txn.EntryPointSelector == nil {
+	if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil ||
+		txn.EntryPointSelector == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -329,13 +368,13 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Fe
 	}
 
 	return CalculateDeprecatedTransactionHashCommon(
-		PREFIX_TRANSACTION,
+		prefixInvoke,
 		txnVersionFelt,
 		txn.ContractAddress,
 		txn.EntryPointSelector,
 		calldataHash,
 		txn.MaxFee,
-		chainId,
+		chainID,
 		[]*felt.Felt{},
 	), nil
 }
@@ -344,14 +383,16 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainId *felt.Felt) (*felt.Fe
 //
 // Parameters:
 //   - txn: The invoke V1 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
-	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil || txn.SenderAddress == nil {
+	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil ||
+		txn.SenderAddress == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -362,13 +403,13 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 	}
 
 	return CalculateDeprecatedTransactionHashCommon(
-		PREFIX_TRANSACTION,
+		prefixInvoke,
 		txnVersionFelt,
 		txn.SenderAddress,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
-		chainId,
+		chainID,
 		[]*felt.Felt{txn.Nonce},
 	), nil
 }
@@ -377,15 +418,18 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainId *felt.Felt) (*felt.Fe
 //
 // Parameters:
 //   - txn: The invoke V3 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Felt, error) {
+	//nolint:lll // The links would be unclickable if we break the line.
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
-	if txn.Version == "" || txn.ResourceBounds == nil || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.SenderAddress == nil ||
+	if txn.Version == "" || txn.ResourceBounds == nil || len(txn.Calldata) == 0 ||
+		txn.Nonce == nil ||
+		txn.SenderAddress == nil ||
 		txn.PayMasterData == nil ||
 		txn.AccountDeploymentData == nil {
 		return nil, ErrNotAllParametersSet
@@ -409,12 +453,12 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 	}
 
 	return crypto.PoseidonArray(
-		PREFIX_TRANSACTION,
+		prefixInvoke,
 		txnVersionFelt,
 		txn.SenderAddress,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
-		chainId,
+		chainID,
 		txn.Nonce,
 		new(felt.Felt).SetUint64(DAUint64),
 		crypto.PoseidonArray(txn.AccountDeploymentData...),
@@ -426,14 +470,16 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainId *felt.Felt) (*felt.Fe
 //
 // Parameters:
 //   - txn: The declare V1 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2
-	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil || txn.Nonce == nil {
+	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil ||
+		txn.MaxFee == nil || txn.Nonce == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -445,29 +491,37 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainId *felt.Felt) (*felt.
 	}
 
 	return CalculateDeprecatedTransactionHashCommon(
-		PREFIX_DECLARE,
+		prefixDeclare,
 		txnVersionFelt,
 		txn.SenderAddress,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
-		chainId,
+		chainID,
 		[]*felt.Felt{txn.Nonce},
 	), nil
 }
 
-// TransactionHashDeclareV2 calculates the transaction hash for a declare V2 transaction.
+// TransactionHashDeclareV2 calculates the transaction hash for a declare V2
+// transaction.
 //
 // Parameters:
 //   - txn: The declare V2 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeclareV2(
+	txn *rpc.DeclareTxnV2,
+	chainID *felt.Felt,
+) (*felt.Felt, error) {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation
-	if txn.CompiledClassHash == nil || txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil || txn.MaxFee == nil ||
+	if txn.CompiledClassHash == nil || txn.SenderAddress == nil ||
+		txn.Version == "" ||
+		txn.ClassHash == nil ||
+		txn.MaxFee == nil ||
 		txn.Nonce == nil {
 		return nil, ErrNotAllParametersSet
 	}
@@ -480,13 +534,13 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 	}
 
 	return CalculateDeprecatedTransactionHashCommon(
-		PREFIX_DECLARE,
+		prefixDeclare,
 		txnVersionFelt,
 		txn.SenderAddress,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
-		chainId,
+		chainID,
 		[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
 	), nil
 }
@@ -495,15 +549,21 @@ func TransactionHashDeclareV2(txn *rpc.DeclareTxnV2, chainId *felt.Felt) (*felt.
 //
 // Parameters:
 //   - txn: The declare V3 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeclareV3(
+	txn *rpc.DeclareTxnV3,
+	chainID *felt.Felt,
+) (*felt.Felt, error) {
+	//nolint:lll // The links would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil ||
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil ||
+		txn.SenderAddress == nil ||
+		txn.PayMasterData == nil ||
 		txn.AccountDeploymentData == nil ||
 		txn.ClassHash == nil ||
 		txn.CompiledClassHash == nil {
@@ -529,12 +589,12 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 	}
 
 	return crypto.PoseidonArray(
-		PREFIX_DECLARE,
+		prefixDeclare,
 		txnVersionFelt,
 		txn.SenderAddress,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
-		chainId,
+		chainID,
 		txn.Nonce,
 		new(felt.Felt).SetUint64(DAUint64),
 		crypto.PoseidonArray(txn.AccountDeploymentData...),
@@ -543,19 +603,26 @@ func TransactionHashDeclareV3(txn *rpc.DeclareTxnV3, chainId *felt.Felt) (*felt.
 	), nil
 }
 
-// TransactionHashBroadcastDeclareV3 calculates the transaction hash for a broadcast declare V3 transaction.
+// TransactionHashBroadcastDeclareV3 calculates the transaction hash for a
+// broadcast declare V3 transaction.
 //
 // Parameters:
 //   - txn: The broadcast declare V3 transaction to calculate the hash for
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashBroadcastDeclareV3(
+	txn *rpc.BroadcastDeclareTxnV3,
+	chainID *felt.Felt,
+) (*felt.Felt, error) {
+	//nolint:lll // The links would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.SenderAddress == nil || txn.PayMasterData == nil ||
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil ||
+		txn.SenderAddress == nil ||
+		txn.PayMasterData == nil ||
 		txn.AccountDeploymentData == nil ||
 		txn.ContractClass == nil ||
 		txn.CompiledClassHash == nil {
@@ -581,12 +648,12 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 	}
 
 	return crypto.PoseidonArray(
-		PREFIX_DECLARE,
+		prefixDeclare,
 		txnVersionFelt,
 		txn.SenderAddress,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
-		chainId,
+		chainID,
 		txn.Nonce,
 		new(felt.Felt).SetUint64(DAUint64),
 		crypto.PoseidonArray(txn.AccountDeploymentData...),
@@ -595,17 +662,22 @@ func TransactionHashBroadcastDeclareV3(txn *rpc.BroadcastDeclareTxnV3, chainId *
 	), nil
 }
 
-// TransactionHashDeployAccountV1 calculates the transaction hash for a deploy account V1 transaction.
+// TransactionHashDeployAccountV1 calculates the transaction hash for a deploy
+// account V1 transaction.
 //
 // Parameters:
 //   - txn: The deploy account V1 transaction to calculate the hash for
 //   - contractAddress: The contract address as parameters as a *felt.Felt
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxnV1, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeployAccountV1(
+	txn *rpc.DeployAccountTxnV1,
+	contractAddress, chainID *felt.Felt,
+) (*felt.Felt, error) {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
 	calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
 	calldata = append(calldata, txn.ConstructorCalldata...)
@@ -617,30 +689,36 @@ func TransactionHashDeployAccountV1(txn *rpc.DeployAccountTxnV1, contractAddress
 	}
 
 	return CalculateDeprecatedTransactionHashCommon(
-		PREFIX_DEPLOY_ACCOUNT,
+		prefixDeployAccount,
 		versionFelt,
 		contractAddress,
 		&felt.Zero,
 		calldataHash,
 		txn.MaxFee,
-		chainId,
+		chainID,
 		[]*felt.Felt{txn.Nonce},
 	), nil
 }
 
-// TransactionHashDeployAccountV3 calculates the transaction hash for a deploy account V3 transaction.
+// TransactionHashDeployAccountV3 calculates the transaction hash for a deploy
+// account V3 transaction.
 //
 // Parameters:
 //   - txn: The deploy account V3 transaction to calculate the hash for
 //   - contractAddress: The contract address as parameters as a *felt.Felt
-//   - chainId: The chain ID as a *felt.Felt
+//   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress, chainId *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeployAccountV3(
+	txn *rpc.DeployAccountTxnV3,
+	contractAddress, chainID *felt.Felt,
+) (*felt.Felt, error) {
+	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil || txn.PayMasterData == nil {
+	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil ||
+		txn.PayMasterData == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
@@ -662,12 +740,12 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	}
 
 	return crypto.PoseidonArray(
-		PREFIX_DEPLOY_ACCOUNT,
+		prefixDeployAccount,
 		txnVersionFelt,
 		contractAddress,
 		tipAndResourceHash,
 		crypto.PoseidonArray(txn.PayMasterData...),
-		chainId,
+		chainID,
 		txn.Nonce,
 		new(felt.Felt).SetUint64(DAUint64),
 		crypto.PoseidonArray(txn.ConstructorCalldata...),
@@ -676,7 +754,10 @@ func TransactionHashDeployAccountV3(txn *rpc.DeployAccountTxnV3, contractAddress
 	), nil
 }
 
-func TipAndResourcesHash(tip uint64, resourceBounds *rpc.ResourceBoundsMapping) (*felt.Felt, error) {
+func TipAndResourcesHash(
+	tip uint64,
+	resourceBounds *rpc.ResourceBoundsMapping,
+) (*felt.Felt, error) {
 	if resourceBounds == nil {
 		return nil, errors.New("resource bounds are nil")
 	}
@@ -696,7 +777,12 @@ func TipAndResourcesHash(tip uint64, resourceBounds *rpc.ResourceBoundsMapping) 
 	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
 	l1DataGasBounds := new(felt.Felt).SetBytes(l1DataGasBytes)
 
-	return crypto.PoseidonArray(new(felt.Felt).SetUint64(tip), l1Bounds, l2Bounds, l1DataGasBounds), nil
+	return crypto.PoseidonArray(
+		new(felt.Felt).SetUint64(tip),
+		l1Bounds,
+		l2Bounds,
+		l1DataGasBounds,
+	), nil
 }
 
 func DataAvailabilityModeConc(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {

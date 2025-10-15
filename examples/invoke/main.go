@@ -22,14 +22,14 @@ var (
 // the contract address, the contract method and the amount to be sent.
 func main() {
 	// Load variables from '.env' file
-	rpcProviderUrl := setup.GetRpcProviderUrl()
+	rpcProviderURL := setup.GetRPCProviderURL()
 	accountAddress := setup.GetAccountAddress()
 	accountCairoVersion := setup.GetAccountCairoVersion()
 	privateKey := setup.GetPrivateKey()
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProvider(rpcProviderUrl)
+	client, err := rpc.NewProvider(rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
@@ -49,7 +49,13 @@ func main() {
 		panic(err)
 	}
 	// Initialise the account
-	accnt, err := account.NewAccount(client, accountAddressInFelt, publicKey, ks, accountCairoVersion)
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
 	if err != nil {
 		panic(err)
 	}

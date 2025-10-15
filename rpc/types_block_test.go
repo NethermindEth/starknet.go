@@ -102,15 +102,15 @@ func TestBlockStatus(t *testing.T) {
 	}{
 		{
 			status: `"PRE_CONFIRMED"`,
-			want:   BlockStatus_Pre_confirmed,
+			want:   BlockStatusPreConfirmed,
 		},
 		{
 			status: `"ACCEPTED_ON_L2"`,
-			want:   BlockStatus_AcceptedOnL2,
+			want:   BlockStatusAcceptedOnL2,
 		},
 		{
 			status: `"ACCEPTED_ON_L1"`,
-			want:   BlockStatus_AcceptedOnL1,
+			want:   BlockStatusAcceptedOnL1,
 		},
 	} {
 		tx := new(BlockStatus)
@@ -149,9 +149,9 @@ func TestBlockWithReceipts(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                                BlockID
-		ExpectedBlockWithReceipts              *BlockWithReceipts
-		ExpectedPre_confirmedBlockWithReceipts *Pre_confirmedBlockWithReceipts
+		BlockID                               BlockID
+		ExpectedBlockWithReceipts             *BlockWithReceipts
+		ExpectedPreConfirmedBlockWithReceipts *PreConfirmedBlockWithReceipts
 	}
 
 	var blockWithReceipt BlockWithReceipts
@@ -167,27 +167,27 @@ func TestBlockWithReceipts(t *testing.T) {
 
 	blockMock123 := BlockWithReceipts{
 		BlockHeader{
-			Hash: internalUtils.RANDOM_FELT,
+			Hash: internalUtils.DeadBeef,
 		},
 		"ACCEPTED_ON_L1",
 		BlockBodyWithReceipts{
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						Hash: internalUtils.RANDOM_FELT,
+						Hash: internalUtils.DeadBeef,
 						Transaction: InvokeTxnV1{
 							Type:          "INVOKE",
 							Version:       TransactionV1,
-							SenderAddress: internalUtils.RANDOM_FELT,
+							SenderAddress: internalUtils.DeadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
 						Type:            "INVOKE",
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 						ActualFee: FeePayment{
-							Amount: internalUtils.RANDOM_FELT,
+							Amount: internalUtils.DeadBeef,
 							Unit:   UnitFri,
 						},
 					},
@@ -196,28 +196,28 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 	}
 
-	pre_confirmedBlockMock123 := Pre_confirmedBlockWithReceipts{
-		Pre_confirmedBlockHeader{
+	preConfirmedBlockMock123 := PreConfirmedBlockWithReceipts{
+		PreConfirmedBlockHeader{
 			Number: 1234,
 		},
 		BlockBodyWithReceipts{
 			Transactions: []TransactionWithReceipt{
 				{
 					Transaction: BlockTransaction{
-						Hash: internalUtils.RANDOM_FELT,
+						Hash: internalUtils.DeadBeef,
 						Transaction: InvokeTxnV1{
 							Type:          "INVOKE",
 							Version:       TransactionV1,
-							SenderAddress: internalUtils.RANDOM_FELT,
+							SenderAddress: internalUtils.DeadBeef,
 						},
 					},
 					Receipt: TransactionReceipt{
 						Type:            "INVOKE",
-						Hash:            internalUtils.RANDOM_FELT,
+						Hash:            internalUtils.DeadBeef,
 						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
 						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
 						ActualFee: FeePayment{
-							Amount: internalUtils.RANDOM_FELT,
+							Amount: internalUtils.DeadBeef,
 							Unit:   UnitFri,
 						},
 					},
@@ -229,19 +229,19 @@ func TestBlockWithReceipts(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:                                WithBlockTag(BlockTagLatest),
-				ExpectedBlockWithReceipts:              &blockMock123,
-				ExpectedPre_confirmedBlockWithReceipts: nil,
+				BlockID:                               WithBlockTag(BlockTagLatest),
+				ExpectedBlockWithReceipts:             &blockMock123,
+				ExpectedPreConfirmedBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                                WithBlockTag(BlockTagL1Accepted),
-				ExpectedBlockWithReceipts:              &blockMock123,
-				ExpectedPre_confirmedBlockWithReceipts: nil,
+				BlockID:                               WithBlockTag(BlockTagL1Accepted),
+				ExpectedBlockWithReceipts:             &blockMock123,
+				ExpectedPreConfirmedBlockWithReceipts: nil,
 			},
 			{
-				BlockID:                                WithBlockTag(BlockTagPre_confirmed),
-				ExpectedBlockWithReceipts:              nil,
-				ExpectedPre_confirmedBlockWithReceipts: &pre_confirmedBlockMock123,
+				BlockID:                               WithBlockTag(BlockTagPreConfirmed),
+				ExpectedBlockWithReceipts:             nil,
+				ExpectedPreConfirmedBlockWithReceipts: &preConfirmedBlockMock123,
 			},
 		},
 		tests.TestnetEnv: {
@@ -252,7 +252,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID:                   WithBlockNumber(64159),
@@ -267,7 +267,7 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPre_confirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID:                   WithBlockNumber(1_300_000),
@@ -301,12 +301,12 @@ func TestBlockWithReceipts(t *testing.T) {
 				if test.ExpectedBlockWithReceipts != nil {
 					assert.Exactly(t, block, test.ExpectedBlockWithReceipts)
 				}
-			case *Pre_confirmedBlockWithReceipts:
-				pBlock, ok := result.(*Pre_confirmedBlockWithReceipts)
+			case *PreConfirmedBlockWithReceipts:
+				pBlock, ok := result.(*PreConfirmedBlockWithReceipts)
 				require.True(t, ok, fmt.Sprintf("should return *Pre_confirmedBlockWithReceipts, instead: %T\n", result))
 
 				if tests.TEST_ENV == tests.MockEnv {
-					assert.Exactly(t, pBlock, test.ExpectedPre_confirmedBlockWithReceipts)
+					assert.Exactly(t, pBlock, test.ExpectedPreConfirmedBlockWithReceipts)
 				} else {
 					assert.NotEmpty(t, pBlock.Number, "Error in Pre_confirmedBlockWithReceipts ParentHash")
 					assert.NotEmpty(t, pBlock.SequencerAddress, "Error in Pre_confirmedBlockWithReceipts SequencerAddress")

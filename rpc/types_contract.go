@@ -35,18 +35,20 @@ type U128 string
 
 type ClassOutput interface{}
 
-//nolint:exhaustruct
 var (
-	_ ClassOutput = &contracts.DeprecatedContractClass{}
-	_ ClassOutput = &contracts.ContractClass{}
+	_ ClassOutput = (*contracts.DeprecatedContractClass)(nil)
+	_ ClassOutput = (*contracts.ContractClass)(nil)
 )
 
 type StorageProofInput struct {
-	// Required. The hash of the requested block, or number (height) of the requested block, or a block tag
+	// Required. The hash of the requested block, or number (height) of the
+	// requested block, or a block tag
 	BlockID BlockID `json:"block_id"`
-	// Optional. A list of the class hashes for which we want to prove membership in the classes trie
+	// Optional. A list of the class hashes for which we want to prove
+	// membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
-	// Optional. A list of contracts for which we want to prove membership in the global state trie
+	// Optional. A list of contracts for which we want to prove membership in the
+	// global state trie
 	ContractAddresses []*felt.Felt `json:"contract_addresses,omitempty"`
 	// Optional. A list of (contract_address, storage_keys) pairs
 	ContractsStorageKeys []ContractStorageKeys `json:"contracts_storage_keys,omitempty"`
@@ -57,9 +59,9 @@ type ContractStorageKeys struct {
 	StorageKeys     []*felt.Felt `json:"storage_keys"`
 }
 
-// The requested storage proofs. Note that if a requested leaf has the default value,
-// the path to it may end in an edge node whose path is not a prefix of the requested leaf,
-// thus effectively proving non-membership
+// The requested storage proofs. Note that if a requested leaf has the default
+// value, the path to it may end in an edge node whose path is not a prefix of
+// the requested leaf, thus effectively proving non-membership
 type StorageProofResult struct {
 	ClassesProof           []NodeHashToNode   `json:"classes_proof"`
 	ContractsProof         ContractsProof     `json:"contracts_proof"`
@@ -68,13 +70,15 @@ type StorageProofResult struct {
 }
 
 type ContractsProof struct {
-	// The nodes in the union of the paths from the contracts tree root to the requested leaves
+	// The nodes in the union of the paths from the contracts tree root to the
+	// requested leaves
 	Nodes              []NodeHashToNode     `json:"nodes"`
 	ContractLeavesData []ContractLeavesData `json:"contract_leaves_data"`
 }
 
-// The nonce and class hash for each requested contract address, in the order in which
-// they appear in the request. These values are needed to construct the associated leaf node
+// The nonce and class hash for each requested contract address, in the order
+// in which they appear in the request. These values are needed to construct the
+// associated leaf node
 type ContractLeavesData struct {
 	Nonce       *felt.Felt `json:"nonce"`
 	ClassHash   *felt.Felt `json:"class_hash"`
@@ -84,17 +88,20 @@ type ContractLeavesData struct {
 type GlobalRoots struct {
 	ContractsTreeRoot *felt.Felt `json:"contracts_tree_root"`
 	ClassesTreeRoot   *felt.Felt `json:"classes_tree_root"`
-	// the associated block hash (needed in case the caller used a block tag for the block_id parameter)
+	// the associated block hash (needed in case the caller used a block tag
+	// for the block_id parameter)
 	BlockHash *felt.Felt `json:"block_hash"`
 }
 
-// A node_hash -> node mapping of all the nodes in the union of the paths between the requested leaves and the root
+// A node_hash -> node mapping of all the nodes in the union of the paths
+// between the requested leaves and the root
 type NodeHashToNode struct {
 	NodeHash *felt.Felt `json:"node_hash"`
 	Node     MerkleNode `json:"node"`
 }
 
-// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge node (EdgeNode or BinaryNode types)
+// A node in the Merkle-Patricia tree, can be a leaf, binary node, or an edge
+// node (EdgeNode or BinaryNode types)
 type MerkleNode struct {
 	Type string
 	Data any
@@ -143,8 +150,8 @@ func (m *MerkleNode) MarshalJSON() ([]byte, error) {
 
 // Represents a path to the highest non-zero descendant node
 type EdgeNode struct {
-	// an unsigned integer whose binary representation represents the path from the current node
-	// to its highest non-zero descendant (bounded by 2^251)
+	// an unsigned integer whose binary representation represents the path from
+	// the current node to its highest non-zero descendant (bounded by 2^251)
 	Path NumAsHex `json:"path"`
 	// the length of the path (bounded by 251)
 	Length uint `json:"length"`

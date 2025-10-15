@@ -8,14 +8,16 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
-// CasmClass (AKA CASM_COMPILED_CONTRACT_CLASS) is the struct that represents the compiled Cairo contract class.
+// CasmClass (AKA CASM_COMPILED_CONTRACT_CLASS) is the struct that represents the
+// compiled Cairo contract class.
 type CasmClass struct {
 	EntryPointsByType CasmEntryPointsByType `json:"entry_points_by_type"`
 	ByteCode          []*felt.Felt          `json:"bytecode"`
 	Prime             NumAsHex              `json:"prime"`
 	CompilerVersion   string                `json:"compiler_version"`
 	Hints             []Hints               `json:"hints"`
-	// a list of sizes of segments in the bytecode, each segment is hashed individually when computing the bytecode hash
+	// a list of sizes of segments in the bytecode, each segment is hashed
+	// individually when computing the bytecode hash
 	BytecodeSegmentLengths *NestedUints `json:"bytecode_segment_lengths,omitempty"`
 }
 
@@ -53,7 +55,8 @@ func (c *CasmClass) UnmarshalJSON(data []byte) error {
 }
 
 // An unsigned integer number in hex format (0x...)
-// TODO: duplicate of rpc.NumAsHex to avoid import cycle. Maybe move to a shared 'types' package?
+// TODO: duplicate of rpc.NumAsHex to avoid import cycle. Maybe move to a
+// shared 'types' package?
 type NumAsHex string
 
 type CasmEntryPointsByType struct {
@@ -64,7 +67,7 @@ type CasmEntryPointsByType struct {
 
 type CasmEntryPoint struct {
 	Selector *felt.Felt `json:"selector"`
-	Offset   int        `json:"offset"`
+	Offset   uint       `json:"offset"`
 	Builtins []string   `json:"builtins"`
 }
 
@@ -189,7 +192,7 @@ type Hints struct {
 
 // UnmarshalJSON implements json.Unmarshaler interface
 //
-//nolint:dupl
+//nolint:dupl // Just a small similarity with DoubleDeref UnmarshalJSON.
 func (h *Hints) UnmarshalJSON(data []byte) error {
 	var tuple []json.RawMessage
 	if err := json.Unmarshal(data, &tuple); err != nil {
@@ -218,16 +221,19 @@ func (h Hints) MarshalJSON() ([]byte, error) {
 	return json.Marshal([2]interface{}{h.Int, h.HintArr})
 }
 
-func (hints *Hints) Values() (int, []Hint) {
-	return hints.Int, hints.HintArr
+func (h *Hints) Values() (int, []Hint) {
+	return h.Int, h.HintArr
 }
 
-func (hints *Hints) Tuple() [2]any {
-	return [2]any{hints.Int, hints.HintArr}
+func (h *Hints) Tuple() [2]any {
+	return [2]any{h.Int, h.HintArr}
 }
 
-// Can be one of various hint types described in the spec and in the UnmarshalJSON method
+// Can be one of various hint types described in the spec and in the
+// UnmarshalJSON method
 // Ref: https://github.com/starkware-libs/starknet-specs/blob/d70a2e57c9a66db1bbf86c388f38d6295a6a2a75/api/starknet_executables.json#L276
+//
+//nolint:lll // The link would be unclickable if we break the line.
 type Hint struct {
 	Type string
 	Data interface{}
@@ -241,7 +247,8 @@ func (h *Hint) UnmarshalJSON(data []byte) error {
 	var enumVal string
 	if err := json.Unmarshal(data, &enumVal); err == nil {
 		switch DeprecatedHintEnum(enumVal) {
-		case AssertCurrentAccessIndicesIsEmpty, AssertAllKeysUsed, AssertLeAssertThirdArcExcluded:
+		case AssertCurrentAccessIndicesIsEmpty,
+			AssertAllKeysUsed, AssertLeAssertThirdArcExcluded:
 			h.Type = "enum"
 			h.Data = DeprecatedHintEnum(enumVal)
 
@@ -569,7 +576,7 @@ type DoubleDeref struct {
 
 // UnmarshalJSON implements json.Unmarshaler
 //
-//nolint:dupl
+//nolint:dupl // Just a small similarity with Hints UnmarshalJSON.
 func (dd *DoubleDeref) UnmarshalJSON(data []byte) error {
 	var tuple []json.RawMessage
 	if err := json.Unmarshal(data, &tuple); err != nil {
@@ -598,7 +605,7 @@ func (dd DoubleDeref) MarshalJSON() ([]byte, error) {
 	return json.Marshal([2]interface{}{dd.CellRef, dd.Offset})
 }
 
-func (dd *DoubleDeref) Values() (CellRef, int) {
+func (dd *DoubleDeref) Values() (cellRef CellRef, offset int) {
 	return dd.CellRef, dd.Offset
 }
 

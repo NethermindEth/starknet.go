@@ -29,7 +29,8 @@ var (
 	_ Transaction = L1HandlerTxn{}
 )
 
-// unmarshalTxn unmarshals a given txn as a byte slice and returns a concrete transaction type wrapped in the Transaction interface.
+// unmarshalTxn unmarshals a given txn as a byte slice and returns a concrete
+// transaction type wrapped in the Transaction interface.
 //
 // Parameters:
 //   - data: The transaction to be unmarshaled
@@ -46,7 +47,7 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 	}
 
 	switch TransactionType(txnAsMap["type"].(string)) {
-	case TransactionType_Declare:
+	case TransactionTypeDeclare:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV0:
 			return unmarshalTxnToType[DeclareTxnV0](data)
@@ -57,18 +58,20 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 		case TransactionV3:
 			return unmarshalTxnToType[DeclareTxnV3](data)
 		default:
-			return nil, errors.New("internal error with Declare transaction version and unmarshalTxn()")
+			return nil, errors.New(
+				"internal error with Declare transaction version and unmarshalTxn()",
+			)
 		}
-	case TransactionType_Deploy:
+	case TransactionTypeDeploy:
 		return unmarshalTxnToType[DeployTxn](data)
-	case TransactionType_DeployAccount:
+	case TransactionTypeDeployAccount:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV1:
 			return unmarshalTxnToType[DeployAccountTxnV1](data)
 		case TransactionV3:
 			return unmarshalTxnToType[DeployAccountTxnV3](data)
 		}
-	case TransactionType_Invoke:
+	case TransactionTypeInvoke:
 		switch TransactionVersion(txnAsMap["version"].(string)) {
 		case TransactionV0:
 			return unmarshalTxnToType[InvokeTxnV0](data)
@@ -77,15 +80,16 @@ func unmarshalTxn(data []byte) (Transaction, error) {
 		case TransactionV3:
 			return unmarshalTxnToType[InvokeTxnV3](data)
 		}
-	case TransactionType_L1Handler:
+	case TransactionTypeL1Handler:
 		return unmarshalTxnToType[L1HandlerTxn](data)
 	}
 
 	return nil, fmt.Errorf("unknown transaction type: %v", txnAsMap["type"])
 }
 
-// unmarshalTxnToType is a generic function that takes in a byte slice 'data', unmarshals it to a
-// concrete transaction of type T, and returns the concrete transaction wrapped in the Transaction interface.
+// unmarshalTxnToType is a generic function that takes in a byte slice 'data',
+// unmarshals it to a concrete transaction of type T, and returns the concrete
+// transaction wrapped in the Transaction interface.
 func unmarshalTxnToType[T Transaction](data []byte) (T, error) {
 	var resp T
 

@@ -44,7 +44,8 @@ func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
 	return rpc.TransactionV3
 }
 
-// SafeTip returns the tip amount in FRI for the transaction. If the tip is not set or invalid, returns "0x0".
+// SafeTip returns the tip amount in FRI for the transaction. If the tip is not set
+// or invalid, returns "0x0".
 func (opts *TxnOptions) SafeTip() rpc.U64 {
 	if opts.Tip == "" {
 		return "0x0"
@@ -82,7 +83,7 @@ func BuildInvokeTxn(
 	}
 
 	invokeTxn := rpc.BroadcastInvokeTxnV3{
-		Type:                  rpc.TransactionType_Invoke,
+		Type:                  rpc.TransactionTypeInvoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
 		Version:               opts.TxnVersion(),
@@ -131,7 +132,7 @@ func BuildDeclareTxn(
 	}
 
 	declareTxn := rpc.BroadcastDeclareTxnV3{
-		Type:                  rpc.TransactionType_Declare,
+		Type:                  rpc.TransactionTypeDeclare,
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
 		Version:               opts.TxnVersion(),
@@ -176,7 +177,7 @@ func BuildDeployAccountTxn(
 	}
 
 	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
-		Type:                rpc.TransactionType_DeployAccount,
+		Type:                rpc.TransactionTypeDeployAccount,
 		Version:             opts.TxnVersion(),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,
@@ -216,7 +217,8 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 // FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
-//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least greater than 0.
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
+//     but at least greater than 0.
 //     If multiplier < 0, all resources bounds will be set to 0.
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
@@ -228,7 +230,11 @@ func FeeEstToResBoundsMap(
 ) *rpc.ResourceBoundsMapping {
 	// Create L1 resources bounds
 	l1Gas := toResourceBounds(feeEstimation.L1GasPrice, feeEstimation.L1GasConsumed, multiplier)
-	l1DataGas := toResourceBounds(feeEstimation.L1DataGasPrice, feeEstimation.L1DataGasConsumed, multiplier)
+	l1DataGas := toResourceBounds(
+		feeEstimation.L1DataGasPrice,
+		feeEstimation.L1DataGasConsumed,
+		multiplier,
+	)
 	// Create L2 resource bounds
 	l2Gas := toResourceBounds(feeEstimation.L2GasPrice, feeEstimation.L2GasConsumed, multiplier)
 
@@ -239,7 +245,8 @@ func FeeEstToResBoundsMap(
 	}
 }
 
-// toResourceBounds converts a gas price and gas consumed to a ResourceBounds with applied multiplier.
+// toResourceBounds converts a gas price and gas consumed to a ResourceBounds with
+// applied multiplier.
 //
 // Parameters:
 //   - gasPrice: The gas price
@@ -301,10 +308,12 @@ func toResourceBounds(
 	}
 }
 
-// ResBoundsMapToOverallFee calculates the overall fee for a ResourceBoundsMapping with applied multipliers.
+// ResBoundsMapToOverallFee calculates the overall fee for a ResourceBoundsMapping with
+// applied multipliers.
 // Parameters:
 //   - resBounds: The resource bounds to calculate the fee for
-//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5, but at least greater than 0
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
+//     but at least greater than 0
 //
 // Returns:
 //   - *felt.Felt: The overall fee in FRI
@@ -373,7 +382,9 @@ func ResBoundsMapToOverallFee(
 	overallFee := l1GasFee.Add(l1GasFee, l1DataGasFee).Add(l1GasFee, l2GasFee)
 
 	// multiply fee by multiplier
-	multipliedOverallFee := new(big.Float).Mul(new(big.Float).SetInt(overallFee), big.NewFloat(multiplier))
+	multipliedOverallFee := new(
+		big.Float,
+	).Mul(new(big.Float).SetInt(overallFee), big.NewFloat(multiplier))
 	overallFeeInt, _ := multipliedOverallFee.Int(nil) // truncated int
 
 	// Convert big.Int to felt. SetString() validates if it's a valid felt
