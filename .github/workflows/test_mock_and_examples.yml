@@ -29,6 +29,7 @@ jobs:
           cd ../readEvents && go build
           cd ../simpleCall && go build
           cd ../simpleDeclare && go build
+          cd ../paymaster && go build
           cd ../typedData && go build
           cd ../websocket && go build
 

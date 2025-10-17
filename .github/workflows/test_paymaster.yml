@@ -1,0 +1,30 @@
+name: paymaster integration tests
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Run paymaster tests
+        run: cd paymaster && go test -timeout 300s -v -env integration .
+        env:
+          STARKNET_PRIVATE_KEY: ${{ secrets.TESTNET_ACCOUNT_PRIVATE_KEY }}
+          STARKNET_PUBLIC_KEY: ${{ secrets.TESTNET_ACCOUNT_PUBLIC_KEY }}
+          STARKNET_ACCOUNT_ADDRESS: ${{ secrets.TESTNET_ACCOUNT_ADDRESS }}
+          AVNU_API_KEY: ${{ secrets.AVNU_API_KEY }}

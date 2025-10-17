@@ -19,7 +19,9 @@ type TestEnv string
 
 //nolint:staticcheck // Only used in tests
 const (
-	MockEnv           TestEnv = "mock"
+	MockEnv TestEnv = "mock"
+	// Used to run account and rpc tests on the Integration network.
+	// Also, used to run paymaster tests with the Avnu Sepolia paymaster.
 	IntegrationEnv    TestEnv = "integration"
 	TestnetEnv        TestEnv = "testnet"
 	MainnetEnv        TestEnv = "mainnet"

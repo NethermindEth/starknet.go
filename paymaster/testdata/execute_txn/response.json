@@ -1,0 +1,8 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "transaction_hash": "0x303de97c66775a1e74fdb42df94fdf3cdb9a3225445461564fdcf46ae0ab419",
+    "tracking_id": "0x0"
+  }
+}
