@@ -152,6 +152,12 @@ type UserParameters struct {
 	FeeMode FeeMode `json:"fee_mode"`
 	// Optional. Time constraint on the execution
 	TimeBounds *TimeBounds `json:"time_bounds"`
+
+	// Note: even being optional, the `time_bounds` field wasn't tagged with `omitempty`
+	// to facilitate the tests. The reason is that the `time_bounds` returned by the paymaster
+	// is always filled with `null` in the response if not provided, and if we tag it
+	// with `omitempty`, the JSON field would be omitted in the request, resulting in
+	// different JSONs when comparing the request and response.
 }
 
 // An enum representing the version of the execution parameters
