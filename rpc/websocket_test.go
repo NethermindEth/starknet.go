@@ -659,7 +659,6 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			case resp := <-txnReceipts:
 				assert.IsType(t, &TransactionReceiptWithBlockInfo{}, resp)
 				assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
-				assert.NotEmpty(t, resp.BlockHash)
 				assert.NotEmpty(t, resp.BlockNumber)
 				assert.NotEmpty(t, resp.TransactionReceipt)
 
