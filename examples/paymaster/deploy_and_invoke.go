@@ -61,12 +61,12 @@ func deployAndInvokeWithPaymaster() {
 
 	// Now we can create the deploy data for the transaction.
 	deployData := &pm.AccountDeploymentData{
-		Address:             precAddress, // The precomputed address of the new account
-		ClassHash:           classHash,
-		Salt:                salt,
-		Calldata: constructorCalldata,
-		SignatureData:       []*felt.Felt{}, // Optional. For the OZ account, we don't need to add anything in the signature data.
-		Version:             2,              // The OZ account version is 2.
+		Address:       precAddress, // The precomputed address of the new account
+		ClassHash:     classHash,
+		Salt:          salt,
+		Calldata:      constructorCalldata,
+		SignatureData: []*felt.Felt{}, // Optional. For the OZ account, we don't need to add anything in the signature data.
+		Version:       2,              // The OZ account version is 2.
 	}
 
 	// The next step is to define what we want to execute.

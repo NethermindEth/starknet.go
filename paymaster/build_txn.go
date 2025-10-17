@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
@@ -69,33 +70,34 @@ type UserTransaction struct {
 
 // An enum representing the type of the transaction to be executed
 // by the paymaster
-type UserTxnType string
+type UserTxnType int
 
 const (
-	// Represents a deploy transaction
-	UserTxnDeploy UserTxnType = "deploy"
-	// Represents an invoke transaction
-	UserTxnInvoke UserTxnType = "invoke"
-	// Represents a deploy and invoke transaction
-	UserTxnDeployAndInvoke UserTxnType = "deploy_and_invoke"
+	// Represents a deploy transaction ("deploy" tag)
+	UserTxnDeploy UserTxnType = iota + 1
+	// Represents an invoke transaction ("invoke" tag)
+	UserTxnInvoke
+	// Represents a deploy and invoke transaction ("deploy_and_invoke" tag)
+	UserTxnDeployAndInvoke
 )
+
+// String returns the string representation of the UserTxnType.
+func (u UserTxnType) String() string {
+	return []string{"deploy", "invoke", "deploy_and_invoke"}[u-1]
+}
 
 // MarshalJSON marshals the UserTxnType to JSON.
 func (u UserTxnType) MarshalJSON() ([]byte, error) {
-	switch u {
-	case UserTxnDeploy, UserTxnInvoke, UserTxnDeployAndInvoke:
-		return json.Marshal(string(u))
-	}
-
-	return nil, fmt.Errorf("invalid user transaction type: %s", u)
+	return strconv.AppendQuote(nil, u.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a UserTxnType.
 func (u *UserTxnType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
+
 	switch s {
 	case "deploy":
 		*u = UserTxnDeploy
