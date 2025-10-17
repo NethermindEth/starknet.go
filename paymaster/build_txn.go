@@ -22,13 +22,13 @@ import (
 //   - error: An error if the request fails
 func (p *Paymaster) BuildTransaction(
 	ctx context.Context,
-	request *BuildTransactionRequest,
-) (*BuildTransactionResponse, error) {
+	request BuildTransactionRequest,
+) (BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(
 		ctx, &response, "paymaster_buildTransaction", request,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(
+		return response, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInvalidAddress,
 			ErrClassHashNotSupported,
@@ -40,16 +40,16 @@ func (p *Paymaster) BuildTransaction(
 		)
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 // BuildTransactionRequest is the request to build a transaction for
 // the paymaster (transaction + parameters).
 type BuildTransactionRequest struct {
 	// The transaction to be executed by the paymaster
-	Transaction *UserTransaction `json:"transaction"`
+	Transaction UserTransaction `json:"transaction"`
 	// Execution parameters to be used when executing the transaction
-	Parameters *UserParameters `json:"parameters"`
+	Parameters UserParameters `json:"parameters"`
 }
 
 // UserTransaction represents a user transaction (deploy, invoke,

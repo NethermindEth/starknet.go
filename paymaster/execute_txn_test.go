@@ -374,7 +374,7 @@ func buildDeployTxn(
 	t *testing.T,
 	pm *Paymaster,
 	pubKey *felt.Felt,
-) (resp *BuildTransactionResponse) {
+) *BuildTransactionResponse {
 	t.Helper()
 
 	t.Log("building deploy transaction")
@@ -383,13 +383,13 @@ func buildDeployTxn(
 	deploymentData := createDeploymentData(t, pubKey)
 
 	t.Log("calling paymaster_buildTransaction method")
-	var err error
-	resp, err = pm.BuildTransaction(context.Background(), &BuildTransactionRequest{
-		Transaction: &UserTransaction{
+
+	resp, err := pm.BuildTransaction(context.Background(), BuildTransactionRequest{
+		Transaction: UserTransaction{
 			Type:       UserTxnDeploy,
 			Deployment: deploymentData,
 		},
-		Parameters: &UserParameters{
+		Parameters: UserParameters{
 			Version: UserParamV1,
 			FeeMode: FeeMode{
 				Mode: FeeModeSponsored,
@@ -399,7 +399,7 @@ func buildDeployTxn(
 	require.NoError(t, err)
 	t.Log("deploy transaction successfully built by the paymaster")
 
-	return resp
+	return &resp
 }
 
 // createInvokeData creates the invoke data for an invoke transaction
@@ -434,7 +434,7 @@ func buildInvokeTxn(
 	t *testing.T,
 	pm *Paymaster,
 	accAdd *felt.Felt,
-) (resp *BuildTransactionResponse) {
+) *BuildTransactionResponse {
 	t.Helper()
 
 	t.Log("building deploy transaction")
@@ -443,13 +443,13 @@ func buildInvokeTxn(
 	invokeData := createInvokeData(t, accAdd)
 
 	t.Log("calling paymaster_buildTransaction method")
-	var err error
-	resp, err = pm.BuildTransaction(context.Background(), &BuildTransactionRequest{
-		Transaction: &UserTransaction{
+
+	resp, err := pm.BuildTransaction(context.Background(), BuildTransactionRequest{
+		Transaction: UserTransaction{
 			Type:   UserTxnInvoke,
 			Invoke: invokeData,
 		},
-		Parameters: &UserParameters{
+		Parameters: UserParameters{
 			Version: UserParamV1,
 			FeeMode: FeeMode{
 				Mode: FeeModeSponsored,
@@ -459,7 +459,7 @@ func buildInvokeTxn(
 	require.NoError(t, err)
 	t.Log("invoke transaction successfully built by the paymaster")
 
-	return resp
+	return &resp
 }
 
 // buildDeployAndInvokeTxn builds a deploy and invoke transaction calling the paymaster_buildTransaction method
@@ -467,7 +467,7 @@ func buildDeployAndInvokeTxn(
 	t *testing.T,
 	pm *Paymaster,
 	pubKey *felt.Felt,
-) (resp *BuildTransactionResponse) {
+) *BuildTransactionResponse {
 	t.Helper()
 
 	t.Log("building deploy_and_invoke transaction")
@@ -477,14 +477,14 @@ func buildDeployAndInvokeTxn(
 	invokeData := createInvokeData(t, deploymentData.Address)
 
 	t.Log("calling paymaster_buildTransaction method")
-	var err error
-	resp, err = pm.BuildTransaction(context.Background(), &BuildTransactionRequest{
-		Transaction: &UserTransaction{
+
+	resp, err := pm.BuildTransaction(context.Background(), BuildTransactionRequest{
+		Transaction: UserTransaction{
 			Type:       UserTxnDeployAndInvoke,
 			Deployment: deploymentData,
 			Invoke:     invokeData,
 		},
-		Parameters: &UserParameters{
+		Parameters: UserParameters{
 			Version: UserParamV1,
 			FeeMode: FeeMode{
 				Mode: FeeModeSponsored,
@@ -497,5 +497,5 @@ func buildDeployAndInvokeTxn(
 	require.NoError(t, err)
 	t.Log("deploy_and_invoke transaction successfully built by the paymaster")
 
-	return resp
+	return &resp
 }
