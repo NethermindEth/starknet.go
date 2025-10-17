@@ -62,7 +62,7 @@ type ExecutableUserTransaction struct {
 	// The deployment data for the transaction, used for `deploy` and
 	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `invoke` transaction types.
-	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	Deployment *AccountDeploymentData `json:"deployment,omitempty"`
 	// Invoke data signed by the user to be executed by the paymaster service, used for`invoke` and
 	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `deploy` transaction types.

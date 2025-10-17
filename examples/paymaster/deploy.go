@@ -62,7 +62,7 @@ func deployWithPaymaster() {
 	fmt.Println("Precomputed address:", precAddress)
 
 	// Now we can create the deploy data for the transaction.
-	deployData := &pm.AccDeploymentData{
+	deployData := &pm.AccountDeploymentData{
 		Address:             precAddress, // The precomputed address of the new account
 		ClassHash:           classHash,
 		Salt:                salt,

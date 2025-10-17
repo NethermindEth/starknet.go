@@ -60,7 +60,7 @@ type UserTransaction struct {
 	// The deployment data for the transaction, used for `deploy` and
 	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `invoke` transaction types.
-	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	Deployment *AccountDeploymentData `json:"deployment,omitempty"`
 	// The invoke data for the transaction, used for `invoke` and
 	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `deploy` transaction types.
@@ -111,7 +111,7 @@ func (u *UserTxnType) UnmarshalJSON(b []byte) error {
 }
 
 // Data required to deploy an account at an address.
-type AccDeploymentData struct {
+type AccountDeploymentData struct {
 	// The expected address to be deployed, used to double check
 	Address *felt.Felt `json:"address"`
 	// The hash of the deployed contract's class
@@ -345,7 +345,7 @@ type BuildTransactionResponse struct {
 	Type UserTxnType `json:"type"`
 	// The deployment data for `deploy` and `deploy_and_invoke` transaction types.
 	// It's `nil` for `invoke` transaction types.
-	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	Deployment *AccountDeploymentData `json:"deployment,omitempty"`
 	// Execution parameters to be used when executing the transaction
 	Parameters *UserParameters `json:"parameters"`
 	// The typed data for for `invoke` and `deploy_and_invoke` transaction types.

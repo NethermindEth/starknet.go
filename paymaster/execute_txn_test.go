@@ -340,7 +340,7 @@ func precomputeAccountAddress(
 }
 
 // createDeploymentData creates the deployment data for a deploy transaction
-func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
+func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccountDeploymentData {
 	t.Helper()
 
 	t.Log("creating deployment data")
@@ -354,7 +354,7 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
 	precAddress := precomputeAccountAddress(internalUtils.DeadBeef, classHash, constructorCalldata)
 	t.Log("precomputed address:", precAddress)
 
-	deploymentData := &AccDeploymentData{
+	deploymentData := &AccountDeploymentData{
 		Address:       precAddress,
 		ClassHash:     classHash,
 		Salt:          internalUtils.DeadBeef,

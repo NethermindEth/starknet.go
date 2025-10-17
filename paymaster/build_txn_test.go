@@ -137,7 +137,7 @@ func TestBuildTransaction(t *testing.T) {
 		"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f", // OZ account class hash
 	)
 
-	deploymentData := &AccDeploymentData{
+	deploymentData := &AccountDeploymentData{
 		Address: internalUtils.TestHexToFelt(
 			t,
 			"0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220",
