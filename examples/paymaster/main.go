@@ -109,12 +109,12 @@ func main() {
 	)
 
 	// Now that we have the invoke data, we will build the transaction by calling the `paymaster_buildTransaction` method.
-	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
-		Transaction: &pm.UserTransaction{
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), pm.BuildTransactionRequest{
+		Transaction: pm.UserTransaction{
 			Type:   pm.UserTxnInvoke, // we are building an `invoke` transaction
 			Invoke: invokeData,
 		},
-		Parameters: &pm.UserParameters{
+		Parameters: pm.UserParameters{
 			Version: pm.UserParamV1, // Leave as is. This is the only version supported by the paymaster for now.
 
 			// Here we specify the fee mode we want to use for the transaction.
@@ -188,8 +188,8 @@ func main() {
 	// NOTE: this is the final step, the transaction will be executed and the fees will be paid by us in the specified gas token.
 	response, err := paymaster.ExecuteTransaction(
 		context.Background(),
-		&pm.ExecuteTransactionRequest{
-			Transaction: &pm.ExecutableUserTransaction{
+		pm.ExecuteTransactionRequest{
+			Transaction: pm.ExecutableUserTransaction{
 				Type: pm.UserTxnInvoke,
 				Invoke: &pm.ExecutableUserInvoke{
 					UserAddress: acc.Address,        // Our account address
@@ -197,7 +197,7 @@ func main() {
 					Signature:   signature,          // The signature of the message hash made in the previous step
 				},
 			},
-			Parameters: &pm.UserParameters{
+			Parameters: pm.UserParameters{
 				Version: pm.UserParamV1,
 
 				// Using the same fee options as in the `paymaster_buildTransaction` method. A different fee mode here

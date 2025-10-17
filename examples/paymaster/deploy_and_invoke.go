@@ -90,15 +90,15 @@ func deployAndInvokeWithPaymaster() {
 	// REMEMBER: this will only work if you have a valid API key configured.
 	//
 	// A full explanation about the paymaster_buildTransaction method can be found in the `main.go` file of this same example.
-	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
-		Transaction: &pm.UserTransaction{
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), pm.BuildTransactionRequest{
+		Transaction: pm.UserTransaction{
 			Type: pm.UserTxnDeployAndInvoke, // we are building an `deploy_and_invoke` transaction
 
 			// Both the deploy and invoke data are required.
 			Deployment: deployData,
 			Invoke:     invokeData,
 		},
-		Parameters: &pm.UserParameters{
+		Parameters: pm.UserParameters{
 			Version: pm.UserParamV1,
 			FeeMode: pm.FeeMode{
 				Mode: pm.FeeModeSponsored, // We then set the fee mode to `sponsored`
@@ -147,8 +147,8 @@ func deployAndInvokeWithPaymaster() {
 	// With our built deploy_and_invoke transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
 	response, err := paymaster.ExecuteTransaction(
 		context.Background(),
-		&pm.ExecuteTransactionRequest{
-			Transaction: &pm.ExecutableUserTransaction{
+		pm.ExecuteTransactionRequest{
+			Transaction: pm.ExecutableUserTransaction{
 				Type: pm.UserTxnDeployAndInvoke,
 
 				Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
@@ -159,7 +159,7 @@ func deployAndInvokeWithPaymaster() {
 					Signature:   signature,          // The signature of the message hash made in the previous step.
 				},
 			},
-			Parameters: &pm.UserParameters{
+			Parameters: pm.UserParameters{
 				Version: pm.UserParamV1,
 
 				// Using the same fee options as in the `paymaster_buildTransaction` method.

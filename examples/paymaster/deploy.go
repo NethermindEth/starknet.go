@@ -75,12 +75,12 @@ func deployWithPaymaster() {
 	// REMEMBER: this will only work if you have a valid API key configured.
 	//
 	// A full explanation about the paymaster_buildTransaction method can be found in the `main.go` file of this same example.
-	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
-		Transaction: &pm.UserTransaction{
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), pm.BuildTransactionRequest{
+		Transaction: pm.UserTransaction{
 			Type:       pm.UserTxnDeploy, // we are building an `deploy` transaction
 			Deployment: deployData,
 		},
-		Parameters: &pm.UserParameters{
+		Parameters: pm.UserParameters{
 			Version: pm.UserParamV1,
 			FeeMode: pm.FeeMode{
 				Mode: pm.FeeModeSponsored, // We then set the fee mode to `sponsored`
@@ -103,13 +103,13 @@ func deployWithPaymaster() {
 	// With our built deploy transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
 	response, err := paymaster.ExecuteTransaction(
 		context.Background(),
-		&pm.ExecuteTransactionRequest{
-			Transaction: &pm.ExecutableUserTransaction{
+		pm.ExecuteTransactionRequest{
+			Transaction: pm.ExecutableUserTransaction{
 				Type:       pm.UserTxnDeploy,
 				Deployment: builtTxn.Deployment, // The deployment data is the same. We can use our `deployData` variable, or
 				// the `builtTxn.Deployment` value.
 			},
-			Parameters: &pm.UserParameters{
+			Parameters: pm.UserParameters{
 				Version: pm.UserParamV1,
 
 				// Using the same fee options as in the `paymaster_buildTransaction` method.
