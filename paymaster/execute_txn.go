@@ -20,8 +20,8 @@ import (
 //   - error: An error if any error occurs
 func (p *Paymaster) ExecuteTransaction(
 	ctx context.Context,
-	request *ExecuteTransactionRequest,
-) (*ExecuteTransactionResponse, error) {
+	request ExecuteTransactionRequest,
+) (ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(
 		ctx,
@@ -29,7 +29,7 @@ func (p *Paymaster) ExecuteTransaction(
 		"paymaster_executeTransaction",
 		request,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(
+		return response, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInvalidAddress,
 			ErrClassHashNotSupported,
@@ -41,7 +41,7 @@ func (p *Paymaster) ExecuteTransaction(
 		)
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 // ExecuteTransactionRequest is the request to execute a transaction
@@ -49,9 +49,9 @@ func (p *Paymaster) ExecuteTransaction(
 type ExecuteTransactionRequest struct {
 	// Typed data build by calling paymaster_buildTransaction signed by the
 	// user to be executed by the paymaster service
-	Transaction *ExecutableUserTransaction `json:"transaction"`
+	Transaction ExecutableUserTransaction `json:"transaction"`
 	// Execution parameters to be used when executing the transaction
-	Parameters *UserParameters `json:"parameters"`
+	Parameters UserParameters `json:"parameters"`
 }
 
 // ExecutableUserTransaction is a user transaction ready for execution

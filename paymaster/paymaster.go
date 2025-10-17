@@ -32,8 +32,8 @@ type paymasterInterface interface {
 	) (BuildTransactionResponse, error)
 	ExecuteTransaction(
 		ctx context.Context,
-		request *ExecuteTransactionRequest,
-	) (*ExecuteTransactionResponse, error)
+		request ExecuteTransactionRequest,
+	) (ExecuteTransactionResponse, error)
 }
 
 var _ paymasterInterface = (*Paymaster)(nil)

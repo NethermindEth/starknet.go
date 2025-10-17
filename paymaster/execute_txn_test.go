@@ -40,11 +40,11 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Log("executing the deploy transaction in the paymaster")
 
 			request := ExecuteTransactionRequest{
-				Transaction: &ExecutableUserTransaction{
+				Transaction: ExecutableUserTransaction{
 					Type:       UserTxnDeploy,
 					Deployment: deployTxn.Deployment,
 				},
-				Parameters: &UserParameters{
+				Parameters: UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
@@ -55,7 +55,7 @@ func TestExecuteTransaction(t *testing.T) {
 				},
 			}
 
-			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			resp, err := pm.ExecuteTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
@@ -90,7 +90,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Log("executing the invoke transaction in the paymaster")
 
 			request := ExecuteTransactionRequest{
-				Transaction: &ExecutableUserTransaction{
+				Transaction: ExecutableUserTransaction{
 					Type: UserTxnInvoke,
 					Invoke: &ExecutableUserInvoke{
 						UserAddress: accAdd,
@@ -98,7 +98,7 @@ func TestExecuteTransaction(t *testing.T) {
 						Signature:   []*felt.Felt{r, s},
 					},
 				},
-				Parameters: &UserParameters{
+				Parameters: UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
@@ -109,7 +109,7 @@ func TestExecuteTransaction(t *testing.T) {
 				},
 			}
 
-			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			resp, err := pm.ExecuteTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
@@ -142,7 +142,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Log("executing the deploy_and_invoke transaction in the paymaster")
 
 			request := ExecuteTransactionRequest{
-				Transaction: &ExecutableUserTransaction{
+				Transaction: ExecutableUserTransaction{
 					Type:       UserTxnDeployAndInvoke,
 					Deployment: builtTxn.Deployment,
 					Invoke: &ExecutableUserInvoke{
@@ -151,7 +151,7 @@ func TestExecuteTransaction(t *testing.T) {
 						Signature:   []*felt.Felt{r, s},
 					},
 				},
-				Parameters: &UserParameters{
+				Parameters: UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
@@ -162,7 +162,7 @@ func TestExecuteTransaction(t *testing.T) {
 				},
 			}
 
-			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			resp, err := pm.ExecuteTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
@@ -191,11 +191,11 @@ func TestExecuteTransaction(t *testing.T) {
 			deploymentData := createDeploymentData(t, pubKey)
 
 			request := ExecuteTransactionRequest{
-				Transaction: &ExecutableUserTransaction{
+				Transaction: ExecutableUserTransaction{
 					Type:       UserTxnDeploy,
 					Deployment: deploymentData,
 				},
-				Parameters: &UserParameters{
+				Parameters: UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
@@ -225,11 +225,11 @@ func TestExecuteTransaction(t *testing.T) {
 				context.Background(),
 				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
 				"paymaster_executeTransaction",
-				&request,
+				request,
 			).Return(nil).
 				SetArg(1, response)
 
-			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			resp, err := pm.ExecuteTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -270,12 +270,12 @@ func TestExecuteTransaction(t *testing.T) {
 				context.Background(),
 				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
 				"paymaster_executeTransaction",
-				&request,
+				request,
 			).Return(nil).
 				SetArg(1, response)
 
 			t.Log("executing the invoke transaction in the mock paymaster")
-			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			resp, err := pm.ExecuteTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -316,12 +316,12 @@ func TestExecuteTransaction(t *testing.T) {
 				context.Background(),
 				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
 				"paymaster_executeTransaction",
-				&request,
+				request,
 			).Return(nil).
 				SetArg(1, response)
 
 			t.Log("executing the deploy_and_invoke transaction in the mock paymaster")
-			resp, err := pm.ExecuteTransaction(context.Background(), &request)
+			resp, err := pm.ExecuteTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
