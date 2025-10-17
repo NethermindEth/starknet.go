@@ -142,11 +142,11 @@ func TestBuildTransaction(t *testing.T) {
 			t,
 			"0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220",
 		),
-		ClassHash:           classHash,
-		Salt:                internalUtils.DeadBeef,
-		ConstructorCalldata: []*felt.Felt{internalUtils.DeadBeef},
-		SignatureData:       []*felt.Felt{internalUtils.DeadBeef},
-		Version:             2,
+		ClassHash:     classHash,
+		Salt:          internalUtils.DeadBeef,
+		Calldata:      []*felt.Felt{internalUtils.DeadBeef},
+		SignatureData: []*felt.Felt{internalUtils.DeadBeef},
+		Version:       2,
 	}
 
 	// *** setup for invoke type transactions

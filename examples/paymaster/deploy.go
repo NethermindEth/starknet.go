@@ -66,7 +66,7 @@ func deployWithPaymaster() {
 		Address:             precAddress, // The precomputed address of the new account
 		ClassHash:           classHash,
 		Salt:                salt,
-		ConstructorCalldata: constructorCalldata,
+		Calldata: constructorCalldata,
 		SignatureData:       []*felt.Felt{}, // Optional. For the OZ account, we don't need to add anything in the signature data.
 		Version:             2,              // The OZ account version is 2.
 	}

@@ -355,12 +355,12 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccDeploymentData {
 	t.Log("precomputed address:", precAddress)
 
 	deploymentData := &AccDeploymentData{
-		Address:             precAddress,
-		ClassHash:           classHash,
-		Salt:                internalUtils.DeadBeef,
-		ConstructorCalldata: constructorCalldata,
-		SignatureData:       []*felt.Felt{},
-		Version:             2,
+		Address:       precAddress,
+		ClassHash:     classHash,
+		Salt:          internalUtils.DeadBeef,
+		Calldata:      constructorCalldata,
+		SignatureData: []*felt.Felt{},
+		Version:       2,
 	}
 	t.Logf("deployment data: %+v", deploymentData)
 

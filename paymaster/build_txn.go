@@ -119,7 +119,7 @@ type AccDeploymentData struct {
 	// The salt used for the contract address calculation
 	Salt *felt.Felt `json:"salt"`
 	// The parameters passed to the constructor
-	ConstructorCalldata []*felt.Felt `json:"calldata"`
+	Calldata []*felt.Felt `json:"calldata"`
 	// Optional array of felts to be added to the signature
 	SignatureData []*felt.Felt `json:"sigdata,omitempty"`
 	// The Cairo version of the account contract (e.g. 1 or 2). Cairo 0 is not supported.
