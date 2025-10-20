@@ -127,6 +127,76 @@ func TestUserParamVersion(t *testing.T) {
 	}
 }
 
+// Test the TipPriority type
+func TestTipPriority(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+	t.Parallel()
+
+	type testCase struct {
+		Input         string
+		Expected      TipPriority
+		ErrorExpected bool
+	}
+
+	temp := uint64(1234)
+	testCases := []testCase{
+		{
+			Input: `"slow"`,
+			Expected: TipPriority{
+				Priority: TipPrioritySlow,
+			},
+			ErrorExpected: false,
+		},
+		{
+			Input: `"normal"`,
+			Expected: TipPriority{
+				Priority: TipPriorityNormal,
+			},
+			ErrorExpected: false,
+		},
+		{
+			Input: `"fast"`,
+			Expected: TipPriority{
+				Priority: TipPriorityFast,
+			},
+			ErrorExpected: false,
+		},
+		{
+			Input: "{\"custom\": 1234}",
+			Expected: TipPriority{
+				Custom: &temp,
+			},
+			ErrorExpected: false,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Input, func(t *testing.T) {
+			t.Parallel()
+
+			if test.Expected.Priority != 0 {
+				CompareEnumsHelper(t, test.Input, test.Expected.Priority, test.ErrorExpected)
+				assert.Nil(t, test.Expected.Custom)
+
+				return
+			}
+
+			// test unmarshalling
+			var localTip TipPriority
+			err := localTip.UnmarshalJSON([]byte(test.Input))
+			require.NoError(t, err)
+
+			assert.Equal(t, test.Expected.Custom, localTip.Custom)
+			assert.Zero(t, localTip.Priority)
+
+			// test marshalling
+			raw, err := localTip.MarshalJSON()
+			require.NoError(t, err)
+			assert.JSONEq(t, test.Input, string(raw))
+		})
+	}
+}
+
 // Test the BuildTransaction method with different transaction types and fee modes.
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()

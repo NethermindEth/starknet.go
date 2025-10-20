@@ -265,7 +265,12 @@ type TipPriority struct {
 
 // MarshalJSON marshals the TipPriority to JSON.
 func (t *TipPriority) MarshalJSON() ([]byte, error) {
-	if raw, err := t.Priority.MarshalJSON(); err == nil {
+	if t.Priority != 0 {
+		raw, err := t.Priority.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+
 		return raw, nil
 	}
 
