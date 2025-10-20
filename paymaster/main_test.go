@@ -5,10 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
-	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -58,22 +56,6 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 	}
 
 	return mpm
-}
-
-// GetStrkAccountData returns the STRK account data from the environment variables.
-// This is used for integration tests, where we need a real testnet account with STRK tokens.
-func GetStrkAccountData(t *testing.T) (privKey, pubKey, accountAddress *felt.Felt) {
-	t.Helper()
-
-	strkPrivKey := os.Getenv("STARKNET_PRIVATE_KEY")
-	strkPubKey := os.Getenv("STARKNET_PUBLIC_KEY")
-	strkAccountAddress := os.Getenv("STARKNET_ACCOUNT_ADDRESS")
-
-	privKey = internalUtils.TestHexToFelt(t, strkPrivKey)
-	pubKey = internalUtils.TestHexToFelt(t, strkPubKey)
-	accountAddress = internalUtils.TestHexToFelt(t, strkAccountAddress)
-
-	return privKey, pubKey, accountAddress
 }
 
 // CompareEnumsHelper compares an enum type with the expected value and error expected.
