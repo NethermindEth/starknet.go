@@ -163,27 +163,33 @@ type UserParameters struct {
 }
 
 // An enum representing the version of the execution parameters
-type UserParamVersion string
+type UserParamVersion int
 
 const (
-	// Represents the v1 of the execution parameters
-	UserParamV1 UserParamVersion = "0x1"
+	// Represents the v1 of the execution parameters ("0x1")
+	UserParamV1 UserParamVersion = iota + 1
 )
 
+// String returns the string representation of the UserTxnType.
+func (u UserParamVersion) String() string {
+	return []string{"0x1"}[u-1]
+}
+
 // MarshalJSON marshals the UserParamVersion to JSON.
-func (v UserParamVersion) MarshalJSON() ([]byte, error) {
-	return json.Marshal(string(v))
+func (u UserParamVersion) MarshalJSON() ([]byte, error) {
+	return strconv.AppendQuote(nil, u.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a UserParamVersion.
-func (v *UserParamVersion) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+func (u *UserParamVersion) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
+
 	switch s {
 	case "0x1":
-		*v = UserParamV1
+		*u = UserParamV1
 	default:
 		return fmt.Errorf("invalid user parameter version: %s", s)
 	}
