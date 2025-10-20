@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
@@ -22,13 +23,13 @@ import (
 //   - error: An error if the request fails
 func (p *Paymaster) BuildTransaction(
 	ctx context.Context,
-	request *BuildTransactionRequest,
-) (*BuildTransactionResponse, error) {
+	request BuildTransactionRequest,
+) (BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(
 		ctx, &response, "paymaster_buildTransaction", request,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(
+		return response, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInvalidAddress,
 			ErrClassHashNotSupported,
@@ -40,16 +41,16 @@ func (p *Paymaster) BuildTransaction(
 		)
 	}
 
-	return &response, nil
+	return response, nil
 }
 
 // BuildTransactionRequest is the request to build a transaction for
 // the paymaster (transaction + parameters).
 type BuildTransactionRequest struct {
 	// The transaction to be executed by the paymaster
-	Transaction *UserTransaction `json:"transaction"`
+	Transaction UserTransaction `json:"transaction"`
 	// Execution parameters to be used when executing the transaction
-	Parameters *UserParameters `json:"parameters"`
+	Parameters UserParameters `json:"parameters"`
 }
 
 // UserTransaction represents a user transaction (deploy, invoke,
@@ -60,7 +61,7 @@ type UserTransaction struct {
 	// The deployment data for the transaction, used for `deploy` and
 	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `invoke` transaction types.
-	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	Deployment *AccountDeploymentData `json:"deployment,omitempty"`
 	// The invoke data for the transaction, used for `invoke` and
 	// `deploy_and_invoke` transaction types.
 	// Should be `nil` for `deploy` transaction types.
@@ -69,33 +70,34 @@ type UserTransaction struct {
 
 // An enum representing the type of the transaction to be executed
 // by the paymaster
-type UserTxnType string
+type UserTxnType int
 
 const (
-	// Represents a deploy transaction
-	UserTxnDeploy UserTxnType = "deploy"
-	// Represents an invoke transaction
-	UserTxnInvoke UserTxnType = "invoke"
-	// Represents a deploy and invoke transaction
-	UserTxnDeployAndInvoke UserTxnType = "deploy_and_invoke"
+	// Represents a deploy transaction ("deploy" tag)
+	UserTxnDeploy UserTxnType = iota + 1
+	// Represents an invoke transaction ("invoke" tag)
+	UserTxnInvoke
+	// Represents a deploy and invoke transaction ("deploy_and_invoke" tag)
+	UserTxnDeployAndInvoke
 )
+
+// String returns the string representation of the UserTxnType.
+func (u UserTxnType) String() string {
+	return []string{"deploy", "invoke", "deploy_and_invoke"}[u-1]
+}
 
 // MarshalJSON marshals the UserTxnType to JSON.
 func (u UserTxnType) MarshalJSON() ([]byte, error) {
-	switch u {
-	case UserTxnDeploy, UserTxnInvoke, UserTxnDeployAndInvoke:
-		return json.Marshal(string(u))
-	}
-
-	return nil, fmt.Errorf("invalid user transaction type: %s", u)
+	return strconv.AppendQuote(nil, u.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a UserTxnType.
 func (u *UserTxnType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
+
 	switch s {
 	case "deploy":
 		*u = UserTxnDeploy
@@ -111,7 +113,7 @@ func (u *UserTxnType) UnmarshalJSON(b []byte) error {
 }
 
 // Data required to deploy an account at an address.
-type AccDeploymentData struct {
+type AccountDeploymentData struct {
 	// The expected address to be deployed, used to double check
 	Address *felt.Felt `json:"address"`
 	// The hash of the deployed contract's class
@@ -119,12 +121,21 @@ type AccDeploymentData struct {
 	// The salt used for the contract address calculation
 	Salt *felt.Felt `json:"salt"`
 	// The parameters passed to the constructor
-	ConstructorCalldata []*felt.Felt `json:"calldata"`
+	Calldata []*felt.Felt `json:"calldata"`
 	// Optional array of felts to be added to the signature
 	SignatureData []*felt.Felt `json:"sigdata,omitempty"`
-	// The Cairo version of the account contract (e.g. 1 or 2). Cairo 0 is not supported.
-	Version uint8 `json:"version"`
+	// The Cairo version of the account contract. Cairo 0 is not supported.
+	Version CairoVersion `json:"version"`
 }
+
+// An enum representing the Cairo version of the account contract
+// to be deployed. Cairo 0 is not supported.
+type CairoVersion int
+
+const (
+	// Represents the Cairo 1 version
+	Cairo1 CairoVersion = 1
+)
 
 // Calls to be executed by the paymaster and the user account address that will be called
 type UserInvoke struct {
@@ -152,30 +163,42 @@ type UserParameters struct {
 	FeeMode FeeMode `json:"fee_mode"`
 	// Optional. Time constraint on the execution
 	TimeBounds *TimeBounds `json:"time_bounds"`
+
+	// Note: even being optional, the `time_bounds` field wasn't tagged with `omitempty`
+	// to facilitate the tests. The reason is that the `time_bounds` returned by the paymaster
+	// is always filled with `null` in the response if not provided, and if we tag it
+	// with `omitempty`, the JSON field would be omitted in the request, resulting in
+	// different JSONs when comparing the request and response.
 }
 
 // An enum representing the version of the execution parameters
-type UserParamVersion string
+type UserParamVersion int
 
 const (
-	// Represents the v1 of the execution parameters
-	UserParamV1 UserParamVersion = "0x1"
+	// Represents the v1 of the execution parameters ("0x1")
+	UserParamV1 UserParamVersion = iota + 1
 )
 
+// String returns the string representation of the UserTxnType.
+func (u UserParamVersion) String() string {
+	return []string{"0x1"}[u-1]
+}
+
 // MarshalJSON marshals the UserParamVersion to JSON.
-func (v UserParamVersion) MarshalJSON() ([]byte, error) {
-	return json.Marshal(string(v))
+func (u UserParamVersion) MarshalJSON() ([]byte, error) {
+	return strconv.AppendQuote(nil, u.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a UserParamVersion.
-func (v *UserParamVersion) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+func (u *UserParamVersion) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
+
 	switch s {
 	case "0x1":
-		*v = UserParamV1
+		*u = UserParamV1
 	default:
 		return fmt.Errorf("invalid user parameter version: %s", s)
 	}
@@ -184,38 +207,40 @@ func (v *UserParamVersion) UnmarshalJSON(b []byte) error {
 }
 
 // An enum representing the fee mode to use for the transaction
-type FeeModeType string
+type FeeModeType int
 
 const (
 	// Specify that the transaction should be sponsored. This argument does not
-	// guaranteed sponsorship and will depend on the paymaster provider
-	FeeModeSponsored FeeModeType = "sponsored"
-	// Default fee mode where the transaction is paid by the user in the given gas token
-	FeeModeDefault FeeModeType = "default"
+	// guaranteed sponsorship and will depend on the paymaster provider.
+	// Represents the "sponsored" string value.
+	FeeModeSponsored FeeModeType = iota + 1
+	// Default fee mode where the transaction is paid by the user in the given gas token.
+	// Represents the "default" string value.
+	FeeModeDefault
 )
 
-// MarshalJSON marshals the FeeModeType to JSON.
-func (feeMode FeeModeType) MarshalJSON() ([]byte, error) {
-	switch feeMode {
-	case FeeModeSponsored, FeeModeDefault:
-		return json.Marshal(string(feeMode))
-	}
+// String returns the string representation of the FeeModeType.
+func (fee FeeModeType) String() string {
+	return []string{"sponsored", "default"}[fee-1]
+}
 
-	return nil, fmt.Errorf("invalid fee mode: %s", feeMode)
+// MarshalJSON marshals the FeeModeType to JSON.
+func (fee FeeModeType) MarshalJSON() ([]byte, error) {
+	return strconv.AppendQuote(nil, fee.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a FeeModeType.
-func (feeMode *FeeModeType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+func (fee *FeeModeType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
 
 	switch s {
 	case "sponsored":
-		*feeMode = FeeModeSponsored
+		*fee = FeeModeSponsored
 	case "default":
-		*feeMode = FeeModeDefault
+		*fee = FeeModeDefault
 	default:
 		return fmt.Errorf("invalid fee mode: %s", s)
 	}
@@ -249,17 +274,13 @@ type TipPriority struct {
 
 // MarshalJSON marshals the TipPriority to JSON.
 func (t *TipPriority) MarshalJSON() ([]byte, error) {
-	if t.Priority != "" {
-		switch t.Priority {
-		case TipPrioritySlow:
-			return json.Marshal(TipPrioritySlow)
-		case TipPriorityNormal:
-			return json.Marshal(TipPriorityNormal)
-		case TipPriorityFast:
-			return json.Marshal(TipPriorityFast)
-		default:
-			return nil, fmt.Errorf("invalid tip priority: %s", t.Priority)
+	if t.Priority != 0 {
+		raw, err := t.Priority.MarshalJSON()
+		if err != nil {
+			return nil, err
 		}
+
+		return raw, nil
 	}
 
 	if t.Custom == nil {
@@ -274,18 +295,10 @@ func (t *TipPriority) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshals the JSON data into a TipPriority.
 func (t *TipPriority) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err == nil {
-		switch s {
-		case "slow":
-			t.Priority = TipPrioritySlow
-		case "normal":
-			t.Priority = TipPriorityNormal
-		case "fast":
-			t.Priority = TipPriorityFast
-		default:
-			return fmt.Errorf("invalid tip priority: %s", s)
-		}
+	var tip TipPriorityEnum
+	var err error
+	if err = tip.UnmarshalJSON(b); err == nil {
+		t.Priority = tip
 
 		return nil
 	}
@@ -293,8 +306,8 @@ func (t *TipPriority) UnmarshalJSON(b []byte) error {
 	type Alias TipPriority
 	var alias Alias
 
-	if err := json.Unmarshal(b, &alias); err != nil {
-		return fmt.Errorf("failed to unmarshal custom tip: %w", err)
+	if err2 := json.Unmarshal(b, &alias); err2 != nil {
+		return fmt.Errorf("failed to unmarshal tip priority: %w :%w", err2, err)
 	}
 
 	t.Custom = alias.Custom
@@ -302,17 +315,49 @@ func (t *TipPriority) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Relative tip priority
-type TipPriorityEnum string
+// An enum representing the desired tip priority for the
+// paymster transaction.
+type TipPriorityEnum int
 
 const (
-	// Relative tip priority
-	TipPrioritySlow TipPriorityEnum = "slow"
-	// Relative tip priority
-	TipPriorityNormal TipPriorityEnum = "normal"
-	// Relative tip priority
-	TipPriorityFast TipPriorityEnum = "fast"
+	// Slow tip priority (represents the "slow" string value)
+	TipPrioritySlow TipPriorityEnum = iota + 1
+	// Normal tip priority (represents the "normal" string value)
+	TipPriorityNormal
+	// Fast tip priority (represents the "fast" string value)
+	TipPriorityFast
 )
+
+// String returns the string representation of the TipPriorityEnum.
+func (tip TipPriorityEnum) String() string {
+	return []string{"slow", "normal", "fast"}[tip-1]
+}
+
+// MarshalJSON marshals the TipPriorityEnum to JSON.
+func (tip TipPriorityEnum) MarshalJSON() ([]byte, error) {
+	return strconv.AppendQuote(nil, tip.String()), nil
+}
+
+// UnmarshalJSON unmarshals the JSON data into a TipPriorityEnum.
+func (tip *TipPriorityEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+
+	switch s {
+	case "slow":
+		*tip = TipPrioritySlow
+	case "normal":
+		*tip = TipPriorityNormal
+	case "fast":
+		*tip = TipPriorityFast
+	default:
+		return fmt.Errorf("invalid tip priority: %s", s)
+	}
+
+	return nil
+}
 
 // Object containing timestamps corresponding to `Execute After` and `Execute Before`
 type TimeBounds struct {
@@ -339,7 +384,7 @@ type BuildTransactionResponse struct {
 	Type UserTxnType `json:"type"`
 	// The deployment data for `deploy` and `deploy_and_invoke` transaction types.
 	// It's `nil` for `invoke` transaction types.
-	Deployment *AccDeploymentData `json:"deployment,omitempty"`
+	Deployment *AccountDeploymentData `json:"deployment,omitempty"`
 	// Execution parameters to be used when executing the transaction
 	Parameters *UserParameters `json:"parameters"`
 	// The typed data for for `invoke` and `deploy_and_invoke` transaction types.

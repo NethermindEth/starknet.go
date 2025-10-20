@@ -18,6 +18,8 @@ var STRKContractAddress, _ = internalUtils.HexToFelt(
 )
 
 // Test the UserTxnType type
+//
+//nolint:dupl // The enum tests are similar, but with different enum values
 func TestUserTxnType(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
@@ -125,6 +127,76 @@ func TestUserParamVersion(t *testing.T) {
 	}
 }
 
+// Test the TipPriority type
+func TestTipPriority(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+	t.Parallel()
+
+	type testCase struct {
+		Input         string
+		Expected      TipPriority
+		ErrorExpected bool
+	}
+
+	temp := uint64(1234)
+	testCases := []testCase{
+		{
+			Input: `"slow"`,
+			Expected: TipPriority{
+				Priority: TipPrioritySlow,
+			},
+			ErrorExpected: false,
+		},
+		{
+			Input: `"normal"`,
+			Expected: TipPriority{
+				Priority: TipPriorityNormal,
+			},
+			ErrorExpected: false,
+		},
+		{
+			Input: `"fast"`,
+			Expected: TipPriority{
+				Priority: TipPriorityFast,
+			},
+			ErrorExpected: false,
+		},
+		{
+			Input: "{\"custom\": 1234}",
+			Expected: TipPriority{
+				Custom: &temp,
+			},
+			ErrorExpected: false,
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.Input, func(t *testing.T) {
+			t.Parallel()
+
+			if test.Expected.Priority != 0 {
+				CompareEnumsHelper(t, test.Input, test.Expected.Priority, test.ErrorExpected)
+				assert.Nil(t, test.Expected.Custom)
+
+				return
+			}
+
+			// test unmarshalling
+			var localTip TipPriority
+			err := localTip.UnmarshalJSON([]byte(test.Input))
+			require.NoError(t, err)
+
+			assert.Equal(t, test.Expected.Custom, localTip.Custom)
+			assert.Zero(t, localTip.Priority)
+
+			// test marshalling
+			raw, err := localTip.MarshalJSON()
+			require.NoError(t, err)
+			assert.JSONEq(t, test.Input, string(raw))
+		})
+	}
+}
+
 // Test the BuildTransaction method with different transaction types and fee modes.
 func TestBuildTransaction(t *testing.T) {
 	t.Parallel()
@@ -135,16 +207,16 @@ func TestBuildTransaction(t *testing.T) {
 		"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f", // OZ account class hash
 	)
 
-	deploymentData := &AccDeploymentData{
+	deploymentData := &AccountDeploymentData{
 		Address: internalUtils.TestHexToFelt(
 			t,
 			"0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220",
 		),
-		ClassHash:           classHash,
-		Salt:                internalUtils.DeadBeef,
-		ConstructorCalldata: []*felt.Felt{internalUtils.DeadBeef},
-		SignatureData:       []*felt.Felt{internalUtils.DeadBeef},
-		Version:             2,
+		ClassHash:     classHash,
+		Salt:          internalUtils.DeadBeef,
+		Calldata:      []*felt.Felt{internalUtils.DeadBeef},
+		SignatureData: []*felt.Felt{internalUtils.DeadBeef},
+		Version:       Cairo1,
 	}
 
 	// *** setup for invoke type transactions
@@ -182,11 +254,11 @@ func TestBuildTransaction(t *testing.T) {
 			t.Parallel()
 			// *** build request
 			reqBody := BuildTransactionRequest{
-				Transaction: &UserTransaction{
+				Transaction: UserTransaction{
 					Type:       UserTxnDeploy,
 					Deployment: deploymentData,
 				},
-				Parameters: nil,
+				Parameters: UserParameters{},
 			}
 
 			t.Run("sponsored fee mode", func(t *testing.T) {
@@ -194,14 +266,14 @@ func TestBuildTransaction(t *testing.T) {
 				pm, spy := SetupPaymaster(t)
 
 				request := reqBody
-				request.Parameters = &UserParameters{
+				request.Parameters = UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), &request)
+				resp, err := pm.BuildTransaction(context.Background(), request)
 				require.NoError(t, err)
 
 				rawResp, err := json.Marshal(resp)
@@ -214,7 +286,7 @@ func TestBuildTransaction(t *testing.T) {
 				pm, _ := SetupPaymaster(t)
 
 				request := reqBody
-				request.Parameters = &UserParameters{
+				request.Parameters = UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode:     FeeModeDefault,
@@ -223,7 +295,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				_, err := pm.BuildTransaction(context.Background(), &request)
+				_, err := pm.BuildTransaction(context.Background(), request)
 				require.Error(
 					t,
 					err,
@@ -235,11 +307,11 @@ func TestBuildTransaction(t *testing.T) {
 			t.Parallel()
 
 			reqBody := BuildTransactionRequest{
-				Transaction: &UserTransaction{
+				Transaction: UserTransaction{
 					Type:   UserTxnInvoke,
 					Invoke: invokeData,
 				},
-				Parameters: nil,
+				Parameters: UserParameters{},
 			}
 
 			t.Run("sponsored fee mode - with nil tip", func(t *testing.T) {
@@ -247,14 +319,14 @@ func TestBuildTransaction(t *testing.T) {
 				pm, spy := SetupPaymaster(t)
 
 				request := reqBody
-				request.Parameters = &UserParameters{
+				request.Parameters = UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), &request)
+				resp, err := pm.BuildTransaction(context.Background(), request)
 				require.NoError(t, err)
 				// The default tip priority is normal
 				assert.Equal(t, TipPriorityNormal, resp.Parameters.FeeMode.Tip.Priority)
@@ -270,7 +342,7 @@ func TestBuildTransaction(t *testing.T) {
 
 				customTip := uint64(1000)
 				request := reqBody
-				request.Parameters = &UserParameters{
+				request.Parameters = UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode:     FeeModeDefault,
@@ -281,7 +353,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), &request)
+				resp, err := pm.BuildTransaction(context.Background(), request)
 				require.NoError(t, err)
 
 				assert.Equal(t, customTip, *resp.Parameters.FeeMode.Tip.Custom)
@@ -296,11 +368,11 @@ func TestBuildTransaction(t *testing.T) {
 			t.Parallel()
 
 			reqBody := BuildTransactionRequest{
-				Transaction: &UserTransaction{
+				Transaction: UserTransaction{
 					Type:   UserTxnDeployAndInvoke,
 					Invoke: invokeData,
 				},
-				Parameters: nil,
+				Parameters: UserParameters{},
 			}
 			reqBody.Transaction.Deployment = deploymentData
 			reqBody.Transaction.Invoke = invokeData
@@ -310,7 +382,7 @@ func TestBuildTransaction(t *testing.T) {
 				pm, spy := SetupPaymaster(t)
 
 				request := reqBody
-				request.Parameters = &UserParameters{
+				request.Parameters = UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
@@ -320,7 +392,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), &request)
+				resp, err := pm.BuildTransaction(context.Background(), request)
 				require.NoError(t, err)
 
 				assert.Equal(t, TipPrioritySlow, resp.Parameters.FeeMode.Tip.Priority)
@@ -335,7 +407,7 @@ func TestBuildTransaction(t *testing.T) {
 				pm, spy := SetupPaymaster(t)
 
 				request := reqBody
-				request.Parameters = &UserParameters{
+				request.Parameters = UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode:     FeeModeDefault,
@@ -346,7 +418,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), &request)
+				resp, err := pm.BuildTransaction(context.Background(), request)
 				require.NoError(t, err)
 
 				assert.Equal(t, TipPriorityFast, resp.Parameters.FeeMode.Tip.Priority)
@@ -366,11 +438,11 @@ func TestBuildTransaction(t *testing.T) {
 			t.Parallel()
 			// *** build request
 			request := BuildTransactionRequest{
-				Transaction: &UserTransaction{
+				Transaction: UserTransaction{
 					Type:       UserTxnDeploy,
 					Deployment: deploymentData,
 				},
-				Parameters: &UserParameters{
+				Parameters: UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode: FeeModeSponsored,
@@ -399,11 +471,11 @@ func TestBuildTransaction(t *testing.T) {
 				context.Background(),
 				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 				"paymaster_buildTransaction",
-				&request,
+				request,
 			).Return(nil).
 				SetArg(1, response)
 
-			resp, err := pm.BuildTransaction(context.Background(), &request)
+			resp, err := pm.BuildTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -417,11 +489,11 @@ func TestBuildTransaction(t *testing.T) {
 			customTip := uint64(1000)
 
 			request := BuildTransactionRequest{
-				Transaction: &UserTransaction{
+				Transaction: UserTransaction{
 					Type:   UserTxnInvoke,
 					Invoke: invokeData,
 				},
-				Parameters: &UserParameters{
+				Parameters: UserParameters{
 					Version: UserParamV1,
 					FeeMode: FeeMode{
 						Mode:     FeeModeDefault,
@@ -454,11 +526,11 @@ func TestBuildTransaction(t *testing.T) {
 				context.Background(),
 				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 				"paymaster_buildTransaction",
-				&request,
+				request,
 			).Return(nil).
 				SetArg(1, response)
 
-			resp, err := pm.BuildTransaction(context.Background(), &request)
+			resp, err := pm.BuildTransaction(context.Background(), request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -472,12 +544,12 @@ func TestBuildTransaction(t *testing.T) {
 				t.Parallel()
 				// *** build request
 				request := BuildTransactionRequest{
-					Transaction: &UserTransaction{
+					Transaction: UserTransaction{
 						Type:       UserTxnDeployAndInvoke,
 						Deployment: deploymentData,
 						Invoke:     invokeData,
 					},
-					Parameters: &UserParameters{
+					Parameters: UserParameters{
 						Version: UserParamV1,
 						FeeMode: FeeMode{
 							Mode: FeeModeSponsored,
@@ -509,11 +581,11 @@ func TestBuildTransaction(t *testing.T) {
 					context.Background(),
 					gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 					"paymaster_buildTransaction",
-					&request,
+					request,
 				).Return(nil).
 					SetArg(1, response)
 
-				resp, err := pm.BuildTransaction(context.Background(), &request)
+				resp, err := pm.BuildTransaction(context.Background(), request)
 				require.NoError(t, err)
 
 				rawResp, err := json.Marshal(resp)

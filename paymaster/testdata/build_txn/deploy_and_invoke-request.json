@@ -15,7 +15,7 @@
           "sigdata": [
             "0xdeadbeef"
           ],
-          "version": 2
+          "version": 1
         },
         "invoke": {
           "user_address": "0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",

@@ -13,7 +13,7 @@
 			"sigdata": [
 				"0xdeadbeef"
 			],
-			"version": 2
+			"version": 1
 		},
 		"parameters": {
 			"version": "0x1",
