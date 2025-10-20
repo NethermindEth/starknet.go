@@ -49,6 +49,9 @@ linters:
       min-occurrences: 3
     gocritic:
       enable-all: true
+      settings:
+        hugeParam:
+          sizeThreshold: 256
     gocyclo:
       min-complexity: 15
     govet:
