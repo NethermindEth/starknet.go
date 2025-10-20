@@ -68,7 +68,7 @@ func deployWithPaymaster() {
 		Salt:          salt,
 		Calldata:      constructorCalldata,
 		SignatureData: []*felt.Felt{}, // Optional. For the OZ account, we don't need to add anything in the signature data.
-		Version:       2,              // The OZ account version is 2.
+		Version:       pm.Cairo1,
 	}
 
 	// With the deploy data, we can build the transaction by calling the `paymaster_buildTransaction` method.

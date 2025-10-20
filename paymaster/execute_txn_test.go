@@ -360,7 +360,7 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccountDeploymentDat
 		Salt:          internalUtils.DeadBeef,
 		Calldata:      constructorCalldata,
 		SignatureData: []*felt.Felt{},
-		Version:       2,
+		Version:       Cairo1,
 	}
 	t.Logf("deployment data: %+v", deploymentData)
 

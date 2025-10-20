@@ -124,9 +124,18 @@ type AccountDeploymentData struct {
 	Calldata []*felt.Felt `json:"calldata"`
 	// Optional array of felts to be added to the signature
 	SignatureData []*felt.Felt `json:"sigdata,omitempty"`
-	// The Cairo version of the account contract (e.g. 1 or 2). Cairo 0 is not supported.
-	Version uint8 `json:"version"`
+	// The Cairo version of the account contract. Cairo 0 is not supported.
+	Version CairoVersion `json:"version"`
 }
+
+// An enum representing the Cairo version of the account contract
+// to be deployed. Cairo 0 is not supported.
+type CairoVersion int
+
+const (
+	// Represents the Cairo 1 version
+	Cairo1 CairoVersion = 1
+)
 
 // Calls to be executed by the paymaster and the user account address that will be called
 type UserInvoke struct {

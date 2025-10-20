@@ -216,7 +216,7 @@ func TestBuildTransaction(t *testing.T) {
 		Salt:          internalUtils.DeadBeef,
 		Calldata:      []*felt.Felt{internalUtils.DeadBeef},
 		SignatureData: []*felt.Felt{internalUtils.DeadBeef},
-		Version:       2,
+		Version:       Cairo1,
 	}
 
 	// *** setup for invoke type transactions
