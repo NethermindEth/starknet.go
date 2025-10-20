@@ -265,17 +265,8 @@ type TipPriority struct {
 
 // MarshalJSON marshals the TipPriority to JSON.
 func (t *TipPriority) MarshalJSON() ([]byte, error) {
-	if t.Priority != "" {
-		switch t.Priority {
-		case TipPrioritySlow:
-			return json.Marshal(TipPrioritySlow)
-		case TipPriorityNormal:
-			return json.Marshal(TipPriorityNormal)
-		case TipPriorityFast:
-			return json.Marshal(TipPriorityFast)
-		default:
-			return nil, fmt.Errorf("invalid tip priority: %s", t.Priority)
-		}
+	if raw, err := t.Priority.MarshalJSON(); err == nil {
+		return raw, nil
 	}
 
 	if t.Custom == nil {
@@ -290,18 +281,10 @@ func (t *TipPriority) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON unmarshals the JSON data into a TipPriority.
 func (t *TipPriority) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err == nil {
-		switch s {
-		case "slow":
-			t.Priority = TipPrioritySlow
-		case "normal":
-			t.Priority = TipPriorityNormal
-		case "fast":
-			t.Priority = TipPriorityFast
-		default:
-			return fmt.Errorf("invalid tip priority: %s", s)
-		}
+	var tip TipPriorityEnum
+	var err error
+	if err = tip.UnmarshalJSON(b); err == nil {
+		t.Priority = tip
 
 		return nil
 	}
@@ -309,8 +292,8 @@ func (t *TipPriority) UnmarshalJSON(b []byte) error {
 	type Alias TipPriority
 	var alias Alias
 
-	if err := json.Unmarshal(b, &alias); err != nil {
-		return fmt.Errorf("failed to unmarshal custom tip: %w", err)
+	if err2 := json.Unmarshal(b, &alias); err2 != nil {
+		return fmt.Errorf("failed to unmarshal tip priority: %w :%w", err2, err)
 	}
 
 	t.Custom = alias.Custom
@@ -318,17 +301,49 @@ func (t *TipPriority) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Relative tip priority
-type TipPriorityEnum string
+// An enum representing the desired tip priority for the
+// paymster transaction.
+type TipPriorityEnum int
 
 const (
-	// Relative tip priority
-	TipPrioritySlow TipPriorityEnum = "slow"
-	// Relative tip priority
-	TipPriorityNormal TipPriorityEnum = "normal"
-	// Relative tip priority
-	TipPriorityFast TipPriorityEnum = "fast"
+	// Slow tip priority (represents the "slow" string value)
+	TipPrioritySlow TipPriorityEnum = iota + 1
+	// Normal tip priority (represents the "normal" string value)
+	TipPriorityNormal
+	// Fast tip priority (represents the "fast" string value)
+	TipPriorityFast
 )
+
+// String returns the string representation of the TipPriorityEnum.
+func (tip TipPriorityEnum) String() string {
+	return []string{"slow", "normal", "fast"}[tip-1]
+}
+
+// MarshalJSON marshals the TipPriorityEnum to JSON.
+func (tip TipPriorityEnum) MarshalJSON() ([]byte, error) {
+	return strconv.AppendQuote(nil, tip.String()), nil
+}
+
+// UnmarshalJSON unmarshals the JSON data into a TipPriorityEnum.
+func (tip *TipPriorityEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+
+	switch s {
+	case "slow":
+		*tip = TipPrioritySlow
+	case "normal":
+		*tip = TipPriorityNormal
+	case "fast":
+		*tip = TipPriorityFast
+	default:
+		return fmt.Errorf("invalid tip priority: %s", s)
+	}
+
+	return nil
+}
 
 // Object containing timestamps corresponding to `Execute After` and `Execute Before`
 type TimeBounds struct {
