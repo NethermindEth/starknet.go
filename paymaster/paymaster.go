@@ -24,8 +24,8 @@ type Paymaster struct {
 type paymasterInterface interface {
 	BuildTransaction(
 		ctx context.Context,
-		request *BuildTransactionRequest,
-	) (*BuildTransactionResponse, error)
+		request BuildTransactionRequest,
+	) (BuildTransactionResponse, error)
 	IsAvailable(ctx context.Context) (bool, error)
 	// More methods coming...
 }
