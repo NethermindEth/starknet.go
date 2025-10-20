@@ -198,38 +198,40 @@ func (u *UserParamVersion) UnmarshalJSON(b []byte) error {
 }
 
 // An enum representing the fee mode to use for the transaction
-type FeeModeType string
+type FeeModeType int
 
 const (
 	// Specify that the transaction should be sponsored. This argument does not
-	// guaranteed sponsorship and will depend on the paymaster provider
-	FeeModeSponsored FeeModeType = "sponsored"
-	// Default fee mode where the transaction is paid by the user in the given gas token
-	FeeModeDefault FeeModeType = "default"
+	// guaranteed sponsorship and will depend on the paymaster provider.
+	// Represents the "sponsored" string value.
+	FeeModeSponsored FeeModeType = iota + 1
+	// Default fee mode where the transaction is paid by the user in the given gas token.
+	// Represents the "default" string value.
+	FeeModeDefault
 )
 
-// MarshalJSON marshals the FeeModeType to JSON.
-func (feeMode FeeModeType) MarshalJSON() ([]byte, error) {
-	switch feeMode {
-	case FeeModeSponsored, FeeModeDefault:
-		return json.Marshal(string(feeMode))
-	}
+// String returns the string representation of the FeeModeType.
+func (fee FeeModeType) String() string {
+	return []string{"sponsored", "default"}[fee-1]
+}
 
-	return nil, fmt.Errorf("invalid fee mode: %s", feeMode)
+// MarshalJSON marshals the FeeModeType to JSON.
+func (fee FeeModeType) MarshalJSON() ([]byte, error) {
+	return strconv.AppendQuote(nil, fee.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a FeeModeType.
-func (feeMode *FeeModeType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+func (fee *FeeModeType) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
 
 	switch s {
 	case "sponsored":
-		*feeMode = FeeModeSponsored
+		*fee = FeeModeSponsored
 	case "default":
-		*feeMode = FeeModeDefault
+		*fee = FeeModeDefault
 	default:
 		return fmt.Errorf("invalid fee mode: %s", s)
 	}
