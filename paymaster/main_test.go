@@ -1,12 +1,15 @@
 package paymaster
 
 import (
+	"context"
+	"encoding/json"
 	"os"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -34,7 +37,7 @@ func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.Spyer) {
 	require.NotEmpty(t, apiKey, "AVNU_API_KEY is not set")
 	apiHeader := client.WithHeader("x-paymaster-api-key", apiKey)
 
-	pm, err := New(avnuPaymasterURL, apiHeader)
+	pm, err := New(context.Background(), avnuPaymasterURL, apiHeader)
 	require.NoError(t, err, "failed to create paymaster client")
 
 	spy := tests.NewJSONRPCSpy(pm.c, debug...)
@@ -54,4 +57,22 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 	}
 
 	return mpm
+}
+
+// CompareEnumsHelper compares an enum type with the expected value and error expected.
+func CompareEnumsHelper[T any](t *testing.T, input string, expected T, errorExpected bool) {
+	t.Helper()
+
+	var actual T
+	err := json.Unmarshal([]byte(input), &actual)
+	if errorExpected {
+		assert.Error(t, err)
+	} else {
+		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+
+		marshalled, err := json.Marshal(actual)
+		assert.NoError(t, err)
+		assert.Equal(t, input, string(marshalled))
+	}
 }
