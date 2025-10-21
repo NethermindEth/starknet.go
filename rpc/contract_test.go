@@ -1026,7 +1026,7 @@ func TestGetStorageProof(t *testing.T) {
 
 	testConfig := BeforeEach(t, false)
 
-	provider, err := NewProvider(testConfig.Base)
+	provider, err := NewProvider(t.Context(), testConfig.Base)
 	require.NoError(t, err)
 	spy := tests.NewJSONRPCSpy(provider.c)
 	provider.c = spy

@@ -64,7 +64,11 @@ func (ws *WsProvider) Close() {
 }
 
 // NewProvider creates a new HTTP rpc Provider instance.
-func NewProvider(url string, options ...client.ClientOption) (*Provider, error) {
+func NewProvider(
+	ctx context.Context,
+	url string,
+	options ...client.ClientOption,
+) (*Provider, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
@@ -72,7 +76,7 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
-	c, err := client.DialOptions(context.Background(), url, options...)
+	c, err := client.DialOptions(ctx, url, options...)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +90,11 @@ func NewProvider(url string, options ...client.ClientOption) (*Provider, error) 
 }
 
 // NewWebsocketProvider creates a new Websocket rpc Provider instance.
-func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvider, error) {
+func NewWebsocketProvider(
+	ctx context.Context,
+	url string,
+	options ...client.ClientOption,
+) (*WsProvider, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
@@ -95,7 +103,7 @@ func NewWebsocketProvider(url string, options ...client.ClientOption) (*WsProvid
 
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
-	c, err := client.DialOptions(context.Background(), url, options...)
+	c, err := client.DialOptions(ctx, url, options...)
 	if err != nil {
 		return nil, err
 	}

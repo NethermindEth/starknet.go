@@ -125,7 +125,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			var err error
 			if tests.TEST_ENV == "testnet" {
 				var client *rpc.Provider
-				client, err = rpc.NewProvider(tConfig.providerURL)
+				client, err = rpc.NewProvider(t.Context(), tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
 				acc, err = account.NewAccount(
 					client,
@@ -212,7 +212,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		require.NoError(t, err)
 	}
 	if tests.TEST_ENV == "testnet" {
-		client, err := rpc.NewProvider(tConfig.providerURL)
+		client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = account.NewAccount(
 			client,
