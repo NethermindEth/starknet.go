@@ -470,7 +470,7 @@ func TestBuildTransaction(t *testing.T) {
 				t.Context(),
 				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 				"paymaster_buildTransaction",
-				request,
+				&request,
 			).Return(nil).
 				SetArg(1, response)
 
@@ -525,7 +525,7 @@ func TestBuildTransaction(t *testing.T) {
 				t.Context(),
 				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 				"paymaster_buildTransaction",
-				request,
+				&request,
 			).Return(nil).
 				SetArg(1, response)
 
@@ -580,7 +580,7 @@ func TestBuildTransaction(t *testing.T) {
 					t.Context(),
 					gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 					"paymaster_buildTransaction",
-					request,
+					&request,
 				).Return(nil).
 					SetArg(1, response)
 
