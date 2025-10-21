@@ -29,7 +29,7 @@ func main() {
 	wsProviderURL := setup.GetWsProviderURL()
 
 	// Initialise connection to RPC provider
-	provider, err := rpc.NewProvider(rpcProviderURL)
+	provider, err := rpc.NewProvider(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %v", err))
 	}
@@ -329,7 +329,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
 	fmt.Println()
 	fmt.Println(" ----- 4. filter with websocket -----")
 
-	wsProvider, err := rpc.NewWebsocketProvider(websocketURL)
+	wsProvider, err := rpc.NewWebsocketProvider(context.Background(), websocketURL)
 	if err != nil {
 		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}
