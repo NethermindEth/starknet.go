@@ -23,7 +23,7 @@ import (
 //   - error: An error if the request fails
 func (p *Paymaster) BuildTransaction(
 	ctx context.Context,
-	request BuildTransactionRequest,
+	request *BuildTransactionRequest,
 ) (BuildTransactionResponse, error) {
 	var response BuildTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(
