@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Changed
+- The `rpc.NewProvider` and `rpc.NewWebsocketProvider` functions now accept a `context.Context` parameter.
+
 ## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added
 - New `client/rpcerr` package for handling RPC errors.
