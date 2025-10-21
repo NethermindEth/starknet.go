@@ -55,7 +55,7 @@ type callCloser interface {
 // Returns:
 //   - *Paymaster: A new paymaster client instance
 //   - error: An error if the client creation fails
-func New(url string, options ...client.ClientOption) (*Paymaster, error) {
+func New(ctx context.Context, url string, options ...client.ClientOption) (*Paymaster, error) {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func New(url string, options ...client.ClientOption) (*Paymaster, error) {
 	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
 	// prepend the custom client to allow users to override
 	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
-	c, err := client.DialOptions(context.Background(), url, options...)
+	c, err := client.DialOptions(ctx, url, options...)
 	if err != nil {
 		return nil, err
 	}
