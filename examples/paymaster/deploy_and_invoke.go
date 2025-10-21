@@ -91,7 +91,7 @@ func deployAndInvokeWithPaymaster() {
 	// REMEMBER: this will only work if you have a valid API key configured.
 	//
 	// A full explanation about the paymaster_buildTransaction method can be found in the `main.go` file of this same example.
-	builtTxn, err := paymaster.BuildTransaction(context.Background(), pm.BuildTransactionRequest{
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
 		Transaction: pm.UserTransaction{
 			Type: pm.UserTxnDeployAndInvoke, // we are building an `deploy_and_invoke` transaction
 
@@ -148,7 +148,7 @@ func deployAndInvokeWithPaymaster() {
 	// With our built deploy_and_invoke transaction, we can send it to the paymaster by calling the `paymaster_executeTransaction` method.
 	response, err := paymaster.ExecuteTransaction(
 		context.Background(),
-		pm.ExecuteTransactionRequest{
+		&pm.ExecuteTransactionRequest{
 			Transaction: pm.ExecutableUserTransaction{
 				Type: pm.UserTxnDeployAndInvoke,
 

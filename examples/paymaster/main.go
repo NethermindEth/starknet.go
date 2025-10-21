@@ -109,7 +109,7 @@ func main() {
 	)
 
 	// Now that we have the invoke data, we will build the transaction by calling the `paymaster_buildTransaction` method.
-	builtTxn, err := paymaster.BuildTransaction(context.Background(), pm.BuildTransactionRequest{
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
 		Transaction: pm.UserTransaction{
 			Type:   pm.UserTxnInvoke, // we are building an `invoke` transaction
 			Invoke: invokeData,
@@ -188,7 +188,7 @@ func main() {
 	// NOTE: this is the final step, the transaction will be executed and the fees will be paid by us in the specified gas token.
 	response, err := paymaster.ExecuteTransaction(
 		context.Background(),
-		pm.ExecuteTransactionRequest{
+		&pm.ExecuteTransactionRequest{
 			Transaction: pm.ExecutableUserTransaction{
 				Type: pm.UserTxnInvoke,
 				Invoke: &pm.ExecutableUserInvoke{

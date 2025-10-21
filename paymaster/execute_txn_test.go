@@ -1,7 +1,6 @@
 package paymaster
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -55,7 +54,7 @@ func TestExecuteTransaction(t *testing.T) {
 				},
 			}
 
-			resp, err := pm.ExecuteTransaction(context.Background(), request)
+			resp, err := pm.ExecuteTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
@@ -109,7 +108,7 @@ func TestExecuteTransaction(t *testing.T) {
 				},
 			}
 
-			resp, err := pm.ExecuteTransaction(context.Background(), request)
+			resp, err := pm.ExecuteTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
@@ -162,7 +161,7 @@ func TestExecuteTransaction(t *testing.T) {
 				},
 			}
 
-			resp, err := pm.ExecuteTransaction(context.Background(), request)
+			resp, err := pm.ExecuteTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			t.Log("transaction successfully executed")
@@ -222,14 +221,14 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Log("setting up mock paymaster and mock call")
 			pm := SetupMockPaymaster(t)
 			pm.c.EXPECT().CallContextWithSliceArgs(
-				context.Background(),
+				t.Context(),
 				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
 				"paymaster_executeTransaction",
 				request,
 			).Return(nil).
 				SetArg(1, response)
 
-			resp, err := pm.ExecuteTransaction(context.Background(), request)
+			resp, err := pm.ExecuteTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -267,7 +266,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Log("setting up mock paymaster and mock call")
 			pm := SetupMockPaymaster(t)
 			pm.c.EXPECT().CallContextWithSliceArgs(
-				context.Background(),
+				t.Context(),
 				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
 				"paymaster_executeTransaction",
 				request,
@@ -275,7 +274,7 @@ func TestExecuteTransaction(t *testing.T) {
 				SetArg(1, response)
 
 			t.Log("executing the invoke transaction in the mock paymaster")
-			resp, err := pm.ExecuteTransaction(context.Background(), request)
+			resp, err := pm.ExecuteTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -313,7 +312,7 @@ func TestExecuteTransaction(t *testing.T) {
 			t.Log("setting up mock paymaster and mock call")
 			pm := SetupMockPaymaster(t)
 			pm.c.EXPECT().CallContextWithSliceArgs(
-				context.Background(),
+				t.Context(),
 				gomock.AssignableToTypeOf(new(ExecuteTransactionResponse)),
 				"paymaster_executeTransaction",
 				request,
@@ -321,7 +320,7 @@ func TestExecuteTransaction(t *testing.T) {
 				SetArg(1, response)
 
 			t.Log("executing the deploy_and_invoke transaction in the mock paymaster")
-			resp, err := pm.ExecuteTransaction(context.Background(), request)
+			resp, err := pm.ExecuteTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -384,7 +383,7 @@ func buildDeployTxn(
 
 	t.Log("calling paymaster_buildTransaction method")
 
-	resp, err := pm.BuildTransaction(context.Background(), BuildTransactionRequest{
+	resp, err := pm.BuildTransaction(t.Context(), &BuildTransactionRequest{
 		Transaction: UserTransaction{
 			Type:       UserTxnDeploy,
 			Deployment: deploymentData,
@@ -444,7 +443,7 @@ func buildInvokeTxn(
 
 	t.Log("calling paymaster_buildTransaction method")
 
-	resp, err := pm.BuildTransaction(context.Background(), BuildTransactionRequest{
+	resp, err := pm.BuildTransaction(t.Context(), &BuildTransactionRequest{
 		Transaction: UserTransaction{
 			Type:   UserTxnInvoke,
 			Invoke: invokeData,
@@ -478,7 +477,7 @@ func buildDeployAndInvokeTxn(
 
 	t.Log("calling paymaster_buildTransaction method")
 
-	resp, err := pm.BuildTransaction(context.Background(), BuildTransactionRequest{
+	resp, err := pm.BuildTransaction(t.Context(), &BuildTransactionRequest{
 		Transaction: UserTransaction{
 			Type:       UserTxnDeployAndInvoke,
 			Deployment: deploymentData,

@@ -20,7 +20,7 @@ import (
 //   - error: An error if any error occurs
 func (p *Paymaster) ExecuteTransaction(
 	ctx context.Context,
-	request ExecuteTransactionRequest,
+	request *ExecuteTransactionRequest,
 ) (ExecuteTransactionResponse, error) {
 	var response ExecuteTransactionResponse
 	if err := p.c.CallContextWithSliceArgs(

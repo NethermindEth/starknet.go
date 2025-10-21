@@ -28,11 +28,11 @@ type paymasterInterface interface {
 	TrackingIDToLatestHash(ctx context.Context, trackingID *felt.Felt) (TrackingIDResponse, error)
 	BuildTransaction(
 		ctx context.Context,
-		request BuildTransactionRequest,
+		request *BuildTransactionRequest,
 	) (BuildTransactionResponse, error)
 	ExecuteTransaction(
 		ctx context.Context,
-		request ExecuteTransactionRequest,
+		request *ExecuteTransactionRequest,
 	) (ExecuteTransactionResponse, error)
 }
 

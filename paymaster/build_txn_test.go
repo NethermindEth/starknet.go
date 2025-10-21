@@ -1,7 +1,6 @@
 package paymaster
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -273,7 +272,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), request)
+				resp, err := pm.BuildTransaction(t.Context(), &request)
 				require.NoError(t, err)
 
 				rawResp, err := json.Marshal(resp)
@@ -295,7 +294,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				_, err := pm.BuildTransaction(context.Background(), request)
+				_, err := pm.BuildTransaction(t.Context(), &request)
 				require.Error(
 					t,
 					err,
@@ -326,7 +325,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), request)
+				resp, err := pm.BuildTransaction(t.Context(), &request)
 				require.NoError(t, err)
 				// The default tip priority is normal
 				assert.Equal(t, TipPriorityNormal, resp.Parameters.FeeMode.Tip.Priority)
@@ -353,7 +352,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), request)
+				resp, err := pm.BuildTransaction(t.Context(), &request)
 				require.NoError(t, err)
 
 				assert.Equal(t, customTip, *resp.Parameters.FeeMode.Tip.Custom)
@@ -392,7 +391,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), request)
+				resp, err := pm.BuildTransaction(t.Context(), &request)
 				require.NoError(t, err)
 
 				assert.Equal(t, TipPrioritySlow, resp.Parameters.FeeMode.Tip.Priority)
@@ -418,7 +417,7 @@ func TestBuildTransaction(t *testing.T) {
 					},
 				}
 
-				resp, err := pm.BuildTransaction(context.Background(), request)
+				resp, err := pm.BuildTransaction(t.Context(), &request)
 				require.NoError(t, err)
 
 				assert.Equal(t, TipPriorityFast, resp.Parameters.FeeMode.Tip.Priority)
@@ -468,14 +467,14 @@ func TestBuildTransaction(t *testing.T) {
 
 			pm := SetupMockPaymaster(t)
 			pm.c.EXPECT().CallContextWithSliceArgs(
-				context.Background(),
+				t.Context(),
 				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 				"paymaster_buildTransaction",
 				request,
 			).Return(nil).
 				SetArg(1, response)
 
-			resp, err := pm.BuildTransaction(context.Background(), request)
+			resp, err := pm.BuildTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -523,14 +522,14 @@ func TestBuildTransaction(t *testing.T) {
 
 			pm := SetupMockPaymaster(t)
 			pm.c.EXPECT().CallContextWithSliceArgs(
-				context.Background(),
+				t.Context(),
 				gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 				"paymaster_buildTransaction",
 				request,
 			).Return(nil).
 				SetArg(1, response)
 
-			resp, err := pm.BuildTransaction(context.Background(), request)
+			resp, err := pm.BuildTransaction(t.Context(), &request)
 			require.NoError(t, err)
 
 			rawResp, err := json.Marshal(resp)
@@ -578,14 +577,14 @@ func TestBuildTransaction(t *testing.T) {
 
 				pm := SetupMockPaymaster(t)
 				pm.c.EXPECT().CallContextWithSliceArgs(
-					context.Background(),
+					t.Context(),
 					gomock.AssignableToTypeOf(new(BuildTransactionResponse)),
 					"paymaster_buildTransaction",
 					request,
 				).Return(nil).
 					SetArg(1, response)
 
-				resp, err := pm.BuildTransaction(context.Background(), request)
+				resp, err := pm.BuildTransaction(t.Context(), &request)
 				require.NoError(t, err)
 
 				rawResp, err := json.Marshal(resp)
