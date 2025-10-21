@@ -26,6 +26,10 @@ type paymasterInterface interface {
 		ctx context.Context,
 		request *BuildTransactionRequest,
 	) (BuildTransactionResponse, error)
+	ExecuteTransaction(
+		ctx context.Context,
+		request *ExecuteTransactionRequest,
+	) (ExecuteTransactionResponse, error)
 	IsAvailable(ctx context.Context) (bool, error)
 	// More methods coming...
 }
