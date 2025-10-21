@@ -80,7 +80,7 @@ func TestCookieManagement(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewProvider(server.URL)
+	client, err := NewProvider(t.Context(), server.URL)
 	require.Nil(t, err)
 
 	resp, err := client.ChainID(context.Background())
@@ -175,7 +175,7 @@ func TestVersionCompatibility(t *testing.T) {
 
 			// Create provider with query parameter - this will trigger the version check
 			serverURL := testServer.URL + "?nodeVersion=" + tc.nodeVersion
-			provider, err := NewProvider(serverURL)
+			provider, err := NewProvider(context.Background(), serverURL)
 			require.NoError(t, err)
 			require.NotNil(t, provider)
 

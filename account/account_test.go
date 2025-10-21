@@ -181,7 +181,7 @@ func TestChainId(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(tConfig.providerURL)
+		client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
 		acc, err := account.NewAccount(

@@ -16,7 +16,7 @@ func main() {
 	wsProviderURL := setup.GetWsProviderURL()
 
 	// Initialise connection to WS provider
-	wsClient, err := rpc.NewWebsocketProvider(wsProviderURL)
+	wsClient, err := rpc.NewWebsocketProvider(context.Background(), wsProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the WS provider: %s", err))
 	}
