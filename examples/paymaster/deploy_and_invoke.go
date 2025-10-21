@@ -33,6 +33,7 @@ func deployAndInvokeWithPaymaster() {
 	// In the AVNU paymaster, the API key is a http header called `x-paymaster-api-key`.
 	// In the current Starknet.go client, you can set a custom http header using the `client.WithHeader` option.
 	paymaster, err := pm.New(
+		context.Background(),
 		AVNUPaymasterURL,
 		client.WithHeader("x-paymaster-api-key", AVNUApiKey),
 	)

@@ -53,7 +53,7 @@ func main() {
 	// ************* done *************
 
 	// Initialise connection to the paymaster provider - AVNU Sepolia in this case
-	paymaster, err := pm.New(AVNUPaymasterURL)
+	paymaster, err := pm.New(context.Background(), AVNUPaymasterURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to the paymaster provider: %s", err))
 	}
