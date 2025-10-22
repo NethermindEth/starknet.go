@@ -779,9 +779,8 @@ func (c *Client) read(codec ServerCodec) {
 	}
 }
 
-// ShouldIgnoreWarning returns whether the warning message should be ignored.
-// This method is made to be used by the starknet.go provider to check whether
-// the warning message should be printed or not.
+// ShouldIgnoreWarning is made to be used by the starknet.go provider to check whether
+// the warning message about the version compatibility should be printed or not.
 func (c *Client) ShouldIgnoreWarning() bool {
 	return c.ignoreWarning
 }
