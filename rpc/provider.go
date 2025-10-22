@@ -83,8 +83,10 @@ func NewProvider(
 
 	provider := &Provider{c: c, chainID: ""}
 
-	// Check version compatibility
-	checkVersionCompatibility(provider)
+	if !c.ShouldIgnoreWarning() {
+		// Check version compatibility
+		checkVersionCompatibility(provider)
+	}
 
 	return provider, nil
 }
