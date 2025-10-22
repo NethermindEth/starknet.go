@@ -2,7 +2,9 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
@@ -24,4 +26,31 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 	}
 
 	return result, nil
+}
+
+// IsCompatible compares the version of the Starknet JSON-RPC Specification
+// implemented by the node with the version implemented by the Provider type,
+// and returns whether they are the same or not.
+//
+// Parameters:
+//   - ctx: The context for the function.
+//
+// Returns:
+//   - bool: True if the node version is compatible with the SDK version, false otherwise.
+//   - error: An error if any.
+func (provider *Provider) IsCompatible(ctx context.Context) (bool, error) {
+	rawNodeVersion, err := provider.SpecVersion(ctx)
+	if err != nil {
+		// Print a warning but don't fail
+		fmt.Println(warnVersionCheckFailed, err)
+
+		return false, err
+	}
+
+	nodeVersion, err := semver.NewVersion(rawNodeVersion)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse node version: %w", err)
+	}
+
+	return rpcVersion.Compare(nodeVersion) == 0, nil
 }
