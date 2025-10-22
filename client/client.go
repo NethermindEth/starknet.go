@@ -104,6 +104,11 @@ type Client struct {
 	reqInit     chan *requestOp  // register response IDs, takes write lock
 	reqSent     chan error       // signals write completion, releases write lock
 	reqTimeout  chan *requestOp  // removes response IDs when call timeout expires
+
+	// custom field for the starknet.go provider, used to ignore the warning message
+	// when the node RPC version is different from the version implemented by the
+	// starknet.go provider.
+	ignoreWarning bool
 }
 
 // ClientInt is an interface with some methods of the Client type with the purpose of
@@ -267,6 +272,8 @@ func initClient(conn ServerCodec, services *serviceRegistry, cfg *clientConfig) 
 		reqInit:              make(chan *requestOp),
 		reqSent:              make(chan error, 1),
 		reqTimeout:           make(chan *requestOp),
+
+		ignoreWarning: cfg.ignoreWarning,
 	}
 
 	// Set defaults.
@@ -770,4 +777,11 @@ func (c *Client) read(codec ServerCodec) {
 		}
 		c.readOp <- readOp{msgs, batch}
 	}
+}
+
+// ShouldIgnoreWarning returns whether the warning message should be ignored.
+// This method is made to be used by the starknet.go provider to check whether
+// the warning message should be printed or not.
+func (c *Client) ShouldIgnoreWarning() bool {
+	return c.ignoreWarning
 }

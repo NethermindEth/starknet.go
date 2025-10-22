@@ -41,6 +41,11 @@ type clientConfig struct {
 	idgen              func() ID
 	batchItemLimit     int
 	batchResponseLimit int
+
+	// custom field for the starknet.go provider, used to ignore the warning message
+	// when the node RPC version is different from the version implemented by the
+	// starknet.go provider.
+	ignoreWarning bool
 }
 
 func (cfg *clientConfig) initHeaders() {
@@ -141,5 +146,15 @@ func WithBatchItemLimit(limit int) ClientOption {
 func WithBatchResponseSizeLimit(sizeLimit int) ClientOption {
 	return optionFunc(func(cfg *clientConfig) {
 		cfg.batchResponseLimit = sizeLimit
+	})
+}
+
+// IgnoreWarning is a custom option made to be used when creating a new starknet.go
+// provider. It configures the SDK to not print the warning message when the node
+// RPC version is different from the version implemented by the starknet.go 
+// provider.
+func IgnoreWarning() ClientOption {
+	return optionFunc(func(cfg *clientConfig) {
+		cfg.ignoreWarning = true
 	})
 }
