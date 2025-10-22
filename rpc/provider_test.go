@@ -151,13 +151,13 @@ func TestVersionCompatibility(t *testing.T) {
 	}{
 		{
 			name:            "Compatible version",
-			nodeVersion:     rpcVersion,
+			nodeVersion:     rpcVersion.String(),
 			expectedWarning: "",
 		},
 		{
 			name:            "Incompatible version",
 			nodeVersion:     diffNodeVersion,
-			expectedWarning: "warning: the RPC provider version is " + diffNodeVersion + ", and is different from the version " + rpcVersion + " implemented by the SDK. This may cause unexpected behaviour.",
+			expectedWarning: "warning: the RPC provider version is " + diffNodeVersion + ", and is different from the version " + rpcVersion.String() + " implemented by the SDK. This may cause unexpected behaviour.",
 		},
 		{
 			name:            "Error fetching version",

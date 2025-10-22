@@ -8,6 +8,7 @@ import (
 	"net/http/cookiejar"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/contracts"
@@ -18,7 +19,7 @@ import (
 // rpcVersion is the version of the Starknet JSON-RPC specification that
 // this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
-const rpcVersion = "0.9.0"
+var rpcVersion = semver.MustParse("0.9.0")
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
@@ -42,7 +43,7 @@ func checkVersionCompatibility(provider *Provider) {
 		return
 	}
 
-	if !strings.Contains(version, rpcVersion) {
+	if !strings.Contains(version, rpcVersion.String()) {
 		fmt.Println(fmt.Sprintf(warnVersionMismatch, version, rpcVersion))
 	}
 }
