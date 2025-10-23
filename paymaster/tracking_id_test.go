@@ -28,17 +28,17 @@ func TestTxnStatusType(t *testing.T) {
 	testCases := []testCase{
 		{
 			Input:         `"active"`,
-			Expected:      TxnActive,
+			Expected:      TxnStatusActive,
 			ErrorExpected: false,
 		},
 		{
 			Input:         `"accepted"`,
-			Expected:      TxnAccepted,
+			Expected:      TxnStatusAccepted,
 			ErrorExpected: false,
 		},
 		{
 			Input:         `"dropped"`,
-			Expected:      TxnDropped,
+			Expected:      TxnStatusDropped,
 			ErrorExpected: false,
 		},
 		{
@@ -85,7 +85,7 @@ func TestTrackingIdToLatestHash(t *testing.T) {
 
 	response, err := pm.TrackingIDToLatestHash(context.Background(), trackingID)
 	require.NoError(t, err)
-	assert.Equal(t, TxnActive, response.Status)
+	assert.Equal(t, TxnStatusActive, response.Status)
 	assert.Equal(t, expectedResp.TransactionHash, response.TransactionHash)
 
 	rawResp, err := json.Marshal(response)

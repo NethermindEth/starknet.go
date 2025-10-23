@@ -2,8 +2,8 @@ package paymaster
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
@@ -49,43 +49,46 @@ type TrackingIDResponse struct {
 }
 
 // An enum representing the status of the transaction associated with a tracking ID
-type TxnStatus string
+type TxnStatus int
 
 const (
 	// Indicates that the latest transaction associated with the ID is not yet
-	// included in a block but is still being handled and monitored by the paymaster
-	TxnActive TxnStatus = "active"
-	// Indicates that a transaction associated with the ID has been accepted on L2
-	TxnAccepted TxnStatus = "accepted"
+	// included in a block but is still being handled and monitored by the paymaster.
+	// Represents the "active" string value.
+	TxnStatusActive TxnStatus = iota + 1
+	// Indicates that a transaction associated with the ID has been accepted on L2.
+	// Represents the "accepted" string value.
+	TxnStatusAccepted
 	// Indicates that no transaction associated with the ID managed to enter a block
-	// and the request has been dropped by the paymaster
-	TxnDropped TxnStatus = "dropped"
+	// and the request has been dropped by the paymaster.
+	// Represents the "dropped" string value.
+	TxnStatusDropped
 )
+
+// String returns the string representation of the TxnStatus.
+func (t TxnStatus) String() string {
+	return []string{"active", "accepted", "dropped"}[t-1]
+}
 
 // MarshalJSON marshals the TxnStatus to JSON.
 func (t TxnStatus) MarshalJSON() ([]byte, error) {
-	switch t {
-	case TxnActive, TxnAccepted, TxnDropped:
-		return json.Marshal(string(t))
-	}
-
-	return nil, fmt.Errorf("invalid transaction status: %s", t)
+	return strconv.AppendQuote(nil, t.String()), nil
 }
 
 // UnmarshalJSON unmarshals the JSON data into a TxnStatus.
 func (t *TxnStatus) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
 		return err
 	}
 
 	switch s {
 	case "active":
-		*t = TxnActive
+		*t = TxnStatusActive
 	case "accepted":
-		*t = TxnAccepted
+		*t = TxnStatusAccepted
 	case "dropped":
-		*t = TxnDropped
+		*t = TxnStatusDropped
 	default:
 		return fmt.Errorf("invalid transaction status: %s", s)
 	}
