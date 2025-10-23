@@ -136,6 +136,9 @@ formatters:
     - gofumpt
     - goimports
     - golines
+  exclusions:
+    paths:
+      - client/ # it comes from go-ethereum, let's refactor it another time
   settings:
     golines:
       max-len: 100
