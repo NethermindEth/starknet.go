@@ -1,7 +1,6 @@
 package paymaster
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -19,7 +18,7 @@ func TestGetSupportedTokens(t *testing.T) {
 		t.Parallel()
 
 		pm, spy := SetupPaymaster(t)
-		tokens, err := pm.GetSupportedTokens(context.Background())
+		tokens, err := pm.GetSupportedTokens(t.Context())
 		require.NoError(t, err)
 
 		rawResult, err := json.Marshal(tokens)
@@ -61,10 +60,14 @@ func TestGetSupportedTokens(t *testing.T) {
 		require.NoError(t, err)
 
 		pm.c.EXPECT().
-			CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new([]TokenData)), "paymaster_getSupportedTokens").
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.AssignableToTypeOf(new([]TokenData)),
+				"paymaster_getSupportedTokens",
+			).
 			SetArg(1, expectedResult).
 			Return(nil)
-		result, err := pm.GetSupportedTokens(context.Background())
+		result, err := pm.GetSupportedTokens(t.Context())
 		assert.NoError(t, err)
 		assert.Equal(t, expectedResult, result)
 
