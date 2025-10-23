@@ -73,7 +73,7 @@ func NewProvider(
 			fmt.Println(warnVersionCheckFailed, err)
 		}
 		if !isCompatible {
-			fmt.Println(warnVersionMismatch, nodeVersion, rpcVersion.String())
+			fmt.Println(fmt.Sprintf(warnVersionMismatch, nodeVersion, rpcVersion))
 		}
 	}
 
