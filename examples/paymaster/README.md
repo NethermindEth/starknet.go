@@ -1,4 +1,4 @@
-This example demonstrates how to send transactions on Starknet with a paymaster using the Starkent.go SNIP-29 implementation, allowing you to pay fees with tokens other than STRK.
+This example demonstrates how to send transactions on Starknet with a paymaster using the Starkent.go [SNIP-29](https://github.com/starknet-io/SNIPs/blob/dfd91b275ea65413f8c8aedb26677a8afff70f37/SNIPS/snip-29.md) implementation, allowing you to pay fees with tokens other than STRK.
 It has three files: main.go, deploy.go, and deploy_and_invoke.go.
 
 The main.go file shows how to send an invoke transaction using a paymaster with the "default" fee mode, where you pay fees using supported tokens (like STRK). It demonstrates the complete 3-step process: building the transaction via the paymaster, signing it with your account, and executing the transaction.
