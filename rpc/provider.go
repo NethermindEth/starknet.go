@@ -55,9 +55,9 @@ func (ws *WsProvider) Close() {
 // Returns:
 //   - *Provider: The new Provider instance.
 //   - error: An error if any.
-//			If the node JSON-RPC specification version is different from the version
-// 			implemented by the Provider type, the ErrIncompatibleVersion will be returned,
-// 		  but the returned Provider instance is valid.
+//     If the node JSON-RPC specification version is different from the version
+//     implemented by the Provider type, the ErrIncompatibleVersion will be returned,
+//     but the returned Provider instance is valid.
 func NewProvider(
 	ctx context.Context,
 	url string,

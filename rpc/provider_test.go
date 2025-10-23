@@ -1,15 +1,13 @@
 package rpc
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
@@ -116,29 +114,13 @@ func TestVersionCompatibility(t *testing.T) {
 			// get node version from query parameter
 			nodeVersion := r.URL.Query().Get("nodeVersion")
 
-			if nodeVersion != "" {
-				// Return the same version as RPCVersion
-				data := map[string]interface{}{
-					"jsonrpc": "2.0",
-					"id":      request["id"],
-					"result":  nodeVersion,
-				}
-				if err := json.NewEncoder(w).Encode(data); err != nil {
-					log.Fatal(err)
-				}
-			} else {
-				// Return an error
-				data := map[string]interface{}{
-					"jsonrpc": "2.0",
-					"id":      request["id"],
-					"error": map[string]interface{}{
-						"code":    -32601,
-						"message": "Method not found",
-					},
-				}
-				if err := json.NewEncoder(w).Encode(data); err != nil {
-					log.Fatal(err)
-				}
+			data := map[string]interface{}{
+				"jsonrpc": "2.0",
+				"id":      request["id"],
+				"result":  nodeVersion,
+			}
+			if err := json.NewEncoder(w).Encode(data); err != nil {
+				log.Fatal(err)
 			}
 		}
 	}))
@@ -146,56 +128,39 @@ func TestVersionCompatibility(t *testing.T) {
 
 	// Test cases
 	testCases := []struct {
-		name            string
-		nodeVersion     string
-		expectedWarning string
+		name        string
+		nodeVersion string
+		expectedErr error
 	}{
 		{
-			name:            "Compatible version",
-			nodeVersion:     rpcVersion.String(),
-			expectedWarning: "",
+			name:        "Compatible version",
+			nodeVersion: rpcVersion.String(),
+			expectedErr: nil,
 		},
 		{
-			name:            "Incompatible version",
-			nodeVersion:     diffNodeVersion,
-			expectedWarning: "warning: the RPC provider version is " + diffNodeVersion + ", and is different from the version " + rpcVersion.String() + " implemented by the SDK. This may cause unexpected behaviour.",
-		},
-		{
-			name:            "Error fetching version",
-			nodeVersion:     "",
-			expectedWarning: warnVersionCheckFailed,
+			name:        "Incompatible version",
+			nodeVersion: diffNodeVersion,
+			expectedErr: errors.Join(
+				ErrIncompatibleVersion,
+				fmt.Errorf("expected version: %s, got: %s", rpcVersion, diffNodeVersion),
+			),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Capture stdout
-			old := os.Stdout
-			r, w, _ := os.Pipe()
-
-			os.Stdout = w
-
 			// Create provider with query parameter - this will trigger the version check
 			serverURL := testServer.URL + "?nodeVersion=" + tc.nodeVersion
 			provider, err := NewProvider(context.Background(), serverURL)
-			require.NoError(t, err)
-			require.NotNil(t, provider)
 
-			// Read captured output
-			require.NoError(t, w.Close())
-			os.Stdout = old
-			var buf bytes.Buffer
-			_, err = io.Copy(&buf, r)
-			require.NoError(t, err, "Failed to read from pipe")
-			output := buf.String()
-
-			// Check if warning is present as expected
-			if tc.expectedWarning == "" {
-				assert.Empty(t, output, "Expected no warning")
+			if tc.expectedErr == nil {
+				assert.NoError(t, err)
+				assert.NotNil(t, provider)
 			} else {
-				assert.Contains(t, output, tc.expectedWarning, "Expected warning not found")
+				assert.Error(t, err)
+				assert.EqualError(t, err, tc.expectedErr.Error())
+				assert.NotNil(t, provider)
 			}
-			require.NoError(t, r.Close())
 		})
 	}
 }
