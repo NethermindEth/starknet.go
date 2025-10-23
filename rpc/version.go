@@ -40,7 +40,9 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 //   - nodeVersion: The version of the Starknet JSON-RPC Specification implemented by the node.
 //   - err: An error if any.
 func (provider *Provider) IsCompatible(ctx context.Context) (
-	isCompatible bool, nodeVersion string, err error,
+	isCompatible bool,
+	nodeVersion string,
+	err error,
 ) {
 	rawNodeVersion, err := provider.SpecVersion(ctx)
 	if err != nil {

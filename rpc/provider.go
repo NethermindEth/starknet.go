@@ -24,10 +24,9 @@ var rpcVersion = semver.MustParse("0.9.0")
 var (
 	errNotFound = errors.New("not found")
 
-	// Warning messages for version compatibility
-	warnVersionCheckFailed = "warning: could not check RPC version compatibility"
-	//nolint:lll // The line break would be outputted in the warning message
-	warnVersionMismatch = `warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour.`
+	// ErrIncompatibleVersion is returned when the JSON-RPC specification  implemented
+	// by the node is different from the version implemented by the Provider type.
+	ErrIncompatibleVersion = errors.New("incompatible JSON-RPC specification version")
 )
 
 // Provider provides the provider for starknet.go/rpc implementation.
@@ -47,6 +46,18 @@ func (ws *WsProvider) Close() {
 }
 
 // NewProvider creates a new HTTP rpc Provider instance.
+//
+// Parameters:
+//   - ctx: The context for the function.
+//   - url: The URL of the RPC endpoint.
+//   - options: The options for the client.
+//
+// Returns:
+//   - *Provider: The new Provider instance.
+//   - error: An error if any.
+//			If the node JSON-RPC specification version is different from the version
+// 			implemented by the Provider type, the ErrIncompatibleVersion will be returned,
+// 		  but the returned Provider instance is valid.
 func NewProvider(
 	ctx context.Context,
 	url string,
@@ -69,10 +80,13 @@ func NewProvider(
 	// Check version compatibility
 	isCompatible, nodeVersion, err := provider.IsCompatible(ctx)
 	if err != nil {
-		fmt.Println(warnVersionCheckFailed, err)
+		return nil, err
 	}
 	if !isCompatible {
-		fmt.Println(fmt.Sprintf(warnVersionMismatch, nodeVersion, rpcVersion))
+		return provider, errors.Join(
+			ErrIncompatibleVersion,
+			fmt.Errorf("expected version: %s, got: %s", rpcVersion, nodeVersion),
+		)
 	}
 
 	return provider, nil
