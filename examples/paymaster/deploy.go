@@ -40,7 +40,7 @@ func deployWithPaymaster() {
 		client.WithHeader("x-paymaster-api-key", AVNUApiKey),
 	)
 	if err != nil {
-		panic(fmt.Sprintf("Error connecting to the paymaster provider with the API key: %s", err))
+		panic(fmt.Errorf("error connecting to the paymaster provider with the API key: %w", err))
 	}
 
 	fmt.Println("Established connection with the paymaster provider")
@@ -92,7 +92,7 @@ func deployWithPaymaster() {
 		},
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Error building the deploy transaction: %s", err))
+		panic(fmt.Errorf("error building the deploy transaction: %w", err))
 	}
 	fmt.Println("Transaction successfully built by the paymaster")
 	PrettyPrint(builtTxn)
@@ -124,7 +124,7 @@ func deployWithPaymaster() {
 		},
 	)
 	if err != nil {
-		panic(fmt.Sprintf("Error executing the deploy transaction with the paymaster: %s", err))
+		panic(fmt.Errorf("error executing the deploy transaction with the paymaster: %w", err))
 	}
 
 	fmt.Println("Deploy transaction successfully executed by the paymaster")

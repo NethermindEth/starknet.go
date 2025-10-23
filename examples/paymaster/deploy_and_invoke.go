@@ -38,7 +38,7 @@ func deployAndInvokeWithPaymaster() {
 		client.WithHeader("x-paymaster-api-key", AVNUApiKey),
 	)
 	if err != nil {
-		panic(fmt.Sprintf("Error connecting to the paymaster provider with the API key: %s", err))
+		panic(fmt.Errorf("error connecting to the paymaster provider with the API key: %w", err))
 	}
 
 	fmt.Println("Established connection with the paymaster provider")
@@ -74,7 +74,7 @@ func deployAndInvokeWithPaymaster() {
 	// The `deploy_and_invoke` transaction type requires both the deploy and invoke data in order to
 	// deploy the account and invoke a function within the same request.
 
-	// Here, we will execute a `mint` function in the `RAND_ERC20_CONTRACT_ADDRESS` contract, with the amount of `0xffffffff`.
+	// Here, we will execute a `mint` function in the `RandERC20ContractAddress` contract, with the amount of `0xffffffff`.
 	amount, _ := utils.HexToU256Felt("0xffffffff")
 	invokeData := &pm.UserInvoke{
 		UserAddress: precAddress, // The `user_address` is the address of the account that will be deployed.
@@ -110,7 +110,7 @@ func deployAndInvokeWithPaymaster() {
 		},
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Error building the deploy_and_invoke transaction: %s", err))
+		panic(fmt.Errorf("error building the deploy_and_invoke transaction: %w", err))
 	}
 	fmt.Println("Transaction successfully built by the paymaster")
 	PrettyPrint(builtTxn)
@@ -126,7 +126,7 @@ func deployAndInvokeWithPaymaster() {
 	// Firstly, get the message hash of the typed data using our precomputed account address as input.
 	messageHash, err := builtTxn.TypedData.GetMessageHash(precAddress.String())
 	if err != nil {
-		panic(fmt.Sprintf("Error getting the message hash of the typed data: %s", err))
+		panic(fmt.Errorf("error getting the message hash of the typed data: %w", err))
 	}
 	fmt.Println("Message hash of the typed data:", messageHash)
 
@@ -136,7 +136,7 @@ func deployAndInvokeWithPaymaster() {
 		privK,
 	) // You can also use the `curve` package to sign the message hash.
 	if err != nil {
-		panic(fmt.Sprintf("Error signing the transaction: %s", err))
+		panic(fmt.Errorf("error signing the transaction: %w", err))
 	}
 	signature := []*felt.Felt{r, s}
 
@@ -175,8 +175,8 @@ func deployAndInvokeWithPaymaster() {
 	)
 	if err != nil {
 		panic(
-			fmt.Sprintf(
-				"Error executing the deploy_and_invoke transaction with the paymaster: %s",
+			fmt.Errorf(
+				"error executing the deploy_and_invoke transaction with the paymaster: %w",
 				err,
 			),
 		)

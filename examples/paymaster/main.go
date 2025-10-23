@@ -44,7 +44,7 @@ func main() {
 	// Connect to a RPC provider to instantiate the account
 	client, err := rpc.NewProvider(context.Background(), rpcProviderURL)
 	if err != nil {
-		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
+		panic(fmt.Errorf("error dialling the RPC provider: %w", err))
 	}
 
 	// Instantiate the account to sign the transaction (we can also use the `curve` pkg for that, we'll see later)
@@ -55,7 +55,7 @@ func main() {
 	// Initialise connection to the paymaster provider - AVNU Sepolia in this case
 	paymaster, err := pm.New(context.Background(), AVNUPaymasterURL)
 	if err != nil {
-		panic(fmt.Sprintf("Error connecting to the paymaster provider: %s", err))
+		panic(fmt.Errorf("error connecting to the paymaster provider: %w", err))
 	}
 
 	fmt.Println("Established connection with the paymaster provider")
@@ -63,14 +63,14 @@ func main() {
 	// Check if the paymaster provider is available by calling the `paymaster_isAvailable` method
 	available, err := paymaster.IsAvailable(context.Background())
 	if err != nil {
-		panic(fmt.Sprintf("Error checking if the paymaster provider is available: %s", err))
+		panic(fmt.Errorf("error checking if the paymaster provider is available: %w", err))
 	}
 	fmt.Println("Is paymaster provider available?: ", available)
 
 	// Get the supported tokens by calling the `paymaster_getSupportedTokens` method
 	tokens, err := paymaster.GetSupportedTokens(context.Background())
 	if err != nil {
-		panic(fmt.Sprintf("Error getting the supported tokens: %s", err))
+		panic(fmt.Errorf("error getting the supported tokens: %w", err))
 	}
 	fmt.Println("\nSupported tokens:")
 	PrettyPrint(tokens)
@@ -88,7 +88,7 @@ func main() {
 	fmt.Println("Step 1: Build the transaction")
 
 	// Here we are declaring the invoke data for the transaction.
-	// It's a call to the `mint` function in the `RAND_ERC20_CONTRACT_ADDRESS` contract, with the amount of `0xffffffff`.
+	// It's a call to the `mint` function in the `RandERC20ContractAddress` contract, with the amount of `0xffffffff`.
 	amount, _ := utils.HexToU256Felt("0xffffffff")
 
 	invokeData := &pm.UserInvoke{
@@ -145,7 +145,7 @@ func main() {
 		},
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Error building the transaction: %s", err))
+		panic(fmt.Errorf("error building the transaction: %w", err))
 	}
 	fmt.Println("Transaction successfully built by the paymaster")
 
@@ -169,7 +169,7 @@ func main() {
 	// Firstly, get the message hash of the typed data using our account address as input.
 	messageHash, err := builtTxn.TypedData.GetMessageHash(acc.Address.String())
 	if err != nil {
-		panic(fmt.Sprintf("Error getting the message hash of the typed data: %s", err))
+		panic(fmt.Errorf("error getting the message hash of the typed data: %w", err))
 	}
 	fmt.Println("Message hash of the typed data:", messageHash)
 
@@ -177,7 +177,7 @@ func main() {
 	signature, err := acc.Sign(context.Background(), messageHash)
 	// r, s, err := curve.SignFelts(messageHash, privateKeyFelt) // You can also use the `curve` package to sign the message hash.
 	if err != nil {
-		panic(fmt.Sprintf("Error signing the transaction: %s", err))
+		panic(fmt.Errorf("error signing the transaction: %w", err))
 	}
 	fmt.Println("Transaction successfully signed")
 	PrettyPrint(signature)
@@ -210,7 +210,7 @@ func main() {
 		},
 	)
 	if err != nil {
-		panic(fmt.Sprintf("Error executing the txn with the paymaster: %s", err))
+		panic(fmt.Errorf("error executing the txn with the paymaster: %w", err))
 	}
 
 	fmt.Println("Transaction successfully executed by the paymaster")
