@@ -75,14 +75,14 @@ func TestExecuteTransaction(t *testing.T) {
 			privK, _, accAdd := GetStrkAccountData(t)
 			t.Log("account data fetched")
 
-			invokeTxn := buildInvokeTxn(t, pm, accAdd)
+			invokeTxn := buildInvokeTxn(t, pm, &accAdd)
 			assert.NotNil(t, invokeTxn)
 
 			mshHash, err := invokeTxn.TypedData.GetMessageHash(accAdd.String())
 			require.NoError(t, err)
 			t.Log("message hash:", mshHash)
 
-			r, s, err := curve.SignFelts(mshHash, privK)
+			r, s, err := curve.SignFelts(mshHash, &privK)
 			require.NoError(t, err)
 			t.Log("typed data signature:", r, s)
 
@@ -92,7 +92,7 @@ func TestExecuteTransaction(t *testing.T) {
 				Transaction: ExecutableUserTransaction{
 					Type: UserTxnInvoke,
 					Invoke: &ExecutableUserInvoke{
-						UserAddress: accAdd,
+						UserAddress: &accAdd,
 						TypedData:   invokeTxn.TypedData,
 						Signature:   []*felt.Felt{r, s},
 					},
@@ -332,7 +332,8 @@ func TestExecuteTransaction(t *testing.T) {
 
 // same as account.PrecomputeAccountAddress, but to avoid circular dependency
 func precomputeAccountAddress(
-	salt, classHash *felt.Felt,
+	salt,
+	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 ) *felt.Felt {
 	return contracts.PrecomputeAddress(&felt.Zero, salt, classHash, constructorCalldata)
