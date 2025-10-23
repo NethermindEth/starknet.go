@@ -12,7 +12,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -82,18 +81,18 @@ func TestCookieManagement(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider, err := NewProvider(t.Context(), server.URL)
+	client, err := NewProvider(t.Context(), server.URL)
 	require.Nil(t, err)
 
-	resp, err := provider.ChainID(context.Background())
+	resp, err := client.ChainID(context.Background())
 	require.NotNil(t, err)
 	require.Equal(t, resp, "")
 
-	resp, err = provider.ChainID(context.Background())
+	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
 	require.Equal(t, resp, "SN_SEPOLIA")
 
-	resp, err = provider.ChainID(context.Background())
+	resp, err = client.ChainID(context.Background())
 	require.Nil(t, err)
 	require.Equal(t, resp, "SN_SEPOLIA")
 }
@@ -197,32 +196,6 @@ func TestVersionCompatibility(t *testing.T) {
 				assert.Contains(t, output, tc.expectedWarning, "Expected warning not found")
 			}
 			require.NoError(t, r.Close())
-
-			t.Run("ignore warning", func(t *testing.T) {
-				// Capture again stdout
-				newR, newW, _ := os.Pipe()
-				os.Stdout = newW
-
-				// Create new provider with IgnoreWarning option
-				newProvider, err := NewProvider(
-					context.Background(),
-					serverURL,
-					client.IgnoreWarning(),
-				)
-				require.NoError(t, err)
-				require.NotNil(t, newProvider)
-
-				// Read captured output
-				require.NoError(t, newW.Close())
-				os.Stdout = old
-				var newBuf bytes.Buffer
-				_, err = io.Copy(&newBuf, newR)
-				require.NoError(t, err, "Failed to read from pipe")
-				newOutput := newBuf.String()
-
-				assert.Empty(t, newOutput, "Expected no warning due to the IgnoreWarning option")
-				require.NoError(t, newR.Close())
-			})
 		})
 	}
 }

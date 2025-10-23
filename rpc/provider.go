@@ -66,15 +66,13 @@ func NewProvider(
 
 	provider := &Provider{c: c, chainID: ""}
 
-	if !c.ShouldIgnoreWarning() {
-		// Check version compatibility
-		isCompatible, nodeVersion, err := provider.IsCompatible(ctx)
-		if err != nil {
-			fmt.Println(warnVersionCheckFailed, err)
-		}
-		if !isCompatible {
-			fmt.Println(fmt.Sprintf(warnVersionMismatch, nodeVersion, rpcVersion))
-		}
+	// Check version compatibility
+	isCompatible, nodeVersion, err := provider.IsCompatible(ctx)
+	if err != nil {
+		fmt.Println(warnVersionCheckFailed, err)
+	}
+	if !isCompatible {
+		fmt.Println(fmt.Sprintf(warnVersionMismatch, nodeVersion, rpcVersion))
 	}
 
 	return provider, nil
