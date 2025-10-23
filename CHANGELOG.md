@@ -15,8 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Added
+- New `rpc.IsCompatible` method to the `rpc.Provider` type. It returns whether the node RPC version is compatible
+with the version implemented by the starknet.go provider or not.
+- New `rpc.ErrIncompatibleVersion` error variable, used in the `rpc.NewProvider` function.
+
 ### Changed
 - The `rpc.NewProvider` and `rpc.NewWebsocketProvider` functions now accept a `context.Context` parameter.
+- The `rpc.NewProvider` function now returns an error if the node RPC version is different from the version
+implemented by the starknet.go provider. The returned Provider instance is still valid, but there might be
+unexpected behaviour.
+
+### Removed
+- The warning message when the node RPC version is different from the version implemented by the
+starknet.go provider when calling the `rpc.NewProvider` function. Now, an error is returned instead.
 
 ## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added

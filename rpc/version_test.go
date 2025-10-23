@@ -19,10 +19,10 @@ func TestSpecVersion(t *testing.T) {
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {{
-			ExpectedResp: rpcVersion,
+			ExpectedResp: rpcVersion.String(),
 		}},
 		tests.IntegrationEnv: {{
-			ExpectedResp: rpcVersion,
+			ExpectedResp: rpcVersion.String(),
 		}},
 	}[tests.TEST_ENV]
 
