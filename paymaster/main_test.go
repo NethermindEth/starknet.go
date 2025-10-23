@@ -63,18 +63,18 @@ func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 
 // GetStrkAccountData returns the STRK account data from the environment variables.
 // This is used for integration tests, where we need a real testnet account with STRK tokens.
-func GetStrkAccountData(t *testing.T) (privKey, pubKey, accountAddress *felt.Felt) {
+func GetStrkAccountData(t *testing.T) (privKey, pubKey, accountAddress felt.Felt) {
 	t.Helper()
 
 	strkPrivKey := os.Getenv("STARKNET_PRIVATE_KEY")
 	strkPubKey := os.Getenv("STARKNET_PUBLIC_KEY")
 	strkAccountAddress := os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
-	privKey = internalUtils.TestHexToFelt(t, strkPrivKey)
-	pubKey = internalUtils.TestHexToFelt(t, strkPubKey)
-	accountAddress = internalUtils.TestHexToFelt(t, strkAccountAddress)
+	tempPrivKey := internalUtils.TestHexToFelt(t, strkPrivKey)
+	tempPubKey := internalUtils.TestHexToFelt(t, strkPubKey)
+	tempAccountAddress := internalUtils.TestHexToFelt(t, strkAccountAddress)
 
-	return privKey, pubKey, accountAddress
+	return *tempPrivKey, *tempPubKey, *tempAccountAddress
 }
 
 // CompareEnumsHelper compares an enum type with the expected value and error expected.

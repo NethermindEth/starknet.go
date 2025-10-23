@@ -16,4 +16,4 @@ examples/**/*.sum
 
 .idea/
 
-.vscode/settings.json
+.vscode/
