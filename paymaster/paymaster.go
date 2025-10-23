@@ -23,9 +23,6 @@ type Paymaster struct {
 //
 //nolint:lll // The link would be unclickable if we break the line.
 type paymasterInterface interface {
-	IsAvailable(ctx context.Context) (bool, error)
-	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
-	TrackingIDToLatestHash(ctx context.Context, trackingID *felt.Felt) (TrackingIDResponse, error)
 	BuildTransaction(
 		ctx context.Context,
 		request *BuildTransactionRequest,
@@ -34,6 +31,9 @@ type paymasterInterface interface {
 		ctx context.Context,
 		request *ExecuteTransactionRequest,
 	) (ExecuteTransactionResponse, error)
+	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
+	IsAvailable(ctx context.Context) (bool, error)
+	TrackingIDToLatestHash(ctx context.Context, trackingID *felt.Felt) (TrackingIDResponse, error)
 }
 
 var _ paymasterInterface = (*Paymaster)(nil)
