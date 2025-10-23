@@ -36,21 +36,21 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 //   - ctx: The context for the function.
 //
 // Returns:
-//   - bool: True if the node version is compatible with the SDK version, false otherwise.
-//   - error: An error if any.
-func (provider *Provider) IsCompatible(ctx context.Context) (bool, error) {
+//   - isCompatible: True if the node version is compatible with the SDK version, false otherwise.
+//   - nodeVersion: The version of the Starknet JSON-RPC Specification implemented by the node.
+//   - err: An error if any.
+func (provider *Provider) IsCompatible(ctx context.Context) (
+	isCompatible bool, nodeVersion string, err error,
+) {
 	rawNodeVersion, err := provider.SpecVersion(ctx)
 	if err != nil {
-		// Print a warning but don't fail
-		fmt.Println(warnVersionCheckFailed, err)
-
-		return false, err
+		return false, "", fmt.Errorf("failed to get the node's RPC spec version: %w", err)
 	}
 
-	nodeVersion, err := semver.NewVersion(rawNodeVersion)
+	nodeVersionParsed, err := semver.NewVersion(rawNodeVersion)
 	if err != nil {
-		return false, fmt.Errorf("failed to parse node version: %w", err)
+		return false, "", fmt.Errorf("failed to parse node version: %w", err)
 	}
 
-	return rpcVersion.Compare(nodeVersion) == 0, nil
+	return rpcVersion.Compare(nodeVersionParsed) == 0, rawNodeVersion, nil
 }

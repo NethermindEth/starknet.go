@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/cookiejar"
-	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/juno/core/felt"
@@ -27,26 +26,9 @@ var (
 
 	// Warning messages for version compatibility
 	warnVersionCheckFailed = "warning: could not check RPC version compatibility"
-
 	//nolint:lll // The line break would be outputted in the warning message
 	warnVersionMismatch = `warning: the RPC provider version is %s, and is different from the version %s implemented by the SDK. This may cause unexpected behaviour.`
 )
-
-// Checks if the RPC provider version is compatible with the SDK version
-// and prints a warning if they don't match.
-func checkVersionCompatibility(provider *Provider) {
-	version, err := provider.SpecVersion(context.Background())
-	if err != nil {
-		// Print a warning but don't fail
-		fmt.Println(warnVersionCheckFailed, err)
-
-		return
-	}
-
-	if !strings.Contains(version, rpcVersion.String()) {
-		fmt.Println(fmt.Sprintf(warnVersionMismatch, version, rpcVersion))
-	}
-}
 
 // Provider provides the provider for starknet.go/rpc implementation.
 type Provider struct {
@@ -86,7 +68,13 @@ func NewProvider(
 
 	if !c.ShouldIgnoreWarning() {
 		// Check version compatibility
-		checkVersionCompatibility(provider)
+		isCompatible, nodeVersion, err := provider.IsCompatible(ctx)
+		if err != nil {
+			fmt.Println(warnVersionCheckFailed, err)
+		}
+		if !isCompatible {
+			fmt.Println(warnVersionMismatch, nodeVersion, rpcVersion.String())
+		}
 	}
 
 	return provider, nil
