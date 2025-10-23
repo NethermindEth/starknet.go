@@ -1,7 +1,6 @@
 package paymaster
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -75,7 +74,7 @@ func TestTrackingIdToLatestHash(t *testing.T) {
 	pm := SetupMockPaymaster(t)
 	pm.c.EXPECT().
 		CallContextWithSliceArgs(
-			context.Background(),
+			t.Context(),
 			gomock.AssignableToTypeOf(new(TrackingIDResponse)),
 			"paymaster_trackingIdToLatestHash",
 			trackingID,
@@ -83,7 +82,7 @@ func TestTrackingIdToLatestHash(t *testing.T) {
 		SetArg(1, expectedResp).
 		Return(nil)
 
-	response, err := pm.TrackingIDToLatestHash(context.Background(), trackingID)
+	response, err := pm.TrackingIDToLatestHash(t.Context(), trackingID)
 	require.NoError(t, err)
 	assert.Equal(t, TxnStatusActive, response.Status)
 	assert.Equal(t, expectedResp.TransactionHash, response.TransactionHash)

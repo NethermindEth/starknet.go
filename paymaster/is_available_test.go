@@ -1,7 +1,6 @@
 package paymaster
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
@@ -20,7 +19,7 @@ func TestIsAvailable(t *testing.T) {
 		tests.RunTestOn(t, tests.IntegrationEnv)
 
 		pm, spy := SetupPaymaster(t)
-		available, err := pm.IsAvailable(context.Background())
+		available, err := pm.IsAvailable(t.Context())
 		require.NoError(t, err)
 
 		assert.Equal(t, string(spy.LastResponse()), strconv.FormatBool(available))
@@ -32,10 +31,14 @@ func TestIsAvailable(t *testing.T) {
 
 		pm := SetupMockPaymaster(t)
 		pm.c.EXPECT().
-			CallContextWithSliceArgs(context.Background(), gomock.AssignableToTypeOf(new(bool)), "paymaster_isAvailable").
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.AssignableToTypeOf(new(bool)),
+				"paymaster_isAvailable",
+			).
 			SetArg(1, true).
 			Return(nil)
-		available, err := pm.IsAvailable(context.Background())
+		available, err := pm.IsAvailable(t.Context())
 		assert.NoError(t, err)
 		assert.True(t, available)
 	})
