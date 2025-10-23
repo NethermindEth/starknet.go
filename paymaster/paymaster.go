@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"golang.org/x/net/publicsuffix"
 )
@@ -30,8 +31,9 @@ type paymasterInterface interface {
 		ctx context.Context,
 		request *ExecuteTransactionRequest,
 	) (ExecuteTransactionResponse, error)
+	GetSupportedTokens(ctx context.Context) ([]TokenData, error)
 	IsAvailable(ctx context.Context) (bool, error)
-	// More methods coming...
+	TrackingIDToLatestHash(ctx context.Context, trackingID *felt.Felt) (TrackingIDResponse, error)
 }
 
 var _ paymasterInterface = (*Paymaster)(nil)

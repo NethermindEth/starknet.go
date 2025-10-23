@@ -18,7 +18,7 @@ var STRKContractAddress, _ = internalUtils.HexToFelt(
 
 // Test the UserTxnType type
 //
-
+//nolint:dupl // The enum tests are similar, but with different enum values
 func TestUserTxnType(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
