@@ -1,0 +1,30 @@
+{
+  "jsonrpc": "2.0",
+  "method": "paymaster_executeTransaction",
+  "params": [
+    {
+      "transaction": {
+        "type": "deploy",
+        "deployment": {
+          "address": "0x71387536587c0e164c75c3ed972fee9aff1b261192749a752ce880c16ac3bf2",
+          "class_hash": "0x36078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f",
+          "salt": "0xdeadbeef",
+          "calldata": [
+            "0x0",
+            "0x1cf6046c81f47d488c528e52066482f6756029bed10cf5df35608bb8eebac9",
+            "0x1"
+          ],
+          "version": 1
+        }
+      },
+      "parameters": {
+        "version": "0x1",
+        "fee_mode": {
+          "mode": "sponsored"
+        },
+        "time_bounds": null
+      }
+    }
+  ],
+  "id": 1
+}

@@ -1,0 +1,124 @@
+{
+	"jsonrpc": "2.0",
+	"id": 1,
+	"result": {
+		"type": "deploy_and_invoke",
+		"deployment": {
+			"address": "0x736b7c3fac1586518b55cccac1f675ca1bd0570d7354e2f2d23a0975a31f220",
+			"class_hash": "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
+			"salt": "0xdeadbeef",
+			"calldata": [
+				"0xdeadbeef"
+			],
+			"sigdata": [
+				"0xdeadbeef"
+			],
+			"version": 1
+		},
+		"typed_data": {
+			"types": {
+				"StarknetDomain": [
+					{
+						"name": "name",
+						"type": "shortstring"
+					},
+					{
+						"name": "version",
+						"type": "shortstring"
+					},
+					{
+						"name": "chainId",
+						"type": "shortstring"
+					},
+					{
+						"name": "revision",
+						"type": "shortstring"
+					}
+				],
+				"OutsideExecution": [
+					{
+						"name": "Caller",
+						"type": "ContractAddress"
+					},
+					{
+						"name": "Nonce",
+						"type": "felt"
+					},
+					{
+						"name": "Execute After",
+						"type": "u128"
+					},
+					{
+						"name": "Execute Before",
+						"type": "u128"
+					},
+					{
+						"name": "Calls",
+						"type": "Call*"
+					}
+				],
+				"Call": [
+					{
+						"name": "To",
+						"type": "ContractAddress"
+					},
+					{
+						"name": "Selector",
+						"type": "selector"
+					},
+					{
+						"name": "Calldata",
+						"type": "felt*"
+					}
+				]
+			},
+			"domain": {
+				"name": "Account.execute_from_outside",
+				"version": "2",
+				"chainId": "SN_SEPOLIA",
+				"revision": "1"
+			},
+			"primaryType": "OutsideExecution",
+			"message": {
+				"Caller": "0x75a180e18e56da1b1cae181c92a288f586f5fe22c18df21cf97886f1e4b316c",
+				"Nonce": "0xc994e1f239c9edadcf4fc39693e03b7c",
+				"Execute After": "0x1",
+				"Execute Before": "0x68cb10b3",
+				"Calls": [
+					{
+						"To": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+						"Selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+						"Calldata": [
+							"0x5c74db20fa8f151bfd3a7a462cf2e8d4578a88aa4bd7a1746955201c48d8e5e",
+							"0xfff",
+							"0x0"
+						]
+					},
+					{
+						"To": "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+						"Selector": "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
+						"Calldata": [
+							"0x2710",
+							"0x0"
+						]
+					}
+				]
+			}
+		},
+		"parameters": {
+			"version": "0x1",
+			"fee_mode": {
+				"mode": "sponsored",
+				"tip": "slow"
+			},
+			"time_bounds": null
+		},
+		"fee": {
+			"gas_token_price_in_strk": "0xde0b6b3a7640000",
+			"estimated_fee_in_strk": "0x1bb9c13f50bbc0",
+			"estimated_fee_in_gas_token": "0x1bb9c13f50bbc0",
+			"suggested_max_fee_in_strk": "0xa65a877be46680",
+			"suggested_max_fee_in_gas_token": "0xa65a877be46680"
+		}
+	}
+}

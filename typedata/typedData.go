@@ -1158,7 +1158,7 @@ func (domain Domain) MarshalJSON() ([]byte, error) {
 
 // MarshalJSON implements the json.Marshaler interface for TypeDefinition
 //
-//nolint:gocritic //  json.Marshaler interface requires a value receiver
+
 func (td TypeDefinition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(td.Parameters)
 }

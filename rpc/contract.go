@@ -241,7 +241,7 @@ func (provider *Provider) EstimateMessageFee(
 //     prefix of the requested leaf, thus effectively proving non-membership
 //   - error: an error if any occurred during the execution
 //
-//nolint:gocritic //TODO: pass the input as a pointer
+
 func (provider *Provider) StorageProof(
 	ctx context.Context,
 	storageProofInput StorageProofInput,

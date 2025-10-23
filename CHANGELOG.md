@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -->
 
 ### Added
+- New `paymaster` pkg for interacting with paymaster services via the SNIP-29 API.
+- New `examples/paymaster` folder with examples of how to use the `paymaster` pkg.
 - New `rpc.IsCompatible` method to the `rpc.Provider` type. It returns whether the node RPC version is compatible
 with the version implemented by the starknet.go provider or not.
 - New `rpc.ErrIncompatibleVersion` error variable, used in the `rpc.NewProvider` function.
