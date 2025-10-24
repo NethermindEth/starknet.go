@@ -16,6 +16,44 @@ type Transaction interface {
 	GetVersion() TransactionVersion
 }
 
+type tempTransaction struct {
+	// Common fields for all transactions of all versions
+	Type      TransactionType    `json:"type"`
+	Signature []felt.Felt        `json:"signature"`
+	Version   TransactionVersion `json:"version"`
+	Nonce     *felt.Felt         `json:"nonce"`   // Only in v1 onwards
+	MaxFee    *felt.Felt         `json:"max_fee"` // Only before v3
+
+	// Common fields for all v3 transactions
+	FeeMode        DataAvailabilityMode   `json:"fee_data_availability_mode"`
+	NonceDataMode  DataAvailabilityMode   `json:"nonce_data_availability_mode"`
+	PayMasterData  []felt.Felt            `json:"paymaster_data"`
+	ResourceBounds *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip            U64                    `json:"tip"`
+
+	// Common fields for Invoke transactions.
+	// Also present in the L1Handler transaction type.
+	Calldata           []felt.Felt `json:"calldata"`             // In all versions
+	ContractAddress    *felt.Felt  `json:"contract_address"`     // Only in v0
+	EntryPointSelector *felt.Felt  `json:"entry_point_selector"` // Only in v0
+
+	// Common fields for Invoke and Declare transactions
+	SenderAddress         *felt.Felt  `json:"sender_address"`          // v1 onwards
+	AccountDeploymentData []felt.Felt `json:"account_deployment_data"` // Only in v3
+
+	// Common field for Declare transactions
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"` // v2 onwards
+
+	// Common field for all Declare and DeployAccount transaction versions.
+	// Also present in the deprecated Deploy transaction type.
+	ClassHash *felt.Felt `json:"class_hash"` // In all versions
+
+	// Common fields for all DeployAccount transaction versions.
+	// Also present in the deprecated Deploy transaction type.
+	ContractAddressSalt *felt.Felt  `json:"contract_address_salt"`
+	ConstructorCalldata []felt.Felt `json:"constructor_calldata"`
+}
+
 var (
 	_ Transaction = InvokeTxnV0{}
 	_ Transaction = InvokeTxnV1{}
