@@ -27,6 +27,7 @@ with the version implemented by the starknet.go provider or not.
 - The `rpc.NewProvider` function now returns an error if the node RPC version is different from the version
 implemented by the starknet.go provider. The returned Provider instance is still valid, but there might be
 unexpected behaviour.
+- The `typedata` pkg was renamed to `typeddata`, fixing the typo in the package name introduced in v0.16.0.
 
 ### Removed
 - The warning message when the node RPC version is different from the version implemented by the
