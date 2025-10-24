@@ -35,3 +35,27 @@ func (provider *Provider) IsCompatible(ctx context.Context) (
 
 	return rpcVersion.Compare(nodeVersionParsed) == 0, rawNodeVersion, nil
 }
+
+func (provider *Provider) EstimateTip(ctx context.Context) (
+	tip U64,
+	err error,
+) {
+	// rawLatestBlock, err := provider.BlockWithTxs(ctx, WithBlockTag(BlockTagLatest))
+	// if err != nil {
+	// 	return tip, fmt.Errorf("failed to get latest block: %w", err)
+	// }
+
+	// latestBlock, ok := rawLatestBlock.(*Block)
+	// if !ok {
+	// 	return tip, fmt.Errorf("unexpected block type: %T", rawLatestBlock)
+	// }
+
+	// var tempTip uint64
+	// for _, transaction := range latestBlock.Transactions {
+	// 	tempTip += transaction.Transaction
+	// }
+
+	// tip = rpc.U64(tempTip)
+
+	return tip, nil
+}
