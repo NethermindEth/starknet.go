@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/typedata"
+	"github.com/NethermindEth/starknet.go/typeddata"
 )
 
 // ExecuteTransaction sends the signed typed data to the paymaster service for execution
@@ -75,7 +75,7 @@ type ExecutableUserInvoke struct {
 	// The address of the user account
 	UserAddress *felt.Felt `json:"user_address"`
 	// Typed data returned by the endpoint paymaster_buildTransaction
-	TypedData *typedata.TypedData `json:"typed_data"`
+	TypedData *typeddata.TypedData `json:"typed_data"`
 	// Signature of the associated Typed Data
 	Signature []*felt.Felt `json:"signature"`
 }

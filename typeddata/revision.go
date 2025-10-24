@@ -1,4 +1,4 @@
-package typedata
+package typeddata
 
 import (
 	"errors"

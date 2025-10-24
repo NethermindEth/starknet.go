@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/typedata"
+	"github.com/NethermindEth/starknet.go/typeddata"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	fmt.Println("Account address:", accnt.Address)
 
 	// This is how you can initialise a typed data from a JSON file
-	ttd, err := utils.UnmarshalJSONFileToType[typedata.TypedData]("./baseExample.json", "")
+	ttd, err := utils.UnmarshalJSONFileToType[typeddata.TypedData]("./baseExample.json", "")
 	if err != nil {
 		panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
 	}
