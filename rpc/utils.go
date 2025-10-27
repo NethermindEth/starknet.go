@@ -2,7 +2,9 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/Masterminds/semver/v3"
 )
@@ -40,22 +42,42 @@ func (provider *Provider) EstimateTip(ctx context.Context) (
 	tip U64,
 	err error,
 ) {
-	// rawLatestBlock, err := provider.BlockWithTxs(ctx, WithBlockTag(BlockTagLatest))
-	// if err != nil {
-	// 	return tip, fmt.Errorf("failed to get latest block: %w", err)
-	// }
+	rawLatestBlock, err := provider.BlockWithTxs(ctx, WithBlockTag(BlockTagLatest))
+	if err != nil {
+		return tip, fmt.Errorf("failed to get latest block: %w", err)
+	}
 
-	// latestBlock, ok := rawLatestBlock.(*Block)
-	// if !ok {
-	// 	return tip, fmt.Errorf("unexpected block type: %T", rawLatestBlock)
-	// }
+	latestBlock, ok := rawLatestBlock.(*Block)
+	if !ok {
+		return tip, fmt.Errorf("unexpected block type: %T", rawLatestBlock)
+	}
 
-	// var tempTip uint64
-	// for _, transaction := range latestBlock.Transactions {
-	// 	tempTip += transaction.Transaction
-	// }
+	var tipStruct struct {
+		Tip U64 `json:"tip"`
+	}
 
-	// tip = rpc.U64(tempTip)
+	var tipCounter uint64
+	// sum up the tips from all transactions
+	for _, transaction := range latestBlock.Transactions {
+		// TODO: replace this with the future V3 txn interface
+		rawTxn, err := json.Marshal(transaction.Transaction)
+		if err != nil {
+			return tip, fmt.Errorf("failed to marshal transaction: %w", err)
+		}
+		err = json.Unmarshal(rawTxn, &tipStruct)
+		if err != nil {
+			return tip, fmt.Errorf("failed to get tip from transaction: %w", err)
+		}
+
+		uintTip, err := tipStruct.Tip.ToUint64()
+		if err != nil {
+			return tip, fmt.Errorf("failed to convert tip to uint64: %w", err)
+		}
+		tipCounter += uintTip
+	}
+
+	// take the average of the tips
+	tip = U64(strconv.FormatUint(tipCounter/uint64(len(latestBlock.Transactions)), 16))
 
 	return tip, nil
 }
