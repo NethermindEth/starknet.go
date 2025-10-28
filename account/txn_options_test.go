@@ -29,28 +29,28 @@ func TestTxnOptions(t *testing.T) {
 			{
 				name: "Zero multiplier",
 				opts: &TxnOptions{
-					Multiplier: 0,
+					FeeMultiplier: 0,
 				},
 				expectedMultiplier: 1.5,
 			},
 			{
 				name: "Negative multiplier",
 				opts: &TxnOptions{
-					Multiplier: -1.0,
+					FeeMultiplier: -1.0,
 				},
 				expectedMultiplier: 1.5,
 			},
 			{
 				name: "Custom multiplier",
 				opts: &TxnOptions{
-					Multiplier: 2.0,
+					FeeMultiplier: 2.0,
 				},
 				expectedMultiplier: 2.0,
 			},
 			{
 				name: "Custom multiplier below 1",
 				opts: &TxnOptions{
-					Multiplier: 0.5,
+					FeeMultiplier: 0.5,
 				},
 				expectedMultiplier: 0.5,
 			},
@@ -62,8 +62,7 @@ func TestTxnOptions(t *testing.T) {
 				if tt.opts == nil {
 					tt.opts = new(TxnOptions)
 				}
-				fmtTipAndMultiplier(tt.opts)
-				assert.Equal(t, tt.expectedMultiplier, tt.opts.Multiplier)
+				assert.Equal(t, tt.expectedMultiplier, tt.opts.FmtFeeMultiplier())
 			})
 		}
 	})

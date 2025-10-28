@@ -47,7 +47,6 @@ func (account *Account) BuildAndSendInvokeTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	fmtTipAndMultiplier(opts)
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(
@@ -77,7 +76,10 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return response, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(
+		txnFee,
+		opts.FmtFeeMultiplier(),
+	)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -127,7 +129,6 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	fmtTipAndMultiplier(opts)
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
@@ -161,7 +162,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return response, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(
+		txnFee,
+		opts.FmtFeeMultiplier(),
+	)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -215,7 +219,6 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	fmtTipAndMultiplier(opts)
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
@@ -248,7 +251,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(
+		txnFee,
+		opts.FmtFeeMultiplier(),
+	)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation

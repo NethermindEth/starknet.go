@@ -5,6 +5,10 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
+const (
+	defaultFeeMultiplier float64 = 1.5
+)
+
 // The `TxnOptions` struct is equal to the `utils.TxnOptions` struct + some new fields.
 // Composition wasn't used to avoid the need to create a struct inside another struct
 // when building the options.
@@ -29,8 +33,8 @@ type TxnOptions struct {
 	// A value of 1.5 (estimated fee + 50%) is recommended to balance between
 	// transaction success rate and avoiding excessive fees. Higher values
 	// provide more safety margin but may result in overpayment.
-	// If multiplier <= 0, it'll be set to 1.5.
-	Multiplier float64
+	// If FeeMultiplier <= 0, it'll be set to 1.5.
+	FeeMultiplier float64
 
 	// A boolean flag indicating whether to use the latest block tag
 	// when estimating fees instead of the pre_confirmed block. Default: `false`.
@@ -60,16 +64,13 @@ func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
 	return []rpc.SimulationFlag{opts.SimulationFlag}
 }
 
-// takes a pointer to a TxnOptions struct and formats the tip and multiplier according
-// to the default values
-func fmtTipAndMultiplier(opts *TxnOptions) {
-	if opts.Multiplier <= 0 {
-		opts.Multiplier = 1.5
+// FmtFeeMultiplier validates and returns the fee multiplier.
+func (opts *TxnOptions) FmtFeeMultiplier() float64 {
+	if opts.FeeMultiplier <= 0 {
+		return defaultFeeMultiplier
 	}
 
-	if opts.Tip == "" {
-		opts.Tip = "0x0"
-	}
+	return opts.FeeMultiplier
 }
 
 type UDCOptions = utils.UDCOptions
