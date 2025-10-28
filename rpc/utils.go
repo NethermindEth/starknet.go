@@ -15,12 +15,13 @@ import (
 //
 // Parameters:
 //   - ctx: The context for the function.
+//   - provider: The provider to use.
 //
 // Returns:
 //   - isCompatible: True if the node version is compatible with the SDK version, false otherwise.
 //   - nodeVersion: The version of the Starknet JSON-RPC Specification implemented by the node.
 //   - err: An error if any.
-func (provider *Provider) IsCompatible(ctx context.Context) (
+func IsCompatible(ctx context.Context, provider RPCProvider) (
 	isCompatible bool,
 	nodeVersion string,
 	err error,
@@ -43,12 +44,13 @@ func (provider *Provider) IsCompatible(ctx context.Context) (
 //
 // Parameters:
 //   - ctx: The context for the function.
+//   - provider: The provider to use.
 //
 // Returns:
 //   - tip: The estimated tip to be used in a transaction (the average of
 //     the tips of all transactions in the latest block).
 //   - err: An error if any.
-func (provider *Provider) EstimateTip(ctx context.Context) (
+func EstimateTip(ctx context.Context, provider RPCProvider) (
 	tip U64,
 	err error,
 ) {

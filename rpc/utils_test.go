@@ -26,7 +26,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 	spy := tests.NewJSONRPCSpy(provider.c, false)
 	provider.c = spy
 
-	estimatedTip, err := provider.EstimateTip(t.Context())
+	estimatedTip, err := EstimateTip(t.Context(), provider)
 	require.NoError(t, err)
 
 	// get from the spy the latest block used to estimate the tip
