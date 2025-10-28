@@ -38,6 +38,16 @@ func (provider *Provider) IsCompatible(ctx context.Context) (
 	return rpcVersion.Compare(nodeVersionParsed) == 0, rawNodeVersion, nil
 }
 
+// EstimateTip returns the estimated tip to be used in a transaction
+// based on the average tip of all transactions in the latest block.
+//
+// Parameters:
+//   - ctx: The context for the function.
+//
+// Returns:
+//   - tip: The estimated tip to be used in a transaction (the average of
+//     the tips of all transactions in the latest block).
+//   - err: An error if any.
 func (provider *Provider) EstimateTip(ctx context.Context) (
 	tip U64,
 	err error,
@@ -59,7 +69,7 @@ func (provider *Provider) EstimateTip(ctx context.Context) (
 	var tipCounter uint64
 	// sum up the tips from all transactions
 	for _, transaction := range latestBlock.Transactions {
-		// TODO: replace this with the future V3 txn interface
+		// TODO: refactor this in the RPC package refactoring
 		rawTxn, err := json.Marshal(transaction.Transaction)
 		if err != nil {
 			return tip, fmt.Errorf("failed to marshal transaction: %w", err)
