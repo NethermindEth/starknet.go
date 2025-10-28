@@ -45,12 +45,19 @@ func IsCompatible(ctx context.Context, provider RPCProvider) (
 // Parameters:
 //   - ctx: The context for the function.
 //   - provider: The provider to use.
+//   - multiplier: The multiplier to be used against the estimated tip
+//     (E.g: 1.5 means estimated tip + 50% of it).
+//     If multiplier <= 0, no multiplier is applied.
 //
 // Returns:
 //   - tip: The estimated tip to be used in a transaction (the average of
-//     the tips of all transactions in the latest block).
+//     the tips of all transactions in the latest block) multiplied by the multiplier.
 //   - err: An error if any.
-func EstimateTip(ctx context.Context, provider RPCProvider) (
+func EstimateTip(
+	ctx context.Context,
+	provider RPCProvider,
+	multiplier float64,
+) (
 	tip U64,
 	err error,
 ) {
@@ -88,8 +95,14 @@ func EstimateTip(ctx context.Context, provider RPCProvider) (
 		tipCounter += uintTip
 	}
 
-	// take the average of the tips
-	tip = U64(strconv.FormatUint(tipCounter/uint64(len(latestBlock.Transactions)), 16))
+	averageTip := tipCounter / uint64(len(latestBlock.Transactions))
+
+	if multiplier <= 0 || averageTip == 0 {
+		return U64(strconv.FormatUint(averageTip, 16)), nil
+	}
+
+	multipliedAverageTip := float64(averageTip) * multiplier
+	tip = U64(strconv.FormatUint(uint64(multipliedAverageTip), 16))
 
 	return tip, nil
 }
