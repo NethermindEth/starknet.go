@@ -41,7 +41,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 		currentTip := U64("0x" + strconv.FormatUint(averageTip, 16))
 		assert.Equal(t, currentTip, estimatedTip)
 	})
-	t.Run("With multiplier", func(t *testing.T) {
+	t.Run("With multiplier 1.5", func(t *testing.T) {
 		estimatedTip, err := EstimateTip(t.Context(), provider, 1.5)
 		require.NoError(t, err)
 
@@ -54,6 +54,22 @@ func TestProvider_EstimateTip(t *testing.T) {
 
 		// compare the estimated tips
 		currentTip := U64("0x" + strconv.FormatUint(uint64(float64(averageTip)*1.5), 16))
+		assert.Equal(t, currentTip, estimatedTip)
+	})
+	t.Run("With negative multiplier", func(t *testing.T) {
+		estimatedTip, err := EstimateTip(t.Context(), provider, -1.5)
+		require.NoError(t, err)
+
+		// get from the spy the latest block used to estimate the tip
+		rawBlock := spy.LastResponse()
+		var block Block
+		require.NoError(t, json.Unmarshal(rawBlock, &block))
+
+		averageTip := getTipAverageFromBlock(t, &block)
+
+		// compare the estimated tips
+		// (no multiplier is applied for negative multipliers)
+		currentTip := U64("0x" + strconv.FormatUint(averageTip, 16))
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 }
