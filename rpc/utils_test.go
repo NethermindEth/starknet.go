@@ -72,6 +72,22 @@ func TestProvider_EstimateTip(t *testing.T) {
 		currentTip := U64("0x" + strconv.FormatUint(averageTip, 16))
 		assert.Equal(t, currentTip, estimatedTip)
 	})
+	t.Run("With multiplier less than 1", func(t *testing.T) {
+		estimatedTip, err := EstimateTip(t.Context(), provider, 0.5)
+		require.NoError(t, err)
+
+		// get from the spy the latest block used to estimate the tip
+		rawBlock := spy.LastResponse()
+		var block Block
+		require.NoError(t, json.Unmarshal(rawBlock, &block))
+
+		averageTip := getTipAverageFromBlock(t, &block)
+
+		// compare the estimated tips
+		currentTip := (uint64(float64(averageTip) * 0.5))
+		assert.Equal(t, U64("0x"+strconv.FormatUint(currentTip, 16)), estimatedTip)
+		assert.Less(t, currentTip, averageTip)
+	})
 }
 
 // getTipAverageFromBlock returns the average of the tips from all transactions in the block
