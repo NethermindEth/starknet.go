@@ -98,11 +98,11 @@ func EstimateTip(
 	averageTip := tipCounter / uint64(len(latestBlock.Transactions))
 
 	if multiplier <= 0 || averageTip == 0 {
-		return U64(strconv.FormatUint(averageTip, 16)), nil
+		return U64("0x" + strconv.FormatUint(averageTip, 16)), nil
 	}
 
 	multipliedAverageTip := float64(averageTip) * multiplier
-	tip = U64(strconv.FormatUint(uint64(multipliedAverageTip), 16))
+	tip = U64("0x" + strconv.FormatUint(uint64(multipliedAverageTip), 16))
 
 	return tip, nil
 }

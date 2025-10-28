@@ -26,14 +26,40 @@ func TestProvider_EstimateTip(t *testing.T) {
 	spy := tests.NewJSONRPCSpy(provider.c, false)
 	provider.c = spy
 
-	estimatedTip, err := EstimateTip(t.Context(), provider)
-	require.NoError(t, err)
+	t.Run("No multiplier", func(t *testing.T) {
+		estimatedTip, err := EstimateTip(t.Context(), provider, 0)
+		require.NoError(t, err)
 
-	// get from the spy the latest block used to estimate the tip
-	rawBlock := spy.LastResponse()
-	var block Block
-	require.NoError(t, json.Unmarshal(rawBlock, &block))
+		// get from the spy the latest block used to estimate the tip
+		rawBlock := spy.LastResponse()
+		var block Block
+		require.NoError(t, json.Unmarshal(rawBlock, &block))
 
+		averageTip := getTipAverageFromBlock(t, &block)
+
+		// compare the estimated tips
+		currentTip := U64("0x" + strconv.FormatUint(averageTip, 16))
+		assert.Equal(t, currentTip, estimatedTip)
+	})
+	t.Run("With multiplier", func(t *testing.T) {
+		estimatedTip, err := EstimateTip(t.Context(), provider, 1.5)
+		require.NoError(t, err)
+
+		// get from the spy the latest block used to estimate the tip
+		rawBlock := spy.LastResponse()
+		var block Block
+		require.NoError(t, json.Unmarshal(rawBlock, &block))
+
+		averageTip := getTipAverageFromBlock(t, &block)
+
+		// compare the estimated tips
+		currentTip := U64("0x" + strconv.FormatUint(uint64(float64(averageTip)*1.5), 16))
+		assert.Equal(t, currentTip, estimatedTip)
+	})
+}
+
+// getTipAverageFromBlock returns the average of the tips from all transactions in the block
+func getTipAverageFromBlock(t *testing.T, block *Block) uint64 {
 	var tipCounter uint64
 	for _, tnx := range block.Transactions {
 		// get the tip from the transaction
@@ -50,7 +76,5 @@ func TestProvider_EstimateTip(t *testing.T) {
 		tipCounter += tipUint
 	}
 
-	// compare the estimated tips
-	currentTip := U64(strconv.FormatUint(tipCounter/uint64(len(block.Transactions)), 16))
-	assert.Equal(t, currentTip, estimatedTip)
+	return tipCounter / uint64(len(block.Transactions))
 }
