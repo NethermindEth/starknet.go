@@ -24,7 +24,6 @@ const (
 // Optional settings when building a transaction.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	// Note: only ready to be used after Starknet v0.14.0 upgrade.
 	Tip rpc.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
@@ -219,7 +218,7 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 //   - feeEstimation: The fee estimation to convert
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0.
-//     If multiplier < 0, all resources bounds will be set to 0.
+//     If multiplier <= 0, all resources bounds will be set to 0.
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
 // Returns:
@@ -260,8 +259,8 @@ func toResourceBounds(
 	gasConsumed *felt.Felt,
 	multiplier float64,
 ) rpc.ResourceBounds {
-	// negative multiplier is not allowed, default to 0
-	if multiplier < 0 {
+	// multiplier must be greater than 0. Default to 0 if not
+	if multiplier <= 0 {
 		return rpc.ResourceBounds{
 			MaxAmount:       rpc.U64("0x0"),
 			MaxPricePerUnit: rpc.U128("0x0"),
@@ -327,8 +326,8 @@ func ResBoundsMapToOverallFee(
 	}
 
 	// negative multiplier is not allowed
-	if multiplier < 0 {
-		return nil, errors.New("multiplier cannot be negative")
+	if multiplier <= 0 {
+		return nil, errors.New("multiplier must be greater than 0")
 	}
 
 	parseBound := func(value string) (*big.Int, error) {
