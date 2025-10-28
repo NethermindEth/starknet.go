@@ -47,7 +47,7 @@ func IsCompatible(ctx context.Context, provider RPCProvider) (
 //   - provider: The provider to use.
 //   - multiplier: The multiplier to be used against the estimated tip
 //     (E.g: 1.5 means estimated tip + 50% of it).
-//     If multiplier <= 0, no multiplier is applied.
+//     If multiplier <= 0, it'll be set to 1.0 (no multiplier, just the estimated tip).
 //
 // Returns:
 //   - tip: The estimated tip to be used in a transaction (the average of

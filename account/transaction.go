@@ -47,6 +47,10 @@ func (account *Account) BuildAndSendInvokeTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
+	tip, err := calculateTip(ctx, account.Provider, opts)
+	if err != nil {
+		return response, err
+	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(
@@ -55,7 +59,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		callData,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         opts.Tip,
+			Tip:         tip,
 			UseQueryBit: opts.UseQueryBit,
 		},
 	)
@@ -129,6 +133,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
+	tip, err := calculateTip(ctx, account.Provider, opts)
+	if err != nil {
+		return response, err
+	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
@@ -138,7 +146,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         opts.Tip,
+			Tip:         tip,
 			UseQueryBit: opts.UseQueryBit,
 		},
 	)
@@ -219,7 +227,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-
+	tip, err := calculateTip(ctx, account.Provider, opts)
+	if err != nil {
+		return nil, nil, err
+	}
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
 		&felt.Zero,
@@ -228,14 +239,14 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         opts.Tip,
+			Tip:         tip,
 			UseQueryBit: opts.UseQueryBit,
 		},
 	)
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
-	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
+	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -268,6 +279,26 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	return broadcastDepAccTxnV3, precomputedAddress, nil
+}
+
+// calculateTip returns the tip to be used in the transaction. If a custom tip is
+// provided, it returns it. Otherwise, it estimates the tip using the provider
+// based on the tip multiplier.
+func calculateTip(
+	ctx context.Context,
+	provider rpc.RPCProvider,
+	opts *TxnOptions,
+) (rpc.U64, error) {
+	if opts.CustomTip != "" {
+		return opts.CustomTip, nil
+	}
+
+	tip, err := rpc.EstimateTip(ctx, provider, opts.FmtTipMultiplier())
+	if err != nil {
+		return "", fmt.Errorf("failed to estimate tip: %w", err)
+	}
+
+	return tip, nil
 }
 
 // A helper to deploy a contract from an existing class using UDC.

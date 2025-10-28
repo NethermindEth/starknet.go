@@ -7,6 +7,7 @@ import (
 
 const (
 	defaultFeeMultiplier float64 = 1.5
+	defaultTipMultiplier float64 = 1.0
 )
 
 // The `TxnOptions` struct is equal to the `utils.TxnOptions` struct + some new fields.
@@ -16,9 +17,13 @@ const (
 // Optional settings for building/sending/estimating a transaction
 // in the BuildAndSend* account methods.
 type TxnOptions struct {
-	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	// Note: only ready to be used after Starknet v0.14.0 upgrade.
-	Tip rpc.U64
+	// The multiplier to be used when estimating the tip when no custom tip is set.
+	// If <= 0, it'll be set to 1.0 (no multiplier, just the estimated tip).
+	TipMultiplier float64
+	// A custom tip amount in FRI for the transaction. If set, it'll be used
+	// instead of the estimated tip. If not set, the tip will be automatically
+	// estimated for the transaction.
+	CustomTip rpc.U64
 
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
@@ -71,6 +76,15 @@ func (opts *TxnOptions) FmtFeeMultiplier() float64 {
 	}
 
 	return opts.FeeMultiplier
+}
+
+// FmtTipMultiplier validates and returns the tip multiplier.
+func (opts *TxnOptions) FmtTipMultiplier() float64 {
+	if opts.TipMultiplier <= 0 {
+		return defaultTipMultiplier
+	}
+
+	return opts.TipMultiplier
 }
 
 type UDCOptions = utils.UDCOptions
