@@ -114,8 +114,17 @@ func NewWebsocketProvider(
 	return &WsProvider{c: c}, nil
 }
 
+// RPCProvider is the interface that defines the RPC provider methods.
+// It implements the Starknet specification and the RPC utility methods.
+//
 //go:generate mockgen -destination=../mocks/mock_rpc_provider.go -package=mocks -source=provider.go api
 type RPCProvider interface {
+	StarknetSpec
+	RPCUtils
+}
+
+// StarknetSpec is the interface that defines the Starknet JSON-RPC v0.9.0 specification.
+type StarknetSpec interface {
 	AddInvokeTransaction(
 		ctx context.Context,
 		invokeTxn *BroadcastInvokeTxnV3,
@@ -190,6 +199,12 @@ type RPCProvider interface {
 		transactionHash *felt.Felt,
 	) (*TransactionReceiptWithBlockInfo, error)
 	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
+}
+
+// RPCUtils is the interface that defines the RPC utility methods.
+type RPCUtils interface {
+	IsCompatible(ctx context.Context) (bool, string, error)
+	EstimateTip(ctx context.Context) (U64, error)
 }
 
 type WebsocketProvider interface {
