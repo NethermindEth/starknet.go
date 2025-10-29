@@ -61,6 +61,12 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+
+	// testing the default tip estimation feature
+	txn, err := acc.Provider.TransactionByHash(context.Background(), resp.Hash)
+	require.NoError(t, err, "Error getting transaction by hash")
+	require.NotNil(t, txn)
+	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.InvokeTxnV3).Tip)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -115,6 +121,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+
+	// testing the default tip estimation feature
+	txn, err := acc.Provider.TransactionByHash(context.Background(), resp.Hash)
+	require.NoError(t, err, "Error getting transaction by hash")
+	require.NotNil(t, txn)
+	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeclareTxnV3).Tip)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -187,6 +199,12 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+
+	// testing the default tip estimation feature
+	txn, err := acc.Provider.TransactionByHash(context.Background(), resp.Hash)
+	require.NoError(t, err, "Error getting transaction by hash")
+	require.NotNil(t, txn)
+	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeployAccountTxnV3).Tip)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
