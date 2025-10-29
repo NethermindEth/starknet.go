@@ -69,7 +69,8 @@ func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
 	return []rpc.SimulationFlag{opts.SimulationFlag}
 }
 
-// FmtFeeMultiplier validates and returns the fee multiplier.
+// FmtFeeMultiplier returns the fee multiplier specified in the options.
+// If not set/negative, returns the default fee multiplier.
 func (opts *TxnOptions) FmtFeeMultiplier() float64 {
 	if opts.FeeMultiplier <= 0 {
 		return defaultFeeMultiplier
@@ -78,7 +79,8 @@ func (opts *TxnOptions) FmtFeeMultiplier() float64 {
 	return opts.FeeMultiplier
 }
 
-// FmtTipMultiplier validates and returns the tip multiplier.
+// FmtTipMultiplier returns the tip multiplier specified in the options.
+// If not set/negative, returns the default tip multiplier.
 func (opts *TxnOptions) FmtTipMultiplier() float64 {
 	if opts.TipMultiplier <= 0 {
 		return defaultTipMultiplier
