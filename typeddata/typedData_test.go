@@ -102,7 +102,7 @@ func TestMarshalJSON(t *testing.T) {
 	}
 }
 
-// TestMessageHash tests the GetMessageHash function.
+// TestGetMessageHash tests the GetMessageHash function.
 //
 // It creates a mock TypedData and sets up a test case for hashing a mail message.
 // The mail message contains information about the sender and recipient, as well as the contents of the message.
