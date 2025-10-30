@@ -303,8 +303,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 				L2Gas: rpc.ResourceBounds{
 					// As these inputs overflow, the multiplier will be applied to the max values
-					// 18446744073709551615 * 0.5 ~= 9223372036854775807
-					MaxAmount: "0x7fffffffffffffff",
+					// For L2 gas, capped at maxL2GasPerTxn (10^9 = 0x3b9aca00)
+					MaxAmount: "0x3b9aca00",
 					// 340282366920938463463374607431768211455 * 0.5 ~= 170141183460469231731687303715884105727
 					MaxPricePerUnit: "0x7fffffffffffffffffffffffffffffff",
 				},
@@ -384,7 +384,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 				L2Gas: rpc.ResourceBounds{
 					// 71737338064426034 * 1.7 ~= 121953474709524254
-					MaxAmount: "0x1b1440a032f8f1e",
+					// For L2 gas, capped at maxL2GasPerTxn (10^9 = 0x3b9aca00)
+					MaxAmount: "0x3b9aca00",
 					// 5907679981266292691599931071900621 * 1.7 ~= 10043055968152697313366189329472992
 					MaxPricePerUnit: "0x1ef293003a41145dddddddddddde0",
 				},
@@ -466,7 +467,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 				L2Gas: rpc.ResourceBounds{
 					// The inputs overflow, so should the output
-					MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxUint64)),
+					// For L2 gas, capped at maxL2GasPerTxn (10^9 = 0x3b9aca00)
+					MaxAmount:       "0x3b9aca00",
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 			},
@@ -515,6 +517,65 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				L2Gas: rpc.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
+				},
+			},
+		},
+		{
+			name: "L2 gas limit validation - value under limit",
+			feeEstimation: rpc.FeeEstimation{
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
+					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
+					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
+					L1DataGasConsumed: BigIntToFelt(big.NewInt(50)),
+					L2GasPrice:        BigIntToFelt(big.NewInt(3)),
+					// L2 gas consumed: 500,000,000 (half of the limit)
+					L2GasConsumed: BigIntToFelt(big.NewInt(500_000_000)),
+				},
+			},
+			multiplier: 1.5,
+			expected: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x96", // 150 (100 * 1.5)
+					MaxPricePerUnit: "0xf",  // 15 (10 * 1.5)
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x4b", // 75 (50 * 1.5)
+					MaxPricePerUnit: "0x7",  // 7 (5 * 1.5 = 7.5, truncated to 7)
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x2cb41780", // 750,000,000 (500,000,000 * 1.5)
+					MaxPricePerUnit: "0x4",        // 4 (3 * 1.5 = 4.5, truncated to 4)
+				},
+			},
+		},
+		{
+			name: "L2 gas limit validation - value above limit gets capped",
+			feeEstimation: rpc.FeeEstimation{
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
+					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
+					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
+					L1DataGasConsumed: BigIntToFelt(big.NewInt(50)),
+					L2GasPrice:        BigIntToFelt(big.NewInt(3)),
+					// L2 gas consumed: 900,000,000 (close to the limit)
+					L2GasConsumed: BigIntToFelt(big.NewInt(900_000_000)),
+				},
+			},
+			multiplier: 1.5,
+			expected: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x96", // 150 (100 * 1.5)
+					MaxPricePerUnit: "0xf",  // 15 (10 * 1.5)
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x4b", // 75 (50 * 1.5)
+					MaxPricePerUnit: "0x7",  // 7 (5 * 1.5 = 7.5, truncated to 7)
+				},
+				L2Gas: rpc.ResourceBounds{
+					// Would be 1,350,000,000 (900,000,000 * 1.5), but capped at 1,000,000,000
+					MaxAmount:       "0x3b9aca00", // 1,000,000,000 (10^9)
+					MaxPricePerUnit: "0x4",        // 4 (3 * 1.5 = 4.5, truncated to 4)
 				},
 			},
 		},

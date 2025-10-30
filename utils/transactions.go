@@ -16,6 +16,9 @@ import (
 const (
 	maxUint64  uint64 = math.MaxUint64
 	maxUint128        = "0xffffffffffffffffffffffffffffffff"
+	// L2 gas limit per transaction according to Starknet documentation
+	// https://docs.starknet.io/learn/cheatsheets/chain-info#current-limits
+	maxL2GasPerTxn uint64 = 1_000_000_000 // 10^9
 
 	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
 	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
@@ -229,14 +232,15 @@ func FeeEstToResBoundsMap(
 	multiplier float64,
 ) *rpc.ResourceBoundsMapping {
 	// Create L1 resources bounds
-	l1Gas := toResourceBounds(feeEstimation.L1GasPrice, feeEstimation.L1GasConsumed, multiplier)
+	l1Gas := toResourceBounds(feeEstimation.L1GasPrice, feeEstimation.L1GasConsumed, multiplier, false)
 	l1DataGas := toResourceBounds(
 		feeEstimation.L1DataGasPrice,
 		feeEstimation.L1DataGasConsumed,
 		multiplier,
+		false,
 	)
 	// Create L2 resource bounds
-	l2Gas := toResourceBounds(feeEstimation.L2GasPrice, feeEstimation.L2GasConsumed, multiplier)
+	l2Gas := toResourceBounds(feeEstimation.L2GasPrice, feeEstimation.L2GasConsumed, multiplier, true)
 
 	return &rpc.ResourceBoundsMapping{
 		L1Gas:     l1Gas,
@@ -252,6 +256,7 @@ func FeeEstToResBoundsMap(
 //   - gasPrice: The gas price
 //   - gasConsumed: The gas consumed
 //   - multiplier: Multiplier for max amount and max price per unit
+//   - isL2Gas: Whether this is L2 gas (applies L2-specific limit)
 //
 // Returns:
 //   - rpc.ResourceBounds: Resource bounds with applied multiplier
@@ -259,6 +264,7 @@ func toResourceBounds(
 	gasPrice *felt.Felt,
 	gasConsumed *felt.Felt,
 	multiplier float64,
+	isL2Gas bool,
 ) rpc.ResourceBounds {
 	// negative multiplier is not allowed, default to 0
 	if multiplier < 0 {
@@ -295,8 +301,14 @@ func toResourceBounds(
 	maxPricePerUnitInt, _ := maxPricePerUnit.Int(new(big.Int))
 
 	// Check for overflow after mul operation
-	if maxAmountInt.Cmp(maxUint64) > 0 {
-		maxAmountInt = maxUint64
+	// For L2 gas, limit to the L2 gas per transaction limit
+	// For other resources, limit to U64 max
+	maxAmountLimit := maxUint64
+	if isL2Gas {
+		maxAmountLimit = new(big.Int).SetUint64(maxL2GasPerTxn)
+	}
+	if maxAmountInt.Cmp(maxAmountLimit) > 0 {
+		maxAmountInt = maxAmountLimit
 	}
 	if maxPricePerUnitInt.Cmp(maxUint128) > 0 {
 		maxPricePerUnitInt = maxUint128
