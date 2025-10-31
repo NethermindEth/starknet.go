@@ -244,8 +244,8 @@ type FeeLimitOpts struct {
 //     but at least greater than 0.
 //     If multiplier <= 0, all resources bounds will be set to 0.
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
-//   - limitOpts: Optional custom limits for the resource bounds. If nil, default
-//     values will be used.
+//   - limitOpts: Optional custom limits for the resource bounds, only useful for custom networks.
+//     In case of doubt, set to nil to use the default Starknet limits.
 //
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
