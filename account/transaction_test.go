@@ -173,6 +173,8 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NotNil(t, precomputedAddress)
 	t.Logf("Precomputed address: %s", precomputedAddress)
 
+	// multiplier is 1, since the BuildAndEstimateDeployAccountTxn method already
+	// multiplies the fee by 1.5
 	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccTxn.ResourceBounds, 1)
 	require.NoError(t, err, "Error converting resource bounds to overall fee")
 
