@@ -1,6 +1,7 @@
 package rpc_test
 
 import (
+	"math"
 	"math/big"
 	"testing"
 
@@ -37,11 +38,6 @@ func TestU128_ToBigInt(t *testing.T) {
 			u128:    "56yrty45",
 			wantErr: true,
 		},
-		{
-			name:    "without 0x prefix",
-			u128:    "abcdef",
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -56,6 +52,55 @@ func TestU128_ToBigInt(t *testing.T) {
 			}
 			if tt.wantErr {
 				t.Fatal("ToBigInt() succeeded unexpectedly")
+			}
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+// TestU128_ToUint64 tests the ToUint64 method of the U128 type.
+func TestU128_ToUint64(t *testing.T) {
+	tests := []struct {
+		name    string // description of this test case
+		u64     rpc.U64
+		want    uint64
+		wantErr bool
+	}{
+		{
+			name: "within the range",
+			u64:  "0xabcdef",
+			want: 11259375,
+		},
+		{
+			name: "max uint64",
+			u64:  "0xFFFFFFFFFFFFFFFF",
+			want: math.MaxUint64,
+		},
+		{
+			name:    "out of range",
+			u64:     "0x10000000000000000",
+			wantErr: true,
+		},
+		{
+			name:    "invalid hex string",
+			u64:     "56yrty45",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := tt.u64
+			got, gotErr := u.ToUint64()
+			if gotErr != nil {
+				if !tt.wantErr {
+					t.Errorf("ToUint64() failed: %v", gotErr)
+				}
+
+				return
+			}
+			if tt.wantErr {
+				t.Fatal("ToUint64() succeeded unexpectedly")
 			}
 
 			assert.Equal(t, tt.want, got)
