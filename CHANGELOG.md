@@ -28,10 +28,15 @@ with the version implemented by the starknet.go provider or not.
 implemented by the starknet.go provider. The returned Provider instance is still valid, but there might be
 unexpected behaviour.
 - The `typedata` pkg was renamed to `typeddata`, fixing the typo in the package name introduced in v0.16.0.
+- The `utils.FeeEstToResBoundsMap` function now accepts a `utils.FeeLimitOpts` parameter, which can be used to set custom limits for the resource bounds instead of using the Starknet default limits.
+
 
 ### Removed
 - The warning message when the node RPC version is different from the version implemented by the
 starknet.go provider when calling the `rpc.NewProvider` function. Now, an error is returned instead.
+
+### Fixed
+- The `utils.FeeEstToResBoundsMap` function was using the max uint64 value for the L2 gas amount limit instead of the limit defined by Starknet, causing the txn to be rejected by the node when the amount was greater than the limit. Now, the limit is used correctly, and it's returned in the case of overflow.
 
 ## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added
