@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -32,6 +33,17 @@ func (u U64) ToUint64() (uint64, error) {
 
 // 128 bit unsigned integers, represented by hex string of length at most 32
 type U128 string
+
+func (u U128) ToBigInt() (*big.Int, error) {
+	hexStr := strings.TrimPrefix(string(u), "0x")
+
+	result, ok := new(big.Int).SetString(hexStr, 16)
+	if !ok {
+		return nil, fmt.Errorf("failed to parse hex string: %v", hexStr)
+	}
+
+	return result, nil
+}
 
 type ClassOutput interface{}
 
