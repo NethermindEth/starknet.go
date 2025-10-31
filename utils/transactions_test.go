@@ -95,7 +95,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  -1.0,
-			expectedErr: "multiplier cannot be negative",
+			expectedErr: "multiplier must be greater than 0",
 		},
 		{
 			name: "Multiplier less than 1",
@@ -144,6 +144,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 					MaxPricePerUnit: "0xa",          // 10
 				},
 			},
+			multiplier:  1.0,
 			expectedErr: "invalid resource bounds: 'invalidValue' is not a valid big.Int",
 		},
 		{
