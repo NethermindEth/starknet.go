@@ -113,7 +113,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	require.NoError(t, err, "Error estimating fee")
 
 	txnFee := estimateFee[0]
-	invokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, 1.5)
+	invokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, 1.5, nil)
 
 	// sign the txn
 	err = acc.SignInvokeTransaction(context.Background(), invokeTx)

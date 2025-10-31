@@ -89,7 +89,7 @@ func verboseInvoke(
 	}
 
 	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
-	InvokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
+	InvokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5, nil)
 
 	// As we changed the resource bounds, we need to sign the transaction again, since the resource bounds are part of the signature
 	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)

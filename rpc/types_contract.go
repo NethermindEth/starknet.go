@@ -20,6 +20,7 @@ type NumAsHex string
 type U64 string
 
 // ToUint64 converts the U64 type to a uint64.
+// If the value is greater than max uint64, returns an error.
 func (u U64) ToUint64() (uint64, error) {
 	hexStr := strings.TrimPrefix(string(u), "0x")
 

@@ -522,7 +522,7 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := FeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier)
+			got := FeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier, nil)
 
 			// Compare each field individually for better error messages
 			assert.Equal(t, tt.expected.L1Gas.MaxAmount, got.L1Gas.MaxAmount,

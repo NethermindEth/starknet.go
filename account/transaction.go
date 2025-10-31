@@ -77,7 +77,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return response, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier, nil)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -161,7 +161,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return response, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier, nil)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -248,7 +248,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier, nil)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
