@@ -18,19 +18,23 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 - `interface{}` - Block with full transaction details
 - `error` - Error if the request fails
 
-## BlockID Options
+## BlockID Parameter
+
+This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
 
 ```go
-// By block number
+// Using block number
 blockID := rpc.WithBlockNumber(123456)
 
-// By block hash
-hash := new(felt.Felt).SetBytes([]byte("your_hash_here"))
+// Using block hash
+hash, _ := new(felt.Felt).SetString("0x1234...")
 blockID := rpc.WithBlockHash(hash)
 
-// By block tag
+// Using block tag
 blockID := rpc.WithBlockTag("latest")
 ```
+
+**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
 
 ## Usage Example
 
@@ -53,7 +57,8 @@ func main() {
         log.Fatal("Failed to create client:", err)
     }
 
-    // Get latest block with transactions
+    // Get latest block with full transaction details
+    // Using WithBlockTag helper function to create BlockID
     blockID := rpc.WithBlockTag("latest")
     block, err := client.BlockWithTxs(context.Background(), blockID)
     if err != nil {
@@ -70,22 +75,22 @@ func main() {
 
 ```json
 {
-  "block_hash": "0x2e0ff7ce49b46b7b8751a08afa1f7f28ea5f0afc352542828372b7be0129bf5",
-  "parent_hash": "0x488d715367d94a233e612dfd6e4ff2a6346163a8aea6dcd0371ca6f675bad6f",
-  "block_number": 1672824,
-  "new_root": "0x178b2898ccffb80f6c443d3eded6b1a6dde475d73764e3f6e4327d93838d4e4",
-  "timestamp": 1755946479,
+  "block_hash": "0x1997ce70179ada6c14e9e7b22de5c0fb25e344ebbdfd703d37ae024a8422ffb",
+  "parent_hash": "0x33e58d0f1128cc76090a84b60a2b22f5370cef794467f42b5c7fcb74a796df5",
+  "block_number": 2732952,
+  "new_root": "0x68b6e85b8153cb2a62fe291357414d67e7564297d636697aa2f3e913ea8dbe8",
+  "timestamp": 1761896621,
   "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
   "l1_gas_price": {
-    "price_in_fri": "0x21de93bcdd19",
-    "price_in_wei": "0x3bc1ac63"
+    "price_in_fri": "0x1b76ac481d84",
+    "price_in_wei": "0x3b9aca09"
   },
   "l2_gas_price": {
     "price_in_fri": "0xb2d05e00",
-    "price_in_wei": "0x13b7c"
+    "price_in_wei": "0x18415"
   },
   "l1_data_gas_price": {
-    "price_in_fri": "0x9119",
+    "price_in_fri": "0x75f4",
     "price_in_wei": "0x1"
   },
   "l1_da_mode": "BLOB",
@@ -93,54 +98,89 @@ func main() {
   "status": "ACCEPTED_ON_L2",
   "transactions": [
     {
-      "transaction_hash": "0x1ccd86546cfb08633327f61cb355e0f3682e656187bfdcf744afdb8b694fff9",
-      "type": "INVOKE",
-      "version": "0x3",
-      "nonce": "0x94e4e",
-      "sender_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
-      "calldata": ["0x1", "0x7a6f440b8632053d221c4bfa7fe9d7896a51f9752981934d8e1fe7c106e910b"],
-      "signature": ["0x7bb77924d0615e3e182fc82ec82b3b52645766096577e1e67a041e02c627e55"],
+      "account_deployment_data": [],
+      "calldata": [
+        "0x2",
+        "0x4ac7a6253a8bc069bda7ad6a0aca58bbe51191b2e7e282d17c78d976a7ea035",
+        "0x27a4a7332e590dd789019a6d125ff2aacd358e453090978cbf81f0d85e4c045",
+        "0x2",
+        "0x1d",
+        "0x3ca8bceff269a0bb8d7e482bbae6cd0375d2eefd5114f1430420caabf504049",
+        "0x4ac7a6253a8bc069bda7ad6a0aca58bbe51191b2e7e282d17c78d976a7ea035",
+        "0x382be990ca34815134e64a9ac28f41a907c62e5ad10547f97174362ab94dc89",
+        "0x0"
+      ],
+      "fee_data_availability_mode": "L1",
+      "nonce": "0x855cac",
+      "nonce_data_availability_mode": "L1",
+      "paymaster_data": [],
       "resource_bounds": {
-        "l1_gas": {"max_amount": "0xc350", "max_price_per_unit": "0x8d79883d20000"},
-        "l2_gas": {"max_amount": "0x5f5e100", "max_price_per_unit": "0xba43b7400"}
-      }
+        "l1_data_gas": {
+          "max_amount": "0x2710",
+          "max_price_per_unit": "0x8d79883d20000"
+        },
+        "l1_gas": {
+          "max_amount": "0x11170",
+          "max_price_per_unit": "0x8d79883d20000"
+        },
+        "l2_gas": {
+          "max_amount": "0x5f5e100",
+          "max_price_per_unit": "0xba43b7400"
+        }
+      },
+      "sender_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+      "signature": [
+        "0x65375a9de8db4ac476351f1f4a76abbd0eae2bc30ffd50a7d4399cf3ea02faf",
+        "0x58f8673da4d5459360c5f2a6c5ceff048e1214fcb8ddc2ac39e6fa0eabdd0d8"
+      ],
+      "tip": "0x5f5e100",
+      "transaction_hash": "0x3e1153b137ed514b29998c87f6c1d11f38e057cf4910d80266834c4aa08f11c",
+      "type": "INVOKE",
+      "version": "0x3"
+    },
+    {
+      "class_hash": "0x6e150953b26271a740bf2b6e9bca17cc52c68d765f761295de51ceb8526ee72",
+      "constructor_calldata": [
+        "0x1",
+        "0x2",
+        "0x79634735cbb8a56c25a63e472b7be0b0061976496c91889d5aa4306a834cf82",
+        "0x24fedc3aef302e574c9c15da0d2a6b78fa1c34afd865a98498f8ebe81978f40"
+      ],
+      "contract_address_salt": "0x79634735cbb8a56c25a63e472b7be0b0061976496c91889d5aa4306a834cf82",
+      "fee_data_availability_mode": "L1",
+      "nonce": "0x0",
+      "nonce_data_availability_mode": "L1",
+      "paymaster_data": [],
+      "resource_bounds": {
+        "l1_data_gas": {
+          "max_amount": "0x5a7",
+          "max_price_per_unit": "0x17d2d"
+        },
+        "l1_gas": {
+          "max_amount": "0x0",
+          "max_price_per_unit": "0x58c052a22fde"
+        },
+        "l2_gas": {
+          "max_amount": "0x2f8f0d",
+          "max_price_per_unit": "0x241dae880"
+        }
+      },
+      "signature": [
+        "0x79634735cbb8a56c25a63e472b7be0b0061976496c91889d5aa4306a834cf82",
+        "0x44026663e4b61640eb84325c573485fea7411b12f27bab173b05d8a7fa32cfc",
+        "0x5630b7f94cf97357db44cfadd2f42e2418fe9a3e887a29c77f241a686107497"
+      ],
+      "tip": "0x0",
+      "transaction_hash": "0x6b37beb7d520e18c7ca1223070000319cd4e444936b201865863370343314df",
+      "type": "DEPLOY_ACCOUNT",
+      "version": "0x3"
     }
   ]
 }
 ```
-
-The block contains 8 complete transactions with full details including calldata, signatures, and resource bounds.
-
-## Get Specific Block Example
-
-```go
-// Get block by number
-blockNumber := uint64(1500000)
-blockID := rpc.WithBlockNumber(blockNumber)
-block, err := client.BlockWithTxs(context.Background(), blockID)
-if err != nil {
-    log.Fatal("Failed to get block:", err)
-}
-
-fmt.Printf("Retrieved block %d with transactions\n", blockNumber)
-```
-
-## Use Cases
-
-- **Block Analysis** - Examine complete block structure and all transactions
-- **Transaction Verification** - Verify transaction inclusion and details
-- **Block Explorer Development** - Build comprehensive block viewing interfaces  
-- **Historical Data Processing** - Process complete blockchain data
-- **Smart Contract Monitoring** - Track contract interactions within blocks
-- **Fee Analysis** - Study gas usage patterns and resource consumption
-- **Protocol Research** - Analyze Starknet protocol features and usage
-
-## Performance Notes
-
-- Returns large amounts of data for blocks with many transactions
-- Consider using `BlockWithTxHashes()` if you only need transaction hashes
-- Use pagination for processing multiple blocks
-
+:::note
+This shows only the first 2 transactions. The actual block contains 14 complete transactions with full details including calldata, signatures, resource bounds, and other transaction-specific fields.
+:::
 ## Error Handling
 
 ```go

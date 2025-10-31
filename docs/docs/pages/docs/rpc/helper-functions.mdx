@@ -1,0 +1,130 @@
+# RPC Helper Functions
+
+The RPC package provides several helper functions to simplify working with Starknet RPC methods.
+
+## BlockID Helper Functions
+
+These helper functions create `BlockID` structs for use with various RPC methods that require block identification.
+
+### WithBlockNumber
+
+Creates a BlockID for a specific block number.
+
+```go
+func WithBlockNumber(n uint64) BlockID
+```
+
+**Parameters:**
+- `n` - The block number
+
+**Returns:**
+- `BlockID` - A BlockID struct with the specified block number
+
+**Example:**
+```go
+blockID := rpc.WithBlockNumber(123456)
+block, err := client.BlockWithTxs(context.Background(), blockID)
+```
+
+**Source:** [pkg.go.dev/github.com/NethermindEth/starknet.go/rpc#WithBlockNumber](https://pkg.go.dev/github.com/NethermindEth/starknet.go/rpc#WithBlockNumber)
+
+---
+
+### WithBlockHash
+
+Creates a BlockID for a specific block hash.
+
+```go
+func WithBlockHash(h *felt.Felt) BlockID
+```
+
+**Parameters:**
+- `h` - The block hash as a `*felt.Felt`
+
+**Returns:**
+- `BlockID` - A BlockID struct with the specified hash
+
+**Example:**
+```go
+hash, _ := new(felt.Felt).SetString("0x1234...")
+blockID := rpc.WithBlockHash(hash)
+block, err := client.BlockWithTxs(context.Background(), blockID)
+```
+
+**Source:** [pkg.go.dev/github.com/NethermindEth/starknet.go/rpc#WithBlockHash](https://pkg.go.dev/github.com/NethermindEth/starknet.go/rpc#WithBlockHash)
+
+---
+
+### WithBlockTag
+
+Creates a BlockID with a block tag (latest, pending, etc.).
+
+```go
+func WithBlockTag(tag BlockTag) BlockID
+```
+
+**Parameters:**
+- `tag` - The block tag ("latest", "pending", "l1_accepted")
+
+**Available Tags:**
+- `"latest"` - The latest accepted block on L2
+- `"pending"` - The pending block being constructed
+- `"l1_accepted"` - The latest block accepted on L1
+
+**Returns:**
+- `BlockID` - A BlockID struct with the specified tag
+
+**Example:**
+```go
+blockID := rpc.WithBlockTag("latest")
+block, err := client.BlockWithTxs(context.Background(), blockID)
+```
+
+**Source:** [pkg.go.dev/github.com/NethermindEth/starknet.go/rpc#WithBlockTag](https://pkg.go.dev/github.com/NethermindEth/starknet.go/rpc#WithBlockTag)
+
+---
+
+## Usage in RPC Methods
+
+These helper functions are used throughout the RPC methods that require block identification:
+
+- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get block with full transactions
+- [BlockWithTxHashes](/docs/rpc/methods/block-with-tx-hashes) - Get block with transaction hashes
+- [BlockWithReceipts](/docs/rpc/methods/block-with-receipts) - Get block with receipts
+- [BlockTransactionCount](/docs/rpc/methods/block-transaction-count) - Get transaction count in a block
+- [StateUpdate](/docs/rpc/methods/state-update) - Get state update for a block
+- [Call](/docs/rpc/methods/call) - Execute a call at a specific block
+- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate fee at a specific block
+- And many more...
+
+## BlockID Structure
+
+The `BlockID` struct created by these helpers has the following structure:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:",omitempty"`
+}
+```
+
+Only one field should be set at a time - the helper functions ensure this is done correctly.
+
+## Best Practices
+
+1. **Use the appropriate helper** based on your needs:
+   - Use `WithBlockNumber()` when you know the exact block number
+   - Use `WithBlockHash()` when you have a specific block hash
+   - Use `WithBlockTag()` for dynamic references like "latest"
+
+2. **Error handling**: Always check for errors when using these with RPC methods:
+   ```go
+   blockID := rpc.WithBlockTag("latest")
+   block, err := client.BlockWithTxs(context.Background(), blockID)
+   if err != nil {
+       // Handle error
+   }
+   ```
+
+3. **Performance**: Using `WithBlockNumber()` or `WithBlockHash()` is more efficient than tags when you need consistent results across multiple calls.

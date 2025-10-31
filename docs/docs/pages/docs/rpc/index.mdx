@@ -57,17 +57,37 @@ func main() {
 
 ## Method Categories
 
-**Blocks** - `BlockNumber()`, `BlockHashAndNumber()`, `BlockWithTxs()`, `BlockWithTxHashes()`, `BlockWithReceipts()`, `BlockTransactionCount()`, `StateUpdate()`
+### Blocks
+Methods for retrieving blockchain data at different levels of detail:
 
-**Transactions** - `TransactionByHash()`, `TransactionByBlockIdAndIndex()`, `TransactionReceipt()`, `GetTransactionStatus()`, `AddInvokeTransaction()`, `AddDeclareTransaction()`, `AddDeployAccountTransaction()`, `GetMessagesStatus()`
+- `BlockNumber()` - Get the latest block number
+- `BlockHashAndNumber()` - Get both hash and number of latest block
+- `BlockWithTxHashes()` - Get block with transaction hashes only (lightweight)
+- `BlockWithTxs()` - Get block with full transaction details
+- `BlockWithReceipts()` - Get block with transactions and execution receipts
+- `BlockTransactionCount()` - Get transaction count in a block
+- `StateUpdate()` - Get state changes in a block
 
-**Contracts** - `Call()`, `Class()`, `ClassAt()`, `ClassHashAt()`, `StorageAt()`, `Nonce()`, `EstimateFee()`, `EstimateMessageFee()`, `GetStorageProof()`, `CompiledCasm()`
+**Choosing the Right Block Method:**
+- Use `BlockWithTxHashes()` for quick block overview with minimal data
+- Use `BlockWithTxs()` when you need complete transaction details
+- Use `BlockWithReceipts()` when you need execution results, events, and gas usage
+- Use `BlockTransactionCount()` for efficient monitoring without downloading block data
 
-**Chain** - `ChainID()`, `Syncing()`, `SpecVersion()`
+### Transactions
+`TransactionByHash()`, `TransactionByBlockIdAndIndex()`, `TransactionReceipt()`, `GetTransactionStatus()`, `AddInvokeTransaction()`, `AddDeclareTransaction()`, `AddDeployAccountTransaction()`, `GetMessagesStatus()`
 
-**Events** - `Events()` with comprehensive filtering support
+### Contracts
+`Call()`, `Class()`, `ClassAt()`, `ClassHashAt()`, `StorageAt()`, `Nonce()`, `EstimateFee()`, `EstimateMessageFee()`, `GetStorageProof()`, `CompiledCasm()`
 
-**Debug & Tracing** - `TraceTransaction()`, `TraceBlockTransactions()`, `SimulateTransactions()`
+### Chain
+`ChainID()`, `Syncing()`, `SpecVersion()`
+
+### Events
+`Events()` with comprehensive filtering support
+
+### Debug & Tracing
+`TraceTransaction()`, `TraceBlockTransactions()`, `SimulateTransactions()`
 
 ## Network Support
 

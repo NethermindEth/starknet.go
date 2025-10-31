@@ -18,6 +18,24 @@ func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID
 - `interface{}` - Block with transactions and receipts
 - `error` - Error if the request fails
 
+## BlockID Parameter
+
+This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
+
+```go
+// Using block number
+blockID := rpc.WithBlockNumber(123456)
+
+// Using block hash
+hash, _ := new(felt.Felt).SetString("0x1234...")
+blockID := rpc.WithBlockHash(hash)
+
+// Using block tag
+blockID := rpc.WithBlockTag("latest")
+```
+
+**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
+
 ## Usage Example
 
 ```go
@@ -56,107 +74,104 @@ func main() {
 
 ```json
 {
-  "block_hash": "0x66fa94498a5413e02d11aeb8646d4d47f1c2a067d8dbe3e33b2f0e8bb7f31df",
-  "parent_hash": "0x69e45eea2e6d6b541ebf70b8cbf150bdf039a7404201745cdb210c43eb49021",
-  "block_number": 1675853,
-  "new_root": "0x75286d81567156b1d5dbf3c3572fbd3b323954712631fadb85fc56ff065bb9d",
-  "timestamp": 1755962052,
+  "block_hash": "0xeb5d390c4eda2db980f08c162810765f86482c835323bdcf2188fe2673d2bc",
+  "parent_hash": "0x302af41b53590878ffc10c9f84a80cb59ac8d72e84b423ef126ed196f53c045",
+  "block_number": 2732993,
+  "new_root": "0x5835d743561dc9d53d3f967abb1078b951878ddd577c0a276b0f12a5070c74d",
+  "timestamp": 1761896955,
   "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
   "l1_gas_price": {
-    "price_in_fri": "0x223e7750c8ad",
-    "price_in_wei": "0x3c4c9b6f"
+    "price_in_fri": "0x1b755e78e14d",
+    "price_in_wei": "0x3b9aca09"
   },
+  "l2_gas_price": {
+    "price_in_fri": "0xb2d05e00",
+    "price_in_wei": "0x18427"
+  },
+  "l1_data_gas_price": {
+    "price_in_fri": "0x75ee",
+    "price_in_wei": "0x1"
+  },
+  "l1_da_mode": "BLOB",
+  "starknet_version": "0.14.0",
   "status": "ACCEPTED_ON_L2",
   "transactions": [
     {
       "transaction": {
+        "account_deployment_data": [],
+        "calldata": [
+          "0x2",
+          "0x4ac7a6253a8bc069bda7ad6a0aca58bbe51191b2e7e282d17c78d976a7ea035",
+          "0xf818e4530ec36b83dfe702489b4df537308c3b798b0cc120e32c2056d68b7d",
+          "0x0",
+          "0x21d980d405158f62464649ce2c8a433e1c61096d7ca045d70a9b70c8923700d",
+          "0xb17d8a2731ba7ca1816631e6be14f0fc1b8390422d649fa27f0fbb0c91eea8",
+          "0x0"
+        ],
+        "fee_data_availability_mode": "L1",
+        "nonce": "0x855e87",
+        "nonce_data_availability_mode": "L1",
+        "paymaster_data": [],
+        "resource_bounds": {
+          "l1_data_gas": {
+            "max_amount": "0x2710",
+            "max_price_per_unit": "0x8d79883d20000"
+          },
+          "l1_gas": {
+            "max_amount": "0x11170",
+            "max_price_per_unit": "0x8d79883d20000"
+          },
+          "l2_gas": {
+            "max_amount": "0x5f5e100",
+            "max_price_per_unit": "0xba43b7400"
+          }
+        },
+        "sender_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+        "signature": [
+          "0x6de622f9588da8e539cb978b9749391f543b8d48e0ac275c574e2b35c69eacb",
+          "0x385e0a4cf62eb89583544af730d58f2ba56f84b73c290de945cd9d6e0b61af3"
+        ],
+        "tip": "0x5f5e100",
         "transaction_hash": null,
         "type": "INVOKE",
-        "version": "0x3",
-        "nonce": "0x15a7c",
-        "sender_address": "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-        "calldata": ["0x16", "0x36970a65c6b1e9e2d85e724a1517ee6a9a7c106fcc2c8f384ed839c1176e5c0"],
-        "resource_bounds": {
-          "l1_gas": {"max_amount": "0x0", "max_price_per_unit": "0x1566a00e5d302"},
-          "l2_gas": {"max_amount": "0x2540be400", "max_price_per_unit": "0x6fc23ac00"}
-        }
+        "version": "0x3"
       },
       "receipt": {
-        "transaction_hash": "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
+        "transaction_hash": "0x418a680c3655f9c7ffca3c855b53f6ba173e1653895db62fc09349d962e20b9",
         "type": "INVOKE",
         "actual_fee": {
-          "amount": "0x627bebf0c73a80",
+          "amount": "0xd358cb878eb00",
           "unit": "FRI"
         },
         "finality_status": "ACCEPTED_ON_L2",
-        "execution_status": "REVERTED",
-        "revert_reason": "Transaction execution has failed: INVALID_STARK_KEY_SIGNATURE",
+        "messages_sent": [],
         "events": [
           {
             "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-            "keys": ["0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"],
-            "data": ["0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da"]
+            "keys": [
+              "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+            ],
+            "data": [
+              "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+              "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+              "0xd358cb878eb00",
+              "0x0"
+            ]
           }
         ],
         "execution_resources": {
           "l1_gas": 0,
           "l1_data_gas": 128,
-          "l2_gas": 9240267
-        }
+          "l2_gas": 1199372
+        },
+        "execution_status": "SUCCEEDED"
       }
     }
   ]
 }
 ```
 
-The block contains 2 transactions with their receipts - one failed (REVERTED) and one successful (SUCCEEDED). Each transaction is paired with its corresponding receipt showing execution results, gas usage, events, and fees.
-
-## Analyze Transaction Results Example
-
-```go
-// Get a specific block to analyze transaction outcomes
-blockNumber := uint64(1500000)
-blockID := rpc.WithBlockNumber(blockNumber)
-
-blockWithReceipts, err := client.BlockWithReceipts(context.Background(), blockID)
-if err != nil {
-    log.Fatal("Failed to get block with receipts:", err)
-}
-
-fmt.Printf("Block %d retrieved with transaction receipts\n", blockNumber)
-fmt.Printf("Use this data to analyze:\n")
-fmt.Printf("- Transaction execution status\n")
-fmt.Printf("- Gas usage per transaction\n") 
-fmt.Printf("- Events emitted\n")
-fmt.Printf("- Transaction outcomes\n")
-```
-
-## Use Cases
-
-- **Transaction Analysis** - See both transaction and execution results
-- **Gas Analytics** - Analyze gas consumption patterns
-- **Event Processing** - Access events with their originating transactions
-- **Execution Monitoring** - Track transaction success/failure rates
-- **Audit and Compliance** - Complete transaction audit trails
-- **Block Explorers** - Display comprehensive block information
-- **Fee Analysis** - Study actual vs estimated fees
-
-## Receipt Information Included
-
-Each transaction receipt contains:
-- **Execution Status** - SUCCESS, REVERTED, or REJECTED
-- **Actual Gas Used** - Real gas consumption for each resource type
-- **Events Emitted** - All events generated during execution
-- **Messages to L1** - Any L2→L1 messages sent
-- **Actual Fees** - Final fees paid in FRI or WEI
-- **Execution Resources** - Detailed resource consumption breakdown
-
-## Performance Considerations
-
-- **Largest data payload** among block methods
-- Higher bandwidth and memory usage
-- Slower response times for blocks with many transactions
-- Consider caching for frequently accessed blocks
+Note: This shows only the first transaction with its receipt. The actual block contains 11 transactions, each paired with its corresponding receipt showing execution results, gas usage, events, and fees.
 
 ## Error Handling
 
@@ -170,11 +185,3 @@ if err != nil {
 // Process the complete block data
 fmt.Printf("Processing block with full transaction and receipt data\n")
 ```
-
-## Comparison with Other Block Methods
-
-| Method | Data Size | Use Case |
-|--------|-----------|----------|
-| `BlockWithTxHashes` | Small | Quick overview |
-| `BlockWithTxs` | Medium | Transaction details |
-| `BlockWithReceipts` | Large | Complete execution data |

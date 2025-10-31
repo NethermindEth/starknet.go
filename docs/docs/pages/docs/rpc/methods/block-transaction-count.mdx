@@ -18,6 +18,24 @@ func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID Blo
 - `uint64` - Number of transactions in the block
 - `error` - Error if the request fails
 
+## BlockID Parameter
+
+This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
+
+```go
+// Using block number
+blockID := rpc.WithBlockNumber(123456)
+
+// Using block hash
+hash, _ := new(felt.Felt).SetString("0x1234...")
+blockID := rpc.WithBlockHash(hash)
+
+// Using block tag
+blockID := rpc.WithBlockTag("latest")
+```
+
+**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
+
 ## Usage Example
 
 ```go
@@ -52,77 +70,12 @@ func main() {
 ## Expected Output
 
 ```
-Latest block contains 1 transactions
+Latest block contains 11 transactions
 ```
 
-## Historical Analysis Example
+## Advanced Examples
 
-```go
-// Analyze transaction volume over multiple blocks
-blockNumbers := []uint64{1500000, 1500001, 1500002, 1500003, 1500004}
-totalTxs := uint64(0)
-
-for _, blockNum := range blockNumbers {
-    blockID := rpc.WithBlockNumber(blockNum)
-    txCount, err := client.BlockTransactionCount(context.Background(), blockID)
-    if err != nil {
-        log.Printf("Failed to get tx count for block %d: %v", blockNum, err)
-        continue
-    }
-    
-    fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
-    totalTxs += txCount
-}
-
-fmt.Printf("Total transactions across %d blocks: %d\n", len(blockNumbers), totalTxs)
-fmt.Printf("Average transactions per block: %.2f\n", float64(totalTxs)/float64(len(blockNumbers)))
-```
-
-## Use Cases
-
-- **Network Analytics** - Monitor transaction volume trends
-- **Performance Monitoring** - Track network activity levels
-- **Block Analysis** - Quick block size assessment without downloading full data
-- **Capacity Planning** - Understand network usage patterns
-- **Lightweight Monitoring** - Efficient way to track blockchain activity
-- **Data Validation** - Verify expected transaction counts
-
-## Performance Benefits
-
-- **Minimal Data Transfer** - Returns only a single number
-- **Fast Response** - No need to transfer transaction data
-- **Efficient for Monitoring** - Perfect for dashboards and alerts
-- **Low Resource Usage** - Minimal memory and bandwidth requirements
-
-## Monitoring Example
-
-```go
-// Monitor network activity
-func monitorNetworkActivity(client *rpc.Provider) {
-    ticker := time.NewTicker(30 * time.Second)
-    defer ticker.Stop()
-    
-    for {
-        select {
-        case <-ticker.C:
-            blockID := rpc.WithBlockTag("latest")
-            txCount, err := client.BlockTransactionCount(context.Background(), blockID)
-            if err != nil {
-                log.Printf("Failed to get tx count: %v", err)
-                continue
-            }
-            
-            blockNum, err := client.BlockNumber(context.Background())
-            if err != nil {
-                log.Printf("Failed to get block number: %v", err)
-                continue
-            }
-            
-            fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
-        }
-    }
-}
-```
+For more comprehensive examples including transaction volume analysis and block monitoring, see [Block Analysis Examples](/docs/examples/block-analysis).
 
 ## Error Handling
 
@@ -140,10 +93,3 @@ if txCount == 0 {
 }
 ```
 
-## Comparison with Full Block Methods
-
-| Method | Returns | Use Case |
-|--------|---------|----------|
-| `BlockTransactionCount` | Count only | Quick stats |
-| `BlockWithTxHashes` | Hashes | Transaction references |
-| `BlockWithTxs` | Full transactions | Complete analysis |

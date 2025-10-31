@@ -19,6 +19,7 @@ export const sidebar: Sidebar = {
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/rpc/" },
+        { text: "Helper Functions", link: "/docs/rpc/helper-functions" },
         {
           text: "Block",
           items: [
@@ -220,6 +221,7 @@ export const sidebar: Sidebar = {
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/examples/" },
+        { text: "Block Analysis", link: "/docs/examples/block-analysis" },
         { text: "Deploy Account", link: "/docs/examples/deploy-account" },
         { text: "Deploy Contract", link: "/docs/examples/deploy-contract" },
         {

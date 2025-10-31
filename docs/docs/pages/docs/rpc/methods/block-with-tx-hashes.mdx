@@ -18,6 +18,24 @@ func (provider *Provider) BlockWithTxHashes(ctx context.Context, blockID BlockID
 - `interface{}` - Block with transaction hashes only
 - `error` - Error if the request fails
 
+## BlockID Parameter
+
+This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
+
+```go
+// Using block number
+blockID := rpc.WithBlockNumber(123456)
+
+// Using block hash
+hash, _ := new(felt.Felt).SetString("0x1234...")
+blockID := rpc.WithBlockHash(hash)
+
+// Using block tag
+blockID := rpc.WithBlockTag("latest")
+```
+
+**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
+
 ## Usage Example
 
 ```go
@@ -56,78 +74,45 @@ func main() {
 
 ```json
 {
-  "block_hash": "0x501d946a49a17460aac51cb8f7ed4a1aaa9cb58fd750dccb30159e55985b7aa",
-  "parent_hash": "0x67462dab6b244394e61b0786841aa93417dcd67baeba0e4bbbe11635d653ae1",
-  "block_number": 1675778,
-  "new_root": "0x3f6ad70de865fcb8678c780cc49101ea6ff9209936212e12459b5255a1ee494",
-  "timestamp": 1755961667,
+  "block_hash": "0x3e06332a36a380f4e67545bada2819aae004161ad3159c4690c2727715d9a7a",
+  "parent_hash": "0x39ed18564ef2222757ee7420de2d55af875419cd5aeb72e7dda2822769d8c4e",
+  "block_number": 2732828,
+  "new_root": "0xa1e7bc42320acaa5f38738af6495669c714b0d729dac721932e388e595bb33",
+  "timestamp": 1761895612,
   "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
   "l1_gas_price": {
-    "price_in_fri": "0x222754d09832",
-    "price_in_wei": "0x3c23deae"
+    "price_in_fri": "0x1b6ea95f1cc1",
+    "price_in_wei": "0x3b9aca09"
   },
   "l2_gas_price": {
     "price_in_fri": "0xb2d05e00",
-    "price_in_wei": "0x13ade"
+    "price_in_wei": "0x18486"
   },
   "l1_data_gas_price": {
-    "price_in_fri": "0x9161",
+    "price_in_fri": "0x75d2",
     "price_in_wei": "0x1"
   },
   "l1_da_mode": "BLOB",
   "starknet_version": "0.14.0",
   "status": "ACCEPTED_ON_L2",
   "transactions": [
-    "0x4a32032be9e8cc03cb1a51169366f18ade7292cddb3c1056f8634ff8d2fe6f9"
+    "0x233dc4da3ba77d376a8a1fcf5148a363d3e74f4e9e2b067639423256dc6ba05",
+    "0x570a52ecce4fc29d1691f3369542ea65d9044601786b12d1cc8552e9ebd4fdd",
+    "0x3fdb2993c2fc4c5cff3e27e896de8a25b02ef5b2b19434ee09d39d4d7a05904",
+    "0x198f321e4309105dc59c78bd74f56e58b391bcb424d7de239da0a37e99d7f72",
+    "0x4fa8857855849d69f1c17b801936595e0d2f678601931b8052d2a9b54595ef",
+    "0x3dab28aebebd0e8b402f00dfff992f81abb33fe4742df92b5d7023df6ba79f6",
+    "0x39ffc3f0e6cbfa6e026053bb7a5ae0576334e03e57e00a12c45a81c526d018a",
+    "0x3000f042c46894427e5c229356cb3a35bdf4e1aa52a09dd19afcbaf5918f8d",
+    "0x34d7b28aed546fa7908434633aea495d414089e6864b569441414ab22762887",
+    "0x5e3382e52776adcf6d4843700802672581923098ef56e7bb26d7003dbed00fd",
+    "0x79200f9161a85dee82728e7a3bb7619948f2fa50faa36d261819174ad3e72b4",
+    "0x770115392f3e12a8226758086e8108e8fc89730d19efa5a5f2a9a81cbf06698"
   ]
 }
 ```
 
-This block contains 1 transaction with only the hash shown (instead of full transaction details).
-
-## Get Historical Block Example
-
-```go
-// Get a specific historical block
-blockNumber := uint64(1000000)
-blockID := rpc.WithBlockNumber(blockNumber)
-
-block, err := client.BlockWithTxHashes(context.Background(), blockID)
-if err != nil {
-    log.Fatal("Failed to get historical block:", err)
-}
-
-fmt.Printf("Retrieved historical block %d\n", blockNumber)
-```
-
-## Use Cases
-
-- **Quick Block Overview** - Get block information without transaction details
-- **Efficient Monitoring** - Monitor blocks with minimal data transfer
-- **Transaction Reference** - Get transaction hashes for separate detailed queries
-- **Lightweight Block Explorers** - Build fast block browsing interfaces
-- **Bulk Processing** - Process many blocks efficiently
-- **Network Analytics** - Analyze block patterns and transaction volumes
-
-## Performance Benefits
-
-- **Faster Response** - Much quicker than BlockWithTxs()
-- **Reduced Bandwidth** - Significantly less data transfer
-- **Lower Memory Usage** - Minimal memory requirements
-- **Efficient for Monitoring** - Perfect for real-time block tracking
-
-## When to Use vs BlockWithTxs
-
-**Use BlockWithTxHashes when:**
-- You need basic block information
-- You want to minimize data transfer
-- You're processing many blocks
-- You only need transaction hashes for reference
-
-**Use BlockWithTxs when:**
-- You need complete transaction details
-- You're analyzing transaction contents
-- You want all data in a single call
+This block contains 12 transactions with only the hashes shown (instead of full transaction details).
 
 ## Error Handling
 
