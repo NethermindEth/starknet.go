@@ -228,6 +228,7 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		feeEstimation rpc.FeeEstimation
 		multiplier    float64
 		expected      rpc.ResourceBoundsMapping
+		feeLimit      *FeeLimitOpts
 	}{
 		{
 			name: "Basic calculation with multiplier 1.0",
@@ -283,8 +284,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 					), // invalid uint128
 					L2GasConsumed: internalUtils.TestHexToFelt(
 						t,
-						"0x123456789abcdef0123456789abcdabcdabcd",
-					), // invalid uint64
+						"0x2faf0800",
+					), // valid uint64, within L2 gas amount limit
 				},
 			},
 			multiplier: 0.5,
@@ -302,11 +303,11 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 					MaxPricePerUnit: "0x517ff0e961da52cb43bc34ad259e168a",
 				},
 				L2Gas: rpc.ResourceBounds{
-					// As these inputs overflow, the multiplier will be applied to the max values
-					// 18446744073709551615 * 0.5 ~= 9223372036854775807
-					MaxAmount: "0x7fffffffffffffff",
+					// 800_000_000 * 0.5 ~= 400_000_000
+					MaxAmount: "0x17d78400",
+					// As the output overflows, the max value is used
 					// 340282366920938463463374607431768211455 * 0.5 ~= 170141183460469231731687303715884105727
-					MaxPricePerUnit: "0x7fffffffffffffffffffffffffffffff",
+					MaxPricePerUnit: "0xffffffffffffffffffffffffffffffff",
 				},
 			},
 		},
@@ -383,8 +384,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 					MaxPricePerUnit: "0x1997fe64cb3197ce37a10a73dd46ae",
 				},
 				L2Gas: rpc.ResourceBounds{
-					// 71737338064426034 * 1.7 ~= 121953474709524254
-					MaxAmount: "0x1b1440a032f8f1e",
+					// 1_000_000_000 is the max L2 gas amount
+					MaxAmount: "0x3b9aca00",
 					// 5907679981266292691599931071900621 * 1.7 ~= 10043055968152697313366189329472992
 					MaxPricePerUnit: "0x1ef293003a41145dddddddddddde0",
 				},
@@ -464,9 +465,10 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 					// This result is too large to fit in a uint128, so the function returns the max uint128 value
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
+				// The inputs overflow, so the output should be the max values
 				L2Gas: rpc.ResourceBounds{
-					// The inputs overflow, so should the output
-					MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxUint64)),
+					// There's a default max value for L2 gas amount
+					MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxL2GasAmount)),
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 			},
@@ -518,11 +520,53 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "With fee limit + multiplier 1.5",
+			feeEstimation: rpc.FeeEstimation{
+				FeeEstimationCommon: rpc.FeeEstimationCommon{
+					L1GasPrice:        BigIntToFelt(big.NewInt(1_000_000)),
+					L1GasConsumed:     BigIntToFelt(big.NewInt(500_000)),
+					L1DataGasPrice:    BigIntToFelt(big.NewInt(1_000_000_000)),
+					L1DataGasConsumed: BigIntToFelt(big.NewInt(1_000_000)),
+					L2GasPrice:        BigIntToFelt(big.NewInt(800_000)),
+					L2GasConsumed:     BigIntToFelt(big.NewInt(200_000_000)),
+				},
+			},
+			feeLimit: &FeeLimitOpts{
+				L1GasPriceLimit:      rpc.U128("0x124f80"),    // 1_200_000
+				L1GasAmountLimit:     rpc.U64("0xf4240"),      // 1_000_000
+				L1DataGasPriceLimit:  rpc.U128("0xf4240"),     // 1_000_000
+				L1DataGasAmountLimit: rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
+				L2GasPriceLimit:      rpc.U128("0x7a120"),     // 500_000
+				L2GasAmountLimit:     rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
+			},
+			multiplier: 1.5,
+			expected: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					// 1_000_000 * 1.5 = 1_500_000_
+					MaxPricePerUnit: "0x124f80", // 1_200_000, capped by the limit
+					// 500_000 * 1.5 = 750_000_
+					MaxAmount: "0xb71b0", // 750_000, within the limit
+				},
+				L1DataGas: rpc.ResourceBounds{
+					// 1_000_000_000 * 1.5 = 1_500_000_000_
+					MaxPricePerUnit: "0xf4240", // 1_000_000, capped by the limit
+					// 1_000_000 * 1.5 = 1_500_000_
+					MaxAmount: "0x16e360", // 1_500_000, within the limit
+				},
+				L2Gas: rpc.ResourceBounds{
+					// 800_000 * 1.5 = 1_200_000_
+					MaxPricePerUnit: "0x7a120", // 500_000, capped by the limit
+					// 200_000_000 * 1.5 = 300_000_000_
+					MaxAmount: "0x11e1a300", // 300_000_000, within the limit
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := FeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier, nil)
+			got := FeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier, tt.feeLimit)
 
 			// Compare each field individually for better error messages
 			assert.Equal(t, tt.expected.L1Gas.MaxAmount, got.L1Gas.MaxAmount,
