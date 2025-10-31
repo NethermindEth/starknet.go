@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `rpc.IsCompatible` method to the `rpc.Provider` type. It returns whether the node RPC version is compatible
 with the version implemented by the starknet.go provider or not.
 - New `rpc.ErrIncompatibleVersion` error variable, used in the `rpc.NewProvider` function.
+- New `rpc.U128.ToBigInt()` method to convert the `rpc.U128` type to a `*big.Int`, also validating if the value is within the range of a uint128.
 
 ### Changed
 - The `rpc.NewProvider` and `rpc.NewWebsocketProvider` functions now accept a `context.Context` parameter.
