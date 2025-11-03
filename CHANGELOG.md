@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 with the version implemented by the starknet.go provider or not.
 - New `rpc.ErrIncompatibleVersion` error variable, used in the `rpc.NewProvider` function.
 - New `rpc.U128.ToBigInt()` method to convert the `rpc.U128` type to a `*big.Int`, also validating if the value is within the range of a uint128.
+- New `utils.CustomFeeEstToResBoundsMap` function that does the same as `utils.FeeEstToResBoundsMap`, but accepts a `utils.FeeLimits` parameter to set custom limits for the resource bounds instead of using the Starknet default limits.
 
 ### Changed
 - The `rpc.NewProvider` and `rpc.NewWebsocketProvider` functions now accept a `context.Context` parameter.
@@ -29,8 +30,6 @@ with the version implemented by the starknet.go provider or not.
 implemented by the starknet.go provider. The returned Provider instance is still valid, but there might be
 unexpected behaviour.
 - The `typedata` pkg was renamed to `typeddata`, fixing the typo in the package name introduced in v0.16.0.
-- The `utils.FeeEstToResBoundsMap` function now accepts a `utils.FeeLimitOpts` parameter, which can be used to set custom limits for the resource bounds instead of using the Starknet default limits.
-
 
 ### Removed
 - The warning message when the node RPC version is different from the version implemented by the
