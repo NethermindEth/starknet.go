@@ -12,6 +12,7 @@ import (
 )
 
 func TestResBoundsMapToOverallFee(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		resBounds   rpc.ResourceBoundsMapping
@@ -200,6 +201,8 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := ResBoundsMapToOverallFee(&tt.resBounds, tt.multiplier)
 
 			if tt.expectedErr != "" {
@@ -222,14 +225,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 	}
 }
 
-//nolint:dupl // The tests are similar, but they are testing different things.
+//nolint:dupl,tparallel // The tests are similar, but they are testing different things. // Run sequentially to avoid race conditions with the `tests` variable.
 func TestFeeEstToResBoundsMap(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name          string
 		feeEstimation rpc.FeeEstimation
 		multiplier    float64
 		expected      rpc.ResourceBoundsMapping
-		feeLimit      *FeeLimitOpts
+		feeLimit      FeeLimits // Only used in the `CustomFeeEstToResBoundsMap` test.
 	}{
 		{
 			name: "Basic calculation with multiplier 1.0",
@@ -308,7 +313,7 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 					MaxAmount: "0x17d78400",
 					// As the output overflows, the max value is used
 					// 340282366920938463463374607431768211455 * 0.5 ~= 170141183460469231731687303715884105727
-					MaxPricePerUnit: "0xffffffffffffffffffffffffffffffff",
+					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 			},
 		},
@@ -385,12 +390,15 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 					MaxPricePerUnit: "0x1997fe64cb3197ce37a10a73dd46ae",
 				},
 				L2Gas: rpc.ResourceBounds{
-					// 1_000_000_000 is the max L2 gas amount
-					MaxAmount: "0x3b9aca00",
+					// 71737338064426034 * 1.7 ~= 121953474709524254
+					// The result is bigger than the max L2 gas amount limit, so the function
+					// should return the max L2 gas amount instead
+					MaxAmount: rpc.U64(maxL2GasAmount),
 					// 5907679981266292691599931071900621 * 1.7 ~= 10043055968152697313366189329472992
 					MaxPricePerUnit: "0x1ef293003a41145dddddddddddde0",
 				},
 			},
+			feeLimit: starknetLimits, // For the CustomFeeEstToResBoundsMap test.
 		},
 		{
 			name: "Zero values",
@@ -461,18 +469,19 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				L1DataGas: rpc.ResourceBounds{
 					// 12406075901516675723 * 1.7 ~= 21090329032578348178
 					// This result is too large to fit in a uint64, so the function returns the max uint64 value
-					MaxAmount: rpc.U64(fmt.Sprintf("%#x", maxUint64)),
+					MaxAmount: rpc.U64(maxUint64),
 					// 216663551256725667606984177334664047893 * 1.7 ~= 368328037136433625310078573378144594674
 					// This result is too large to fit in a uint128, so the function returns the max uint128 value
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 				// The inputs overflow, so the output should be the max values
 				L2Gas: rpc.ResourceBounds{
-					// There's a default max value for L2 gas amount
-					MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxL2GasAmount)),
+					// Default max L2 gas amount limit
+					MaxAmount:       rpc.U64(maxL2GasAmount),
 					MaxPricePerUnit: rpc.U128(maxUint128),
 				},
 			},
+			feeLimit: starknetLimits, // For the CustomFeeEstToResBoundsMap test.
 		},
 		{
 			name: "Negative multiplier",
@@ -521,71 +530,113 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "With fee limit + multiplier 1.5",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
-					L1GasPrice:        BigIntToFelt(big.NewInt(1_000_000)),
-					L1GasConsumed:     BigIntToFelt(big.NewInt(500_000)),
-					L1DataGasPrice:    BigIntToFelt(big.NewInt(1_000_000_000)),
-					L1DataGasConsumed: BigIntToFelt(big.NewInt(1_000_000)),
-					L2GasPrice:        BigIntToFelt(big.NewInt(800_000)),
-					L2GasConsumed:     BigIntToFelt(big.NewInt(200_000_000)),
-				},
-			},
-			feeLimit: &FeeLimitOpts{
-				L1GasPriceLimit:      rpc.U128("0x124f80"),    // 1_200_000
-				L1GasAmountLimit:     rpc.U64("0xf4240"),      // 1_000_000
-				L1DataGasPriceLimit:  rpc.U128("0xf4240"),     // 1_000_000
-				L1DataGasAmountLimit: rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
-				L2GasPriceLimit:      rpc.U128("0x7a120"),     // 500_000
-				L2GasAmountLimit:     rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
-			},
-			multiplier: 1.5,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
-					// 1_000_000 * 1.5 = 1_500_000_
-					MaxPricePerUnit: "0x124f80", // 1_200_000, capped by the limit
-					// 500_000 * 1.5 = 750_000_
-					MaxAmount: "0xb71b0", // 750_000, within the limit
-				},
-				L1DataGas: rpc.ResourceBounds{
-					// 1_000_000_000 * 1.5 = 1_500_000_000_
-					MaxPricePerUnit: "0xf4240", // 1_000_000, capped by the limit
-					// 1_000_000 * 1.5 = 1_500_000_
-					MaxAmount: "0x16e360", // 1_500_000, within the limit
-				},
-				L2Gas: rpc.ResourceBounds{
-					// 800_000 * 1.5 = 1_200_000_
-					MaxPricePerUnit: "0x7a120", // 500_000, capped by the limit
-					// 200_000_000 * 1.5 = 300_000_000_
-					MaxAmount: "0x11e1a300", // 300_000_000, within the limit
-				},
+	}
+
+	t.Run("Test FeeEstToResBoundsMap", func(t *testing.T) {
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := FeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier)
+
+				// Compare each field individually for better error messages
+				assert.Equal(t, tt.expected.L1Gas.MaxAmount, got.L1Gas.MaxAmount,
+					"L1Gas.MaxAmount mismatch")
+				assert.Equal(t, tt.expected.L1Gas.MaxPricePerUnit, got.L1Gas.MaxPricePerUnit,
+					"L1Gas.MaxPricePerUnit mismatch")
+
+				assert.Equal(t, tt.expected.L1DataGas.MaxAmount, got.L1DataGas.MaxAmount,
+					"L1DataGas.MaxAmount mismatch")
+				assert.Equal(
+					t,
+					tt.expected.L1DataGas.MaxPricePerUnit,
+					got.L1DataGas.MaxPricePerUnit,
+					"L1DataGas.MaxPricePerUnit mismatch",
+				)
+
+				assert.Equal(t, tt.expected.L2Gas.MaxAmount, got.L2Gas.MaxAmount,
+					"L2Gas.MaxAmount mismatch")
+				assert.Equal(t, tt.expected.L2Gas.MaxPricePerUnit, got.L2Gas.MaxPricePerUnit,
+					"L2Gas.MaxPricePerUnit mismatch")
+			})
+		}
+	})
+
+	// All previous tests + new test with custom fee limits.
+	tests = append(tests, struct {
+		name          string
+		feeEstimation rpc.FeeEstimation
+		multiplier    float64
+		expected      rpc.ResourceBoundsMapping
+		feeLimit      FeeLimits
+	}{
+		name: "With fee limit + multiplier 1.5",
+		feeEstimation: rpc.FeeEstimation{
+			FeeEstimationCommon: rpc.FeeEstimationCommon{
+				L1GasPrice:        BigIntToFelt(big.NewInt(1_000_000)),
+				L1GasConsumed:     BigIntToFelt(big.NewInt(500_000)),
+				L1DataGasPrice:    BigIntToFelt(big.NewInt(1_000_000_000)),
+				L1DataGasConsumed: BigIntToFelt(big.NewInt(1_000_000)),
+				L2GasPrice:        BigIntToFelt(big.NewInt(800_000)),
+				L2GasConsumed:     BigIntToFelt(big.NewInt(200_000_000)),
 			},
 		},
-	}
+		feeLimit: FeeLimits{
+			L1GasPriceLimit:      rpc.U128("0x124f80"),    // 1_200_000
+			L1GasAmountLimit:     rpc.U64("0xf4240"),      // 1_000_000
+			L1DataGasPriceLimit:  rpc.U128("0xf4240"),     // 1_000_000
+			L1DataGasAmountLimit: rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
+			L2GasPriceLimit:      rpc.U128("0x7a120"),     // 500_000
+			L2GasAmountLimit:     rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
+		},
+		multiplier: 1.5,
+		expected: rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				// 1_000_000 * 1.5 = 1_500_000_
+				MaxPricePerUnit: "0x124f80", // 1_200_000, capped by the limit
+				// 500_000 * 1.5 = 750_000_
+				MaxAmount: "0xb71b0", // 750_000, within the limit
+			},
+			L1DataGas: rpc.ResourceBounds{
+				// 1_000_000_000 * 1.5 = 1_500_000_000_
+				MaxPricePerUnit: "0xf4240", // 1_000_000, capped by the limit
+				// 1_000_000 * 1.5 = 1_500_000_
+				MaxAmount: "0x16e360", // 1_500_000, within the limit
+			},
+			L2Gas: rpc.ResourceBounds{
+				// 800_000 * 1.5 = 1_200_000_
+				MaxPricePerUnit: "0x7a120", // 500_000, capped by the limit
+				// 200_000_000 * 1.5 = 300_000_000_
+				MaxAmount: "0x11e1a300", // 300_000_000, within the limit
+			},
+		},
+	})
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := FeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier, tt.feeLimit)
+	t.Run("Test CustomFeeEstToResBoundsMap", func(t *testing.T) {
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := CustomFeeEstToResBoundsMap(tt.feeEstimation, tt.multiplier, tt.feeLimit)
 
-			// Compare each field individually for better error messages
-			assert.Equal(t, tt.expected.L1Gas.MaxAmount, got.L1Gas.MaxAmount,
-				"L1Gas.MaxAmount mismatch")
-			assert.Equal(t, tt.expected.L1Gas.MaxPricePerUnit, got.L1Gas.MaxPricePerUnit,
-				"L1Gas.MaxPricePerUnit mismatch")
+				// Compare each field individually for better error messages
+				assert.Equal(t, tt.expected.L1Gas.MaxAmount, got.L1Gas.MaxAmount,
+					"L1Gas.MaxAmount mismatch")
+				assert.Equal(t, tt.expected.L1Gas.MaxPricePerUnit, got.L1Gas.MaxPricePerUnit,
+					"L1Gas.MaxPricePerUnit mismatch")
 
-			assert.Equal(t, tt.expected.L1DataGas.MaxAmount, got.L1DataGas.MaxAmount,
-				"L1DataGas.MaxAmount mismatch")
-			assert.Equal(t, tt.expected.L1DataGas.MaxPricePerUnit, got.L1DataGas.MaxPricePerUnit,
-				"L1DataGas.MaxPricePerUnit mismatch")
+				assert.Equal(t, tt.expected.L1DataGas.MaxAmount, got.L1DataGas.MaxAmount,
+					"L1DataGas.MaxAmount mismatch")
+				assert.Equal(
+					t,
+					tt.expected.L1DataGas.MaxPricePerUnit,
+					got.L1DataGas.MaxPricePerUnit,
+					"L1DataGas.MaxPricePerUnit mismatch",
+				)
 
-			assert.Equal(t, tt.expected.L2Gas.MaxAmount, got.L2Gas.MaxAmount,
-				"L2Gas.MaxAmount mismatch")
-			assert.Equal(t, tt.expected.L2Gas.MaxPricePerUnit, got.L2Gas.MaxPricePerUnit,
-				"L2Gas.MaxPricePerUnit mismatch")
-		})
-	}
+				assert.Equal(t, tt.expected.L2Gas.MaxAmount, got.L2Gas.MaxAmount,
+					"L2Gas.MaxAmount mismatch")
+				assert.Equal(t, tt.expected.L2Gas.MaxPricePerUnit, got.L2Gas.MaxPricePerUnit,
+					"L2Gas.MaxPricePerUnit mismatch")
+			})
+		}
+	})
 }
 
 // TestTxnOptions tests the ApplyOptions method of the TxnOptions struct,
