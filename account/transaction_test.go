@@ -175,7 +175,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 
 	// multiplier is 1, since the BuildAndEstimateDeployAccountTxn method already
 	// multiplies the fee by 1.5
-	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccTxn.ResourceBounds, 1)
+	overallFee, err := utils.ResBoundsMapToOverallFee(
+		deployAccTxn.ResourceBounds,
+		1,
+		deployAccTxn.Tip,
+	)
 	require.NoError(t, err, "Error converting resource bounds to overall fee")
 
 	// Fund the new account with STRK tokens

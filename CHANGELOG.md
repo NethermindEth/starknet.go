@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `rpc.IsCompatible` method to the `rpc.Provider` type. It returns whether the node RPC version is compatible
 with the version implemented by the starknet.go provider or not.
 - New `rpc.ErrIncompatibleVersion` error variable, used in the `rpc.NewProvider` function.
+- New `rpc.U128.ToBigInt()` method to convert the `rpc.U128` type to a `*big.Int`, also validating if the value is within the range of a uint128.
+- New `utils.CustomFeeEstToResBoundsMap` function that does the same as `utils.FeeEstToResBoundsMap`, but accepts a `utils.FeeLimits` parameter to set custom limits for the resource bounds instead of using the Starknet default limits.
 
 ### Changed
 - The `rpc.NewProvider` and `rpc.NewWebsocketProvider` functions now accept a `context.Context` parameter.
@@ -32,6 +34,9 @@ unexpected behaviour.
 ### Removed
 - The warning message when the node RPC version is different from the version implemented by the
 starknet.go provider when calling the `rpc.NewProvider` function. Now, an error is returned instead.
+
+### Fixed
+- The `utils.FeeEstToResBoundsMap` function was using the max uint64 value for the L2 gas amount limit instead of the limit defined by Starknet, causing the txn to be rejected by the node when the amount was greater than the limit. Now, the limit is used correctly, and it's returned in the case of overflow.
 
 ## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added
