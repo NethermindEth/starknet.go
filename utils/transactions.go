@@ -267,8 +267,9 @@ func FeeEstToResBoundsMap(
 	feeEstimation rpc.FeeEstimation,
 	multiplier float64,
 ) *rpc.ResourceBoundsMapping {
-	bounds := CustomFeeEstToResBoundsMap(feeEstimation, multiplier, starknetLimits)
+	bounds := CustomFeeEstToResBoundsMap(feeEstimation, multiplier, &starknetLimits)
 
+	// TODO: return by value instead of pointer
 	return &bounds
 }
 
@@ -288,7 +289,7 @@ func FeeEstToResBoundsMap(
 func CustomFeeEstToResBoundsMap(
 	feeEstimation rpc.FeeEstimation,
 	multiplier float64,
-	limits FeeLimits,
+	limits *FeeLimits,
 ) rpc.ResourceBoundsMapping {
 	// Create L1 resources bounds
 	l1Gas := toResourceBounds(
