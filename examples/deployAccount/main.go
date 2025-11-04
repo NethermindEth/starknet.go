@@ -65,7 +65,11 @@ func main() {
 
 	// Convert the estimated fee to STRK. The multiplier is 1, as we already estimated the
 	// fee in BuildAndEstimateDeployAccountTxn multiplying by 1.5.
-	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1)
+	overallFee, err := utils.ResBoundsMapToOverallFee(
+		deployAccountTxn.ResourceBounds,
+		1,
+		deployAccountTxn.Tip,
+	)
 	if err != nil {
 		panic(err)
 	}

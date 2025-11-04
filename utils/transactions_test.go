@@ -13,10 +13,13 @@ import (
 
 func TestResBoundsMapToOverallFee(t *testing.T) {
 	t.Parallel()
+
+	zeroTip := rpc.U64("0x0")
 	tests := []struct {
 		name        string
 		resBounds   rpc.ResourceBoundsMapping
 		multiplier  float64
+		tip         rpc.U64
 		expectedRes string
 		expectedErr string
 	}{
@@ -37,6 +40,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier: 1.0,
+			tip:        zeroTip,
 			// Expected: (100*100) + (100*100) + (100*100) = 10000 + 10000 + 10000 = 30000
 			expectedRes: "30000",
 		},
@@ -57,6 +61,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  1.5,
+			tip:         zeroTip,
 			expectedRes: "0",
 		},
 		{
@@ -76,6 +81,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier: 1.5,
+			tip:        zeroTip,
 			// Expected: ((100*100) + (100*100) + (100*100)) * 1.5 = 30000 * 1.5 = 45000
 			expectedRes: "45000",
 		},
@@ -96,6 +102,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  -1.0,
+			tip:         zeroTip,
 			expectedErr: "multiplier must be greater than 0",
 		},
 		{
@@ -115,6 +122,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier: 0.5,
+			tip:        zeroTip,
 			// Expected: ((100*100) + (100*100) + (100*100)) * 0.5 = 30000 * 0.5 = 15000
 			expectedRes: "15000",
 		},
@@ -135,6 +143,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  1.5,
+			tip:         zeroTip,
 			expectedRes: "45000000000000000000000000000000000000000000",
 		},
 		{
@@ -146,6 +155,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  1.0,
+			tip:         zeroTip,
 			expectedErr: "invalid resource bounds: 'invalidValue' is not a valid big.Int",
 		},
 		{
@@ -165,6 +175,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  1.0,
+			tip:         zeroTip,
 			expectedErr: "invalid resource bounds: '' is not a valid big.Int",
 		},
 		{
@@ -184,6 +195,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  1.0,
+			tip:         zeroTip,
 			expectedErr: "can't fit in felt: 0x64000000000000000000000000000000000000000000000000000000000000000004dbc",
 		},
 		{
@@ -195,7 +207,30 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 				},
 			},
 			multiplier:  1.0,
+			tip:         zeroTip,
 			expectedErr: "resource bounds cannot be negative, got '-0x64'",
+		},
+		{
+			name: "Real values",
+			resBounds: rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x1925a36320fc",
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x80",   // 128
+					MaxPricePerUnit: "0x6c01", // 27649
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0xc25b1",    // 796081
+					MaxPricePerUnit: "0xb2d05e00", // 3000000000
+				},
+			},
+			multiplier: 1.0,
+			tip:        rpc.U64("0x1000000"), // 16777216
+			// Expected: 0 + (128*27649) + ((3000000000+16777216)*796081) =
+			// 0 + 3539072 + 2401599022890496 = 2401599026429568
+			expectedRes: "2401599026429568", // 0x8883dd8dcfe80
 		},
 	}
 
@@ -203,7 +238,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := ResBoundsMapToOverallFee(&tt.resBounds, tt.multiplier)
+			got, err := ResBoundsMapToOverallFee(&tt.resBounds, tt.multiplier, tt.tip)
 
 			if tt.expectedErr != "" {
 				require.Error(t, err)
