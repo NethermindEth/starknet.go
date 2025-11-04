@@ -161,7 +161,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NotNil(t, precomputedAddress)
 	t.Logf("Precomputed address: %s", precomputedAddress)
 
-	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccTxn.ResourceBounds, 1)
+	overallFee, err := utils.ResBoundsMapToOverallFee(
+		deployAccTxn.ResourceBounds,
+		1,
+		deployAccTxn.Tip,
+	)
 	require.NoError(t, err, "Error converting resource bounds to overall fee")
 
 	// Fund the new account with STRK tokens

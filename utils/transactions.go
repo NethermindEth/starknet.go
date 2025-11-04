@@ -397,6 +397,7 @@ func toResourceBounds(
 //   - resBounds: The resource bounds to calculate the fee for
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0
+//   - tip: The tip amount in FRI in hexadecimal string format
 //
 // Returns:
 //   - *felt.Felt: The overall fee in FRI
@@ -404,6 +405,7 @@ func toResourceBounds(
 func ResBoundsMapToOverallFee(
 	resBounds *rpc.ResourceBoundsMapping,
 	multiplier float64,
+	tip rpc.U64,
 ) (*felt.Felt, error) {
 	if resBounds == nil {
 		return nil, errors.New("resource bounds are nil")
@@ -413,6 +415,12 @@ func ResBoundsMapToOverallFee(
 	if multiplier <= 0 {
 		return nil, errors.New("multiplier must be greater than 0")
 	}
+
+	tipInt, err := tip.ToUint64()
+	if err != nil {
+		return nil, fmt.Errorf("invalid tip: %w", err)
+	}
+	tipBigInt := new(big.Int).SetUint64(tipInt)
 
 	parseBound := func(value string) (*big.Int, error) {
 		// get big int values
@@ -459,9 +467,10 @@ func ResBoundsMapToOverallFee(
 	}
 
 	// calculate fee
+	// Ref: https://docs.starknet.io/learn/protocol/fees#overall-fee
 	l1GasFee := new(big.Int).Mul(l1GasAmount, l1GasPrice)
 	l1DataGasFee := new(big.Int).Mul(l1DataGasAmount, l1DataGasPrice)
-	l2GasFee := new(big.Int).Mul(l2GasAmount, l2GasPrice)
+	l2GasFee := l2GasPrice.Add(l2GasPrice, tipBigInt).Mul(l2GasPrice, l2GasAmount)
 	overallFee := l1GasFee.Add(l1GasFee, l1DataGasFee).Add(l1GasFee, l2GasFee)
 
 	// multiply fee by multiplier
