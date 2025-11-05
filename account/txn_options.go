@@ -20,9 +20,8 @@ type TxnOptions struct {
 	// The multiplier to be used when estimating the tip when no custom tip is set.
 	// If <= 0, it'll be set to 1.0 (no multiplier, just the estimated tip).
 	TipMultiplier float64
-	// A custom tip amount in FRI for the transaction. If set, it'll be used
-	// instead of the estimated tip. If not set, the tip will be automatically
-	// estimated for the transaction.
+	// A custom tip amount in FRI for the transaction in hexadecimal format.
+	// If not set, the tip will be automatically estimated for the transaction.
 	CustomTip rpc.U64
 
 	// A boolean flag indicating whether the transaction version should have

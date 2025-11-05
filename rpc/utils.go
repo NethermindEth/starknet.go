@@ -95,6 +95,11 @@ func EstimateTip(
 		tipCounter += uintTip
 	}
 
+	// No transactions in the block OR all transactions have a tip of 0
+	if tipCounter == 0 {
+		return U64("0x0"), nil
+	}
+
 	averageTip := tipCounter / uint64(len(latestBlock.Transactions))
 
 	if multiplier <= 0 || averageTip == 0 {
