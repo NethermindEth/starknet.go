@@ -37,6 +37,7 @@ starknet.go provider when calling the `rpc.NewProvider` function. Now, an error 
 
 ### Fixed
 - The `utils.FeeEstToResBoundsMap` function was using the max uint64 value for the L2 gas amount limit instead of the limit defined by Starknet, causing the txn to be rejected by the node when the amount was greater than the limit. Now, the limit is used correctly, and it's returned in the case of overflow.
+- The `utils.ResBoundsMapToOverallFee` function was not considering the tip when calculating the overall fee, causing incorrect fee calculations.
 
 ## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added
