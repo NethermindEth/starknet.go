@@ -918,25 +918,28 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 
+	var wg sync.WaitGroup
 	for _, test := range testSet {
-		go func() {
-			ctx, cancel := context.WithTimeout(t.Context(), test.Timeout*time.Second)
-			defer cancel()
-			if test.ShouldCallTransactionReceipt {
-				mockRPCProvider.EXPECT().
-					TransactionReceipt(ctx, test.Hash).
-					Return(test.ExpectedReceipt, test.ExpectedErr)
-			}
-			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
+		wg.Go(
+			func() {
+				ctx, cancel := context.WithTimeout(t.Context(), test.Timeout*time.Second)
+				defer cancel()
+				if test.ShouldCallTransactionReceipt {
+					mockRPCProvider.EXPECT().
+						TransactionReceipt(ctx, test.Hash).
+						Return(test.ExpectedReceipt, test.ExpectedErr)
+				}
+				resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
 
-			if test.ExpectedErr != nil {
-				require.Equal(t, test.ExpectedErr, err)
-			} else {
-				// check
-				require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
-			}
-		}()
+				if test.ExpectedErr != nil {
+					require.Equal(t, test.ExpectedErr, err)
+				} else {
+					// check
+					require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
+				}
+			})
 	}
+	wg.Wait()
 }
 
 // TestWaitForTransactionReceipt is a test function that tests the WaitForTransactionReceipt method.
