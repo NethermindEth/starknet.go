@@ -5,6 +5,11 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
+const (
+	defaultFeeMultiplier float64 = 1.5
+	defaultTipMultiplier float64 = 1.0
+)
+
 // The `TxnOptions` struct is equal to the `utils.TxnOptions` struct + some new fields.
 // Composition wasn't used to avoid the need to create a struct inside another struct
 // when building the options.
@@ -12,9 +17,12 @@ import (
 // Optional settings for building/sending/estimating a transaction
 // in the BuildAndSend* account methods.
 type TxnOptions struct {
-	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	// Note: only ready to be used after Starknet v0.14.0 upgrade.
-	Tip rpc.U64
+	// The multiplier to be used when estimating the tip when no custom tip is set.
+	// If <= 0, it'll be set to 1.0 (no multiplier, just the estimated tip).
+	TipMultiplier float64
+	// A custom tip amount in FRI for the transaction in hexadecimal format.
+	// If not set, the tip will be automatically estimated for the transaction.
+	CustomTip rpc.U64
 
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
@@ -29,8 +37,8 @@ type TxnOptions struct {
 	// A value of 1.5 (estimated fee + 50%) is recommended to balance between
 	// transaction success rate and avoiding excessive fees. Higher values
 	// provide more safety margin but may result in overpayment.
-	// If multiplier <= 0, it'll be set to 1.5.
-	Multiplier float64
+	// If FeeMultiplier <= 0, it'll be set to 1.5.
+	FeeMultiplier float64
 
 	// A boolean flag indicating whether to use the latest block tag
 	// when estimating fees instead of the pre_confirmed block. Default: `false`.
@@ -60,16 +68,24 @@ func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
 	return []rpc.SimulationFlag{opts.SimulationFlag}
 }
 
-// takes a pointer to a TxnOptions struct and formats the tip and multiplier according
-// to the default values
-func fmtTipAndMultiplier(opts *TxnOptions) {
-	if opts.Multiplier <= 0 {
-		opts.Multiplier = 1.5
+// FmtFeeMultiplier returns the fee multiplier specified in the options.
+// If not set/negative, returns the default fee multiplier.
+func (opts *TxnOptions) FmtFeeMultiplier() float64 {
+	if opts.FeeMultiplier <= 0 {
+		return defaultFeeMultiplier
 	}
 
-	if opts.Tip == "" {
-		opts.Tip = "0x0"
+	return opts.FeeMultiplier
+}
+
+// FmtTipMultiplier returns the tip multiplier specified in the options.
+// If not set/negative, returns the default tip multiplier.
+func (opts *TxnOptions) FmtTipMultiplier() float64 {
+	if opts.TipMultiplier <= 0 {
+		return defaultTipMultiplier
 	}
+
+	return opts.TipMultiplier
 }
 
 type UDCOptions = utils.UDCOptions

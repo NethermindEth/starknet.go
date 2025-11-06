@@ -3,6 +3,7 @@ package account_test
 import (
 	"context"
 	"math/big"
+	"sync"
 	"testing"
 	"time"
 
@@ -36,7 +37,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Build and send invoke txn
-	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+	resp, err := acc.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
 		{
 			// same ERC20 contract as in examples/simpleInvoke
 			ContractAddress: internalUtils.TestHexToFelt(
@@ -54,13 +55,19 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	t.Logf("Invoke transaction hash: %s", resp.Hash)
 
 	txReceipt, err := acc.WaitForTransactionReceipt(
-		context.Background(),
+		t.Context(),
 		resp.Hash,
 		500*time.Millisecond,
 	)
 	require.NoError(t, err, "Error waiting for invoke transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+
+	// testing the default tip estimation feature
+	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	require.NoError(t, err, "Error getting transaction by hash")
+	require.NotNil(t, txn)
+	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.InvokeTxnV3).Tip)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -85,7 +92,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 
 	// Build and send declare txn
 	resp, err := acc.BuildAndSendDeclareTxn(
-		context.Background(),
+		t.Context(),
 		&casmClass,
 		&class,
 		nil,
@@ -108,13 +115,19 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	t.Logf("Class hash: %s", resp.ClassHash)
 
 	txReceipt, err := acc.WaitForTransactionReceipt(
-		context.Background(),
+		t.Context(),
 		resp.Hash,
 		500*time.Millisecond,
 	)
 	require.NoError(t, err, "Error waiting for declare transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+
+	// testing the default tip estimation feature
+	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	require.NoError(t, err, "Error getting transaction by hash")
+	require.NotNil(t, txn)
+	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeclareTxnV3).Tip)
 }
 
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
@@ -150,7 +163,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 
 	// Build, estimate the fee and precompute the address of the new account
 	deployAccTxn, precomputedAddress, err := tempAcc.BuildAndEstimateDeployAccountTxn(
-		context.Background(),
+		t.Context(),
 		new(felt.Felt).SetUint64(uint64(time.Now().UnixNano())), // random salt
 		classHash,
 		[]*felt.Felt{pub},
@@ -161,6 +174,8 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NotNil(t, precomputedAddress)
 	t.Logf("Precomputed address: %s", precomputedAddress)
 
+	// multiplier is 1, since the BuildAndEstimateDeployAccountTxn method already
+	// multiplies the fee by 1.5
 	overallFee, err := utils.ResBoundsMapToOverallFee(
 		deployAccTxn.ResourceBounds,
 		1,
@@ -176,7 +191,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	// Deploy the new account
-	resp, err := provider.AddDeployAccountTransaction(context.Background(), deployAccTxn)
+	resp, err := provider.AddDeployAccountTransaction(t.Context(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
 	require.NotNil(t, resp.Hash)
@@ -184,13 +199,19 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NotNil(t, resp.ContractAddress)
 
 	txReceipt, err := acc.WaitForTransactionReceipt(
-		context.Background(),
+		t.Context(),
 		resp.Hash,
 		500*time.Millisecond,
 	)
 	require.NoError(t, err, "Error waiting for deploy account transaction receipt")
 
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
+
+	// testing the default tip estimation feature
+	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	require.NoError(t, err, "Error getting transaction by hash")
+	require.NotNil(t, txn)
+	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeployAccountTxnV3).Tip)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
@@ -204,7 +225,7 @@ func transferSTRKAndWaitConfirmation(
 	// Build and send invoke txn
 	u256Amount, err := internalUtils.HexToU256Felt(amount.String())
 	require.NoError(t, err, "Error converting amount to u256")
-	resp, err := acc.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+	resp, err := acc.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
 		{
 			// STRK contract address in Sepolia
 			ContractAddress: internalUtils.TestHexToFelt(
@@ -222,14 +243,14 @@ func transferSTRKAndWaitConfirmation(
 	t.Logf("Transfer transaction hash: %s", resp.Hash)
 
 	txReceipt, err := acc.WaitForTransactionReceipt(
-		context.Background(),
+		t.Context(),
 		resp.Hash,
 		500*time.Millisecond,
 	)
 	require.NoError(t, err, "Error waiting for transfer transaction receipt")
 
 	err = waitForTransactionStatus(
-		context.Background(),
+		t.Context(),
 		acc.Provider,
 		resp.Hash,
 		rpc.TxnStatusAcceptedOnL2,
@@ -341,6 +362,30 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			).
 			Times(3)
 
+		// modified txn with a 10000 tip
+		fakeTxn := internalUtils.TestUnmarshalJSONFileToType[rpc.InvokeTxnV3](
+			t,
+			"./testData/fakeInvokeTxn.json",
+			"",
+		)
+		// called when estimating the tip
+		mockRPCProvider.EXPECT().
+			BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+			Return(&rpc.Block{
+				BlockHeader: rpc.BlockHeader{},
+				Status:      rpc.BlockStatusAcceptedOnL2,
+				Transactions: []rpc.BlockTransaction{
+					{
+						Hash:        internalUtils.DeadBeef,
+						Transaction: fakeTxn,
+					},
+					{
+						Hash:        internalUtils.DeadBeef,
+						Transaction: fakeTxn,
+					},
+				},
+			}, nil).Times(3)
+
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
 			mockRPCProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddInvokeTransactionResponse, error) {
@@ -354,7 +399,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				},
 			)
 
-			_, err = acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+			_, err = acnt.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
 				{
 					ContractAddress: internalUtils.DeadBeef,
 					FunctionName:    "transfer",
@@ -379,7 +424,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			)
 
 			_, err = acnt.BuildAndSendDeclareTxn(
-				context.Background(),
+				t.Context(),
 				&casmClass,
 				&class,
 				&account.TxnOptions{
@@ -391,7 +436,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("TestBuildAndEstimateDeployAccountTxn", func(t *testing.T) {
 			txn, _, err := acnt.BuildAndEstimateDeployAccountTxn(
-				context.Background(),
+				t.Context(),
 				pub,
 				internalUtils.DeadBeef,
 				[]*felt.Felt{pub},
@@ -419,7 +464,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			resp, err := acnt.BuildAndSendDeclareTxn(
-				context.Background(),
+				t.Context(),
 				&casmClass,
 				&class,
 				&account.TxnOptions{
@@ -428,7 +473,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
+			txn, err := client.TransactionByHash(t.Context(), resp.Hash)
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
@@ -441,7 +486,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 			require.NoError(t, err, "Error converting amount to u256")
 
-			resp, err := acnt.BuildAndSendInvokeTxn(context.Background(), []rpc.InvokeFunctionCall{
+			resp, err := acnt.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
 				{
 					// STRK contract address in Sepolia
 					ContractAddress: internalUtils.TestHexToFelt(
@@ -456,7 +501,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			txn, err := client.TransactionByHash(context.Background(), resp.Hash)
+			txn, err := client.TransactionByHash(t.Context(), resp.Hash)
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
@@ -475,7 +520,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			) // preDeployed OZ account classhash in devnet
 			// Build and send deploy account txn
 			txn, _, err := tempAcc.BuildAndEstimateDeployAccountTxn(
-				context.Background(),
+				t.Context(),
 				pub,
 				classHash,
 				[]*felt.Felt{pub},
@@ -587,10 +632,10 @@ func TestSendInvokeTxn(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		err = acnt.SignInvokeTransaction(context.Background(), &test.InvokeTx)
+		err = acnt.SignInvokeTransaction(t.Context(), &test.InvokeTx)
 		require.NoError(t, err)
 
-		resp, err := acnt.SendTransaction(context.Background(), test.InvokeTx)
+		resp, err := acnt.SendTransaction(t.Context(), test.InvokeTx)
 		if err != nil {
 			rpcErr := err.(*rpc.RPCError)
 			require.Equal(
@@ -697,10 +742,10 @@ func TestSendDeclareTxn(t *testing.T) {
 		FeeMode:               rpc.DAModeL1,
 	}
 
-	err = acnt.SignDeclareTransaction(context.Background(), &broadcastTx)
+	err = acnt.SignDeclareTransaction(t.Context(), &broadcastTx)
 	require.NoError(t, err)
 
-	resp, err := acnt.SendTransaction(context.Background(), broadcastTx)
+	resp, err := acnt.SendTransaction(t.Context(), broadcastTx)
 
 	if err != nil {
 		rpcErr := err.(*rpc.RPCError)
@@ -787,13 +832,13 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	)
 	require.NoError(
 		t,
-		acnt.SignDeployAccountTransaction(context.Background(), &tx, precomputedAddress),
+		acnt.SignDeployAccountTransaction(t.Context(), &tx, precomputedAddress),
 	)
 
 	_, err = devnetClient.Mint(precomputedAddress, new(big.Int).SetUint64(10000000000000000000))
 	require.NoError(t, err)
 
-	resp, err := acnt.SendTransaction(context.Background(), tx)
+	resp, err := acnt.SendTransaction(t.Context(), tx)
 	if err != nil {
 		// TODO: remove this once devnet supports full v3 transaction type
 		require.ErrorContains(t, err, "unsupported transaction type")
@@ -873,25 +918,28 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 
+	var wg sync.WaitGroup
 	for _, test := range testSet {
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), test.Timeout*time.Second)
-			defer cancel()
-			if test.ShouldCallTransactionReceipt {
-				mockRPCProvider.EXPECT().
-					TransactionReceipt(ctx, test.Hash).
-					Return(test.ExpectedReceipt, test.ExpectedErr)
-			}
-			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
+		wg.Go(
+			func() {
+				ctx, cancel := context.WithTimeout(t.Context(), test.Timeout*time.Second)
+				defer cancel()
+				if test.ShouldCallTransactionReceipt {
+					mockRPCProvider.EXPECT().
+						TransactionReceipt(ctx, test.Hash).
+						Return(test.ExpectedReceipt, test.ExpectedErr)
+				}
+				resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 2*time.Second)
 
-			if test.ExpectedErr != nil {
-				require.Equal(t, test.ExpectedErr, err)
-			} else {
-				// check
-				require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
-			}
-		}()
+				if test.ExpectedErr != nil {
+					require.Equal(t, test.ExpectedErr, err)
+				} else {
+					// check
+					require.Equal(t, test.ExpectedReceipt.ExecutionStatus, (resp.TransactionReceipt).ExecutionStatus)
+				}
+			})
 	}
+	wg.Wait()
 }
 
 // TestWaitForTransactionReceipt is a test function that tests the WaitForTransactionReceipt method.
@@ -948,29 +996,33 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 
+	var wg sync.WaitGroup
 	for _, test := range testSet {
-		go func() {
-			ctx, cancel := context.WithTimeout(
-				context.Background(),
-				time.Duration(test.Timeout)*time.Second,
-			)
-			defer cancel()
+		wg.Go(
+			func() {
+				ctx, cancel := context.WithTimeout(
+					t.Context(),
+					time.Duration(test.Timeout)*time.Second,
+				)
+				defer cancel()
 
-			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
-			if test.ExpectedErr != nil {
-				rpcErr, ok := err.(*rpc.RPCError)
-				require.True(t, ok)
-				require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-				require.Contains(
-					t,
-					rpcErr.Data.ErrorMessage(),
-					test.ExpectedErr.Data.ErrorMessage(),
-				) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
-			} else {
-				require.Equal(t, test.ExpectedReceipt.ExecutionStatus, resp.ExecutionStatus)
-			}
-		}()
+				resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
+				if test.ExpectedErr != nil {
+					rpcErr, ok := err.(*rpc.RPCError)
+					require.True(t, ok)
+					require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
+					require.Contains(
+						t,
+						rpcErr.Data.ErrorMessage(),
+						test.ExpectedErr.Data.ErrorMessage(),
+					) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
+				} else {
+					require.Equal(t, test.ExpectedReceipt.ExecutionStatus, resp.ExecutionStatus)
+				}
+			},
+		)
 	}
+	wg.Wait()
 }
 
 func TestDeployContractWithUDC(t *testing.T) {
@@ -987,13 +1039,13 @@ func TestDeployContractWithUDC(t *testing.T) {
 			"0x0387edd4804deba7af741953fdf64189468f37593a66b618d00d2476be3168f8",
 		)
 
-		resp, _, err := accnt.DeployContractWithUDC(context.Background(), classHash, nil, nil, nil)
+		resp, _, err := accnt.DeployContractWithUDC(t.Context(), classHash, nil, nil, nil)
 		require.NoError(t, err, "DeployContractUDC failed")
 
 		t.Logf("Transaction hash: %s", resp.Hash)
 
 		txReceipt, err := accnt.WaitForTransactionReceipt(
-			context.Background(),
+			t.Context(),
 			resp.Hash,
 			500*time.Millisecond,
 		)
@@ -1008,7 +1060,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		)
 
 		_, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			nil,
 			nil,
@@ -1027,7 +1079,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		)
 
 		resp, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			nil,
 			nil,
@@ -1040,7 +1092,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		t.Logf("Transaction hash: %s", resp.Hash)
 
 		txReceipt, err := accnt.WaitForTransactionReceipt(
-			context.Background(),
+			t.Context(),
 			resp.Hash,
 			500*time.Millisecond,
 		)
@@ -1055,7 +1107,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		)
 
 		_, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			nil,
 			nil,
@@ -1087,7 +1139,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 
 	t.Run("UDCCairoV0, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
 		resp, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			constructorCalldata,
 			nil,
@@ -1098,7 +1150,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		t.Logf("Transaction hash: %s", resp.Hash)
 
 		txReceipt, err := accnt.WaitForTransactionReceipt(
-			context.Background(),
+			t.Context(),
 			resp.Hash,
 			500*time.Millisecond,
 		)
@@ -1109,7 +1161,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 
 	t.Run("error, UDCCairoV0, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
 		_, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			constructorCalldata,
 			nil,
@@ -1124,7 +1176,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 
 	t.Run("UDCCairoV2, with constructor - ERC20, udcOptions nil", func(t *testing.T) {
 		resp, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			constructorCalldata,
 			nil,
@@ -1137,7 +1189,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 		t.Logf("Transaction hash: %s", resp.Hash)
 
 		txReceipt, err := accnt.WaitForTransactionReceipt(
-			context.Background(),
+			t.Context(),
 			resp.Hash,
 			500*time.Millisecond,
 		)
@@ -1148,7 +1200,7 @@ func TestDeployContractWithUDC(t *testing.T) {
 
 	t.Run("error, UDCCairoV2, with constructor - ERC20, all udcOptions set", func(t *testing.T) {
 		_, _, err := accnt.DeployContractWithUDC(
-			context.Background(),
+			t.Context(),
 			classHash,
 			constructorCalldata,
 			nil,
