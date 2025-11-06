@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"strconv"
 
 	"github.com/Masterminds/semver/v3"
@@ -75,7 +76,7 @@ func EstimateTip(
 		Tip U64 `json:"tip"`
 	}
 
-	var tipCounter uint64
+	tipCounter := new(big.Int)
 	// sum up the tips from all transactions
 	for _, transaction := range latestBlock.Transactions {
 		// L1Handler transactions don't have a tip
@@ -97,15 +98,18 @@ func EstimateTip(
 		if err != nil {
 			return tip, fmt.Errorf("failed to convert tip to uint64: %w", err)
 		}
-		tipCounter += uintTip
+		bigTip := new(big.Int).SetUint64(uintTip)
+		tipCounter.Add(tipCounter, bigTip)
 	}
 
 	// No transactions in the block OR all transactions have a tip of 0
-	if tipCounter == 0 {
+	if tipCounter.Cmp(new(big.Int)) == 0 {
 		return U64("0x0"), nil
 	}
 
-	averageTip := tipCounter / uint64(len(latestBlock.Transactions))
+	bigLength := new(big.Int).SetUint64(uint64(len(latestBlock.Transactions)))
+
+	averageTip := tipCounter.Div(tipCounter, bigLength).Uint64()
 
 	if multiplier <= 0 || averageTip == 0 {
 		return U64("0x" + strconv.FormatUint(averageTip, 16)), nil
