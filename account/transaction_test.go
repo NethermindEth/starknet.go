@@ -3,6 +3,7 @@ package account_test
 import (
 	"context"
 	"math/big"
+	"sync"
 	"testing"
 	"time"
 
@@ -992,29 +993,33 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 		},
 	}[tests.TEST_ENV]
 
+	var wg sync.WaitGroup
 	for _, test := range testSet {
-		go func() {
-			ctx, cancel := context.WithTimeout(
-				t.Context(),
-				time.Duration(test.Timeout)*time.Second,
-			)
-			defer cancel()
+		wg.Go(
+			func() {
+				ctx, cancel := context.WithTimeout(
+					t.Context(),
+					time.Duration(test.Timeout)*time.Second,
+				)
+				defer cancel()
 
-			resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
-			if test.ExpectedErr != nil {
-				rpcErr, ok := err.(*rpc.RPCError)
-				require.True(t, ok)
-				require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-				require.Contains(
-					t,
-					rpcErr.Data.ErrorMessage(),
-					test.ExpectedErr.Data.ErrorMessage(),
-				) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
-			} else {
-				require.Equal(t, test.ExpectedReceipt.ExecutionStatus, resp.ExecutionStatus)
-			}
-		}()
+				resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
+				if test.ExpectedErr != nil {
+					rpcErr, ok := err.(*rpc.RPCError)
+					require.True(t, ok)
+					require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
+					require.Contains(
+						t,
+						rpcErr.Data.ErrorMessage(),
+						test.ExpectedErr.Data.ErrorMessage(),
+					) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
+				} else {
+					require.Equal(t, test.ExpectedReceipt.ExecutionStatus, resp.ExecutionStatus)
+				}
+			},
+		)
 	}
+	wg.Wait()
 }
 
 func TestDeployContractWithUDC(t *testing.T) {
