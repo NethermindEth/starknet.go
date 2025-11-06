@@ -78,6 +78,11 @@ func EstimateTip(
 	var tipCounter uint64
 	// sum up the tips from all transactions
 	for _, transaction := range latestBlock.Transactions {
+		// L1Handler transactions don't have a tip
+		if transaction.GetType() == TransactionTypeL1Handler {
+			continue
+		}
+
 		// TODO: refactor this in the RPC package refactoring
 		rawTxn, err := json.Marshal(transaction.Transaction)
 		if err != nil {
