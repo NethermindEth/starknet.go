@@ -18,7 +18,9 @@ import (
 // calculating the estimated tip again and comparing it with
 // the estimated tip returned by the provider.
 func TestProvider_EstimateTip(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
+	tests.RunTestOn(t, tests.TestnetEnv, tests.MainnetEnv)
+	t.Parallel()
+
 	testConfig := BeforeEach(t, false)
 
 	// setup provider with a spy
@@ -27,6 +29,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 	provider.c = spy
 
 	t.Run("No multiplier", func(t *testing.T) {
+		t.Parallel()
 		estimatedTip, err := EstimateTip(t.Context(), provider, 0)
 		require.NoError(t, err)
 
@@ -42,6 +45,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 	t.Run("With multiplier 1.5", func(t *testing.T) {
+		t.Parallel()
 		estimatedTip, err := EstimateTip(t.Context(), provider, 1.5)
 		require.NoError(t, err)
 
@@ -57,6 +61,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 	t.Run("With negative multiplier", func(t *testing.T) {
+		t.Parallel()
 		estimatedTip, err := EstimateTip(t.Context(), provider, -1.5)
 		require.NoError(t, err)
 
@@ -73,6 +78,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 	t.Run("With multiplier less than 1", func(t *testing.T) {
+		t.Parallel()
 		estimatedTip, err := EstimateTip(t.Context(), provider, 0.5)
 		require.NoError(t, err)
 
@@ -82,6 +88,11 @@ func TestProvider_EstimateTip(t *testing.T) {
 		require.NoError(t, json.Unmarshal(rawBlock, &block))
 
 		averageTip := getTipAverageFromBlock(t, &block)
+		if averageTip == 0 {
+			assert.Equal(t, U64("0x0"), estimatedTip)
+
+			return
+		}
 
 		// compare the estimated tips
 		currentTip := (uint64(float64(averageTip) * 0.5))
