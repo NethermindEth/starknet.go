@@ -361,15 +361,29 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			).
 			Times(3)
 
-		// mockRPCProvider.EXPECT().
-		// 	BlockWithTxs(, gomock.Any()).
-		// 	Return(&rpc.Block{
-		// 		Transactions: []rpc.Transaction{
-		// 			{
-		// 				Type: rpc.TransactionTypeInvoke,
-		// 			},
-		// 		},
-		// 	}, nil).Times(1)
+		// modified txn with a 10000 tip
+		fakeTxn := internalUtils.TestUnmarshalJSONFileToType[rpc.InvokeTxnV3](
+			t,
+			"./testData/fakeInvokeTxn.json",
+			"",
+		)
+		// called when estimating the tip
+		mockRPCProvider.EXPECT().
+			BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+			Return(&rpc.Block{
+				BlockHeader: rpc.BlockHeader{},
+				Status:      rpc.BlockStatusAcceptedOnL2,
+				Transactions: []rpc.BlockTransaction{
+					{
+						Hash:        internalUtils.DeadBeef,
+						Transaction: fakeTxn,
+					},
+					{
+						Hash:        internalUtils.DeadBeef,
+						Transaction: fakeTxn,
+					},
+				},
+			}, nil).Times(3)
 
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
 			mockRPCProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
@@ -854,7 +868,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
 
-	mockRPCProvider.EXPECT().ChainID(t.Context()).Return("SN_SEPOLIA", nil)
+	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(
 		mockRPCProvider,
