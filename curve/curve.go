@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	junoCrypto "github.com/NethermindEth/juno/core/crypto"
+	"github.com/NethermindEth/juno/core/crypto/blake2s"
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
@@ -258,6 +259,21 @@ func Poseidon(a, b *felt.Felt) *felt.Felt {
 	return junoCrypto.Poseidon(a, b)
 }
 
+// Blake2s is a function that implements the Blake2s hash.
+//
+// Parameters:
+//   - a: a pointers to felt.Felt to be hashed.
+//   - b: a pointers to felt.Felt to be hashed.
+//
+// Returns:
+//   - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
+func Blake2s(a, b *felt.Felt) *felt.Felt {
+	hash := blake2s.Blake2s(a, b)
+	hashFelt := felt.Felt(hash)
+
+	return &hashFelt
+}
+
 // PedersenArray is a function that takes a variadic number of felt.Felt
 // pointers as parameters and calls the PedersenArray function from the
 // junoCrypto package with the provided parameters.
@@ -282,6 +298,22 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 //   - *felt.Felt: pointer to a felt.Felt
 func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 	return junoCrypto.PoseidonArray(felts...)
+}
+
+// Blake2sArray is a function that takes a variadic number of felt.Felt
+// pointers as parameters and calls the Blake2sArray function from the
+// junoCrypto package with the provided parameters.
+//
+// Parameters:
+//   - felts: A variadic number of pointers to felt.Felt
+//
+// Returns:
+//   - *felt.Felt: pointer to a felt.Felt
+func Blake2sArray(felts ...*felt.Felt) *felt.Felt {
+	hash := blake2s.Blake2sArray(felts...)
+	hashFelt := felt.Felt(hash)
+
+	return &hashFelt
 }
 
 // StarknetKeccak computes the Starknet Keccak hash of the given byte slice.
