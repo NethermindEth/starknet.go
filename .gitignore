@@ -17,3 +17,9 @@ examples/**/*.sum
 .idea/
 
 .vscode/
+
+# Documentation build output
+docs/docs/dist/
+
+# Helper scripts
+docs/show-docs-status.sh
