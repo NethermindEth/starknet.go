@@ -1,811 +1,167 @@
 # Transaction Hash Functions
 
-Transaction hash functions calculate unique identifiers for Starknet transactions. Each transaction type and version has its own hash calculation method that follows the Starknet specification.
+Transaction hash functions calculate unique identifiers for Starknet transactions. Each transaction type and version has its own hash calculation method following the Starknet specification.
 
-## Overview
+> For conceptual understanding of transaction hashing, see [Transaction Hashing Concepts](./concepts/transaction-hashing).
 
-Transaction hashes serve as unique identifiers for transactions on Starknet. The hash calculation varies based on:
+## Quick Reference
 
-- Transaction type (Invoke, Declare, Deploy Account)
-- Transaction version (V0, V1, V2, V3)
-- Network chain ID
+Use this table to find the right hash function for your transaction:
 
-## Invoke Transaction Hashes
+| Transaction Type | Version | Function | Hash Algorithm | Fee Model |
+|-----------------|---------|----------|----------------|-----------|
+| **Invoke** | V0 (deprecated) | [TransactionHashInvokeV0](./functions/transaction-hash-invoke-v0) | Pedersen | max_fee |
+| **Invoke** | V1 | [TransactionHashInvokeV1](./functions/transaction-hash-invoke-v1) | Pedersen | max_fee |
+| **Invoke** | V3 (current) | [TransactionHashInvokeV3](./functions/transaction-hash-invoke-v3) | Poseidon | resource_bounds |
+| **Declare** | V1 | [TransactionHashDeclareV1](./functions/transaction-hash-declare-v1) | Pedersen | max_fee |
+| **Declare** | V2 | [TransactionHashDeclareV2](./functions/transaction-hash-declare-v2) | Pedersen | max_fee |
+| **Declare** | V3 (current) | [TransactionHashDeclareV3](./functions/transaction-hash-declare-v3) | Poseidon | resource_bounds |
+| **Deploy Account** | V1 | [TransactionHashDeployAccountV1](./functions/transaction-hash-deploy-account-v1) | Pedersen | max_fee |
+| **Deploy Account** | V3 (current) | [TransactionHashDeployAccountV3](./functions/transaction-hash-deploy-account-v3) | Poseidon | resource_bounds |
 
-### TransactionHashInvokeV0
+## Version Comparison
 
-Calculates the transaction hash for a deprecated Invoke V0 transaction.
+### V0/V1/V2 Transactions (Legacy)
 
-#### Signature
+**Hash Function**: Pedersen hash
+**Fee Model**: Single `max_fee` field
+
+These versions are deprecated but still supported for historical transactions:
+- V0: Original invoke format (deprecated)
+- V1: Added nonce and account abstraction support
+- V2: Added compiled class hash for Declare transactions
+
+### V3 Transactions (Current Standard)
+
+**Hash Function**: Poseidon hash
+**Fee Model**: `resource_bounds` with separate limits
+
+V3 introduces modern features:
+- **Resource Bounds**: Separate limits for L1 gas, L2 gas, and L1 data gas
+- **Data Availability Modes**: Control where fee and nonce data is stored (L1 vs L2)
+- **Tip**: Optional priority fee for faster inclusion
+- **PayMaster Support**: Third-party fee payment capability
+- **Poseidon Hashing**: More efficient than Pedersen
+
+> **Migration Note**: For new applications, always use V3 transactions. V0/V1/V2 support is maintained for compatibility only.
+
+## Usage Patterns
+
+### Pattern 1: Calculate Hash for Existing Transaction
+
+When you have a transaction object and need its hash:
 
 ```go
-func TransactionHashInvokeV0(
-	txn *rpc.InvokeTxnV0,
-	chainID *felt.Felt,
-) (*felt.Felt, error)
-```
-
-#### Parameters
-
-- `txn` - The Invoke V0 transaction containing:
-  - `Version` - Transaction version string
-  - `ContractAddress` - Address of the contract being invoked
-  - `EntryPointSelector` - Selector of the function to call
-  - `Calldata` - Array of felt values as function parameters
-  - `MaxFee` - Maximum fee willing to pay
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-)
-
-func main() {
-	// Create Invoke V0 transaction
-	txn := &rpc.InvokeTxnV0{
-		Version:            "0x0",
-		ContractAddress:    new(felt.Felt).SetUint64(12345),
-		EntryPointSelector: new(felt.Felt).SetUint64(67890),
-		Calldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(1),
-			new(felt.Felt).SetUint64(2),
-		},
-		MaxFee: new(felt.Felt).SetUint64(1000000),
-	}
-
-	// Sepolia testnet chain ID
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	// Calculate hash
-	txHash, err := hash.TransactionHashInvokeV0(txn, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+// For V3 Invoke transaction
+txHash, err := hash.TransactionHashInvokeV3(invokeV3Txn, chainID)
+if err != nil {
+    log.Fatal("Failed to calculate hash:", err)
 }
 ```
 
-#### Specification
+### Pattern 2: Verify Transaction Hash
 
-Follows the [V0 hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation).
-
----
-
-### TransactionHashInvokeV1
-
-Calculates the transaction hash for an Invoke V1 transaction.
-
-#### Signature
+When verifying a transaction matches the expected hash:
 
 ```go
-func TransactionHashInvokeV1(
-	txn *rpc.InvokeTxnV1,
-	chainID *felt.Felt,
-) (*felt.Felt, error)
-```
+// Calculate hash from transaction data
+calculatedHash, _ := hash.TransactionHashInvokeV3(txn, chainID)
 
-#### Parameters
-
-- `txn` - The Invoke V1 transaction containing:
-  - `Version` - Transaction version string (typically "0x1")
-  - `SenderAddress` - Address of the account sending the transaction
-  - `Calldata` - Array of felt values as function parameters
-  - `MaxFee` - Maximum fee willing to pay
-  - `Nonce` - Account nonce
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	// Parse sender address
-	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
-
-	// Create Invoke V1 transaction
-	txn := &rpc.InvokeTxnV1{
-		Version:       "0x1",
-		SenderAddress: senderAddr,
-		Calldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(1),
-			new(felt.Felt).SetUint64(2),
-		},
-		MaxFee: new(felt.Felt).SetUint64(1000000),
-		Nonce:  new(felt.Felt).SetUint64(1),
-	}
-
-	// Sepolia chain ID
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	// Calculate hash
-	txHash, err := hash.TransactionHashInvokeV1(txn, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+// Compare with received hash
+if !calculatedHash.Equal(receivedHash) {
+    log.Fatal("Transaction hash mismatch")
 }
 ```
 
-#### Specification
+### Pattern 3: Pre-calculate Hash for Signing
 
-Follows the [V1 hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation).
-
----
-
-### TransactionHashInvokeV3
-
-Calculates the transaction hash for an Invoke V3 transaction with resource bounds.
-
-#### Signature
+Account signing methods calculate the hash internally, but you can pre-calculate for verification:
 
 ```go
-func TransactionHashInvokeV3(
-	txn *rpc.InvokeTxnV3,
-	chainID *felt.Felt,
-) (*felt.Felt, error)
+// Pre-calculate hash
+txHash, _ := hash.TransactionHashInvokeV3(txn, chainID)
+
+// Later during signing, the account will calculate the same hash
+signature, _ := account.Sign(ctx, txHash)
 ```
 
-#### Parameters
+## Function Categories
 
-- `txn` - The Invoke V3 transaction containing:
-  - `Version` - Transaction version string (typically "0x3")
-  - `SenderAddress` - Address of the account sending the transaction
-  - `Calldata` - Array of felt values as function parameters
-  - `Nonce` - Account nonce
-  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
-  - `Tip` - Additional fee tip
-  - `PayMasterData` - Optional paymaster data
-  - `AccountDeploymentData` - Optional account deployment data
-  - `FeeMode` - Fee data availability mode
-  - `NonceDataMode` - Nonce data availability mode
-- `chainID` - The Starknet chain ID
+### Invoke Transaction Hashes
 
-#### Returns
+Execute contract functions:
+- [TransactionHashInvokeV0](./functions/transaction-hash-invoke-v0) - Deprecated V0 format
+- [TransactionHashInvokeV1](./functions/transaction-hash-invoke-v1) - Legacy with nonce
+- [TransactionHashInvokeV3](./functions/transaction-hash-invoke-v3) - Current standard with resource bounds
 
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
+### Declare Transaction Hashes
 
-#### Usage Example
+Register new contract classes:
+- [TransactionHashDeclareV1](./functions/transaction-hash-declare-v1) - Legacy Cairo 0 contracts
+- [TransactionHashDeclareV2](./functions/transaction-hash-declare-v2) - Sierra contracts with compiled hash
+- [TransactionHashDeclareV3](./functions/transaction-hash-declare-v3) - Current standard with resource bounds
 
-```go
-package main
+### Deploy Account Transaction Hashes
 
-import (
-	"fmt"
-	"log"
+Create new account contracts:
+- [TransactionHashDeployAccountV1](./functions/transaction-hash-deploy-account-v1) - Legacy deployment
+- [TransactionHashDeployAccountV3](./functions/transaction-hash-deploy-account-v3) - Current standard with resource bounds
 
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
+### Utility Functions
 
-func main() {
-	// Parse sender address
-	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
+Low-level helpers:
+- [CalculateDeprecatedTransactionHashCommon](./functions/calculate-deprecated-transaction-hash-common) - Internal utility for V0/V1/V2 hashes
 
-	// Create Invoke V3 transaction
-	txn := &rpc.InvokeTxnV3{
-		Version:       "0x3",
-		SenderAddress: senderAddr,
-		Calldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(1),
-		},
-		Nonce: new(felt.Felt).SetUint64(1),
-		ResourceBounds: &rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(50000),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
-			},
-			L2Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(0),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
-			},
-			L1DataGas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(0),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
-			},
-		},
-		Tip:                   new(felt.Felt).SetUint64(0),
-		PayMasterData:         []*felt.Felt{},
-		AccountDeploymentData: []*felt.Felt{},
-		FeeMode:               rpc.DAModeL1,
-		NonceDataMode:         rpc.DAModeL1,
-	}
+## Common Parameters
 
-	// Sepolia chain ID
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
+All transaction hash functions require:
 
-	// Calculate hash
-	txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
+- **Transaction Object**: The specific transaction type (InvokeTxnV3, DeclareTxnV2, etc.)
+- **Chain ID**: Network identifier (use `SN_MAIN`, `SN_SEPOLIA`, or custom for devnet)
 
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Specification
-
-Follows the [V3 hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation) and [SNIP-8](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes).
-
----
-
-## Declare Transaction Hashes
-
-### TransactionHashDeclareV1
-
-Calculates the transaction hash for a Declare V1 transaction.
-
-#### Signature
-
-```go
-func TransactionHashDeclareV1(
-	txn *rpc.DeclareTxnV1,
-	chainID *felt.Felt,
-) (*felt.Felt, error)
-```
-
-#### Parameters
-
-- `txn` - The Declare V1 transaction containing:
-  - `Version` - Transaction version string
-  - `SenderAddress` - Address of the account declaring the class
-  - `ClassHash` - Hash of the contract class being declared
-  - `MaxFee` - Maximum fee willing to pay
-  - `Nonce` - Account nonce
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
-	classHash, _ := utils.HexToFelt("0xabcdef1234567890")
-
-	txn := &rpc.DeclareTxnV1{
-		Version:       "0x1",
-		SenderAddress: senderAddr,
-		ClassHash:     classHash,
-		MaxFee:        new(felt.Felt).SetUint64(1000000),
-		Nonce:         new(felt.Felt).SetUint64(1),
-	}
-
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	txHash, err := hash.TransactionHashDeclareV1(txn, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Specification
-
-Follows the [V1 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2).
-
----
-
-### TransactionHashDeclareV2
-
-Calculates the transaction hash for a Declare V2 transaction.
-
-#### Signature
-
-```go
-func TransactionHashDeclareV2(
-	txn *rpc.DeclareTxnV2,
-	chainID *felt.Felt,
-) (*felt.Felt, error)
-```
-
-#### Parameters
-
-- `txn` - The Declare V2 transaction containing:
-  - `Version` - Transaction version string
-  - `SenderAddress` - Address of the account declaring the class
-  - `ClassHash` - Hash of the Sierra contract class
-  - `CompiledClassHash` - Hash of the compiled (CASM) class
-  - `MaxFee` - Maximum fee willing to pay
-  - `Nonce` - Account nonce
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
-	classHash, _ := utils.HexToFelt("0xabcdef1234567890")
-	compiledHash, _ := utils.HexToFelt("0x9876543210fedcba")
-
-	txn := &rpc.DeclareTxnV2{
-		Version:           "0x2",
-		SenderAddress:     senderAddr,
-		ClassHash:         classHash,
-		CompiledClassHash: compiledHash,
-		MaxFee:            new(felt.Felt).SetUint64(1000000),
-		Nonce:             new(felt.Felt).SetUint64(1),
-	}
-
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	txHash, err := hash.TransactionHashDeclareV2(txn, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Specification
-
-Follows the [V2 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation).
-
----
-
-### TransactionHashDeclareV3
-
-Calculates the transaction hash for a Declare V3 transaction with resource bounds.
-
-#### Signature
-
-```go
-func TransactionHashDeclareV3(
-	txn *rpc.DeclareTxnV3,
-	chainID *felt.Felt,
-) (*felt.Felt, error)
-```
-
-#### Parameters
-
-- `txn` - The Declare V3 transaction containing:
-  - `Version` - Transaction version string
-  - `SenderAddress` - Address of the account declaring the class
-  - `ClassHash` - Hash of the Sierra contract class
-  - `CompiledClassHash` - Hash of the compiled (CASM) class
-  - `Nonce` - Account nonce
-  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
-  - `Tip` - Additional fee tip
-  - `PayMasterData` - Optional paymaster data
-  - `AccountDeploymentData` - Optional account deployment data
-  - `FeeMode` - Fee data availability mode
-  - `NonceDataMode` - Nonce data availability mode
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
-	classHash, _ := utils.HexToFelt("0xabcdef1234567890")
-	compiledHash, _ := utils.HexToFelt("0x9876543210fedcba")
-
-	txn := &rpc.DeclareTxnV3{
-		Version:           "0x3",
-		SenderAddress:     senderAddr,
-		ClassHash:         classHash,
-		CompiledClassHash: compiledHash,
-		Nonce:             new(felt.Felt).SetUint64(1),
-		ResourceBounds: &rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(50000),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
-			},
-			L2Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(0),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
-			},
-			L1DataGas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(0),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
-			},
-		},
-		Tip:                   new(felt.Felt).SetUint64(0),
-		PayMasterData:         []*felt.Felt{},
-		AccountDeploymentData: []*felt.Felt{},
-		FeeMode:               rpc.DAModeL1,
-		NonceDataMode:         rpc.DAModeL1,
-	}
-
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	txHash, err := hash.TransactionHashDeclareV3(txn, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Specification
-
-Follows the [V3 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2) and [SNIP-8](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes).
-
----
-
-## Deploy Account Transaction Hashes
-
-### TransactionHashDeployAccountV1
-
-Calculates the transaction hash for a Deploy Account V1 transaction.
-
-#### Signature
-
-```go
-func TransactionHashDeployAccountV1(
-	txn *rpc.DeployAccountTxnV1,
-	contractAddress, chainID *felt.Felt,
-) (*felt.Felt, error)
-```
-
-#### Parameters
-
-- `txn` - The Deploy Account V1 transaction containing:
-  - `Version` - Transaction version string
-  - `ClassHash` - Hash of the account contract class
-  - `ContractAddressSalt` - Salt used in address calculation
-  - `ConstructorCalldata` - Constructor parameters
-  - `MaxFee` - Maximum fee willing to pay
-  - `Nonce` - Account nonce (usually 0 for deployment)
-- `contractAddress` - The computed contract address
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	classHash, _ := utils.HexToFelt("0xabcdef1234567890")
-	salt, _ := utils.HexToFelt("0x1234")
-	contractAddr, _ := utils.HexToFelt("0x5678")
-
-	txn := &rpc.DeployAccountTxnV1{
-		Version:             "0x1",
-		ClassHash:           classHash,
-		ContractAddressSalt: salt,
-		ConstructorCalldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(100),
-		},
-		MaxFee: new(felt.Felt).SetUint64(1000000),
-		Nonce:  new(felt.Felt).SetUint64(0),
-	}
-
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	txHash, err := hash.TransactionHashDeployAccountV1(txn, contractAddr, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Specification
-
-Follows the [V1 Deploy Account hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3).
-
----
-
-### TransactionHashDeployAccountV3
-
-Calculates the transaction hash for a Deploy Account V3 transaction with resource bounds.
-
-#### Signature
-
-```go
-func TransactionHashDeployAccountV3(
-	txn *rpc.DeployAccountTxnV3,
-	contractAddress, chainID *felt.Felt,
-) (*felt.Felt, error)
-```
-
-#### Parameters
-
-- `txn` - The Deploy Account V3 transaction containing:
-  - `Version` - Transaction version string
-  - `ClassHash` - Hash of the account contract class
-  - `ContractAddressSalt` - Salt used in address calculation
-  - `ConstructorCalldata` - Constructor parameters
-  - `Nonce` - Account nonce (usually 0 for deployment)
-  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
-  - `Tip` - Additional fee tip
-  - `PayMasterData` - Optional paymaster data
-  - `FeeMode` - Fee data availability mode
-  - `NonceDataMode` - Nonce data availability mode
-- `contractAddress` - The computed contract address
-- `chainID` - The Starknet chain ID
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	classHash, _ := utils.HexToFelt("0xabcdef1234567890")
-	salt, _ := utils.HexToFelt("0x1234")
-	contractAddr, _ := utils.HexToFelt("0x5678")
-
-	txn := &rpc.DeployAccountTxnV3{
-		Version:             "0x3",
-		ClassHash:           classHash,
-		ContractAddressSalt: salt,
-		ConstructorCalldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(100),
-		},
-		Nonce: new(felt.Felt).SetUint64(0),
-		ResourceBounds: &rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(50000),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
-			},
-			L2Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(0),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
-			},
-			L1DataGas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(0),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
-			},
-		},
-		Tip:           new(felt.Felt).SetUint64(0),
-		PayMasterData: []*felt.Felt{},
-		FeeMode:       rpc.DAModeL1,
-		NonceDataMode: rpc.DAModeL1,
-	}
-
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-
-	txHash, err := hash.TransactionHashDeployAccountV3(txn, contractAddr, chainID)
-	if err != nil {
-		log.Fatal("Failed to calculate hash:", err)
-	}
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Specification
-
-Follows the [V3 Deploy Account hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3).
-
----
-
-## Deprecated Transaction Hash Common
-
-### CalculateDeprecatedTransactionHashCommon
-
-A low-level utility function that calculates transaction hashes using the deprecated (Pedersen-based) method. This is used internally by V0, V1, and V2 transaction hash functions.
-
-#### Signature
-
-```go
-func CalculateDeprecatedTransactionHashCommon(
-	txHashPrefix *felt.Felt,
-	version *felt.Felt,
-	contractAddress *felt.Felt,
-	entryPointSelector *felt.Felt,
-	calldata *felt.Felt,
-	maxFee *felt.Felt,
-	chainID *felt.Felt,
-	additionalData []*felt.Felt,
-) *felt.Felt
-```
-
-#### Parameters
-
-- `txHashPrefix` - Transaction type prefix ("invoke", "declare", or "deploy_account")
-- `version` - Transaction version as felt
-- `contractAddress` - Contract or sender address
-- `entryPointSelector` - Entry point selector (or zero for some transaction types)
-- `calldata` - Hashed calldata
-- `maxFee` - Maximum fee
-- `chainID` - Chain ID
-- `additionalData` - Additional data (nonce, compiled class hash, etc.)
-
-#### Returns
-
-- `*felt.Felt` - The calculated transaction hash
-
-#### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/hash"
-)
-
-func main() {
-	prefix := new(felt.Felt).SetBytes([]byte("invoke"))
-	version := new(felt.Felt).SetUint64(1)
-	address := new(felt.Felt).SetUint64(12345)
-	selector := &felt.Zero
-	calldataHash := curve.PedersenArray(new(felt.Felt).SetUint64(1))
-	maxFee := new(felt.Felt).SetUint64(1000000)
-	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
-	nonce := new(felt.Felt).SetUint64(1)
-
-	txHash := hash.CalculateDeprecatedTransactionHashCommon(
-		prefix,
-		version,
-		address,
-		selector,
-		calldataHash,
-		maxFee,
-		chainID,
-		[]*felt.Felt{nonce},
-	)
-
-	fmt.Printf("Transaction Hash: %s\n", txHash.String())
-}
-```
-
-#### Note
-
-This function is primarily used internally. Most developers should use the specific transaction hash functions (TransactionHashInvokeV1, etc.) instead of calling this directly.
-
----
-
-## Version Differences
-
-### V0 vs V1 vs V3 Transactions
-
-- **V0 Transactions**: Legacy format, deprecated, uses Pedersen hash
-- **V1/V2 Transactions**: Uses MaxFee and Pedersen hash, includes nonce
-- **V3 Transactions**: Uses ResourceBounds instead of MaxFee, Poseidon hash, includes data availability modes
-
-### Key Differences in V3
-
-V3 transactions introduce several new concepts:
-
-1. **Resource Bounds**: Separate limits for L1 gas, L2 gas, and L1 data gas
-2. **Data Availability Modes**: Specifies where fee and nonce data is stored
-3. **Tip**: Optional additional fee for transaction prioritization
-4. **Poseidon Hash**: More efficient hashing algorithm
-5. **PayMaster Support**: Optional third-party fee payment
+Some functions (Deploy Account) also require:
+- **Contract Address**: Pre-computed address for the account being deployed
 
 ## Error Handling
 
-All transaction hash functions return errors for missing required parameters:
+All functions validate required parameters and return descriptive errors:
 
 ```go
 txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
 if err != nil {
-	if err == hash.ErrNotAllParametersSet {
-		// Handle missing parameters
-		log.Fatal("Transaction is missing required fields")
-	}
-	// Handle other errors
-	log.Fatal("Failed to calculate hash:", err)
+    // Check for specific error types
+    if err == hash.ErrNotAllParametersSet {
+        log.Fatal("Transaction missing required fields")
+    }
+    log.Fatal("Hash calculation failed:", err)
 }
+// Safe to use txHash
+```
+
+## Chain ID Values
+
+Common chain IDs for hash calculation:
+
+```go
+// Mainnet
+chainID := new(felt.Felt).SetBytes([]byte("SN_MAIN"))
+
+// Sepolia testnet
+chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
+
+// Devnet (example)
+chainID := new(felt.Felt).SetBytes([]byte("SN_DEVNET"))
 ```
 
 ## Related Documentation
 
-- [Class Hash Functions](./class-hash.mdx) - Calculate contract class hashes
-- [Utility Functions](./utilities.mdx) - Helper functions for V3 transactions
-- [RPC Methods](../rpc/) - Using transaction hashes with RPC calls
+- [Transaction Hashing Concepts](./concepts/transaction-hashing) - Understand hash calculation principles
+- [Class Hash Functions](./class-hash) - Calculate contract class hashes
+- [Account Signing Methods](/docs/account/methods) - Use transaction hashes for signing
+- [RPC Transaction Methods](/docs/rpc/) - Submit transactions with calculated hashes
+
+## Specifications
+
+All hash functions follow official Starknet specifications:
+- [Transaction Hash Specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/)
+- [SNIP-8: Resource Bounds](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md) - V3 transaction format
