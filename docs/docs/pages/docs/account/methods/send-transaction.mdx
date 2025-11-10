@@ -1,0 +1,96 @@
+# SendTransaction
+
+Sends a pre-built and signed transaction to the network.
+
+## Method Signature
+
+```go
+func (account *Account) SendTransaction(
+	ctx context.Context,
+	txn rpc.BroadcastTxn,
+) (rpc.TransactionResponse, error)
+```
+
+## Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `txn` - Pre-built V3 transaction (Invoke, Declare, or DeployAccount)
+
+## Returns
+
+- `rpc.TransactionResponse` - Response with transaction hash and optional class/contract address
+- `error` - Error if sending fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Build and sign deploy account transaction
+	tx, precomputedAddr, err := acc.BuildAndEstimateDeployAccountTxn(
+		context.Background(),
+		salt,
+		classHash,
+		constructorCalldata,
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Fund address: %s\n", precomputedAddr.String())
+	// ... wait for funding ...
+
+	// Send the transaction
+	response, err := acc.SendTransaction(context.Background(), tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.Hash)
+	fmt.Printf("Contract address: %s\n", response.ContractAddress)
+}
+```
+
+## Description
+
+SendTransaction is a low-level method that sends pre-built V3 transactions. It supports:
+- Invoke transactions (returns hash)
+- Declare transactions (returns hash and class hash)
+- Deploy account transactions (returns hash and contract address)
+
+Most users should use the higher-level methods:
+- BuildAndSendInvokeTxn
+- BuildAndSendDeclareTxn
+- BuildAndEstimateDeployAccountTxn + SendTransaction
+
+## Error Handling
+
+```go
+response, err := acc.SendTransaction(ctx, txn)
+if err != nil {
+	// Handle errors like:
+	// - Unsupported transaction version
+	// - Network errors
+	// - Transaction rejection
+	return err
+}
+```
+
+## Related Methods
+
+- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - High-level invoke
+- [BuildAndSendDeclareTxn](./build-and-send-declare-txn.mdx) - High-level declare
+- [BuildAndEstimateDeployAccountTxn](./build-and-estimate-deploy-account-txn.mdx) - Prepare deploy account

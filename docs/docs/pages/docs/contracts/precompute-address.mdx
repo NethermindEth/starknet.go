@@ -1,0 +1,179 @@
+# PrecomputeAddress
+
+Calculates the precomputed address for a contract instance before it is deployed. This function is useful for knowing the contract address in advance, which is important for various deployment strategies and cross-contract interactions.
+
+## Function Signature
+
+```go
+func PrecomputeAddress(
+	deployerAddress *felt.Felt,
+	salt *felt.Felt,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+) *felt.Felt
+```
+
+## Parameters
+
+- `deployerAddress` - The address of the deployer (account or Universal Deployer Contract)
+- `salt` - A random salt value used to generate unique addresses for the same class
+- `classHash` - The hash of the contract class to be deployed
+- `constructorCalldata` - The calldata that will be passed to the contract's constructor
+
+## Returns
+
+- `*felt.Felt` - The precomputed contract address
+
+## How It Works
+
+The function uses Pedersen hashing to compute the contract address according to the Starknet contract address computation formula:
+
+```
+address = pedersen(
+    "STARKNET_CONTRACT_ADDRESS",
+    deployer_address,
+    salt,
+    class_hash,
+    pedersen(constructor_calldata...)
+)
+```
+
+This deterministic computation allows you to know exactly where a contract will be deployed before actually deploying it.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Example 1: Simple contract with no constructor parameters
+	deployerAddress, err := utils.HexToFelt("0x1234567890abcdef")
+	if err != nil {
+		log.Fatal("Invalid deployer address:", err)
+	}
+
+	salt, err := utils.HexToFelt("0x123456")
+	if err != nil {
+		log.Fatal("Invalid salt:", err)
+	}
+
+	classHash, err := utils.HexToFelt("0xabcdef123456")
+	if err != nil {
+		log.Fatal("Invalid class hash:", err)
+	}
+
+	// No constructor parameters
+	constructorCalldata := []*felt.Felt{}
+
+	address := contracts.PrecomputeAddress(
+		deployerAddress,
+		salt,
+		classHash,
+		constructorCalldata,
+	)
+
+	fmt.Printf("Contract will be deployed at: %s\n", address.String())
+
+	// Example 2: Contract with constructor parameters
+	owner, err := utils.HexToFelt("0x9876543210fedcba")
+	if err != nil {
+		log.Fatal("Invalid owner address:", err)
+	}
+
+	initialSupply := new(felt.Felt).SetUint64(1000000)
+
+	constructorCalldataWithParams := []*felt.Felt{owner, initialSupply}
+
+	addressWithParams := contracts.PrecomputeAddress(
+		deployerAddress,
+		salt,
+		classHash,
+		constructorCalldataWithParams,
+	)
+
+	fmt.Printf("Contract with params will be deployed at: %s\n", addressWithParams.String())
+}
+```
+
+## Expected Output
+
+```
+Contract will be deployed at: 0x[computed_address_hex]
+Contract with params will be deployed at: 0x[different_computed_address_hex]
+```
+
+## Use Cases
+
+### 1. Counterfactual Deployment
+
+Know the address before deployment for protocols that need to reference the contract address before it exists:
+
+```go
+// Compute address first
+futureAddress := contracts.PrecomputeAddress(deployer, salt, classHash, calldata)
+
+// Use the address in other contracts
+// ... then deploy the actual contract later
+```
+
+### 2. Unique Address Generation
+
+Use different salt values to deploy multiple instances of the same contract class:
+
+```go
+classHash := getMyContractClassHash()
+deployer := getDeployerAddress()
+calldata := []*felt.Felt{}
+
+// Deploy first instance
+salt1 := new(felt.Felt).SetUint64(1)
+address1 := contracts.PrecomputeAddress(deployer, salt1, classHash, calldata)
+
+// Deploy second instance with different salt
+salt2 := new(felt.Felt).SetUint64(2)
+address2 := contracts.PrecomputeAddress(deployer, salt2, classHash, calldata)
+
+// Both addresses will be different
+```
+
+### 3. Address Verification
+
+Verify that a deployment will result in the expected address:
+
+```go
+expectedAddress, _ := utils.HexToFelt("0x...")
+computedAddress := contracts.PrecomputeAddress(deployer, salt, classHash, calldata)
+
+if expectedAddress.Cmp(computedAddress) == 0 {
+	fmt.Println("Address matches expected value")
+} else {
+	log.Fatal("Address mismatch! Deployment parameters are incorrect")
+}
+```
+
+## Important Notes
+
+1. **Deterministic**: The same inputs always produce the same address
+2. **Salt Uniqueness**: Using different salts with the same class hash and deployer will produce different addresses
+3. **Constructor Calldata**: The constructor calldata is hashed and included in the address computation
+4. **No State Dependency**: The function is pure and doesn't depend on chain state
+
+## Reference
+
+This implementation follows the Starknet contract address computation specification:
+- [StarkWare Contract Address Specification](https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/starknet/core/os/contract_address/contract_address.py)
+
+## Related
+
+- [Contract Classes](./contract-classes) - Understanding contract class hashes
+- [Entry Points](./entry-points) - Contract entry points and constructors
+- [Deploy Contract Example](/docs/examples/deploy-contract-udc) - Full deployment example

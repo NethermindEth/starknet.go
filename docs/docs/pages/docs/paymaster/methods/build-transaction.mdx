@@ -1,0 +1,101 @@
+# BuildTransaction
+
+Prepares a transaction with paymaster sponsorship details.
+
+## Method Signature
+
+```go
+func (pm *Paymaster) BuildTransaction(
+    ctx context.Context,
+    request *BuildTransactionRequest,
+) (BuildTransactionResponse, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for the operation
+- `request` (*BuildTransactionRequest): Transaction build request
+
+## BuildTransactionRequest Structure
+
+```go
+type BuildTransactionRequest struct {
+    Calldata  []*felt.Felt
+    Calls     []rpc.FunctionCall
+    FeeToken  *felt.Felt
+}
+```
+
+## BuildTransactionResponse Structure
+
+```go
+type BuildTransactionResponse struct {
+    CallsWithPaymaster []rpc.FunctionCall
+    PaymasterData      []*felt.Felt
+    TrackingID         *felt.Felt
+}
+```
+
+## Description
+
+BuildTransaction takes the user's intended transaction calls and returns modified calls that include paymaster sponsorship. The paymaster calculates fees, adds necessary paymaster data, and returns a tracking ID for monitoring.
+
+## Usage Example
+
+```go
+request := &paymaster.BuildTransactionRequest{
+    Calls: []rpc.FunctionCall{
+        {
+            ContractAddress: targetContract,
+            EntryPointSelector: transferSelector,
+            Calldata: transferCalldata,
+        },
+    },
+    FeeToken: ethTokenAddress,
+}
+
+response, err := pm.BuildTransaction(ctx, request)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Use response.CallsWithPaymaster in transaction
+// Store response.TrackingID for tracking
+```
+
+## Use Cases
+
+### 1. Gasless Transaction
+```go
+response, _ := pm.BuildTransaction(ctx, &paymaster.BuildTransactionRequest{
+    Calls: userCalls,
+    FeeToken: preferredToken,
+})
+
+// Execute with paymaster data
+pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
+    Calls: response.CallsWithPaymaster,
+    PaymasterData: response.PaymasterData,
+    TrackingID: response.TrackingID,
+})
+```
+
+### 2. Fee Estimation
+```go
+response, _ := pm.BuildTransaction(ctx, request)
+// Response includes fee calculation
+fmt.Printf("Tracking ID: %s\n", response.TrackingID)
+```
+
+## Notes
+
+- Must be called before ExecuteTransaction
+- TrackingID is used for monitoring transaction status
+- PaymasterData must be included in the final transaction
+- Fee calculation handled by paymaster service
+
+## Related Methods
+
+- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)
+- [GetSupportedTokens](/docs/paymaster/methods/get-supported-tokens)
+- [TrackingIDToLatestHash](/docs/paymaster/methods/tracking-id-to-latest-hash)

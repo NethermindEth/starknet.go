@@ -1,0 +1,417 @@
+# ABI Types
+
+The ABI (Application Binary Interface) types in the contracts package provide a structured way to represent and work with Starknet contract interfaces. These types define the structure of functions, events, structs, and parameters in a contract.
+
+## Overview
+
+ABIs are crucial for interacting with Starknet contracts as they describe:
+- Function signatures and their inputs/outputs
+- Event structures and their data
+- Custom struct definitions
+- Type information for parameters
+
+## Core Types
+
+### ABI
+
+The top-level ABI type is a slice of ABI entries.
+
+```go
+type ABI []ABIEntry
+```
+
+An ABI contains multiple entries, each representing a different contract element (function, event, struct, etc.).
+
+### ABIEntry Interface
+
+The base interface that all ABI entry types implement.
+
+```go
+type ABIEntry interface {
+	IsType() ABIType
+}
+```
+
+Every ABI entry must implement the `IsType()` method to identify its type.
+
+### ABIType
+
+An enumeration of possible ABI entry types.
+
+```go
+type ABIType string
+
+const (
+	ABITypeConstructor ABIType = "constructor"
+	ABITypeFunction    ABIType = "function"
+	ABITypeL1Handler   ABIType = "l1_handler"
+	ABITypeEvent       ABIType = "event"
+	ABITypeStruct      ABIType = "struct"
+)
+```
+
+#### ABI Type Values
+
+- **constructor** - Contract constructor function
+- **function** - Regular contract function (external or view)
+- **l1_handler** - L1-to-L2 message handler function
+- **event** - Event definition
+- **struct** - Custom struct definition
+
+## ABI Entry Types
+
+### FunctionABIEntry
+
+Represents a function in the contract ABI.
+
+```go
+type FunctionABIEntry struct {
+	Type            ABIType                  `json:"type"`
+	Name            string                   `json:"name"`
+	StateMutability FunctionStateMutability  `json:"stateMutability,omitempty"`
+	Inputs          []TypedParameter         `json:"inputs"`
+	Outputs         []TypedParameter         `json:"outputs"`
+}
+```
+
+#### Fields
+
+- `Type` - The entry type (constructor, function, or l1_handler)
+- `Name` - The function name
+- `StateMutability` - Whether the function is "view" (read-only) or not
+- `Inputs` - Array of input parameters
+- `Outputs` - Array of output parameters
+
+#### Example
+
+```go
+functionEntry := &FunctionABIEntry{
+	Type: ABITypeFunction,
+	Name: "transfer",
+	StateMutability: "",  // Empty means state-changing
+	Inputs: []TypedParameter{
+		{Name: "recipient", Type: "felt"},
+		{Name: "amount", Type: "Uint256"},
+	},
+	Outputs: []TypedParameter{
+		{Name: "success", Type: "felt"},
+	},
+}
+```
+
+### EventABIEntry
+
+Represents an event in the contract ABI.
+
+```go
+type EventABIEntry struct {
+	Type ABIType          `json:"type"`
+	Name string           `json:"name"`
+	Keys []TypedParameter `json:"keys"`
+	Data []TypedParameter `json:"data"`
+}
+```
+
+#### Fields
+
+- `Type` - Always ABITypeEvent
+- `Name` - The event name
+- `Keys` - Array of indexed (key) parameters
+- `Data` - Array of non-indexed (data) parameters
+
+#### Example
+
+```go
+eventEntry := &EventABIEntry{
+	Type: ABITypeEvent,
+	Name: "Transfer",
+	Keys: []TypedParameter{
+		{Name: "from", Type: "felt"},
+		{Name: "to", Type: "felt"},
+	},
+	Data: []TypedParameter{
+		{Name: "amount", Type: "Uint256"},
+	},
+}
+```
+
+### StructABIEntry
+
+Represents a custom struct definition in the contract ABI.
+
+```go
+type StructABIEntry struct {
+	Type    ABIType  `json:"type"`
+	Name    string   `json:"name"`
+	Size    uint64   `json:"size"`
+	Members []Member `json:"members"`
+}
+
+type Member struct {
+	TypedParameter
+	Offset int64 `json:"offset"`
+}
+```
+
+#### Fields
+
+- `Type` - Always ABITypeStruct
+- `Name` - The struct name
+- `Size` - The total size of the struct in memory
+- `Members` - Array of struct members with their offsets
+
+#### Example
+
+```go
+structEntry := &StructABIEntry{
+	Type: ABITypeStruct,
+	Name: "Uint256",
+	Size: 2,
+	Members: []Member{
+		{
+			TypedParameter: TypedParameter{Name: "low", Type: "felt"},
+			Offset:        0,
+		},
+		{
+			TypedParameter: TypedParameter{Name: "high", Type: "felt"},
+			Offset:        1,
+		},
+	},
+}
+```
+
+### TypedParameter
+
+Represents a parameter with a name and type.
+
+```go
+type TypedParameter struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+```
+
+#### Fields
+
+- `Name` - The parameter name
+- `Type` - The parameter type (e.g., "felt", "Uint256", custom struct names)
+
+## Working with ABIs
+
+### Parsing an ABI
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Example ABI JSON string
+	abiJSON := `[
+		{
+			"type": "function",
+			"name": "get_balance",
+			"stateMutability": "view",
+			"inputs": [],
+			"outputs": [
+				{"name": "balance", "type": "felt"}
+			]
+		},
+		{
+			"type": "function",
+			"name": "transfer",
+			"inputs": [
+				{"name": "recipient", "type": "felt"},
+				{"name": "amount", "type": "felt"}
+			],
+			"outputs": []
+		},
+		{
+			"type": "event",
+			"name": "Transfer",
+			"keys": [
+				{"name": "from", "type": "felt"},
+				{"name": "to", "type": "felt"}
+			],
+			"data": [
+				{"name": "amount", "type": "felt"}
+			]
+		}
+	]`
+
+	// Parse the ABI
+	var rawABI []map[string]interface{}
+	if err := json.Unmarshal([]byte(abiJSON), &rawABI); err != nil {
+		log.Fatal("Failed to parse ABI JSON:", err)
+	}
+
+	// Process each ABI entry
+	var abi contracts.ABI
+	for _, entry := range rawABI {
+		entryType, ok := entry["type"].(string)
+		if !ok {
+			continue
+		}
+
+		var abiEntry contracts.ABIEntry
+
+		switch contracts.ABIType(entryType) {
+		case contracts.ABITypeFunction, contracts.ABITypeConstructor, contracts.ABITypeL1Handler:
+			abiEntry = &contracts.FunctionABIEntry{}
+		case contracts.ABITypeEvent:
+			abiEntry = &contracts.EventABIEntry{}
+		case contracts.ABITypeStruct:
+			abiEntry = &contracts.StructABIEntry{}
+		default:
+			log.Printf("Unknown ABI type: %s", entryType)
+			continue
+		}
+
+		// Marshal back to JSON and unmarshal into the specific type
+		data, _ := json.Marshal(entry)
+		if err := json.Unmarshal(data, abiEntry); err != nil {
+			log.Printf("Failed to unmarshal ABI entry: %v", err)
+			continue
+		}
+
+		abi = append(abi, abiEntry)
+	}
+
+	// Use the parsed ABI
+	fmt.Printf("Loaded %d ABI entries\n", len(abi))
+
+	// Find functions
+	for _, entry := range abi {
+		if funcEntry, ok := entry.(*contracts.FunctionABIEntry); ok {
+			fmt.Printf("Function: %s (inputs: %d, outputs: %d)\n",
+				funcEntry.Name,
+				len(funcEntry.Inputs),
+				len(funcEntry.Outputs),
+			)
+		}
+	}
+}
+```
+
+### Finding Specific ABI Entries
+
+```go
+// Find a function by name
+func findFunction(abi contracts.ABI, name string) *contracts.FunctionABIEntry {
+	for _, entry := range abi {
+		if funcEntry, ok := entry.(*contracts.FunctionABIEntry); ok {
+			if funcEntry.Name == name {
+				return funcEntry
+			}
+		}
+	}
+	return nil
+}
+
+// Find an event by name
+func findEvent(abi contracts.ABI, name string) *contracts.EventABIEntry {
+	for _, entry := range abi {
+		if eventEntry, ok := entry.(*contracts.EventABIEntry); ok {
+			if eventEntry.Name == name {
+				return eventEntry
+			}
+		}
+	}
+	return nil
+}
+
+// Get all view functions
+func getViewFunctions(abi contracts.ABI) []*contracts.FunctionABIEntry {
+	var viewFuncs []*contracts.FunctionABIEntry
+	for _, entry := range abi {
+		if funcEntry, ok := entry.(*contracts.FunctionABIEntry); ok {
+			if funcEntry.StateMutability == contracts.FuncStateMutVIEW {
+				viewFuncs = append(viewFuncs, funcEntry)
+			}
+		}
+	}
+	return viewFuncs
+}
+```
+
+## State Mutability
+
+Functions can have different state mutability levels:
+
+```go
+type FunctionStateMutability string
+
+const (
+	FuncStateMutVIEW FunctionStateMutability = "view"
+)
+```
+
+- **view** - Read-only function that doesn't modify state
+- **empty string** - State-changing function (default)
+
+## Type System
+
+Common Starknet types you'll encounter in ABIs:
+
+- `felt` - Field element (basic Starknet type, 252-bit integer)
+- `Uint256` - 256-bit unsigned integer (struct with low and high fields)
+- `ContractAddress` - Contract address (usually represented as felt)
+- Custom types - User-defined structs
+
+## Practical Examples
+
+### ERC20 Token ABI
+
+```go
+// Transfer function
+transferFunc := &contracts.FunctionABIEntry{
+	Type: contracts.ABITypeFunction,
+	Name: "transfer",
+	Inputs: []contracts.TypedParameter{
+		{Name: "recipient", Type: "ContractAddress"},
+		{Name: "amount", Type: "Uint256"},
+	},
+	Outputs: []contracts.TypedParameter{
+		{Name: "success", Type: "felt"},
+	},
+}
+
+// Balance view function
+balanceFunc := &contracts.FunctionABIEntry{
+	Type:            contracts.ABITypeFunction,
+	Name:            "balanceOf",
+	StateMutability: contracts.FuncStateMutVIEW,
+	Inputs: []contracts.TypedParameter{
+		{Name: "account", Type: "ContractAddress"},
+	},
+	Outputs: []contracts.TypedParameter{
+		{Name: "balance", Type: "Uint256"},
+	},
+}
+
+// Transfer event
+transferEvent := &contracts.EventABIEntry{
+	Type: contracts.ABITypeEvent,
+	Name: "Transfer",
+	Keys: []contracts.TypedParameter{
+		{Name: "from", Type: "ContractAddress"},
+		{Name: "to", Type: "ContractAddress"},
+	},
+	Data: []contracts.TypedParameter{
+		{Name: "value", Type: "Uint256"},
+	},
+}
+```
+
+## Related
+
+- [Contract Classes](./contract-classes) - Contract class definitions that contain ABIs
+- [Entry Points](./entry-points) - How entry points relate to ABI functions
+- [ABI Encoding](/docs/abi/encoding) - Encoding data according to ABI specifications
+- [ABI Decoding](/docs/abi/decoding) - Decoding data according to ABI specifications

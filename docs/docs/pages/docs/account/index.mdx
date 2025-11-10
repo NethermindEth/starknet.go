@@ -1,30 +1,122 @@
 # Account Package
 
-The account package provides functionality for interacting with Starknet accounts. This package contains various components and utilities for managing and interacting with Starknet accounts.
+The account package provides comprehensive functionality for managing Starknet accounts, executing transactions, and handling cryptographic operations.
 
 ## Overview
 
-The account package includes:
-- Account management
-- Transaction handling
+The account package is a core component of starknet.go that enables:
+
+- Account creation and management
+- Transaction building, signing, and execution (invoke, declare, deploy)
+- Fee estimation and resource management
 - Signature verification
-- Account-related utilities
+- Key management through the Keystore interface
+- Support for both Cairo 0 and Cairo 2 contracts
 
-## Available Submodules
+## Main Features
 
-- [Account Management](/docs/account/account-management)
-- [Transaction Handling](/docs/account/transaction-handling)
-- [Signature Verification](/docs/account/signature-verification)
-- [Account Utilities](/docs/account/account-utilities)
+### Account Management
+Create and manage Starknet accounts with full control over keys, addresses, and transaction execution.
 
-## Getting Started
+### Transaction Handling
+Build, sign, and send transactions with automatic nonce management, fee estimation, and signature generation.
 
-To use the account package, import it in your Go code:
+### Keystore Interface
+Flexible key management through the Keystore interface, with an in-memory implementation (MemKeystore) for development and testing.
+
+### Cairo Version Support
+Full support for both Cairo 0 and Cairo 2 contract formats, with automatic calldata formatting based on the account's Cairo version.
+
+## Quick Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Create RPC provider
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate random keys
+	ks, pubKey, privKey := account.GetRandomKeys()
+	fmt.Printf("Public Key: %s\n", pubKey.String())
+	fmt.Printf("Private Key: %s\n", privKey.String())
+
+	// Create account
+	accountAddress, _ := felt.SetString("0x1234...")
+	acc, err := account.NewAccount(provider, accountAddress, pubKey.String(), ks, account.CairoV2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get nonce
+	nonce, err := acc.Nonce(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Account nonce: %s\n", nonce.String())
+}
+```
+
+## Documentation Sections
+
+### [Functions](./functions.mdx)
+Standalone functions for calldata formatting, address computation, and key management:
+- `FmtCallDataCairo0` / `FmtCallDataCairo2` - Format calldata for different Cairo versions
+- `PrecomputeAccountAddress` - Calculate account addresses before deployment
+- `GetRandomKeys` - Generate random key pairs for testing
+- `NewMemKeystore` / `SetNewMemKeystore` - Create in-memory keystores
+
+### [Keystore](./keystore.mdx)
+Key management interface and implementations:
+- `Keystore` interface - Define custom key storage implementations
+- `MemKeystore` - In-memory keystore for development and testing
+- Key storage and signing operations
+
+### [Methods](./methods.mdx)
+Account methods for transaction handling and cryptographic operations:
+- `BuildAndSendInvokeTxn` - Execute contract functions
+- `BuildAndSendDeclareTxn` - Declare new contract classes
+- `Sign` / `SignInvokeTransaction` / `SignDeclareTransaction` - Sign messages and transactions
+- `TransactionHashInvoke` / `TransactionHashDeclare` - Calculate transaction hashes
+- `Nonce` - Retrieve account nonce
+- `Verify` - Verify signatures
+- `WaitForTransactionReceipt` - Wait for transaction confirmation
+
+### [Types](./types.mdx)
+Type definitions and structures:
+- `Account` - Main account structure
+- `AccountInterface` - Account interface definition
+- `CairoVersion` - Cairo version constants
+- `TxnOptions` - Transaction configuration options
+- `UDCOptions` - Universal Deployer Contract options
+
+## Installation
+
+```bash
+go get github.com/NethermindEth/starknet.go
+```
+
+## Import
 
 ```go
 import "github.com/NethermindEth/starknet.go/account"
 ```
 
-## Version
+## Related Resources
 
-This documentation is based on version v0.8.1 of the Starknet.go library. 
+- [RPC Methods](../rpc/index.mdx) - Low-level RPC operations
+- [Examples](../examples/index.mdx) - Practical usage examples
+- [pkg.go.dev Documentation](https://pkg.go.dev/github.com/NethermindEth/starknet.go/account)

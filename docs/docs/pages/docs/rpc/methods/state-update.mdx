@@ -1,40 +1,36 @@
 # StateUpdate
 
-Gets the state changes that occurred in a specific block.
+Retrieves the state update for a specific block, including storage diffs, declared classes, deployed contracts, and nonces.
 
 ## Method Signature
 
 ```go
-func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
+func (p *Provider) StateUpdate(
+    ctx context.Context,
+    blockID BlockID,
+) (*StateUpdateOutput, error)
 ```
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier (number, hash, or tag)
+- `ctx` (context.Context): Context for request cancellation and timeouts
+- `blockID` (BlockID): The identifier of the block (hash, number, or tag)
 
 ## Returns
 
-- `*StateUpdateOutput` - State changes in the block
-- `error` - Error if the request fails
+- `*StateUpdateOutput`: The state changes that occurred in the block
+- `error`: Error if the block is not found
 
-## BlockID Parameter
+## Description
 
-This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
+StateUpdate returns all state changes that occurred in a specific block, including:
+- **Storage Diffs**: Changes to contract storage
+- **Declared Classes**: New contract classes declared
+- **Deployed Contracts**: New contract instances deployed
+- **Replaced Classes**: Contract class upgrades
+- **Nonces**: Account nonce updates
 
-```go
-// Using block number
-blockID := rpc.WithBlockNumber(123456)
-
-// Using block hash
-hash, _ := new(felt.Felt).SetString("0x1234...")
-blockID := rpc.WithBlockHash(hash)
-
-// Using block tag
-blockID := rpc.WithBlockTag("latest")
-```
-
-**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
+This is essential for indexing, analytics, and understanding blockchain state transitions.
 
 ## Usage Example
 
@@ -43,7 +39,6 @@ package main
 
 import (
     "context"
-    "encoding/json"
     "fmt"
     "log"
 
@@ -51,122 +46,170 @@ import (
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    client, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal(err)
     }
 
     // Get state update for latest block
-    blockID := rpc.WithBlockTag("latest")
+    blockID := rpc.BlockID{Tag: "latest"}
+    
     stateUpdate, err := client.StateUpdate(context.Background(), blockID)
     if err != nil {
-        log.Fatal("Failed to get state update:", err)
+        log.Fatal(err)
     }
 
-    // Pretty print the state changes
-    updateJSON, _ := json.MarshalIndent(stateUpdate, "", "  ")
-    fmt.Printf("State update:\n%s\n", updateJSON)
+    fmt.Printf("Block Hash: %s\n", stateUpdate.BlockHash)
+    fmt.Printf("New Root: %s\n", stateUpdate.NewRoot)
+    fmt.Printf("Old Root: %s\n", stateUpdate.OldRoot)
+    fmt.Printf("Storage Diffs: %d contracts\n", len(stateUpdate.StateDiff.StorageDiffs))
+    fmt.Printf("Declared Classes: %d\n", len(stateUpdate.StateDiff.DeclaredClasses))
+    fmt.Printf("Deployed Contracts: %d\n", len(stateUpdate.StateDiff.DeployedContracts))
+    fmt.Printf("Nonce Updates: %d\n", len(stateUpdate.StateDiff.Nonces))
+    
+    // Example output:
+    // Block Hash: 0x1a2b3c4d...
+    // New Root: 0x5e6f7a8b...
+    // Old Root: 0x9c0d1e2f...
+    // Storage Diffs: 12 contracts
+    // Declared Classes: 2
+    // Deployed Contracts: 1
+    // Nonce Updates: 5
 }
 ```
-
-## Expected Output
-
-```json
-{
-  "block_hash": "0x54be24b0d6fc6a2622d6691cf6ca2c2a9c222bd060059c71fd86401474d6645",
-  "new_root": "0x51a87db3eaa72204fc55d3ae688ad6726f8c336d7a00eee9e8c8856a12ffd2a",
-  "old_root": "0x739a6b4805d3601e11dc486dc0c77108713aeb276869f99c1f043ce9a8ce2b9",
-  "state_diff": {
-    "storage_diffs": [
-      {
-        "address": "0x21d980d405158f62464649ce2c8a433e1c61096d7ca045d70a9b70c8923700d",
-        "storage_entries": [
-          {
-            "key": "0x31b",
-            "value": "0x1b00be18273be7b9ed2606e1c2c7280f39a1f97aadd0d6a9868c49305cce8f9"
-          }
-        ]
-      },
-      {
-        "address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-        "storage_entries": [
-          {
-            "key": "0x1bc06e01c8edbc022b2a63178e2e2f2bc1bc498a6b2fa743a0e99ec2be6ac16",
-            "value": "0x461c4f2d8b6c1a0f4de9"
-          },
-          {
-            "key": "0x5496768776e3db30053404f18067d81a6e06f5a2b0de326e21298fd9d569a9a",
-            "value": "0x265f9b3e4ed92d69eb330"
-          }
-        ]
-      },
-      {
-        "address": "0x1",
-        "storage_entries": [
-          {
-            "key": "0x29b7ad",
-            "value": "0x61526c54517b4d7c45b194e4690504759d01c18d916ccdde05a08ecc6bfaefd"
-          }
-        ]
-      }
-    ],
-    "deprecated_declared_classes": [],
-    "declared_classes": [],
-    "deployed_contracts": [],
-    "replaced_classes": [],
-    "nonces": [
-      {
-        "contract_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
-        "nonce": "0x858c3a"
-      }
-    ]
-  }
-}
-```
-
-Shows the old and new state roots, plus all state changes including storage updates, contract deployments, and nonce changes.
-
-## Advanced Examples
-
-For comprehensive state analysis examples, see [Block Analysis Examples](/docs/examples/block-analysis#state-changes-analysis).
 
 ## StateUpdateOutput Structure
 
-**Root Information:**
-- `block_hash` - Hash of the block containing these changes
-- `old_root` - State root before applying transactions
-- `new_root` - State root after applying all transactions
+```go
+type StateUpdateOutput struct {
+    BlockHash *felt.Felt
+    NewRoot   *felt.Felt
+    OldRoot   *felt.Felt
+    StateDiff StateDiff
+}
 
-**State Diff Components:**
-- `storage_diffs` - Storage slot changes per contract address
-- `declared_classes` - New contract classes declared
-- `deprecated_declared_classes` - Legacy declared classes
-- `deployed_contracts` - New contract instances deployed
-- `replaced_classes` - Contract class upgrades
-- `nonces` - Account nonce updates
+type StateDiff struct {
+    StorageDiffs      []ContractStorageDiff
+    DeclaredClasses   []DeclaredClass
+    DeployedContracts []DeployedContract
+    ReplacedClasses   []ReplacedClass
+    Nonces            []NonceUpdate
+}
+
+type ContractStorageDiff struct {
+    Address      *felt.Felt
+    StorageEntries []StorageEntry
+}
+
+type StorageEntry struct {
+    Key   *felt.Felt
+    Value *felt.Felt
+}
+```
+
+## Detailed Usage
+
+### Tracking Storage Changes
+
+```go
+stateUpdate, err := client.StateUpdate(ctx, blockID)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Iterate through storage diffs
+for _, diff := range stateUpdate.StateDiff.StorageDiffs {
+    fmt.Printf("Contract: %s\n", diff.Address)
+    for _, entry := range diff.StorageEntries {
+        fmt.Printf("  Key: %s -> Value: %s\n", entry.Key, entry.Value)
+    }
+}
+```
+
+### Monitoring Declared Classes
+
+```go
+// Check for newly declared contract classes
+for _, declaredClass := range stateUpdate.StateDiff.DeclaredClasses {
+    fmt.Printf("Declared Class Hash: %s\n", declaredClass.ClassHash)
+    fmt.Printf("Compiled Class Hash: %s\n", declaredClass.CompiledClassHash)
+}
+```
+
+### Tracking Deployments
+
+```go
+// Monitor new contract deployments
+for _, deployed := range stateUpdate.StateDiff.DeployedContracts {
+    fmt.Printf("Deployed Contract: %s\n", deployed.Address)
+    fmt.Printf("Class Hash: %s\n", deployed.ClassHash)
+}
+```
+
+### Nonce Updates
+
+```go
+// Track account nonce changes
+for _, nonceUpdate := range stateUpdate.StateDiff.Nonces {
+    fmt.Printf("Account: %s, New Nonce: %s\n", 
+        nonceUpdate.ContractAddress, 
+        nonceUpdate.Nonce)
+}
+```
+
+## Use Cases
+
+1. **Blockchain Indexing**: Index all state changes for analytics
+2. **Event Monitoring**: Track contract deployments and upgrades
+3. **State Verification**: Verify state root transitions
+4. **Audit Trails**: Create complete audit logs of state changes
+5. **Analytics**: Analyze storage patterns and contract interactions
 
 ## Error Handling
 
 ```go
 stateUpdate, err := client.StateUpdate(ctx, blockID)
 if err != nil {
-    log.Printf("Error getting state update: %v", err)
-    return
+    if errors.Is(err, rpc.ErrBlockNotFound) {
+        log.Println("Block not found")
+        return
+    }
+    log.Printf("RPC error: %v", err)
 }
-
-if stateUpdate == nil {
-    log.Printf("No state update returned")
-    return
-}
-
-fmt.Printf("Processing state changes from %s to %s\n", 
-    stateUpdate.OldRoot.String(), stateUpdate.NewRoot.String())
 ```
+
+## Block ID Options
+
+```go
+// Latest block
+blockID := rpc.BlockID{Tag: "latest"}
+
+// Pending block
+blockID := rpc.BlockID{Tag: "pending"}
+
+// Specific block number
+blockID := rpc.BlockID{Number: 12345}
+
+// Specific block hash
+blockHash, _ := new(felt.Felt).SetString("0xabc...")
+blockID := rpc.BlockID{Hash: blockHash}
+```
+
+## Related Methods
+
+- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get block with transactions
+- [Class](/docs/rpc/methods/get-class) - Get declared class details
+- [StorageAt](/docs/rpc/methods/get-storage-at) - Get specific storage value
+
+## RPC Specification
+
+- **Method**: `starknet_getStateUpdate`
+- **Version**: RPC v0.9.0
+- **Returns**: Complete state diff for the block
 
 ## Performance Notes
 
-- Can return large amounts of data for blocks with many state changes
-- Consider filtering or processing data incrementally for busy blocks
-- State updates are essential for maintaining synchronized state
-- Empty arrays indicate no changes of that type occurred
+- State updates for old blocks may be slow to retrieve
+- Consider caching state updates for frequently accessed blocks
+- Large state updates may take significant time to process
+- Use specific block numbers instead of "latest" for consistency

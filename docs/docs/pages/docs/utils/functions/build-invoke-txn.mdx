@@ -1,0 +1,130 @@
+# BuildInvokeTxn
+
+Builds an invoke transaction for executing contract functions.
+
+## Function Signature
+
+```go
+func BuildInvokeTxn(
+    functionCalls []rpc.FunctionCall,
+    opts *BuildOptions,
+) (*rpc.InvokeTxnV3, error)
+```
+
+## Parameters
+
+- `functionCalls` ([]rpc.FunctionCall): Array of function calls to execute
+- `opts` (*BuildOptions): Transaction build options including nonce, max fee, resource bounds
+
+## BuildOptions Structure
+
+```go
+type BuildOptions struct {
+    Nonce              *felt.Felt
+    MaxFee             *felt.Felt
+    ResourceBounds     rpc.ResourceBoundsMapping
+    Tip                uint64
+    PaymasterData      []*felt.Felt
+    AccountDeployment  []*felt.Felt
+    NonceDataMode      rpc.DataAvailabilityMode
+    FeeMode            rpc.DataAvailabilityMode
+}
+```
+
+## Returns
+
+- `*rpc.InvokeTxnV3`: Fully constructed invoke transaction V3
+- `error`: Error if build fails
+
+## Description
+
+BuildInvokeTxn constructs a complete invoke transaction V3 with proper resource bounds, fee calculations, and all required fields. It handles the complexity of transaction formatting and ensures compatibility with Starknet V3 transaction format.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Define contract calls
+	calls := []rpc.FunctionCall{
+		{
+			ContractAddress:    contractAddr,
+			EntryPointSelector: transferSelector,
+			Calldata:           []*felt.Felt{recipientAddr, amount},
+		},
+	}
+
+	// Build transaction
+	txn, err := utils.BuildInvokeTxn(calls, &utils.BuildOptions{
+		Nonce:  currentNonce,
+		MaxFee: maxFeeAmount,
+		ResourceBounds: rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       new(felt.Felt).SetUint64(10000),
+				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
+			},
+		},
+	})
+	
+	if err != nil {
+		panic(err)
+	}
+	
+	// txn is ready to be signed and sent
+}
+```
+
+## Use Cases
+
+### 1. ERC20 Token Transfer
+```go
+transferCall := rpc.FunctionCall{
+    ContractAddress:    erc20Address,
+    EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
+    Calldata:           []*felt.Felt{recipientAddress, amount},
+}
+
+txn, _ := utils.BuildInvokeTxn([]rpc.FunctionCall{transferCall}, opts)
+```
+
+### 2. Multi-Call Transaction
+```go
+calls := []rpc.FunctionCall{
+    {ContractAddress: contract1, EntryPointSelector: selector1, Calldata: data1},
+    {ContractAddress: contract2, EntryPointSelector: selector2, Calldata: data2},
+}
+
+txn, _ := utils.BuildInvokeTxn(calls, opts)
+```
+
+### 3. NFT Minting
+```go
+mintCall := rpc.FunctionCall{
+    ContractAddress:    nftContract,
+    EntryPointSelector: utils.GetSelectorFromNameFelt("mint"),
+    Calldata:           []*felt.Felt{toAddress, tokenId},
+}
+
+txn, _ := utils.BuildInvokeTxn([]rpc.FunctionCall{mintCall}, opts)
+```
+
+## Notes
+
+- Always use V3 transaction format (current standard)
+- Resource bounds are required for V3 transactions
+- Nonce must be provided in BuildOptions
+- The transaction still needs to be signed before submission
+- Use Account methods for automatic signing and submission
+
+## Related Functions
+
+- [BuildDeclareTxn](/docs/utils/functions/build-declare-txn) - Build declare transactions
+- [BuildDeployAccountTxn](/docs/utils/functions/build-deploy-account-txn) - Build deploy account transactions
+- Account.BuildAndSendInvokeTxn - Higher-level invoke with automatic signing

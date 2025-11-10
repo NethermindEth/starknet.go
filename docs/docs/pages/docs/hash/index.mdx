@@ -1,0 +1,118 @@
+# Hash
+
+The `hash` package provides utility functions for calculating transaction hashes and class hashes in the Starknet ecosystem. These hash calculations are essential for verifying transactions, deploying contracts, and validating contract classes.
+
+## Package Overview
+
+The hash package offers three main categories of functionality:
+
+1. **Transaction Hash Calculation** - Calculate unique identifiers for different transaction types and versions
+2. **Class Hash Calculation** - Compute hashes for contract classes in both Sierra and compiled (CASM) formats
+3. **Utility Functions** - Helper functions for data availability modes and resource bounds hashing
+
+## Key Features
+
+- Support for multiple transaction versions (V0, V1, V2, V3)
+- Transaction types: Invoke, Declare, and Deploy Account
+- Class hash calculation for Sierra contract classes
+- Compiled class hash calculation for CASM format
+- Utility functions for V3 transaction hash components
+
+## Import Path
+
+```go
+import "github.com/NethermindEth/starknet.go/hash"
+```
+
+## Quick Example
+
+Calculate a transaction hash for an Invoke V1 transaction:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Create an Invoke V1 transaction
+	txn := &rpc.InvokeTxnV1{
+		Version:       "0x1",
+		SenderAddress: new(felt.Felt).SetUint64(12345),
+		Calldata:      []*felt.Felt{new(felt.Felt).SetUint64(1)},
+		MaxFee:        new(felt.Felt).SetUint64(1000000),
+		Nonce:         new(felt.Felt).SetUint64(1),
+	}
+
+	// Chain ID for Sepolia testnet
+	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
+
+	// Calculate transaction hash
+	txHash, err := hash.TransactionHashInvokeV1(txn, chainID)
+	if err != nil {
+		log.Fatal("Failed to calculate hash:", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```
+
+## Documentation Sections
+
+- [Transaction Hash Functions](./transaction-hash.mdx) - Calculate hashes for Invoke, Declare, and Deploy Account transactions
+- [Class Hash Functions](./class-hash.mdx) - Calculate hashes for Sierra and compiled contract classes
+- [Utility Functions](./utilities.mdx) - Helper functions for V3 transaction components
+
+## Transaction Versions
+
+The hash package supports multiple transaction versions to accommodate Starknet's evolving protocol:
+
+- **V0 Transactions** - Deprecated legacy invoke transactions
+- **V1 Transactions** - Invoke, Declare, and Deploy Account with MaxFee
+- **V2 Transactions** - Declare transactions with compiled class hash
+- **V3 Transactions** - Modern transactions with resource bounds and data availability modes
+
+## Hash Algorithms
+
+The package uses two primary hashing algorithms:
+
+- **Pedersen Hash** - Used for V0, V1, and V2 transactions
+- **Poseidon Hash** - Used for V3 transactions and contract class hashes
+
+## Common Use Cases
+
+1. **Transaction Verification** - Calculate expected transaction hash to verify transaction integrity
+2. **Contract Deployment** - Compute class hashes before declaring contracts
+3. **Transaction Monitoring** - Track transactions using their unique hash identifiers
+4. **Fee Estimation** - Calculate transaction hashes as part of fee estimation workflows
+
+## Error Handling
+
+The hash functions return specific errors:
+
+- `ErrNotAllParametersSet` - Required transaction parameters are missing
+- `ErrFeltToBigInt` - Conversion error from felt to BigInt
+
+Always check for errors when calculating hashes:
+
+```go
+txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
+if err != nil {
+	// Handle error appropriately
+	return err
+}
+```
+
+## Reference
+
+For more detailed information about hash calculations in Starknet, see:
+
+- [Starknet Transaction Hash Documentation](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/)
+- [Starknet Class Hash Documentation](https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/)
+- [Package Documentation on pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/hash)

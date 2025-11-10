@@ -1,0 +1,135 @@
+# Curve Package
+
+The Curve package provides cryptographic operations for Starknet, including hashing functions, digital signatures, and key management. This package is essential for secure operations on the Starknet network.
+
+## Overview
+
+The Curve package includes:
+- Cryptographic hash functions (Pedersen, Poseidon, Keccak)
+- Digital signature operations (Sign, Verify)
+- Key generation and management
+- Elliptic curve operations on the StarkCurve
+
+## Available Submodules
+
+- [Hashing Functions](./hashing) - Pedersen, Poseidon, and Keccak hash implementations
+- [Cryptographic Functions](./cryptographic) - Digital signature creation and verification
+- [Key Operations](./keys) - Key generation and elliptic curve point operations
+
+## Quick Example
+
+Here's a simple example demonstrating key generation, signing, and verification:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate random keys
+	privKey, pubKeyX, pubKeyY, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Generated public key: (%s, %s)\n", pubKeyX.String(), pubKeyY.String())
+
+	// Create a message hash
+	msgHash := big.NewInt(12345)
+
+	// Sign the message
+	r, s, err := curve.Sign(msgHash, privKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Signature: (r=%s, s=%s)\n", r.String(), s.String())
+
+	// Verify the signature
+	valid, err := curve.Verify(msgHash, r, s, pubKeyX)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Signature valid: %t\n", valid)
+}
+```
+
+## Common Use Cases
+
+### Transaction Signing
+The curve package is used to sign transactions before submitting them to Starknet:
+
+```go
+// Sign a transaction hash
+txHash := big.NewInt(0) // Your transaction hash
+privKey := big.NewInt(0) // Your private key
+
+r, s, err := curve.Sign(txHash, privKey)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+### Hash Computation
+Choose the appropriate hash function based on your use case:
+
+```go
+import "github.com/NethermindEth/juno/core/felt"
+
+// Pedersen hash (legacy, widely used)
+hash1 := curve.Pedersen(
+	new(felt.Felt).SetUint64(123),
+	new(felt.Felt).SetUint64(456),
+)
+
+// Poseidon hash (modern, more efficient)
+hash2 := curve.Poseidon(
+	new(felt.Felt).SetUint64(123),
+	new(felt.Felt).SetUint64(456),
+)
+```
+
+### Account Creation
+Generate keys for a new Starknet account:
+
+```go
+// Generate a new key pair
+privKey, pubKeyX, pubKeyY, err := curve.GetRandomKeys()
+if err != nil {
+	log.Fatal(err)
+}
+
+// The pubKeyX is typically used as the Starknet account public key
+fmt.Printf("Account public key: %s\n", pubKeyX.String())
+```
+
+## Getting Started
+
+To use the Curve package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/curve"
+```
+
+## Security Considerations
+
+When working with the curve package, keep these security practices in mind:
+
+1. **Private Key Protection**: Never expose or log private keys
+2. **Randomness**: Use `GetRandomKeys()` for secure key generation
+3. **Hash Function Selection**: Use Poseidon for new implementations (more efficient), Pedersen for compatibility with existing systems
+4. **Signature Verification**: Always verify signatures before trusting signed data
+
+## Related Packages
+
+- [Account Package](../account/) - Uses curve package for transaction signing
+- [Utils Package](../utils/) - Additional cryptographic utilities
+- [Hash Package](../hash/) - Higher-level hash functions for Starknet
+
+## Version
+
+This documentation is based on version v0.8.1 of the Starknet.go library.

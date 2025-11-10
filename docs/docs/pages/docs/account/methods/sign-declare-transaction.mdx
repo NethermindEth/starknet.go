@@ -1,0 +1,108 @@
+# SignDeclareTransaction
+
+Signs a declare transaction.
+
+## Method Signature
+
+```go
+func (account *Account) SignDeclareTransaction(
+	ctx context.Context,
+	tx rpc.DeclareTxnType,
+) error
+```
+
+## Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `tx` - Declare transaction to sign (V1, V2, V3, or BroadcastV3)
+
+## Returns
+
+- `error` - Error if signing fails
+
+## Usage Example
+
+> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assuming 'acc' is your Account instance
+	var acc *account.Account
+	// acc = ... (already initialized)
+
+	// Create a declare transaction V2
+	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	classHash, _ := new(felt.Felt).SetString("0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855")
+	compiledClassHash, _ := new(felt.Felt).SetString("0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37")
+
+	declareTx := &rpc.DeclareTxnV2{
+		Type:              rpc.TransactionTypeDeclare,
+		SenderAddress:     accountAddress,
+		CompiledClassHash: compiledClassHash,
+		ClassHash:         classHash,
+		MaxFee:            new(felt.Felt).SetUint64(1000000000000),
+		Version:           rpc.TransactionV2,
+		Signature:         []*felt.Felt{}, // Empty before signing
+		Nonce:             new(felt.Felt).SetUint64(0),
+	}
+
+	fmt.Printf("Before signing - Signature length: %d\n", len(declareTx.Signature))
+
+	// Sign the transaction
+	ctx := context.Background()
+	err := acc.SignDeclareTransaction(ctx, declareTx)
+	if err != nil {
+		log.Fatalf("Error signing transaction: %v", err)
+	}
+
+	fmt.Printf("After signing - Signature length: %d\n", len(declareTx.Signature))
+	for i, sig := range declareTx.Signature {
+		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	}
+}
+```
+
+## Expected Output
+
+```
+Before signing - Signature length: 0
+After signing - Signature length: 2
+Signature[0]: 0x51c8409d7b6743661f134719f2fa8717b72399678624381597f2938109d5a9a
+Signature[1]: 0x3223d8c72505ee93d290146dc2f0e5ec13e138f9eb93ca6077131d539609797
+```
+
+## Description
+
+SignDeclareTransaction calculates the transaction hash for a declare transaction and signs it. Supports V1, V2, V3, and BroadcastDeclareTxnV3 formats.
+
+Typically handled automatically by BuildAndSendDeclareTxn.
+
+## Error Handling
+
+```go
+err := acc.SignDeclareTransaction(ctx, tx)
+if err != nil {
+	// Handle errors like:
+	// - Invalid transaction type
+	// - Hash calculation failure
+	// - Signing failure
+	return err
+}
+```
+
+## Related Methods
+
+- [BuildAndSendDeclareTxn](./build-and-send-declare-txn.mdx) - High-level declare method
+- [TransactionHashDeclare](./transaction-hash-declare.mdx) - Calculate hash

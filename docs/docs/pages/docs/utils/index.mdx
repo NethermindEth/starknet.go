@@ -1,0 +1,98 @@
+# Utils
+
+The utils package provides essential utility functions for Starknet development, including data conversions, transaction builders, cryptographic operations, and unit conversions.
+
+## Overview
+
+The utils package is designed to simplify common operations when working with Starknet, offering utilities for:
+
+- Converting between different data types (hex, felt, big.Int)
+- Building and managing transactions
+- Cryptographic operations and hashing
+- Currency and unit conversions
+- Universal Deployer Contract (UDC) operations
+
+## Main Categories
+
+### Conversion Functions
+
+Functions for converting between different data representations:
+- Hex to Felt and vice versa
+- Big.Int to Felt conversions
+- String to ByteArray conversions
+- U256 conversions
+
+See [Conversion Functions](./conversions.mdx) for detailed documentation.
+
+### Transaction Builders
+
+Helper functions for building Starknet transactions:
+- Invoke transactions
+- Declare transactions
+- Deploy account transactions
+- UDC deployments
+- Fee estimation utilities
+
+See [Transaction Builders](./transaction-builders.mdx) for detailed documentation.
+
+### Cryptographic Utilities
+
+Cryptographic and hashing functions:
+- Function selector generation
+- Keccak256 hashing
+- Fact computation
+- Bit masking operations
+
+See [Cryptographic Utilities](./cryptographic.mdx) for detailed documentation.
+
+### Unit Conversions
+
+Currency and unit conversion utilities:
+- ETH to Wei conversions
+- STRK to FRI conversions
+
+See [Unit Conversions](./unit-conversions.mdx) for detailed documentation.
+
+### Types
+
+Type definitions and structures used throughout the utils package:
+- TxnOptions for transaction configuration
+- UDCOptions for Universal Deployer Contract
+- KeccakState for hashing operations
+
+See [Types](./types.mdx) for detailed documentation.
+
+## Quick Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Convert hex string to felt
+	contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	if err != nil {
+		log.Fatal("Failed to convert hex to felt:", err)
+	}
+
+	// Get selector from function name
+	selector := utils.GetSelectorFromNameFelt("transfer")
+
+	// Convert ETH to Wei
+	weiAmount := utils.ETHToWei(1.5)
+
+	fmt.Printf("Contract Address: %s\n", contractAddress)
+	fmt.Printf("Transfer Selector: %s\n", selector)
+	fmt.Printf("Wei Amount: %s\n", weiAmount)
+}
+```
+
+## Package Reference
+
+For complete API reference, see the [pkg.go.dev documentation](https://pkg.go.dev/github.com/NethermindEth/starknet.go/utils).

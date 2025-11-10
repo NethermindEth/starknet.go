@@ -28,6 +28,7 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
@@ -35,26 +36,37 @@ import (
 
 func main() {
     // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
 
-    // Use the same transaction hash
-    txHashStr := "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa"
+    // Use a known successful transaction hash (invoke transaction)
+    txHashStr := "0x02b900ba6bfb6a7d256d34c5d3a895abbfa0805d23f80253958e101069700020"
     txHash, err := new(felt.Felt).SetString(txHashStr)
     if err != nil {
         log.Fatal("Failed to parse transaction hash:", err)
     }
 
     // Get transaction status
-    status, err := client.GetTransactionStatus(context.Background(), txHash)
+    status, err := client.GetTransactionStatus(ctx, txHash)
     if err != nil {
         log.Fatal("Failed to get transaction status:", err)
     }
 
-    // Pretty print the result
-    statusJSON, _ := json.MarshalIndent(status, "", "  ")
+    // Pretty print the status
+    statusJSON, err := json.MarshalIndent(status, "", "  ")
+    if err != nil {
+        log.Fatal("Failed to marshal status:", err)
+    }
+
     fmt.Printf("Transaction status:\n%s\n", statusJSON)
 }
 ```
@@ -63,133 +75,12 @@ func main() {
 
 ```json
 {
-  "finality_status": "ACCEPTED_ON_L2",
-  "execution_status": "REVERTED",
-  "failure_reason": "Transaction execution has failed: INVALID_STARK_KEY_SIGNATURE"
+  "finality_status": "ACCEPTED_ON_L1",
+  "execution_status": "SUCCEEDED"
 }
 ```
 
-Shows the transaction's finality status, execution result, and detailed failure reason if the transaction was reverted.
-
-## Status Analysis Example
-
-```go
-// Analyze transaction status
-status, err := client.GetTransactionStatus(context.Background(), txHash)
-if err != nil {
-    log.Fatal("Failed to get status:", err)
-}
-
-// Check finality status
-switch status.FinalityStatus {
-case "ACCEPTED_ON_L2":
-    fmt.Printf("✅ Transaction accepted on L2\n")
-case "ACCEPTED_ON_L1":
-    fmt.Printf("✅ Transaction finalized on L1\n")
-case "RECEIVED":
-    fmt.Printf("⏳ Transaction received but not yet processed\n")
-case "PENDING":
-    fmt.Printf("⏳ Transaction pending in mempool\n")
-default:
-    fmt.Printf("❓ Unknown finality status: %s\n", status.FinalityStatus)
-}
-
-// Check execution status
-switch status.ExecutionStatus {
-case "SUCCEEDED":
-    fmt.Printf("✅ Execution successful\n")
-case "REVERTED":
-    fmt.Printf("❌ Execution reverted\n")
-    if status.FailureReason != "" {
-        fmt.Printf("   Reason: %s\n", status.FailureReason)
-    }
-default:
-    fmt.Printf("❓ Unknown execution status: %s\n", status.ExecutionStatus)
-}
-```
-
-## Transaction Status States
-
-**Finality Status Values:**
-- `RECEIVED` - Transaction received by the sequencer
-- `PENDING` - Transaction in mempool awaiting inclusion
-- `ACCEPTED_ON_L2` - Transaction included in L2 block
-- `ACCEPTED_ON_L1` - Transaction finalized on L1 (highest finality)
-
-**Execution Status Values:**
-- `SUCCEEDED` - Transaction executed successfully
-- `REVERTED` - Transaction failed during execution
-- `REJECTED` - Transaction rejected (validation failed)
-
-## Status Monitoring Example
-
-```go
-// Monitor transaction until finalized
-func monitorTransaction(client *rpc.Provider, txHash *felt.Felt) {
-    for {
-        status, err := client.GetTransactionStatus(context.Background(), txHash)
-        if err != nil {
-            log.Printf("Error checking status: %v", err)
-            time.Sleep(5 * time.Second)
-            continue
-        }
-
-        fmt.Printf("Status: %s | Execution: %s\n", 
-            status.FinalityStatus, status.ExecutionStatus)
-
-        // Check if transaction is finalized
-        if status.FinalityStatus == "ACCEPTED_ON_L1" || 
-           status.FinalityStatus == "ACCEPTED_ON_L2" {
-            
-            if status.ExecutionStatus == "REVERTED" {
-                fmt.Printf("❌ Transaction failed: %s\n", status.FailureReason)
-            } else {
-                fmt.Printf("✅ Transaction completed successfully\n")
-            }
-            break
-        }
-
-        // Wait before next check
-        time.Sleep(10 * time.Second)
-    }
-}
-```
-
-## Multiple Transaction Status Check
-
-```go
-// Check status of multiple transactions
-txHashes := []string{
-    "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
-    "0x54fed1df2162fffe2afe8ff866eea1e219a5c416eb3fd68f9f22ecc1e73a4ff",
-}
-
-for i, hashStr := range txHashes {
-    txHash, _ := new(felt.Felt).SetString(hashStr)
-    status, err := client.GetTransactionStatus(context.Background(), txHash)
-    if err != nil {
-        log.Printf("Failed to get status %d: %v", i, err)
-        continue
-    }
-
-    fmt.Printf("Tx %d: %s (%s)\n", 
-        i, status.ExecutionStatus, status.FinalityStatus)
-    
-    if status.ExecutionStatus == "REVERTED" {
-        fmt.Printf("  Failed: %s\n", status.FailureReason)
-    }
-}
-```
-
-## Use Cases
-
-- **Transaction Monitoring** - Track transaction progress from submission to finality
-- **Status Dashboards** - Display transaction status in user interfaces
-- **Error Handling** - Quickly identify failed transactions and reasons
-- **Automation** - Build systems that react to transaction status changes
-- **Wallet Integration** - Show users real-time transaction status
-- **Debugging** - Identify transaction failures without full receipt data
-- **Lightweight Monitoring** - Check status without downloading full transaction details
+This shows a successful transaction that has been accepted on L1 (fully finalized) with successful execution.
 
 ## Error Handling
 
@@ -200,27 +91,6 @@ if err != nil {
     return
 }
 
-// Handle different status combinations
-if status.ExecutionStatus == "REVERTED" {
-    fmt.Printf("Transaction failed: %s\n", status.FailureReason)
-} else if status.FinalityStatus == "PENDING" {
-    fmt.Printf("Transaction still pending inclusion\n")
-} else {
-    fmt.Printf("Transaction status: %s\n", status.FinalityStatus)
-}
+fmt.Printf("Transaction status: Finality=%s, Execution=%s\n",
+    status.FinalityStatus, status.ExecutionStatus)
 ```
-
-## Performance Benefits
-
-- **Lightweight** - Returns minimal data compared to full receipts
-- **Fast Response** - Optimized for quick status checks
-- **Efficient Monitoring** - Perfect for polling transaction progress
-- **Low Bandwidth** - Ideal for mobile applications and dashboards
-
-## Comparison with Other Methods
-
-| Method | Data Size | Use Case |
-|--------|-----------|----------|
-| `GetTransactionStatus` | Minimal | Quick status check |
-| `TransactionReceipt` | Medium | Execution details and events |
-| `TransactionByHash` | Large | Complete transaction parameters |

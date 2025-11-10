@@ -28,13 +28,21 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
     // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
@@ -51,7 +59,7 @@ func main() {
     }
 
     // Get events
-    eventChunk, err := client.Events(context.Background(), eventsInput)
+    eventChunk, err := client.Events(ctx, eventsInput)
     if err != nil {
         log.Fatal("Failed to get events:", err)
     }
@@ -155,14 +163,6 @@ Found 5 events
 More events available with token: 1676505-0
 ```
 
-## Use Cases
-
-- Monitor contract events for specific activities
-- Track token transfers and other contract interactions  
-- Analyze historical blockchain data within block ranges
-- Build event-driven applications that react to on-chain events
-- Filter events by contract address or event keys for targeted monitoring
-
 ## Error Handling
 
 Common errors include network timeouts and invalid filter parameters. Always check the error before using the returned value.
@@ -175,3 +175,9 @@ if err != nil {
 }
 // Safe to use eventChunk
 ```
+
+## Related Methods
+
+- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get blocks containing the transactions that emitted events
+- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Get detailed information about transactions including their events
+- [TransactionByHash](/docs/rpc/methods/transaction-by-hash) - Get transaction details for event sources

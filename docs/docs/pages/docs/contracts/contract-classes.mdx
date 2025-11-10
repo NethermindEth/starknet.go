@@ -1,0 +1,370 @@
+# Contract Classes
+
+Contract classes in Starknet represent the code and structure of smart contracts. The contracts package supports multiple contract class formats to handle different Cairo versions and compilation stages.
+
+## Overview
+
+Starknet has evolved through multiple Cairo versions, each with different contract class formats:
+- **ContractClass** (Sierra) - Cairo 1.0+ high-level intermediate representation
+- **CasmClass** (CASM) - Compiled Cairo Assembly, the executable format
+- **DeprecatedContractClass** - Legacy Cairo 0 format
+
+## ContractClass (Sierra)
+
+Sierra (Safe Intermediate Representation) is the high-level compiled format for Cairo 1.0+ contracts.
+
+### Structure
+
+```go
+type ContractClass struct {
+	SierraProgram        []*felt.Felt            `json:"sierra_program"`
+	ContractClassVersion string                  `json:"contract_class_version"`
+	EntryPointsByType    SierraEntryPointsByType `json:"entry_points_by_type"`
+	ABI                  NestedString            `json:"abi,omitempty"`
+}
+
+type SierraEntryPointsByType struct {
+	Constructor []SierraEntryPoint `json:"CONSTRUCTOR"`
+	External    []SierraEntryPoint `json:"EXTERNAL"`
+	L1Handler   []SierraEntryPoint `json:"L1_HANDLER"`
+}
+```
+
+### Fields
+
+- `SierraProgram` - The list of Sierra instructions that make up the program
+- `ContractClassVersion` - Version of the contract class format (e.g., "0.1.0")
+- `EntryPointsByType` - Entry points organized by type (constructor, external, L1 handler)
+- `ABI` - The contract's Application Binary Interface definition
+
+### Working with ContractClass
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Load a Sierra contract class from file
+	data, err := os.ReadFile("my_contract.sierra.json")
+	if err != nil {
+		log.Fatal("Failed to read contract file:", err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(data, &contractClass); err != nil {
+		log.Fatal("Failed to unmarshal contract class:", err)
+	}
+
+	fmt.Printf("Contract class version: %s\n", contractClass.ContractClassVersion)
+	fmt.Printf("Sierra program size: %d instructions\n", len(contractClass.SierraProgram))
+	fmt.Printf("External entry points: %d\n", len(contractClass.EntryPointsByType.External))
+	fmt.Printf("Constructor entry points: %d\n", len(contractClass.EntryPointsByType.Constructor))
+	fmt.Printf("L1 handler entry points: %d\n", len(contractClass.EntryPointsByType.L1Handler))
+
+	// Access the ABI
+	if contractClass.ABI != "" {
+		fmt.Printf("ABI length: %d bytes\n", len(contractClass.ABI))
+	}
+}
+```
+
+### ABI Handling with NestedString
+
+The `NestedString` type handles different ABI formats across Cairo compiler versions:
+
+```go
+type NestedString string
+```
+
+- For Cairo compiler < 2.7.0: ABI is stored as a JSON string
+- For Cairo compiler >= 2.7.0: ABI is stored as a JSON object
+
+The `UnmarshalJSON` method automatically handles both formats.
+
+## CasmClass (Compiled)
+
+CASM (Cairo Assembly) is the compiled, executable format of a contract.
+
+### Structure
+
+```go
+type CasmClass struct {
+	EntryPointsByType      CasmEntryPointsByType `json:"entry_points_by_type"`
+	ByteCode               []*felt.Felt          `json:"bytecode"`
+	Prime                  NumAsHex              `json:"prime"`
+	CompilerVersion        string                `json:"compiler_version"`
+	Hints                  []Hints               `json:"hints"`
+	BytecodeSegmentLengths *NestedUints          `json:"bytecode_segment_lengths,omitempty"`
+}
+
+type CasmEntryPointsByType struct {
+	Constructor []CasmEntryPoint `json:"CONSTRUCTOR"`
+	External    []CasmEntryPoint `json:"EXTERNAL"`
+	L1Handler   []CasmEntryPoint `json:"L1_HANDLER"`
+}
+```
+
+### Fields
+
+- `EntryPointsByType` - Entry points with their bytecode offsets and builtins
+- `ByteCode` - The compiled Cairo Assembly bytecode
+- `Prime` - The prime field used (hexadecimal format)
+- `CompilerVersion` - Version of the Cairo compiler used
+- `Hints` - Execution hints for the Cairo VM
+- `BytecodeSegmentLengths` - Segment lengths for bytecode hashing
+
+### Working with CasmClass
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// UnmarshalCasmClass is a helper function provided by the package
+	casmClass, err := contracts.UnmarshalCasmClass("my_contract.casm.json")
+	if err != nil {
+		log.Fatal("Failed to unmarshal CASM class:", err)
+	}
+
+	// Validate the CASM class
+	if err := casmClass.Validate(); err != nil {
+		log.Fatal("Invalid CASM class:", err)
+	}
+
+	fmt.Printf("Compiler version: %s\n", casmClass.CompilerVersion)
+	fmt.Printf("Bytecode size: %d instructions\n", len(casmClass.ByteCode))
+	fmt.Printf("Prime: %s\n", casmClass.Prime)
+	fmt.Printf("Number of hints: %d\n", len(casmClass.Hints))
+
+	// Examine entry points
+	for _, ep := range casmClass.EntryPointsByType.External {
+		fmt.Printf("External function at offset %d, selector: %s\n",
+			ep.Offset,
+			ep.Selector.String(),
+		)
+		fmt.Printf("  Required builtins: %v\n", ep.Builtins)
+	}
+}
+```
+
+### CASM Validation
+
+The `CasmClass` type includes a `Validate()` method that ensures all required fields are present:
+
+```go
+if err := casmClass.Validate(); err != nil {
+	log.Fatal("Validation failed:", err)
+}
+```
+
+This checks for:
+- ByteCode presence
+- Prime field presence
+- CompilerVersion presence
+- Hints presence
+- Valid EntryPointsByType structure
+
+## DeprecatedContractClass (Cairo 0)
+
+The legacy format for Cairo 0 contracts.
+
+### Structure
+
+```go
+type DeprecatedContractClass struct {
+	Program                      string                       `json:"program"`
+	DeprecatedEntryPointsByType  DeprecatedEntryPointsByType  `json:"entry_points_by_type"`
+	ABI                          *ABI                         `json:"abi,omitempty"`
+}
+
+type DeprecatedEntryPointsByType struct {
+	Constructor []DeprecatedCairoEntryPoint `json:"CONSTRUCTOR"`
+	External    []DeprecatedCairoEntryPoint `json:"EXTERNAL"`
+	L1Handler   []DeprecatedCairoEntryPoint `json:"L1_HANDLER"`
+}
+
+type DeprecatedCairoEntryPoint struct {
+	Offset   NumAsHex   `json:"offset"`
+	Selector *felt.Felt `json:"selector"`
+}
+```
+
+### Fields
+
+- `Program` - Base64-encoded, gzip-compressed program data
+- `DeprecatedEntryPointsByType` - Entry points with their offsets
+- `ABI` - The contract's ABI (optional)
+
+### Working with DeprecatedContractClass
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Load a deprecated (Cairo 0) contract class
+	data, err := os.ReadFile("cairo0_contract.json")
+	if err != nil {
+		log.Fatal("Failed to read contract file:", err)
+	}
+
+	var deprecatedClass contracts.DeprecatedContractClass
+	if err := json.Unmarshal(data, &deprecatedClass); err != nil {
+		log.Fatal("Failed to unmarshal deprecated contract class:", err)
+	}
+
+	fmt.Printf("Program length: %d bytes\n", len(deprecatedClass.Program))
+	fmt.Printf("External entry points: %d\n",
+		len(deprecatedClass.DeprecatedEntryPointsByType.External))
+
+	// Access ABI if present
+	if deprecatedClass.ABI != nil {
+		fmt.Printf("ABI entries: %d\n", len(*deprecatedClass.ABI))
+
+		// Iterate through ABI entries
+		for _, entry := range *deprecatedClass.ABI {
+			switch e := entry.(type) {
+			case *contracts.FunctionABIEntry:
+				fmt.Printf("Function: %s\n", e.Name)
+			case *contracts.EventABIEntry:
+				fmt.Printf("Event: %s\n", e.Name)
+			case *contracts.StructABIEntry:
+				fmt.Printf("Struct: %s\n", e.Name)
+			}
+		}
+	}
+}
+```
+
+### Program Encoding
+
+The `Program` field contains base64-encoded, gzip-compressed program data. The package automatically handles encoding/decoding:
+
+```go
+// The UnmarshalJSON method handles both:
+// 1. Pre-encoded string (already base64+gzip)
+// 2. Raw JSON object (will be encoded automatically)
+```
+
+## Comparison of Contract Class Types
+
+| Feature | ContractClass (Sierra) | CasmClass | DeprecatedContractClass |
+|---------|------------------------|-----------|------------------------|
+| Cairo Version | Cairo 1.0+ | Cairo 1.0+ (compiled) | Cairo 0 |
+| Format | High-level IR | Compiled bytecode | Legacy format |
+| Entry Point Type | SierraEntryPoint | CasmEntryPoint | DeprecatedCairoEntryPoint |
+| Program Format | Sierra instructions | CASM bytecode | Compressed program |
+| ABI Format | NestedString | Not included | ABI type |
+| Use Case | Declaration | Execution | Legacy support |
+
+## Practical Examples
+
+### Loading and Declaring a Contract
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Load Sierra contract class
+	sierraData, err := os.ReadFile("contract.sierra.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(sierraData, &contractClass); err != nil {
+		log.Fatal(err)
+	}
+
+	// Load compiled CASM class
+	casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Validate CASM
+	if err := casmClass.Validate(); err != nil {
+		log.Fatal("CASM validation failed:", err)
+	}
+
+	fmt.Println("Contract classes loaded and validated successfully")
+
+	// You can now use these with the RPC provider to declare the contract
+	// See the "Simple Declare" example for full declaration flow
+}
+```
+
+### Extracting Entry Point Information
+
+```go
+// Get all external function selectors from a Sierra contract
+func getExternalSelectors(cc *contracts.ContractClass) []string {
+	var selectors []string
+	for _, ep := range cc.EntryPointsByType.External {
+		selectors = append(selectors, ep.Selector.String())
+	}
+	return selectors
+}
+
+// Check if a CASM contract uses specific builtins
+func usesBuiltin(cc *contracts.CasmClass, builtin string) bool {
+	for _, ep := range cc.EntryPointsByType.External {
+		for _, b := range ep.Builtins {
+			if b == builtin {
+				return true
+			}
+		}
+	}
+	return false
+}
+```
+
+## NumAsHex Type
+
+A helper type for representing numbers in hexadecimal format:
+
+```go
+type NumAsHex string
+```
+
+This type is used for fields like `Offset` in deprecated entry points and `Prime` in CASM classes.
+
+## Related
+
+- [Entry Points](./entry-points) - Detailed information about entry points
+- [ABI Types](./abi-types) - Understanding ABIs in contract classes
+- [Simple Declare Example](/docs/examples/simple-declare) - Full contract declaration example
+- [Deploy Contract Example](/docs/examples/deploy-contract-udc) - Deploying contracts using UDC

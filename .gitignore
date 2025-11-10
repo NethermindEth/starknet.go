@@ -20,6 +20,23 @@ examples/**/*.sum
 
 # Documentation build output
 docs/docs/dist/
-
+docs/sdk-issues-tracker.md
 # Helper scripts
 docs/show-docs-status.sh
+
+# Test binaries (compiled executables, not .go files)
+docs/tests/curve/compute_hash_on_elements
+docs/tests/curve/get_random_keys
+docs/tests/curve/get_y_coordinate
+docs/tests/curve/hash_pedersen_elements
+docs/tests/curve/pedersen
+docs/tests/curve/pedersen_array
+docs/tests/curve/poseidon
+docs/tests/curve/poseidon_array
+docs/tests/curve/private_key_to_point
+docs/tests/curve/sign
+docs/tests/curve/sign_felts
+docs/tests/curve/starknet_keccak
+docs/tests/curve/verify
+docs/tests/curve/verify_felts
+docs/tests/hash/class_hash

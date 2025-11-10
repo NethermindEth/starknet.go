@@ -732,7 +732,7 @@ export function StarknetLanding() {
             onMouseEnter={(e) => (e.target as HTMLElement).style.backgroundColor = 'rgb(255 255 255 / 0.9)'}
             onMouseLeave={(e) => (e.target as HTMLElement).style.backgroundColor = 'white'}>
               <span style={{ fontSize: '0.75rem', fontWeight: '600' }}>LATEST</span>
-              <span style={{ fontSize: '0.75rem' }}>Starknet.go v0.10.0 Released</span>
+              <span style={{ fontSize: '0.75rem' }}>Starknet.go v0.17.0 Released</span>
               <ArrowRight style={{ width: '0.625rem', height: '0.625rem' }} />
             </div>
           </div>

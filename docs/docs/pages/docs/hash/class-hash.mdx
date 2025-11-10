@@ -1,0 +1,458 @@
+# Class Hash Functions
+
+Class hash functions calculate unique identifiers for Starknet contract classes. These hashes are essential for declaring contracts and verifying class deployments on the network.
+
+## Overview
+
+Contract classes in Starknet come in two formats:
+
+1. **Sierra Class** - High-level representation with safety guarantees
+2. **Compiled Class (CASM)** - Low-level Cairo Assembly format
+
+Each format has its own hash calculation method that follows the Starknet specification.
+
+## ClassHash
+
+Calculates the hash of a Sierra contract class.
+
+### Signature
+
+```go
+func ClassHash(contract *contracts.ContractClass) *felt.Felt
+```
+
+### Parameters
+
+- `contract` - A Sierra contract class containing:
+  - `ContractClassVersion` - Version string (e.g., "0.1.0")
+  - `EntryPointsByType` - Entry points organized by type:
+    - `Constructor` - Contract constructor entry points
+    - `External` - External function entry points
+    - `L1Handler` - L1 message handler entry points
+  - `SierraProgram` - Array of felt values representing the Sierra program
+  - `ABI` - Contract ABI as a JSON string
+
+### Returns
+
+- `*felt.Felt` - The calculated class hash
+
+### Algorithm
+
+The class hash is calculated by combining these elements using Poseidon hash:
+
+1. Contract class version hash (from version string)
+2. External entry points hash
+3. L1 handler entry points hash
+4. Constructor entry points hash
+5. ABI hash (using StarknetKeccak)
+6. Sierra program hash
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+)
+
+func main() {
+	// Read Sierra contract class from file
+	content, err := os.ReadFile("contract.sierra.json")
+	if err != nil {
+		log.Fatal("Failed to read contract file:", err)
+	}
+
+	// Unmarshal the contract class
+	var contractClass contracts.ContractClass
+	err = json.Unmarshal(content, &contractClass)
+	if err != nil {
+		log.Fatal("Failed to unmarshal contract:", err)
+	}
+
+	// Calculate class hash
+	classHash := hash.ClassHash(&contractClass)
+
+	fmt.Printf("Class Hash: %s\n", classHash.String())
+}
+```
+
+### Complete Example with Manual Construction
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+)
+
+func main() {
+	// Create a simple contract class
+	contractClass := &contracts.ContractClass{
+		ContractClassVersion: "0.1.0",
+		EntryPointsByType: contracts.EntryPointsByType{
+			Constructor: []contracts.SierraEntryPoint{
+				{
+					Selector:    new(felt.Felt).SetUint64(123),
+					FunctionIdx: 0,
+				},
+			},
+			External: []contracts.SierraEntryPoint{
+				{
+					Selector:    new(felt.Felt).SetUint64(456),
+					FunctionIdx: 1,
+				},
+			},
+			L1Handler: []contracts.SierraEntryPoint{},
+		},
+		SierraProgram: []*felt.Felt{
+			new(felt.Felt).SetUint64(1),
+			new(felt.Felt).SetUint64(2),
+			new(felt.Felt).SetUint64(3),
+		},
+		ABI: `[{"type":"function","name":"test","inputs":[],"outputs":[]}]`,
+	}
+
+	// Calculate class hash
+	classHash := hash.ClassHash(contractClass)
+
+	fmt.Printf("Class Hash: %s\n", classHash.String())
+}
+```
+
+### Specification
+
+The class hash calculation follows the [Starknet class hash specification](https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/#computing_the_cairo_1_class_hash).
+
+---
+
+## CompiledClassHash
+
+Calculates the hash of a compiled contract class in CASM (Cairo Assembly) format.
+
+### Signature
+
+```go
+func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error)
+```
+
+### Parameters
+
+- `casmClass` - A compiled CASM class containing:
+  - `EntryPointsByType` - Entry points organized by type:
+    - `Constructor` - Constructor entry points with offset and builtins
+    - `External` - External function entry points with offset and builtins
+    - `L1Handler` - L1 handler entry points with offset and builtins
+  - `ByteCode` - Array of felt values representing the compiled bytecode
+  - `BytecodeSegmentLengths` - Optional nested structure describing bytecode segments
+
+### Returns
+
+- `*felt.Felt` - The calculated compiled class hash
+- `error` - Error if bytecode segment processing fails
+
+### Algorithm
+
+The compiled class hash is calculated by combining these elements using Poseidon hash:
+
+1. Compiled class version hash (constant "COMPILED_CLASS_V1")
+2. External entry points hash (including builtins)
+3. L1 handler entry points hash (including builtins)
+4. Constructor entry points hash (including builtins)
+5. Bytecode hash (with optional segment structure)
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+)
+
+func main() {
+	// Read compiled CASM class from file
+	content, err := os.ReadFile("contract.compiled_contract_class.json")
+	if err != nil {
+		log.Fatal("Failed to read CASM file:", err)
+	}
+
+	// Unmarshal the CASM class
+	var casmClass contracts.CasmClass
+	err = json.Unmarshal(content, &casmClass)
+	if err != nil {
+		log.Fatal("Failed to unmarshal CASM:", err)
+	}
+
+	// Calculate compiled class hash
+	compiledHash, err := hash.CompiledClassHash(&casmClass)
+	if err != nil {
+		log.Fatal("Failed to calculate hash:", err)
+	}
+
+	fmt.Printf("Compiled Class Hash: %s\n", compiledHash.String())
+}
+```
+
+### Complete Example with Manual Construction
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+)
+
+func main() {
+	// Create a simple CASM class
+	casmClass := &contracts.CasmClass{
+		EntryPointsByType: contracts.CasmEntryPoints{
+			Constructor: []contracts.CasmEntryPoint{
+				{
+					Selector: new(felt.Felt).SetUint64(123),
+					Offset:   0,
+					Builtins: []string{"pedersen", "range_check"},
+				},
+			},
+			External: []contracts.CasmEntryPoint{
+				{
+					Selector: new(felt.Felt).SetUint64(456),
+					Offset:   10,
+					Builtins: []string{"range_check"},
+				},
+			},
+			L1Handler: []contracts.CasmEntryPoint{},
+		},
+		ByteCode: []*felt.Felt{
+			new(felt.Felt).SetUint64(1),
+			new(felt.Felt).SetUint64(2),
+			new(felt.Felt).SetUint64(3),
+			new(felt.Felt).SetUint64(4),
+			new(felt.Felt).SetUint64(5),
+		},
+		// BytecodeSegmentLengths is optional
+		BytecodeSegmentLengths: nil,
+	}
+
+	// Calculate compiled class hash
+	compiledHash, err := hash.CompiledClassHash(casmClass)
+	if err != nil {
+		log.Fatal("Failed to calculate hash:", err)
+	}
+
+	fmt.Printf("Compiled Class Hash: %s\n", compiledHash.String())
+}
+```
+
+### Bytecode Segment Lengths
+
+The `BytecodeSegmentLengths` field provides a nested structure describing how the bytecode is organized into segments. This field is optional:
+
+- If `nil`, the entire bytecode is hashed as a single segment
+- If present, the bytecode is processed according to the segment structure
+
+This allows for optimized verification of partial bytecode during execution.
+
+### Specification
+
+The compiled class hash follows the implementation from [starknet.py](https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/hash/casm_class_hash.py#L18).
+
+---
+
+## Practical Usage
+
+### Declaring a Contract
+
+When declaring a contract on Starknet, you need both the Sierra class hash and the compiled class hash:
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Read contract files
+	sierraContent, _ := os.ReadFile("contract.sierra.json")
+	casmContent, _ := os.ReadFile("contract.compiled_contract_class.json")
+
+	// Parse contract classes
+	var sierraClass contracts.ContractClass
+	var casmClass contracts.CasmClass
+	json.Unmarshal(sierraContent, &sierraClass)
+	json.Unmarshal(casmContent, &casmClass)
+
+	// Calculate both hashes
+	classHash := hash.ClassHash(&sierraClass)
+	compiledHash, err := hash.CompiledClassHash(&casmClass)
+	if err != nil {
+		log.Fatal("Failed to calculate compiled hash:", err)
+	}
+
+	fmt.Printf("Class Hash: %s\n", classHash.String())
+	fmt.Printf("Compiled Hash: %s\n", compiledHash.String())
+
+	// Use these hashes when declaring the contract
+	// (This is a simplified example - actual declaration requires account setup)
+	client, _ := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+
+	// The declare transaction would use these hashes
+	fmt.Println("\nReady to declare contract with these hashes")
+	_ = client
+	_ = context.Background()
+}
+```
+
+### Verifying Class Hashes
+
+You can verify that a contract class matches an expected hash:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Read contract file
+	content, err := os.ReadFile("contract.sierra.json")
+	if err != nil {
+		log.Fatal("Failed to read file:", err)
+	}
+
+	// Parse contract
+	var contractClass contracts.ContractClass
+	err = json.Unmarshal(content, &contractClass)
+	if err != nil {
+		log.Fatal("Failed to parse contract:", err)
+	}
+
+	// Calculate hash
+	calculatedHash := hash.ClassHash(&contractClass)
+
+	// Expected hash (from network or documentation)
+	expectedHash, _ := utils.HexToFelt("0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944")
+
+	// Verify
+	if calculatedHash.Equal(expectedHash) {
+		fmt.Println("Class hash verified successfully!")
+	} else {
+		fmt.Printf("Hash mismatch!\nCalculated: %s\nExpected: %s\n",
+			calculatedHash.String(), expectedHash.String())
+	}
+}
+```
+
+---
+
+## Entry Points
+
+### Sierra Entry Points
+
+Sierra entry points contain:
+- `Selector` - Function selector (felt)
+- `FunctionIdx` - Index in the function list
+
+### CASM Entry Points
+
+CASM entry points contain:
+- `Selector` - Function selector (felt)
+- `Offset` - Bytecode offset where function starts
+- `Builtins` - List of required Cairo builtins (e.g., "pedersen", "range_check", "ecdsa")
+
+Common builtins include:
+- `pedersen` - Pedersen hash builtin
+- `range_check` - Range check builtin
+- `ecdsa` - ECDSA signature verification
+- `bitwise` - Bitwise operations
+- `ec_op` - Elliptic curve operations
+- `poseidon` - Poseidon hash builtin
+
+---
+
+## Differences Between Sierra and CASM Hashes
+
+| Aspect | Sierra Class Hash | Compiled Class Hash |
+|--------|------------------|---------------------|
+| Input Format | Sierra (.sierra.json) | CASM (.compiled_contract_class.json) |
+| Entry Point Data | Function index | Bytecode offset + builtins |
+| Program Representation | Sierra program array | Compiled bytecode |
+| Version String | Contract version | Fixed "COMPILED_CLASS_V1" |
+| Hash Algorithm | Poseidon | Poseidon |
+| ABI Included | Yes | No |
+
+## Error Handling
+
+The `CompiledClassHash` function may return errors:
+
+```go
+compiledHash, err := hash.CompiledClassHash(casmClass)
+if err != nil {
+	// Handle bytecode segment processing errors
+	log.Fatal("Failed to process bytecode segments:", err)
+}
+```
+
+Common errors:
+- Invalid bytecode segment structure
+- Inconsistent segment lengths
+- Bytecode processing errors
+
+## Common Use Cases
+
+1. **Pre-Declare Verification** - Calculate hashes before submitting a declare transaction
+2. **Hash Matching** - Verify that a contract file matches a known class hash
+3. **Contract Deployment** - Use class hash when deploying contract instances
+4. **Reproducible Builds** - Verify that compiled contracts match expected hashes
+
+## Performance Considerations
+
+- Class hash calculation involves Poseidon hashing of potentially large Sierra programs
+- Compiled class hash may involve complex bytecode segment processing
+- For large contracts, hash calculation may take noticeable time
+- Consider caching calculated hashes for frequently used contracts
+
+## Related Documentation
+
+- [Transaction Hash Functions](./transaction-hash.mdx) - For declare transaction hashes
+- [Utility Functions](./utilities.mdx) - Helper functions for hash calculations
+- [Contracts Package](../contracts/) - Contract class data structures
+- [Starknet Class Hash Specification](https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/)

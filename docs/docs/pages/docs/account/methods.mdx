@@ -1,0 +1,1442 @@
+# Account Methods
+
+Methods available on the Account type for transaction handling, signing, and account management.
+
+## NewAccount
+
+Creates a new Account instance.
+
+### Method Signature
+
+```go
+func NewAccount(
+	provider rpc.RPCProvider,
+	accountAddress *felt.Felt,
+	publicKey string,
+	keystore Keystore,
+	cairoVersion CairoVersion,
+) (*Account, error)
+```
+
+### Parameters
+
+- `provider` - RPC provider for blockchain interaction
+- `accountAddress` - Address of the account contract
+- `publicKey` - Public key of the account as hex string
+- `keystore` - Keystore implementation for signing operations
+- `cairoVersion` - Cairo version of the account contract (CairoV0 or CairoV2)
+
+### Returns
+
+- `*Account` - Newly created Account instance
+- `error` - Error if account creation fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Create RPC provider
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate or load keys
+	ks, pubKey, _ := account.GetRandomKeys()
+
+	// Account address (deployed contract address)
+	accountAddress, _ := utils.HexToFelt("0x1234...")
+
+	// Create account
+	acc, err := account.NewAccount(
+		provider,
+		accountAddress,
+		pubKey.String(),
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Account created at address: %s\n", acc.Address.String())
+	fmt.Printf("Chain ID: %s\n", acc.ChainID.String())
+}
+```
+
+### Description
+
+NewAccount creates an Account instance that can interact with an already deployed account contract on Starknet. It automatically fetches the chain ID from the provider.
+
+### Error Handling
+
+```go
+acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+if err != nil {
+	// Handle errors like:
+	// - Provider connection failure
+	// - Invalid chain ID
+	return err
+}
+```
+
+### Related Methods
+
+- [GetRandomKeys](./functions.mdx#getrandomkeys) - Generate keys for testing
+- [PrecomputeAccountAddress](./functions.mdx#precomputeaccountaddress) - Calculate address before deployment
+
+---
+
+## BuildAndSendInvokeTxn
+
+Builds, signs, and sends an invoke transaction to execute contract functions.
+
+### Method Signature
+
+```go
+func (account *Account) BuildAndSendInvokeTxn(
+	ctx context.Context,
+	functionCalls []rpc.InvokeFunctionCall,
+	opts *TxnOptions,
+) (rpc.AddInvokeTransactionResponse, error)
+```
+
+### Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `functionCalls` - Slice of function calls to execute
+- `opts` - Transaction options (fee, multiplier, etc.). Pass `nil` for defaults
+
+### Returns
+
+- `rpc.AddInvokeTransactionResponse` - Transaction response with hash
+- `error` - Error if transaction fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Assume acc is already created (see NewAccount example)
+	var acc *account.Account
+
+	// Transfer tokens example
+	contractAddress, _ := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7") // ETH
+	recipient, _ := utils.HexToFelt("0xabcd...")
+	amount := new(felt.Felt).SetUint64(1000000000000000000) // 1 ETH
+
+	functionCalls := []rpc.InvokeFunctionCall{
+		{
+			ContractAddress:    contractAddress,
+			EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
+			Calldata:           []*felt.Felt{recipient, amount, felt.Zero},
+		},
+	}
+
+	// Send transaction with default options
+	response, err := acc.BuildAndSendInvokeTxn(context.Background(), functionCalls, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
+}
+```
+
+### Usage Example with Options
+
+```go
+// Configure transaction options
+opts := &account.TxnOptions{
+	Multiplier:     1.5,    // 50% safety margin for fees
+	UseLatest:      false,  // Use pre_confirmed block for estimation
+	UseQueryBit:    false,  // Use normal transaction version
+	SimulationFlag: rpc.SkipValidate, // Skip validation during simulation
+}
+
+response, err := acc.BuildAndSendInvokeTxn(context.Background(), functionCalls, opts)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+### Description
+
+BuildAndSendInvokeTxn handles the complete flow of executing a transaction:
+
+1. Fetches current nonce
+2. Formats calldata based on Cairo version
+3. Creates transaction with zero fees
+4. Signs transaction for fee estimation
+5. Estimates fees
+6. Updates transaction with estimated fees (applying multiplier)
+7. Signs transaction again with final fees
+8. Sends transaction to network
+
+All steps are handled automatically.
+
+### Error Handling
+
+```go
+response, err := acc.BuildAndSendInvokeTxn(ctx, functionCalls, opts)
+if err != nil {
+	// Handle errors like:
+	// - Insufficient balance
+	// - Invalid function calls
+	// - Network errors
+	// - Fee estimation failure
+	return err
+}
+```
+
+### Related Methods
+
+- [SignInvokeTransaction](#signinvoketransaction) - Sign invoke transactions
+- [SendTransaction](#sendtransaction) - Send pre-built transactions
+- [WaitForTransactionReceipt](#waitfortransactionreceipt) - Wait for confirmation
+
+---
+
+## BuildAndSendDeclareTxn
+
+Builds, signs, and sends a declare transaction to register a new contract class.
+
+### Method Signature
+
+```go
+func (account *Account) BuildAndSendDeclareTxn(
+	ctx context.Context,
+	casmClass *contracts.CasmClass,
+	contractClass *contracts.ContractClass,
+	opts *TxnOptions,
+) (rpc.AddDeclareTransactionResponse, error)
+```
+
+### Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `casmClass` - Compiled CASM (Cairo Assembly) class
+- `contractClass` - Sierra contract class
+- `opts` - Transaction options. Pass `nil` for defaults
+
+### Returns
+
+- `rpc.AddDeclareTransactionResponse` - Response with transaction hash and class hash
+- `error` - Error if declaration fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Load compiled contract
+	sierraFile, _ := os.ReadFile("contract.sierra.json")
+	casmFile, _ := os.ReadFile("contract.casm.json")
+
+	contractClass, err := contracts.UnmarshalContractClass(sierraFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	casmClass, err := contracts.UnmarshalCasmClass(casmFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Declare the contract
+	response, err := acc.BuildAndSendDeclareTxn(
+		context.Background(),
+		casmClass,
+		contractClass,
+		nil, // Use default options
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
+	fmt.Printf("Class hash: %s\n", response.ClassHash)
+}
+```
+
+### Description
+
+BuildAndSendDeclareTxn registers a new contract class on Starknet. The process:
+
+1. Fetches current nonce
+2. Builds declare transaction with zero fees
+3. Signs for fee estimation
+4. Estimates fees
+5. Updates with estimated fees
+6. Signs again with final fees
+7. Sends to network
+
+The returned class hash is used to deploy instances of this contract.
+
+### Error Handling
+
+```go
+response, err := acc.BuildAndSendDeclareTxn(ctx, casmClass, contractClass, opts)
+if err != nil {
+	// Handle errors like:
+	// - Class already declared
+	// - Invalid contract class
+	// - Compilation errors
+	// - Insufficient balance
+	return err
+}
+```
+
+### Related Methods
+
+- [SignDeclareTransaction](#signdeclaretransaction) - Sign declare transactions
+- [DeployContractWithUDC](#deploycontractwithudc) - Deploy declared contract
+
+---
+
+## BuildAndEstimateDeployAccountTxn
+
+Builds and estimates a deploy account transaction without sending it.
+
+### Method Signature
+
+```go
+func (account *Account) BuildAndEstimateDeployAccountTxn(
+	ctx context.Context,
+	salt *felt.Felt,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	opts *TxnOptions,
+) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+```
+
+### Parameters
+
+- `ctx` - Context for request cancellation
+- `salt` - Random value for address generation
+- `classHash` - Class hash of account contract
+- `constructorCalldata` - Constructor parameters
+- `opts` - Transaction options. Pass `nil` for defaults
+
+### Returns
+
+- `*rpc.BroadcastDeployAccountTxnV3` - Signed transaction ready to send
+- `*felt.Felt` - Precomputed account address (needs funding)
+- `error` - Error if estimation fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Assume acc is already created with temporary keys
+	var acc *account.Account
+
+	// Generate deployment parameters
+	salt := new(felt.Felt).SetUint64(12345)
+	classHash, _ := utils.HexToFelt("0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+
+	// Constructor calldata (public key)
+	ks, pubKey, _ := account.GetRandomKeys()
+	constructorCalldata := []*felt.Felt{pubKey}
+
+	// Build and estimate
+	tx, precomputedAddress, err := acc.BuildAndEstimateDeployAccountTxn(
+		context.Background(),
+		salt,
+		classHash,
+		constructorCalldata,
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Precomputed address: %s\n", precomputedAddress.String())
+	fmt.Printf("Required fee: %v\n", tx.ResourceBounds)
+	fmt.Println("Fund this address before deploying!")
+
+	// After funding, send the transaction:
+	// response, err := acc.SendTransaction(context.Background(), tx)
+}
+```
+
+### Description
+
+This method prepares a deploy account transaction but doesn't send it. The workflow is:
+
+1. Precompute the account address
+2. Build transaction with zero fees
+3. Sign transaction
+4. Estimate fees
+5. Update transaction with estimated fees
+6. Sign again
+7. Return transaction and address
+
+You must fund the precomputed address with tokens before sending the transaction.
+
+### Error Handling
+
+```go
+tx, addr, err := acc.BuildAndEstimateDeployAccountTxn(ctx, salt, classHash, calldata, opts)
+if err != nil {
+	// Handle errors like:
+	// - Invalid class hash
+	// - Network errors
+	// - Fee estimation failure
+	return err
+}
+```
+
+### Related Methods
+
+- [PrecomputeAccountAddress](./functions.mdx#precomputeaccountaddress) - Calculate address
+- [SendTransaction](#sendtransaction) - Send the prepared transaction
+
+---
+
+## DeployContractWithUDC
+
+Deploys a contract using the Universal Deployer Contract (UDC).
+
+### Method Signature
+
+```go
+func (account *Account) DeployContractWithUDC(
+	ctx context.Context,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	txnOpts *TxnOptions,
+	udcOpts *UDCOptions,
+) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
+```
+
+### Parameters
+
+- `ctx` - Context for request cancellation
+- `classHash` - Class hash of contract to deploy
+- `constructorCalldata` - Constructor parameters. Pass `nil` if no constructor
+- `txnOpts` - Transaction options. Pass `nil` for defaults
+- `udcOpts` - UDC-specific options (salt, unique). Pass `nil` for defaults
+
+### Returns
+
+- `rpc.AddInvokeTransactionResponse` - Transaction response
+- `*felt.Felt` - Salt used for deployment
+- `error` - Error if deployment fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Class hash of previously declared contract
+	classHash, _ := utils.HexToFelt("0x1234...")
+
+	// Constructor parameters (if any)
+	owner, _ := utils.HexToFelt("0xabcd...")
+	constructorCalldata := []*felt.Felt{owner}
+
+	// Deploy with default options (random salt)
+	response, salt, err := acc.DeployContractWithUDC(
+		context.Background(),
+		classHash,
+		constructorCalldata,
+		nil, // Transaction options
+		nil, // UDC options
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
+	fmt.Printf("Salt: %s\n", salt.String())
+
+	// Calculate deployed address
+	deployedAddress := utils.CalculateUDCAddress(classHash, salt, constructorCalldata)
+	fmt.Printf("Deployed at: %s\n", deployedAddress.String())
+}
+```
+
+### Usage Example with Options
+
+```go
+// Specify deployment options
+udcOpts := &utils.UDCOptions{
+	Salt:   new(felt.Felt).SetUint64(42), // Specific salt
+	Unique: true,                         // Make address unique to deployer
+}
+
+response, salt, err := acc.DeployContractWithUDC(
+	context.Background(),
+	classHash,
+	constructorCalldata,
+	nil,
+	udcOpts,
+)
+```
+
+### Description
+
+DeployContractWithUDC uses Starknet's Universal Deployer Contract to deploy contract instances. This is the recommended way to deploy contracts.
+
+### Related Methods
+
+- [BuildAndSendDeclareTxn](#buildandsenddeclaretxn) - Declare before deploying
+- [BuildAndSendInvokeTxn](#buildandsendinvoketxn) - Underlying invoke method
+
+---
+
+## Sign
+
+Signs a felt message using the account's private key.
+
+### Method Signature
+
+```go
+func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `msg` - Message to sign as felt
+
+### Returns
+
+- `[]*felt.Felt` - Signature as array [r, s]
+- `error` - Error if signing fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Message to sign
+	message := new(felt.Felt).SetUint64(42)
+
+	// Sign the message
+	signature, err := acc.Sign(context.Background(), message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Signature r: %s\n", signature[0].String())
+	fmt.Printf("Signature s: %s\n", signature[1].String())
+
+	// Verify the signature
+	valid, err := acc.Verify(message, signature)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Signature valid: %t\n", valid)
+}
+```
+
+### Description
+
+Sign creates an ECDSA signature over a felt message using the Starknet curve. The signature is a pair (r, s) of field elements.
+
+### Error Handling
+
+```go
+signature, err := acc.Sign(ctx, message)
+if err != nil {
+	// Handle errors like:
+	// - Key not found in keystore
+	// - Context cancelled
+	// - Signing failure
+	return err
+}
+```
+
+### Related Methods
+
+- [Verify](#verify) - Verify signatures
+- [SignInvokeTransaction](#signinvoketransaction) - Sign transactions
+- [Keystore.Sign](./keystore.mdx#sign) - Underlying signing operation
+
+---
+
+## SignInvokeTransaction
+
+Signs an invoke transaction.
+
+### Method Signature
+
+```go
+func (account *Account) SignInvokeTransaction(
+	ctx context.Context,
+	invokeTx rpc.InvokeTxnType,
+) error
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `invokeTx` - Invoke transaction to sign (V0, V1, or V3)
+
+### Returns
+
+- `error` - Error if signing fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Build invoke transaction manually
+	tx := &rpc.InvokeTxnV3{
+		SenderAddress: acc.Address,
+		Calldata:      calldata,
+		Version:       rpc.TransactionV3,
+		Nonce:         nonce,
+		ResourceBounds: resourceBounds,
+	}
+
+	// Sign the transaction
+	err := acc.SignInvokeTransaction(context.Background(), tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// tx.Signature is now populated
+	// Send transaction
+	response, err := acc.Provider.AddInvokeTransaction(context.Background(), tx)
+}
+```
+
+### Description
+
+SignInvokeTransaction calculates the transaction hash and signs it, setting the Signature field on the transaction. Supports V0, V1, and V3 transactions.
+
+Typically, you don't call this directly. Use BuildAndSendInvokeTxn which handles signing automatically.
+
+### Error Handling
+
+```go
+err := acc.SignInvokeTransaction(ctx, tx)
+if err != nil {
+	// Handle errors like:
+	// - Invalid transaction type
+	// - Hash calculation failure
+	// - Signing failure
+	return err
+}
+```
+
+### Related Methods
+
+- [BuildAndSendInvokeTxn](#buildandsendinvoketxn) - High-level invoke method
+- [TransactionHashInvoke](#transactionhashinvoke) - Calculate transaction hash
+- [Sign](#sign) - Low-level signing
+
+---
+
+## SignDeclareTransaction
+
+Signs a declare transaction.
+
+### Method Signature
+
+```go
+func (account *Account) SignDeclareTransaction(
+	ctx context.Context,
+	tx rpc.DeclareTxnType,
+) error
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `tx` - Declare transaction to sign (V1, V2, V3, or BroadcastV3)
+
+### Returns
+
+- `error` - Error if signing fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assume acc is already created and tx is built
+	var acc *account.Account
+	var tx *rpc.DeclareTxnV3
+
+	// Sign the declare transaction
+	err := acc.SignDeclareTransaction(context.Background(), tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// tx.Signature is now populated
+}
+```
+
+### Description
+
+SignDeclareTransaction calculates the transaction hash for a declare transaction and signs it. Supports V1, V2, V3, and BroadcastDeclareTxnV3 formats.
+
+Typically handled automatically by BuildAndSendDeclareTxn.
+
+### Related Methods
+
+- [BuildAndSendDeclareTxn](#buildandsenddeclaretxn) - High-level declare method
+- [TransactionHashDeclare](#transactionhashdeclare) - Calculate hash
+
+---
+
+## SignDeployAccountTransaction
+
+Signs a deploy account transaction.
+
+### Method Signature
+
+```go
+func (account *Account) SignDeployAccountTransaction(
+	ctx context.Context,
+	tx rpc.DeployAccountType,
+	precomputeAddress *felt.Felt,
+) error
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `tx` - Deploy account transaction to sign
+- `precomputeAddress` - Precomputed account address
+
+### Returns
+
+- `error` - Error if signing fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Typically called by BuildAndEstimateDeployAccountTxn
+	// Manual usage:
+	precomputedAddr := account.PrecomputeAccountAddress(salt, classHash, calldata)
+
+	err := acc.SignDeployAccountTransaction(context.Background(), tx, precomputedAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+### Description
+
+SignDeployAccountTransaction signs a deploy account transaction using the precomputed address. Typically called internally by BuildAndEstimateDeployAccountTxn.
+
+### Related Methods
+
+- [BuildAndEstimateDeployAccountTxn](#buildandestimatedeployaccounttxn) - Handles signing automatically
+- [TransactionHashDeployAccount](#transactionhashdeployaccount) - Calculate hash
+
+---
+
+## TransactionHashInvoke
+
+Calculates the transaction hash for an invoke transaction.
+
+### Method Signature
+
+```go
+func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error)
+```
+
+### Parameters
+
+- `tx` - Invoke transaction (V0, V1, or V3)
+
+### Returns
+
+- `*felt.Felt` - Transaction hash
+- `error` - Error if hash calculation fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assume acc and tx are already created
+	var acc *account.Account
+	var tx *rpc.InvokeTxnV3
+
+	// Calculate hash
+	hash, err := acc.TransactionHashInvoke(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", hash.String())
+}
+```
+
+### Description
+
+TransactionHashInvoke calculates the unique hash for an invoke transaction according to Starknet specifications. This hash is used for signing and transaction identification.
+
+### Related Methods
+
+- [SignInvokeTransaction](#signinvoketransaction) - Uses this to calculate hash before signing
+- [TransactionHashDeclare](#transactionhashdeclare) - For declare transactions
+
+---
+
+## TransactionHashDeclare
+
+Calculates the transaction hash for a declare transaction.
+
+### Method Signature
+
+```go
+func (account *Account) TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
+```
+
+### Parameters
+
+- `tx` - Declare transaction (V1, V2, V3, or BroadcastV3)
+
+### Returns
+
+- `*felt.Felt` - Transaction hash
+- `error` - Error if hash calculation fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc and tx are already created
+	var acc *account.Account
+	var tx *rpc.DeclareTxnV3
+
+	// Calculate hash
+	hash, err := acc.TransactionHashDeclare(tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", hash.String())
+}
+```
+
+### Description
+
+TransactionHashDeclare calculates the hash for declare transactions. Note that V0 transactions are not supported.
+
+### Error Handling
+
+```go
+hash, err := acc.TransactionHashDeclare(tx)
+if err != nil {
+	if err == account.ErrTxnVersionUnSupported {
+		// Handle unsupported version (V0)
+	}
+	return err
+}
+```
+
+### Related Methods
+
+- [SignDeclareTransaction](#signdeclaretransaction) - Uses this for signing
+- [TransactionHashInvoke](#transactionhashinvoke) - For invoke transactions
+
+---
+
+## TransactionHashDeployAccount
+
+Calculates the transaction hash for a deploy account transaction.
+
+### Method Signature
+
+```go
+func (account *Account) TransactionHashDeployAccount(
+	tx rpc.DeployAccountType,
+	contractAddress *felt.Felt,
+) (*felt.Felt, error)
+```
+
+### Parameters
+
+- `tx` - Deploy account transaction
+- `contractAddress` - Precomputed contract address
+
+### Returns
+
+- `*felt.Felt` - Transaction hash
+- `error` - Error if hash calculation fails
+
+### Description
+
+TransactionHashDeployAccount calculates the hash for deploy account transactions using the precomputed address.
+
+### Related Methods
+
+- [SignDeployAccountTransaction](#signdeployaccounttransaction) - Uses this for signing
+- [PrecomputeAccountAddress](./functions.mdx#precomputeaccountaddress) - Calculate address
+
+---
+
+## Nonce
+
+Retrieves the current nonce for the account.
+
+### Method Signature
+
+```go
+func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error)
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+
+### Returns
+
+- `*felt.Felt` - Current account nonce
+- `error` - Error if retrieval fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Get nonce
+	nonce, err := acc.Nonce(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Account nonce: %s\n", nonce.String())
+}
+```
+
+### Description
+
+Nonce retrieves the current transaction nonce for the account from the `pre_confirmed` block. The nonce is automatically managed by BuildAndSendInvokeTxn and BuildAndSendDeclareTxn.
+
+### Related Methods
+
+- [BuildAndSendInvokeTxn](#buildandsendinvoketxn) - Uses nonce automatically
+- [BuildAndSendDeclareTxn](#buildandsenddeclaretxn) - Uses nonce automatically
+
+---
+
+## Verify
+
+Verifies a signature against a message hash.
+
+### Method Signature
+
+```go
+func (account *Account) Verify(
+	msgHash *felt.Felt,
+	signature []*felt.Felt,
+) (bool, error)
+```
+
+### Parameters
+
+- `msgHash` - Message hash to verify
+- `signature` - Signature array [r, s]
+
+### Returns
+
+- `bool` - True if signature is valid
+- `error` - Error if verification fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Sign a message
+	message := new(felt.Felt).SetUint64(42)
+	signature, err := acc.Sign(context.Background(), message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Verify the signature
+	valid, err := acc.Verify(message, signature)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if valid {
+		fmt.Println("Signature is valid")
+	} else {
+		fmt.Println("Signature is invalid")
+	}
+}
+```
+
+### Description
+
+Verify checks if a signature is valid for a given message hash using the account's public key. This uses ECDSA signature verification on the Starknet curve.
+
+### Error Handling
+
+```go
+valid, err := acc.Verify(msgHash, signature)
+if err != nil {
+	// Handle errors like:
+	// - Invalid public key format
+	// - Malformed signature
+	return err
+}
+
+if !valid {
+	// Signature verification failed
+}
+```
+
+### Related Methods
+
+- [Sign](#sign) - Create signatures
+- [Keystore.Sign](./keystore.mdx#sign) - Low-level signing
+
+---
+
+## WaitForTransactionReceipt
+
+Waits for a transaction to be confirmed on-chain.
+
+### Method Signature
+
+```go
+func (account *Account) WaitForTransactionReceipt(
+	ctx context.Context,
+	transactionHash *felt.Felt,
+	pollInterval time.Duration,
+) (*rpc.TransactionReceiptWithBlockInfo, error)
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `transactionHash` - Hash of transaction to wait for
+- `pollInterval` - Time between status checks
+
+### Returns
+
+- `*rpc.TransactionReceiptWithBlockInfo` - Transaction receipt with block info
+- `error` - Error if waiting fails or context cancelled
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assume acc is already created and transaction sent
+	var acc *account.Account
+
+	// Send transaction
+	response, err := acc.BuildAndSendInvokeTxn(ctx, functionCalls, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction sent: %s\n", response.TransactionHash)
+	fmt.Println("Waiting for confirmation...")
+
+	// Wait for receipt with 5 second polling
+	receipt, err := acc.WaitForTransactionReceipt(
+		context.Background(),
+		response.TransactionHash,
+		5*time.Second,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction confirmed in block: %s\n", receipt.BlockNumber)
+	fmt.Printf("Status: %s\n", receipt.ExecutionStatus)
+}
+```
+
+### Usage Example with Timeout
+
+```go
+// Wait with timeout
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+
+receipt, err := acc.WaitForTransactionReceipt(
+	ctx,
+	transactionHash,
+	3*time.Second,
+)
+if err != nil {
+	if err == context.DeadlineExceeded {
+		fmt.Println("Transaction confirmation timed out")
+	}
+	return err
+}
+```
+
+### Description
+
+WaitForTransactionReceipt polls the network at regular intervals until the transaction is confirmed or the context is cancelled. It handles the "transaction not found" case gracefully and continues polling.
+
+### Error Handling
+
+```go
+receipt, err := acc.WaitForTransactionReceipt(ctx, txHash, pollInterval)
+if err != nil {
+	// Handle errors like:
+	// - Context cancelled
+	// - Context deadline exceeded
+	// - Network errors
+	return err
+}
+
+// Check execution status
+switch receipt.ExecutionStatus {
+case rpc.TxnExecutionStatusSUCCEEDED:
+	fmt.Println("Transaction succeeded")
+case rpc.TxnExecutionStatusREVERTED:
+	fmt.Println("Transaction reverted")
+}
+```
+
+### Related Methods
+
+- [BuildAndSendInvokeTxn](#buildandsendinvoketxn) - Send transactions
+- [TransactionReceipt](../rpc/methods/transaction-receipt.mdx) - Get receipt without waiting
+
+---
+
+## SendTransaction
+
+Sends a pre-built and signed transaction to the network.
+
+### Method Signature
+
+```go
+func (account *Account) SendTransaction(
+	ctx context.Context,
+	txn rpc.BroadcastTxn,
+) (rpc.TransactionResponse, error)
+```
+
+### Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `txn` - Pre-built V3 transaction (Invoke, Declare, or DeployAccount)
+
+### Returns
+
+- `rpc.TransactionResponse` - Response with transaction hash and optional class/contract address
+- `error` - Error if sending fails
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Build and sign deploy account transaction
+	tx, precomputedAddr, err := acc.BuildAndEstimateDeployAccountTxn(
+		context.Background(),
+		salt,
+		classHash,
+		constructorCalldata,
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Fund address: %s\n", precomputedAddr.String())
+	// ... wait for funding ...
+
+	// Send the transaction
+	response, err := acc.SendTransaction(context.Background(), tx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.Hash)
+	fmt.Printf("Contract address: %s\n", response.ContractAddress)
+}
+```
+
+### Description
+
+SendTransaction is a low-level method that sends pre-built V3 transactions. It supports:
+- Invoke transactions (returns hash)
+- Declare transactions (returns hash and class hash)
+- Deploy account transactions (returns hash and contract address)
+
+Most users should use the higher-level methods:
+- BuildAndSendInvokeTxn
+- BuildAndSendDeclareTxn
+- BuildAndEstimateDeployAccountTxn + SendTransaction
+
+### Error Handling
+
+```go
+response, err := acc.SendTransaction(ctx, txn)
+if err != nil {
+	// Handle errors like:
+	// - Unsupported transaction version
+	// - Network errors
+	// - Transaction rejection
+	return err
+}
+```
+
+### Related Methods
+
+- [BuildAndSendInvokeTxn](#buildandsendinvoketxn) - High-level invoke
+- [BuildAndSendDeclareTxn](#buildandsenddeclaretxn) - High-level declare
+- [BuildAndEstimateDeployAccountTxn](#buildandestimatedeployaccounttxn) - Prepare deploy account
+
+---
+
+## FmtCalldata
+
+Formats calldata based on the account's Cairo version.
+
+### Method Signature
+
+```go
+func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error)
+```
+
+### Parameters
+
+- `fnCalls` - Slice of function calls to format
+
+### Returns
+
+- `[]*felt.Felt` - Formatted calldata
+- `error` - Error if Cairo version unsupported
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Function calls
+	functionCalls := []rpc.FunctionCall{
+		{
+			ContractAddress:    contractAddr,
+			EntryPointSelector: selector,
+			Calldata:           calldata,
+		},
+	}
+
+	// Format based on account's Cairo version
+	formatted, err := acc.FmtCalldata(functionCalls)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Formatted calldata length: %d\n", len(formatted))
+}
+```
+
+### Description
+
+FmtCalldata automatically formats calldata using the appropriate format for the account's Cairo version:
+- CairoV0: Uses FmtCallDataCairo0
+- CairoV2: Uses FmtCallDataCairo2
+
+This method is used internally by BuildAndSendInvokeTxn.
+
+### Related Functions
+
+- [FmtCallDataCairo0](./functions.mdx#fmtcalldatacairo0) - Cairo 0 formatting
+- [FmtCallDataCairo2](./functions.mdx#fmtcalldatacairo2) - Cairo 2 formatting

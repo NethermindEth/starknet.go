@@ -1,0 +1,22 @@
+# PoseidonArray
+
+Computes the Poseidon hash of multiple field elements.
+
+## Function Signature
+
+```go
+func PoseidonArray(felts ...*felt.Felt) *felt.Felt
+```
+
+## Expected Output
+
+```
+PoseidonArray Hash:
+  Input: [0x1, 0x2, 0x3, 0x4]
+  Hash: 0x26e3ad8b876e02bc8a4fc43dad40a8f81a6384083cabffa190bcf40d512ae1d
+```
+
+## Related Functions
+
+- [Poseidon](/docs/curve/functions/poseidon)
+- [PedersenArray](/docs/curve/functions/pedersen-array)

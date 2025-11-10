@@ -1,0 +1,22 @@
+# VerifyFelts
+
+Verifies a signature using felt.Felt parameters.
+
+## Function Signature
+
+```go
+func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error)
+```
+
+## Expected Output
+
+```
+VerifyFelts:
+  Message Hash: 0x1234567890abcdef
+  Valid: true
+```
+
+## Related Functions
+
+- [Verify](/docs/curve/functions/verify)
+- [SignFelts](/docs/curve/functions/sign-felts)

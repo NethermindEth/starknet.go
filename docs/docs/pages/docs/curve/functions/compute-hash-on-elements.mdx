@@ -1,0 +1,27 @@
+# ComputeHashOnElements
+
+Computes hash on elements with length prefix using Pedersen.
+
+## Function Signature
+
+```go
+func ComputeHashOnElements(elems []*big.Int) (hash *big.Int)
+```
+
+## Expected Output
+
+```
+ComputeHashOnElements:
+  Input elements: [100, 200, 300]
+  Hash: 2102416357620316145614438783172821191669968458245246634963760104496512507408
+```
+
+## Notes
+
+- Appends array length before hashing
+- Uses big.Int instead of felt.Felt
+
+## Related Functions
+
+- [HashPedersenElements](/docs/curve/functions/hash-pedersen-elements)
+- [PedersenArray](/docs/curve/functions/pedersen-array)

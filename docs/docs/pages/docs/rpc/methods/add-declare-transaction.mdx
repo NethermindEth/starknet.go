@@ -1,30 +1,132 @@
----
-title: starknet_addDeclareTransaction
-description: Adds a declare transaction to the transaction pool.
----
+# AddDeclareTransaction
 
+Submits a declare transaction to the network to register a new contract class.
 
-# starknet_addDeclareTransaction
+## Method Signature
 
-Adds a declare transaction to the transaction pool.
-
+```go
+func (provider *Provider) AddDeclareTransaction(
+    ctx context.Context,
+    declareTransaction *BroadcastDeclareTxnV3,
+) (AddDeclareTransactionResponse, error)
+```
 
 ## Parameters
 
-1. `declare_transaction` - The declare transaction to be added.
-   - `type` - The type of the transaction. Must be "DECLARE".
-   - `sender_address` - The address of the sender.
-   - `compiled_class_hash` - The hash of the compiled class.
-   - `contract_class` - The contract class to be declared.
-   - `signature` - The transaction signature.
-   - `nonce` - The nonce of the transaction.
-   - `max_fee` - The maximum fee for the transaction.
-   - `version` - The version of the transaction.
+- `ctx` - Context for request cancellation and timeout
+- `declareTransaction` - The declare transaction to submit
 
 ## Returns
 
-- `transaction_hash` - The hash of the transaction.
+- `AddDeclareTransactionResponse` - Response containing transaction hash and class hash
+- `error` - Error if the submission fails
 
-## Example
+## Usage Example
 
+```go
+package main
 
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+	"os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+    // Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    accountAddr, _ := new(felt.Felt).SetString("0x0517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802")
+    compiledClassHash, _ := new(felt.Felt).SetString("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+
+    // Create a V3 declare transaction
+    declareTransaction := &rpc.BroadcastDeclareTxnV3{
+        Type:              rpc.TransactionType("DECLARE"),
+        Version:           rpc.TransactionVersion("0x3"),
+        SenderAddress:     accountAddr,
+        CompiledClassHash: compiledClassHash,
+        Signature: []*felt.Felt{
+            new(felt.Felt).SetString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+            new(felt.Felt).SetString("0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"),
+        },
+        Nonce: new(felt.Felt).SetUint64(1),
+        ContractClass: &rpc.ContractClass{
+            // Sierra contract class definition
+            // This would include the full contract class JSON
+        },
+        ResourceBounds: &rpc.ResourceBoundsMapping{
+            L1Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x0"),
+                MaxPricePerUnit: rpc.U128("0x33a937098d80"),
+            },
+            L2Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x15c2a0"),
+                MaxPricePerUnit: rpc.U128("0x10c388d00"),
+            },
+            L1DataGas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0xc0"),
+                MaxPricePerUnit: rpc.U128("0xdb31"),
+            },
+        },
+        Tip:                   rpc.U64("0x0"),
+        PayMasterData:         []*felt.Felt{},
+        AccountDeploymentData: []*felt.Felt{},
+        NonceDataMode:         rpc.DAModeL1,
+        FeeMode:               rpc.DAModeL1,
+    }
+
+    // Submit the declare transaction
+    result, err := client.AddDeclareTransaction(ctx, declareTransaction)
+    if err != nil {
+        log.Fatal("Failed to add declare transaction:", err)
+    }
+
+    // Print the result
+    resultJSON, _ := json.MarshalIndent(result, "", "  ")
+    fmt.Printf("Class declared:\n%s\n", resultJSON)
+}
+```
+
+## Expected Output
+
+```json
+{
+  "transaction_hash": "0x05a12345678901234567890123456789012345678901234567890123456789ab",
+  "class_hash": "0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab"
+}
+```
+
+## Error Handling
+
+Common errors include invalid class definitions, class already declared, and insufficient balance for fees. Always verify the contract class before submission.
+
+```go
+result, err := client.AddDeclareTransaction(ctx, declareTransaction)
+if err != nil {
+    log.Printf("Failed to declare class: %v", err)
+    return
+}
+// Safe to use result.TransactionHash and result.ClassHash
+```
+
+## Related Methods
+
+- [Class](/docs/rpc/methods/get-class) - Retrieve a declared contract class
+- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate fees for the declare transaction
+- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Check declaration status
+- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test declaration before submitting

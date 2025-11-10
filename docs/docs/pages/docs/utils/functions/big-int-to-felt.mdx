@@ -1,0 +1,30 @@
+# BigIntToFelt
+
+Converts a BigInt to a Felt value.
+
+## Function Signature
+
+```go
+func BigIntToFelt(b *big.Int) *felt.Felt
+```
+
+## Parameters
+
+- `b` (*big.Int): The BigInt value to convert
+
+## Returns
+
+- `*felt.Felt`: The Felt representation
+
+## Usage Example
+
+```go
+bigInt := big.NewInt(98765)
+felt := utils.BigIntToFelt(bigInt)
+// felt = 0x181cd
+```
+
+## Related Functions
+
+- [FeltToBigInt](/docs/utils/functions/felt-to-big-int)
+- [HexToFelt](/docs/utils/functions/hex-to-felt)

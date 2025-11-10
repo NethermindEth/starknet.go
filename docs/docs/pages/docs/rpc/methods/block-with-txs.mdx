@@ -46,13 +46,21 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
     // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
@@ -60,7 +68,7 @@ func main() {
     // Get latest block with full transaction details
     // Using WithBlockTag helper function to create BlockID
     blockID := rpc.WithBlockTag("latest")
-    block, err := client.BlockWithTxs(context.Background(), blockID)
+    block, err := client.BlockWithTxs(ctx, blockID)
     if err != nil {
         log.Fatal("Failed to get block:", err)
     }

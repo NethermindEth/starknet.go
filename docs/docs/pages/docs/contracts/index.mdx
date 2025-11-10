@@ -1,0 +1,99 @@
+# Contracts Package
+
+The contracts package provides types and utilities for working with Starknet contract classes, ABIs (Application Binary Interface), and related structures. This package supports different contract class versions including Sierra (Cairo 1.0+) and deprecated Cairo 0 formats.
+
+## Overview
+
+The contracts package is essential for:
+- Working with contract class definitions (Sierra and CASM)
+- Parsing and handling contract ABIs
+- Computing contract addresses before deployment
+- Understanding contract entry points and their types
+- Managing contract metadata and compilation artifacts
+
+## Key Components
+
+### Contract Classes
+The package supports multiple contract class formats:
+- **ContractClass**: Sierra contract class format (Cairo 1.0+)
+- **CasmClass**: Compiled Cairo Assembly (CASM) format
+- **DeprecatedContractClass**: Legacy Cairo 0 contract format
+
+### ABI Types
+Comprehensive ABI handling including:
+- Function definitions and parameters
+- Event definitions
+- Struct definitions
+- Type parameters and return values
+
+### Entry Points
+Entry point definitions for different contract interaction types:
+- Constructor entry points
+- External function entry points
+- L1 handler entry points
+- Event entry points
+
+## Quick Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Precompute a contract address
+	deployerAddress := new(felt.Felt).SetUint64(0x123)
+	salt := new(felt.Felt).SetUint64(0x456)
+	classHash := new(felt.Felt).SetUint64(0x789)
+	constructorCalldata := []*felt.Felt{}
+
+	address := contracts.PrecomputeAddress(
+		deployerAddress,
+		salt,
+		classHash,
+		constructorCalldata,
+	)
+
+	fmt.Printf("Precomputed address: %s\n", address.String())
+
+	// Unmarshal a CASM class from file
+	casmClass, err := contracts.UnmarshalCasmClass("./my_contract.casm.json")
+	if err != nil {
+		log.Fatal("Failed to unmarshal CASM class:", err)
+	}
+
+	fmt.Printf("CASM class version: %s\n", casmClass.CompilerVersion)
+}
+```
+
+## Available Documentation
+
+- [PrecomputeAddress](./precompute-address) - Calculate contract addresses before deployment
+- [ABI Types](./abi-types) - Working with ABIs and type definitions
+- [Contract Classes](./contract-classes) - Understanding different contract class formats
+- [Entry Points](./entry-points) - Entry point types and usage
+
+## Getting Started
+
+To use the contracts package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/contracts"
+```
+
+## Common Use Cases
+
+1. **Address Computation**: Calculate the address where a contract will be deployed using PrecomputeAddress
+2. **ABI Parsing**: Parse contract ABIs to understand function signatures and event structures
+3. **Class Loading**: Load and validate contract class files (Sierra or CASM)
+4. **Entry Point Discovery**: Find and work with contract entry points for different interaction types
+
+## Version
+
+This documentation is based on the starknet.go library. For the latest updates, visit [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/contracts).

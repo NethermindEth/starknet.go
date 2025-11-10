@@ -1,0 +1,112 @@
+# BuildDeclareTxn
+
+Builds a declare transaction for deploying new contract classes to Starknet.
+
+## Function Signature
+
+```go
+func BuildDeclareTxn(
+    contractClass *contracts.ContractClass,
+    compiledClassHash *felt.Felt,
+    opts *BuildOptions,
+) (*rpc.DeclareTxnV2, error)
+```
+
+## Parameters
+
+- `contractClass` (*contracts.ContractClass): Sierra contract class definition
+- `compiledClassHash` (*felt.Felt): Hash of the compiled CASM class
+- `opts` (*BuildOptions): Transaction build options
+
+## Returns
+
+- `*rpc.DeclareTxnV2`: Fully constructed declare transaction V2
+- `error`: Error if build fails
+
+## Description
+
+BuildDeclareTxn creates a declare transaction for registering a new contract class on Starknet. It requires both the Sierra class (high-level) and the compiled CASM class hash (low-level executable).
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"os"
+	
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Load Sierra contract class
+	sierraData, _ := os.ReadFile("contract.json")
+	var sierraClass contracts.ContractClass
+	json.Unmarshal(sierraData, &sierraClass)
+	
+	// Load and hash CASM class
+	casmClass, _ := contracts.UnmarshalCasmClass("contract.casm.json")
+	compiledHash, _ := hash.CompiledClassHash(casmClass)
+	
+	// Build declare transaction
+	txn, err := utils.BuildDeclareTxn(
+		&sierraClass,
+		compiledHash,
+		&utils.BuildOptions{
+			Nonce:  currentNonce,
+			MaxFee: maxFee,
+		},
+	)
+	
+	if err != nil {
+		panic(err)
+	}
+	
+	// txn is ready to be signed and sent
+}
+```
+
+## Use Cases
+
+### 1. Deploy New Contract Class
+```go
+txn, _ := utils.BuildDeclareTxn(sierraClass, compiledHash, &utils.BuildOptions{
+    Nonce:  nonce,
+    MaxFee: maxFee,
+})
+
+// Sign and submit
+signedTxn := account.Sign(txn)
+hash, _ := provider.AddDeclareTransaction(ctx, signedTxn)
+```
+
+### 2. Upgrade Contract Implementation
+```go
+// Declare new version
+newClassTxn, _ := utils.BuildDeclareTxn(newSierraClass, newCompiledHash, opts)
+
+// Later upgrade the proxy
+upgradeCall := rpc.FunctionCall{
+    ContractAddress:    proxyAddress,
+    EntryPointSelector: utils.GetSelectorFromNameFelt("upgrade"),
+    Calldata:           []*felt.Felt{newClassHash},
+}
+```
+
+## Notes
+
+- Both Sierra and CASM classes are required for declaration
+- The compiled class hash must match the provided CASM class
+- Class hash is calculated automatically from the Sierra class
+- After declaration, use the class hash to deploy contract instances
+- Declare V2 is the current standard (includes compiled class hash)
+
+## Related Functions
+
+- [hash.ClassHash](/docs/hash/functions/class-hash) - Calculate Sierra class hash
+- [hash.CompiledClassHash](/docs/hash/functions/compiled-class-hash) - Calculate CASM class hash
+- [contracts.UnmarshalCasmClass](/docs/contracts/functions/unmarshal-casm-class) - Load CASM class
+- [BuildInvokeTxn](/docs/utils/functions/build-invoke-txn) - Build invoke transactions

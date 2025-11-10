@@ -1,0 +1,626 @@
+# TypedData
+
+The `TypedData` type is the core structure for working with typed structured data in Starknet. It represents a complete typed data message that can be hashed and signed according to the SNIP-12 standard.
+
+## Type Definition
+
+```go
+type TypedData struct {
+	Types       map[string]TypeDefinition
+	PrimaryType string
+	Domain      Domain
+	Message     map[string]any
+	Revision    *revision
+}
+```
+
+### Fields
+
+- **Types**: A map of type definitions that describe all custom types used in the message
+- **PrimaryType**: The name of the primary type being signed (must be defined in Types)
+- **Domain**: Domain information for application and chain separation
+- **Message**: The actual message data conforming to the PrimaryType structure
+- **Revision**: Internal revision information (Revision 0 or 1) determining hash algorithms
+
+## TypeDefinition
+
+Each type in the Types map is defined using the `TypeDefinition` structure:
+
+```go
+type TypeDefinition struct {
+	Name               string
+	Encoding           *felt.Felt
+	EncoddingString    string
+	SingleEncString    string
+	ReferencedTypesEnc []string
+	Parameters         []TypeParameter
+}
+```
+
+### TypeParameter
+
+Individual fields within a type are defined using `TypeParameter`:
+
+```go
+type TypeParameter struct {
+	Name     string
+	Type     string
+	Contains string // Used for merkletree and enum types
+}
+```
+
+## NewTypedData Function
+
+Creates a new TypedData instance with proper encoding and validation.
+
+### Function Signature
+
+```go
+func NewTypedData(
+	types []TypeDefinition,
+	primaryType string,
+	domain Domain,
+	message []byte,
+) (td *TypedData, err error)
+```
+
+### Parameters
+
+- **types**: Slice of TypeDefinition structures defining all custom types
+- **primaryType**: Name of the primary type to be signed
+- **domain**: Domain structure with application and chain information
+- **message**: JSON-encoded message data
+
+### Returns
+
+- **td**: Pointer to the created TypedData instance
+- **err**: Error if validation fails or encoding encounters issues
+
+### Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Define types
+	types := []typeddata.TypeDefinition{
+		{
+			Name: "Person",
+			Parameters: []typeddata.TypeParameter{
+				{Name: "name", Type: "felt"},
+				{Name: "wallet", Type: "felt"},
+			},
+		},
+		{
+			Name: "Mail",
+			Parameters: []typeddata.TypeParameter{
+				{Name: "from", Type: "Person"},
+				{Name: "to", Type: "Person"},
+				{Name: "contents", Type: "felt"},
+			},
+		},
+	}
+
+	// Define domain
+	domain := typeddata.Domain{
+		Name:     "StarkNet Mail",
+		Version:  "1",
+		ChainID:  "SN_MAIN",
+		Revision: 0,
+	}
+
+	// Define message
+	messageJSON := []byte(`{
+		"from": {
+			"name": "Alice",
+			"wallet": "0x1234"
+		},
+		"to": {
+			"name": "Bob",
+			"wallet": "0x5678"
+		},
+		"contents": "Hello!"
+	}`)
+
+	// Create TypedData
+	td, err := typeddata.NewTypedData(types, "Mail", domain, messageJSON)
+	if err != nil {
+		log.Fatal("Failed to create typed data:", err)
+	}
+
+	fmt.Printf("Created typed data with primary type: %s\n", td.PrimaryType)
+	// Output: Created typed data with primary type: Mail
+
+	// You can now use this to get message hash
+	hash, _ := td.GetMessageHash("0x123")
+	fmt.Printf("Message hash: %s\n", hash.String())
+	// Output: Message hash: 0x68adb267019e501f5e86385407bb0564d9d76cb059717946aa8abbc5dc13644
+}
+```
+
+## JSON Unmarshaling
+
+TypedData implements `json.Unmarshaler`, allowing you to directly unmarshal JSON:
+
+```go
+var td typeddata.TypedData
+err := json.Unmarshal(jsonData, &td)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+### Example JSON Format
+
+```json
+{
+	"types": {
+		"StarkNetDomain": [
+			{ "name": "name", "type": "felt" },
+			{ "name": "version", "type": "felt" },
+			{ "name": "chainId", "type": "felt" }
+		],
+		"Person": [
+			{ "name": "name", "type": "felt" },
+			{ "name": "wallet", "type": "felt" }
+		],
+		"Mail": [
+			{ "name": "from", "type": "Person" },
+			{ "name": "to", "type": "Person" },
+			{ "name": "contents", "type": "felt" }
+		]
+	},
+	"primaryType": "Mail",
+	"domain": {
+		"name": "StarkNet Mail",
+		"version": "1",
+		"chainId": 1
+	},
+	"message": {
+		"from": {
+			"name": "Cow",
+			"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+		},
+		"to": {
+			"name": "Bob",
+			"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+		},
+		"contents": "Hello, Bob!"
+	}
+}
+```
+
+## GetMessageHash Method
+
+Calculates the hash of the complete typed message for a specific account. This is the hash that should be signed.
+
+### Method Signature
+
+```go
+func (td *TypedData) GetMessageHash(account string) (hash *felt.Felt, err error)
+```
+
+### Parameters
+
+- **account**: The account address that will sign the message (hex string)
+
+### Returns
+
+- **hash**: The computed message hash as a felt.Felt pointer
+- **err**: Error if hash calculation fails
+
+### Description
+
+The message hash is computed according to SNIP-12 as:
+
+```
+hash = H(PREFIX_MESSAGE, domain_separator, account, message_hash)
+```
+
+Where:
+- `PREFIX_MESSAGE` is the hash of "StarkNet Message"
+- `domain_separator` is the hash of the domain structure
+- `account` is the signer's account address
+- `message_hash` is the hash of the primary type message
+
+### Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Mail": [
+				{ "name": "contents", "type": "felt" }
+			]
+		},
+		"primaryType": "Mail",
+		"domain": {
+			"name": "Example App",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"contents": "Hello, Starknet!"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Calculate message hash for account
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Message hash: %s\n", messageHash.String())
+	// Output: Message hash: 0x2eab1684598adbcfe30a1aec930ebccbbe66656b8f713739eb799316f4647ce
+	// This hash can now be signed by the account's private key
+}
+```
+
+## GetStructHash Method
+
+Calculates the hash of a specific struct type with its data.
+
+### Method Signature
+
+```go
+func (td *TypedData) GetStructHash(typeName string, context ...string) (hash *felt.Felt, err error)
+```
+
+### Parameters
+
+- **typeName**: The name of the type to hash
+- **context**: Optional path to nested data within the message (variadic)
+
+### Returns
+
+- **hash**: The computed struct hash
+- **err**: Error if type not found or hash calculation fails
+
+### Description
+
+Computes the hash of a struct according to:
+
+```
+hash = H(type_hash, encoded_data...)
+```
+
+The context parameter allows you to hash nested structures by specifying the path to the data.
+
+### Example: Basic Usage
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Person": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "wallet", "type": "felt" }
+			],
+			"Mail": [
+				{ "name": "from", "type": "Person" },
+				{ "name": "to", "type": "Person" },
+				{ "name": "contents", "type": "felt" }
+			]
+		},
+		"primaryType": "Mail",
+		"domain": {
+			"name": "StarkNet Mail",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"from": {
+				"name": "Alice",
+				"wallet": "0x1234"
+			},
+			"to": {
+				"name": "Bob",
+				"wallet": "0x5678"
+			},
+			"contents": "Hello!"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Hash the domain
+	domainHash, err := td.GetStructHash("StarkNetDomain")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Domain hash: %s\n", domainHash.String())
+	// Output: Domain hash: 0x1df03453b9b5f32266af6a69382de17acf1eb7d5b43a65bd4334658891b8519
+
+	// Hash the primary message
+	mailHash, err := td.GetStructHash("Mail")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Mail hash: %s\n", mailHash.String())
+	// Note: Mail hash will vary based on message content
+}
+```
+
+### Example: Using Context for Nested Structs
+
+```go
+// If you want to hash a nested Person struct within the Mail message
+personHash, err := td.GetStructHash("Person", "from")
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Printf("From person hash: %s\n", personHash.String())
+
+// For deeply nested structures, add more context levels
+// e.g., td.GetStructHash("InnerType", "outer", "middle", "inner")
+```
+
+## GetTypeHash Method
+
+Returns the precomputed hash of a type definition.
+
+### Method Signature
+
+```go
+func (td *TypedData) GetTypeHash(typeName string) (*felt.Felt, error)
+```
+
+### Parameters
+
+- **typeName**: The name of the type
+
+### Returns
+
+- **hash**: The type hash (encoding) for the specified type
+- **err**: Error if type not found
+
+### Description
+
+The type hash is computed from the type's encoding string, which includes the type name, its parameters, and all referenced types. This hash is used as part of the struct hash calculation.
+
+### Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Person": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "wallet", "type": "felt" }
+			]
+		},
+		"primaryType": "Person",
+		"domain": {
+			"name": "Example",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"name": "Alice",
+			"wallet": "0x1234"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get type hash for Person
+	typeHash, err := td.GetTypeHash("Person")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Person type hash: %s\n", typeHash.String())
+	// Output: Person type hash: 0x2896dbe4b96a67110f454c01e5336edc5bbc3635537efd690f122f4809cc855
+
+	// Get the encoding string
+	personType := td.Types["Person"]
+	fmt.Printf("Person encoding: %s\n", personType.EncoddingString)
+	// Output shows the encoding like: "Person(name:felt,wallet:felt)"
+}
+```
+
+## Complete Example: Message Signing
+
+Here's a complete example showing how to create typed data and prepare it for signing:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Define a permit message for token approval
+	permitJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Permit": [
+				{ "name": "spender", "type": "felt" },
+				{ "name": "token", "type": "felt" },
+				{ "name": "amount", "type": "felt" },
+				{ "name": "nonce", "type": "felt" },
+				{ "name": "deadline", "type": "felt" }
+			]
+		},
+		"primaryType": "Permit",
+		"domain": {
+			"name": "MyToken",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"spender": "0x1234567890abcdef",
+			"token": "0xfedcba0987654321",
+			"amount": "1000000000000000000",
+			"nonce": "0",
+			"deadline": "1735689600"
+		}
+	}`)
+
+	// Unmarshal typed data
+	var td typeddata.TypedData
+	err := json.Unmarshal(permitJSON, &td)
+	if err != nil {
+		log.Fatal("Failed to unmarshal:", err)
+	}
+
+	// Account that will sign the permit
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+
+	// Get the message hash
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to compute hash:", err)
+	}
+
+	fmt.Printf("Permit message hash: %s\n", messageHash.String())
+	fmt.Println("\nThis hash should be signed with the account's private key.")
+	fmt.Println("The signature can then be submitted to the contract for verification.")
+
+	// Optional: Inspect individual hashes
+	domainHash, _ := td.GetStructHash("StarkNetDomain")
+	permitHash, _ := td.GetStructHash("Permit")
+
+	fmt.Printf("\nDomain hash: %s\n", domainHash.String())
+	fmt.Printf("Permit hash: %s\n", permitHash.String())
+}
+```
+
+## Type Encoding
+
+When TypedData is created, each type is automatically encoded into a string representation that includes all referenced types. This encoding is then hashed to produce the type hash.
+
+### Encoding Format
+
+For Revision 0:
+```
+TypeName(field1:type1,field2:type2)ReferencedType1(...)ReferencedType2(...)
+```
+
+For Revision 1:
+```
+"TypeName"("field1":"type1","field2":"type2")"ReferencedType1"(...)"ReferencedType2"(...)
+```
+
+### Example Encodings
+
+```go
+// Revision 0
+"Mail(from:Person,to:Person,contents:felt)Person(name:felt,wallet:felt)"
+
+// Revision 1
+"Mail"("from":"Person","to":"Person","contents":"felt")"Person"("name":"felt","wallet":"felt")
+```
+
+## Error Handling
+
+Common errors when working with TypedData:
+
+```go
+// Invalid primary type
+td, err := typeddata.NewTypedData(types, "NonExistent", domain, message)
+// err: "invalid primary type: NonExistent"
+
+// Missing message field
+messageHash, err := td.GetMessageHash("0xinvalid")
+// err: May return "error trying to get the value of the 'field_name' param"
+
+// Type not found
+typeHash, err := td.GetTypeHash("UnknownType")
+// err: "type 'UnknownType' not found"
+```
+
+## Best Practices
+
+1. **Always Validate Input**: Check that all required fields are present in your message data
+2. **Use JSON for Convenience**: JSON marshaling/unmarshaling handles type encoding automatically
+3. **Store Type Definitions**: Keep type definitions consistent across your application
+4. **Include Version in Domain**: Use the version field to handle schema changes
+5. **Test Message Hashes**: Verify message hashes match expected values in your tests
+
+## Related Documentation
+
+- [Domain](./domain) - Learn about domain structure and fields
+- [Functions](./functions) - Utility functions for encoding and revision management
+- [Examples](../examples/typed-data) - Complete examples of typed data usage
+
+## Reference
+
+- [SNIP-12 Specification](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-12.md)
+- [Package Documentation](https://pkg.go.dev/github.com/NethermindEth/starknet.go/typeddata)

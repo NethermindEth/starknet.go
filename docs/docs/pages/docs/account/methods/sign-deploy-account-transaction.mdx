@@ -1,0 +1,112 @@
+# SignDeployAccountTransaction
+
+Signs a deploy account transaction.
+
+## Method Signature
+
+```go
+func (account *Account) SignDeployAccountTransaction(
+	ctx context.Context,
+	tx rpc.DeployAccountType,
+	precomputeAddress *felt.Felt,
+) error
+```
+
+## Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `tx` - Deploy account transaction to sign
+- `precomputeAddress` - Precomputed account address
+
+## Returns
+
+- `error` - Error if signing fails
+
+## Usage Example
+
+> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assuming 'acc' is your Account instance
+	var acc *account.Account
+	// acc = ... (already initialized)
+
+	// Create a deploy account transaction V1
+	classHash, _ := new(felt.Felt).SetString("0x04c6d6cf894f8bc96bb9c525e6853e5483177841f7388f74a46cfda6f028c755")
+	contractAddressSalt, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
+	pubKey, _ := new(felt.Felt).SetString("0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2")
+
+	deployAccountTx := &rpc.DeployAccountTxnV1{
+		Type:                rpc.TransactionTypeDeployAccount,
+		MaxFee:              new(felt.Felt).SetUint64(1000000000000),
+		Version:             rpc.TransactionV1,
+		Signature:           []*felt.Felt{}, // Empty before signing
+		Nonce:               new(felt.Felt).SetUint64(0),
+		ClassHash:           classHash,
+		ContractAddressSalt: contractAddressSalt,
+		ConstructorCalldata: []*felt.Felt{pubKey},
+	}
+
+	// Precompute the contract address (required for signing)
+	precomputedAddress, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
+
+	fmt.Printf("Before signing - Signature length: %d\n", len(deployAccountTx.Signature))
+
+	// Sign the transaction
+	ctx := context.Background()
+	err := acc.SignDeployAccountTransaction(ctx, deployAccountTx, precomputedAddress)
+	if err != nil {
+		log.Fatalf("Error signing transaction: %v", err)
+	}
+
+	fmt.Printf("After signing - Signature length: %d\n", len(deployAccountTx.Signature))
+	for i, sig := range deployAccountTx.Signature {
+		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	}
+}
+```
+
+## Expected Output
+
+```
+Before signing - Signature length: 0
+After signing - Signature length: 2
+Signature[0]: 0xe1fbadfdeb9d9b7d5ed7e67f9ad8da26520420e2f240e17f363a312ef29505
+Signature[1]: 0x75fe32500627a2642e01b73a7a43168905e437b61f070ee2e557124ce679298
+```
+
+## Description
+
+SignDeployAccountTransaction signs a deploy account transaction using the precomputed address. Typically called internally by BuildAndEstimateDeployAccountTxn.
+
+## Error Handling
+
+```go
+err := acc.SignDeployAccountTransaction(ctx, tx, precomputedAddr)
+if err != nil {
+	// Handle errors like:
+	// - Invalid transaction type
+	// - Hash calculation failure
+	// - Signing failure
+	return err
+}
+```
+
+## Related Methods
+
+- [BuildAndEstimateDeployAccountTxn](./build-and-estimate-deploy-account-txn.mdx) - Handles signing automatically
+- [TransactionHashDeployAccount](./transaction-hash-deploy-account.mdx) - Calculate hash
+- [PrecomputeAccountAddress](../functions/precompute-account-address.mdx) - Calculate precomputed address

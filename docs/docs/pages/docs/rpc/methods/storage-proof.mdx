@@ -1,0 +1,281 @@
+# StorageProof
+
+Retrieves a Merkle proof for contract storage values, proving that specific storage entries exist in the state at a given block.
+
+## Method Signature
+
+```go
+func (p *Provider) StorageProof(
+    ctx context.Context,
+    input StorageProofInput,
+) (*StorageProofResult, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for request cancellation and timeouts
+- `input` (StorageProofInput): Specification of which storage proofs to retrieve
+
+## Returns
+
+- `*StorageProofResult`: Merkle proofs for the requested storage values
+- `error`: Error if the block is not found or storage proofs are not supported
+
+## Description
+
+StorageProof returns cryptographic Merkle proofs that verify the existence and values of specific contract storage entries at a given block height. This enables trustless verification of storage state without downloading the entire state tree.
+
+**Use Cases:**
+- **Light Clients**: Verify storage values without full node data
+- **Cross-Chain Bridges**: Prove storage state to other chains
+- **Trustless Verification**: Cryptographically verify contract state
+- **State Snapshots**: Create verifiable snapshots of contract storage
+
+## StorageProofInput Structure
+
+```go
+type StorageProofInput struct {
+    BlockID         BlockID
+    ContractAddress *felt.Felt
+    Keys            []*felt.Felt
+}
+```
+
+## StorageProofResult Structure
+
+```go
+type StorageProofResult struct {
+    ClassCommitment   *felt.Felt
+    ContractProof     []ProofNode
+    ContractData      ContractData
+    StateCommitment   *felt.Felt
+}
+
+type ContractData struct {
+    ClassHash *felt.Felt
+    Nonce     *felt.Felt
+    Root      *felt.Felt
+    StorageProofs [][]ProofNode
+}
+
+type ProofNode struct {
+    Binary *BinaryNode
+    Edge   *EdgeNode
+}
+```
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    client, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Contract address to prove storage for
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    
+    // Storage keys to prove
+    key1, _ := new(felt.Felt).SetString("0x1")
+    key2, _ := new(felt.Felt).SetString("0x2")
+
+    // Create proof input
+    input := rpc.StorageProofInput{
+        BlockID:         rpc.BlockID{Tag: "latest"},
+        ContractAddress: contractAddr,
+        Keys:            []*felt.Felt{key1, key2},
+    }
+
+    // Get storage proof
+    proof, err := client.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("State Commitment: %s\n", proof.StateCommitment)
+    fmt.Printf("Class Commitment: %s\n", proof.ClassCommitment)
+    fmt.Printf("Contract Class Hash: %s\n", proof.ContractData.ClassHash)
+    fmt.Printf("Contract Nonce: %s\n", proof.ContractData.Nonce)
+    fmt.Printf("Contract Storage Root: %s\n", proof.ContractData.Root)
+    fmt.Printf("Contract Proof Nodes: %d\n", len(proof.ContractProof))
+    fmt.Printf("Storage Proofs: %d\n", len(proof.ContractData.StorageProofs))
+
+    // Example output:
+    // State Commitment: 0x1a2b3c...
+    // Class Commitment: 0x4d5e6f...
+    // Contract Class Hash: 0x7a8b9c...
+    // Contract Nonce: 0x1
+    // Contract Storage Root: 0x0d1e2f...
+    // Contract Proof Nodes: 15
+    // Storage Proofs: 2
+}
+```
+
+## Verifying a Storage Proof
+
+```go
+// After getting the proof, you can verify it
+func verifyStorageProof(proof *rpc.StorageProofResult, key, value *felt.Felt) bool {
+    // 1. Verify contract proof against state commitment
+    contractRoot := verifyMerklePath(
+        proof.StateCommitment,
+        proof.ContractAddress,
+        proof.ContractProof,
+    )
+    
+    // 2. Verify storage proof against contract storage root
+    for i, storageProof := range proof.ContractData.StorageProofs {
+        storageValue := verifyMerklePath(
+            proof.ContractData.Root,
+            key,
+            storageProof,
+        )
+        if storageValue.Equal(value) {
+            return true
+        }
+    }
+    
+    return false
+}
+```
+
+## Multiple Storage Keys
+
+```go
+// Prove multiple storage values at once
+keys := []*felt.Felt{
+    mustFelt("0x1"),
+    mustFelt("0x2"),
+    mustFelt("0x5"),
+}
+
+input := rpc.StorageProofInput{
+    BlockID:         blockID,
+    ContractAddress: contractAddr,
+    Keys:            keys,
+}
+
+proof, err := client.StorageProof(ctx, input)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Each key gets a corresponding proof
+for i, storageProof := range proof.ContractData.StorageProofs {
+    fmt.Printf("Proof for key %s: %d nodes\n", keys[i], len(storageProof))
+}
+```
+
+## Historical Proofs
+
+```go
+// Get proof at specific block height
+blockID := rpc.BlockID{Number: 100000}
+
+input := rpc.StorageProofInput{
+    BlockID:         blockID,
+    ContractAddress: contractAddr,
+    Keys:            keys,
+}
+
+// Proof is valid for the state at block 100000
+proof, err := client.StorageProof(ctx, input)
+```
+
+## Use Cases
+
+### 1. Light Client Verification
+```go
+// Light client can verify storage without full state
+proof, _ := client.StorageProof(ctx, input)
+isValid := verifyProofAgainstStateRoot(proof, stateRoot)
+```
+
+### 2. Cross-Chain Bridge
+```go
+// Prove token balance to another chain
+balanceKey := calculateStorageKey("balances", userAddress)
+proof, _ := client.StorageProof(ctx, rpc.StorageProofInput{
+    BlockID:         finalizedBlock,
+    ContractAddress: tokenContract,
+    Keys:            []*felt.Felt{balanceKey},
+})
+// Submit proof to bridge contract on other chain
+```
+
+### 3. State Snapshot Verification
+```go
+// Create verifiable snapshot of multiple contracts
+proofs := make(map[string]*rpc.StorageProofResult)
+for _, contract := range importantContracts {
+    proof, _ := client.StorageProof(ctx, rpc.StorageProofInput{
+        BlockID:         snapshotBlock,
+        ContractAddress: contract,
+        Keys:            relevantKeys,
+    })
+    proofs[contract.String()] = proof
+}
+```
+
+## Error Handling
+
+```go
+proof, err := client.StorageProof(ctx, input)
+if err != nil {
+    switch {
+    case errors.Is(err, rpc.ErrBlockNotFound):
+        log.Println("Block not found")
+    case errors.Is(err, rpc.ErrStorageProofNotSupported):
+        log.Println("Node doesn't support storage proofs")
+    case errors.Is(err, rpc.ErrProofLimitExceeded):
+        log.Println("Too many keys requested")
+    default:
+        log.Printf("RPC error: %v", err)
+    }
+}
+```
+
+## Limitations
+
+- Not all Starknet nodes support storage proofs
+- There may be limits on the number of keys per request
+- Historical proofs may not be available for very old blocks
+- Pending blocks cannot be used (proofs require finalized state)
+
+## Related Methods
+
+- [StorageAt](/docs/rpc/methods/get-storage-at) - Get storage value without proof
+- [StateUpdate](/docs/rpc/methods/state-update) - Get all state changes in a block
+- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get block details
+
+## RPC Specification
+
+- **Method**: `starknet_getStorageProof`
+- **Version**: RPC v0.9.0
+- **Returns**: Merkle proofs for storage verification
+
+## Performance Notes
+
+- Storage proofs can be large for deep Merkle trees
+- Consider batching multiple keys in a single request
+- Cache proofs for frequently verified storage values
+- Proofs for recent blocks are faster to generate
+
+## Security Considerations
+
+1. **Verify Against Trusted Root**: Always verify proofs against a trusted state root
+2. **Check Proof Completeness**: Ensure all requested keys have corresponding proofs
+3. **Validate Proof Structure**: Verify Merkle path is well-formed
+4. **Use Finalized Blocks**: Don't rely on proofs from pending blocks

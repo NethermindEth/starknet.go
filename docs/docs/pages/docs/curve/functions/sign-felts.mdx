@@ -1,0 +1,38 @@
+# SignFelts
+
+Signs a message hash using felt.Felt parameters.
+
+## Function Signature
+
+```go
+func SignFelts(msgHash, privKey *felt.Felt) (r, s *felt.Felt, err error)
+```
+
+## Parameters
+
+- `msgHash` (*felt.Felt): Message hash to sign
+- `privKey` (*felt.Felt): Private key
+
+## Returns
+
+- `r`, `s` (*felt.Felt): Signature components
+- `err` (error): Error if any
+
+## Expected Output
+
+```
+SignFelts:
+  Message Hash: 0x1234567890abcdef
+  Signature R: 0x4d2b6e6e88e01af828b0f68237ffde7e6742ae86169a89c32185141ad1c6e7e
+  Signature S: 0x4d6f5fe7927e73ffddd5bca9ea3be17e0ae62d12e34c772691fc7b829904f92
+```
+
+## Notes
+
+- Same as [Sign](/docs/curve/functions/sign) but uses felt.Felt types
+- Preferred when working with Starknet types
+
+## Related Functions
+
+- [Sign](/docs/curve/functions/sign)
+- [VerifyFelts](/docs/curve/functions/verify-felts)
