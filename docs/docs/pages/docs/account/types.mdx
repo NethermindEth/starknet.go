@@ -381,25 +381,67 @@ Configuration options for building and sending transactions.
 
 ```go
 type TxnOptions struct {
-	Tip            rpc.U64
-	UseQueryBit    bool
-	Multiplier     float64
-	UseLatest      bool
+	// The multiplier to be used when estimating the tip when no custom tip is set.
+	// If <= 0, it'll be set to 1.0 (no multiplier, just the estimated tip).
+	TipMultiplier float64
+
+	// A custom tip amount in FRI for the transaction in hexadecimal format.
+	// If not set, the tip will be automatically estimated for the transaction.
+	CustomTip rpc.U64
+
+	// A boolean flag indicating whether the transaction version should have
+	// the query bit when estimating fees. If true, the transaction version
+	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
+	// In case of doubt, set to `false`. Default: `false`.
+	UseQueryBit bool
+
+	// A safety factor for fee estimation that helps prevent transaction
+	// failures due to fee fluctuations. It multiplies both the max amount
+	// and max price per unit by this value.
+	// A value of 1.5 (estimated fee + 50%) is recommended to balance between
+	// transaction success rate and avoiding excessive fees. Higher values
+	// provide more safety margin but may result in overpayment.
+	// If FeeMultiplier <= 0, it'll be set to 1.5.
+	FeeMultiplier float64
+
+	// A boolean flag indicating whether to use the latest block tag
+	// when estimating fees instead of the pre_confirmed block. Default: `false`.
+	UseLatest bool
+
+	// The simulation flag to be used when estimating fees. Default: none.
 	SimulationFlag rpc.SimulationFlag
 }
 ```
 
 ### Fields
 
-#### Tip
+#### TipMultiplier
 ```go
-Tip rpc.U64
+TipMultiplier float64
 ```
-Tip amount in FRI (smallest unit of STRK) for transaction prioritization.
+The multiplier to be used when estimating the tip when no custom tip is set.
 
-**Default:** `"0x0"` (no tip)
+**Default:** `1.0` if `<= 0` (no multiplier, just the estimated tip)
 
-**Note:** Transaction tips are only active after Starknet v0.14.0 upgrade.
+**Examples:**
+- `1.0`: Use estimated tip as-is
+- `1.5`: Add 50% to estimated tip
+- `2.0`: Double the estimated tip
+
+**Note:** Only used when `CustomTip` is not set.
+
+#### CustomTip
+```go
+CustomTip rpc.U64
+```
+A custom tip amount in FRI (smallest unit of STRK) for transaction prioritization in hexadecimal format.
+
+**Default:** Not set (tip will be automatically estimated)
+
+**Example:** `"0x1000"` (4096 FRI)
+
+**Note:** If set, this overrides the automatic tip estimation and `TipMultiplier` is ignored. Transaction tips are only active after Starknet v0.14.0 upgrade.
 
 #### UseQueryBit
 ```go
@@ -413,22 +455,23 @@ Whether to use the query bit in transaction version during fee estimation.
 
 **Default:** `false`
 
-**Usage:** Set to `false` unless you have specific needs for query bit transactions.
+**Usage:** Set to `false` unless you have specific needs for query bit transactions. In case of doubt, set to `false`.
 
-#### Multiplier
+#### FeeMultiplier
 ```go
-Multiplier float64
+FeeMultiplier float64
 ```
-Safety multiplier for fee estimation. Multiplies both max amount and max price per unit.
+A safety factor for fee estimation that helps prevent transaction failures due to fee fluctuations. It multiplies both the max amount and max price per unit by this value.
 
 **Recommended:** `1.5` (50% safety margin)
 
 **Default:** `1.5` if `<= 0`
 
 **Examples:**
-- `1.0`: No safety margin (risky)
-- `1.5`: 50% safety margin (recommended)
+- `1.0`: No safety margin (risky, may fail if fees increase)
+- `1.5`: 50% safety margin (recommended, balances safety and cost)
 - `2.0`: 100% safety margin (very safe, may overpay)
+- `3.0`: 200% safety margin (maximum safety for critical transactions)
 
 Higher values provide more safety against fee fluctuations but may result in overpayment.
 
@@ -450,7 +493,7 @@ Whether to use the `latest` block tag for fee estimation instead of `pre_confirm
 ```go
 SimulationFlag rpc.SimulationFlag
 ```
-Simulation flag for fee estimation.
+The simulation flag to be used when estimating fees.
 
 **Options:**
 - `rpc.SkipValidate`: Skip validation during simulation
@@ -482,12 +525,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Example 2: Configure specific options
+	// Example 2: Configure specific options with auto-estimated tip
 	opts := &account.TxnOptions{
-		Tip:            "0x0",           // No tip
-		UseQueryBit:    false,           // Standard version
-		Multiplier:     1.5,             // 50% safety margin
-		UseLatest:      false,           // Use pre_confirmed block
+		TipMultiplier:  1.5,              // Add 50% to estimated tip
+		UseQueryBit:    false,            // Standard version
+		FeeMultiplier:  1.5,              // 50% safety margin
+		UseLatest:      false,            // Use pre_confirmed block
 		SimulationFlag: rpc.SkipValidate, // Skip validation
 	}
 
@@ -496,10 +539,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Example 3: Conservative fee estimation
+	// Example 3: Custom tip amount
+	customTipOpts := &account.TxnOptions{
+		CustomTip:     "0x1000",  // Custom tip of 4096 FRI
+		FeeMultiplier: 1.5,       // 50% safety margin
+	}
+
+	response, err = acc.BuildAndSendInvokeTxn(context.Background(), functionCalls, customTipOpts)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Example 4: Conservative fee estimation
 	conservativeOpts := &account.TxnOptions{
-		Multiplier: 2.0, // 100% safety margin
-		UseLatest:  true, // Use latest block
+		FeeMultiplier: 2.0,  // 100% safety margin
+		UseLatest:     true, // Use latest block
 	}
 
 	response, err = acc.BuildAndSendInvokeTxn(context.Background(), functionCalls, conservativeOpts)
@@ -512,12 +566,54 @@ func main() {
 ```go
 func (opts *TxnOptions) BlockID() rpc.BlockID
 ```
-Returns the block ID for fee estimation based on UseLatest flag.
+Returns the block ID for fee estimation based on the `UseLatest` flag.
+
+**Returns:**
+- `rpc.WithBlockTag("latest")` if `UseLatest` is `true`
+- `rpc.WithBlockTag("pre_confirmed")` if `UseLatest` is `false`
 
 **Usage:**
 ```go
 opts := &account.TxnOptions{UseLatest: true}
 blockID := opts.BlockID() // Returns WithBlockTag("latest")
+```
+
+#### FmtFeeMultiplier
+```go
+func (opts *TxnOptions) FmtFeeMultiplier() float64
+```
+Returns the fee multiplier specified in the options. If not set or negative, returns the default fee multiplier (1.5).
+
+**Returns:**
+- `opts.FeeMultiplier` if `> 0`
+- `1.5` (default) if `<= 0`
+
+**Usage:**
+```go
+opts := &account.TxnOptions{FeeMultiplier: 2.0}
+multiplier := opts.FmtFeeMultiplier() // Returns 2.0
+
+nilOpts := &account.TxnOptions{}
+multiplier = nilOpts.FmtFeeMultiplier() // Returns 1.5 (default)
+```
+
+#### FmtTipMultiplier
+```go
+func (opts *TxnOptions) FmtTipMultiplier() float64
+```
+Returns the tip multiplier specified in the options. If not set or negative, returns the default tip multiplier (1.0).
+
+**Returns:**
+- `opts.TipMultiplier` if `> 0`
+- `1.0` (default) if `<= 0`
+
+**Usage:**
+```go
+opts := &account.TxnOptions{TipMultiplier: 1.5}
+multiplier := opts.FmtTipMultiplier() // Returns 1.5
+
+nilOpts := &account.TxnOptions{}
+multiplier = nilOpts.FmtTipMultiplier() // Returns 1.0 (default)
 ```
 
 #### SimulationFlags
@@ -526,10 +622,17 @@ func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag
 ```
 Returns simulation flags as a slice. Returns empty slice if no flags set.
 
+**Returns:**
+- `[]rpc.SimulationFlag{opts.SimulationFlag}` if flag is set
+- `[]rpc.SimulationFlag{}` (empty slice) if flag is not set
+
 **Usage:**
 ```go
 opts := &account.TxnOptions{SimulationFlag: rpc.SkipValidate}
 flags := opts.SimulationFlags() // Returns []rpc.SimulationFlag{rpc.SkipValidate}
+
+nilOpts := &account.TxnOptions{}
+flags = nilOpts.SimulationFlags() // Returns []rpc.SimulationFlag{}
 ```
 
 ### Default Behavior
@@ -541,30 +644,51 @@ When `opts` is `nil` or fields are not set:
 acc.BuildAndSendInvokeTxn(ctx, calls, nil)
 
 acc.BuildAndSendInvokeTxn(ctx, calls, &account.TxnOptions{
-	Tip:            "0x0",
-	UseQueryBit:    false,
-	Multiplier:     1.5,
-	UseLatest:      false,
-	SimulationFlag: "",
+	TipMultiplier:  1.0,   // No tip multiplier (use estimated tip)
+	CustomTip:      "",    // No custom tip (auto-estimate)
+	UseQueryBit:    false, // Use standard transaction version
+	FeeMultiplier:  1.5,   // 50% safety margin for fees
+	UseLatest:      false, // Use pre_confirmed block
+	SimulationFlag: "",    // No simulation flags
 })
 ```
 
 ### Fee Estimation Strategy
 
-Choosing the right multiplier:
+#### Choosing the Right Fee Multiplier
+
+The `FeeMultiplier` provides safety against fee fluctuations:
 
 ```go
 // Low risk, predictable fees (testnet, low value)
-opts := &account.TxnOptions{Multiplier: 1.2} // 20% safety
+opts := &account.TxnOptions{FeeMultiplier: 1.2} // 20% safety
 
 // Recommended for most cases
-opts := &account.TxnOptions{Multiplier: 1.5} // 50% safety
+opts := &account.TxnOptions{FeeMultiplier: 1.5} // 50% safety (default)
 
 // High risk or volatile fees (mainnet, high value)
-opts := &account.TxnOptions{Multiplier: 2.0} // 100% safety
+opts := &account.TxnOptions{FeeMultiplier: 2.0} // 100% safety
 
 // Maximum safety (critical transactions)
-opts := &account.TxnOptions{Multiplier: 3.0} // 200% safety
+opts := &account.TxnOptions{FeeMultiplier: 3.0} // 200% safety
+```
+
+#### Choosing the Right Tip Strategy
+
+The `TipMultiplier` and `CustomTip` control transaction prioritization:
+
+```go
+// Use estimated tip as-is (default)
+opts := &account.TxnOptions{TipMultiplier: 1.0}
+
+// Add safety margin to estimated tip
+opts := &account.TxnOptions{TipMultiplier: 1.5} // 50% higher tip
+
+// Set custom tip for guaranteed prioritization
+opts := &account.TxnOptions{CustomTip: "0x2710"} // 10000 FRI custom tip
+
+// No tip (may be slower)
+opts := &account.TxnOptions{CustomTip: "0x0"} // Explicitly set to 0
 ```
 
 ### Related Methods

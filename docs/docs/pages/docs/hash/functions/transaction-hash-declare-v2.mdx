@@ -1,16 +1,48 @@
 # TransactionHashDeclareV2
 
-Calculates transaction hash declare v2 for Starknet transactions.
+import { Callout } from 'vocs/components'
+
+<Callout type="info">
+  **Note**: V2 transactions are deprecated. For new applications, use [TransactionHashDeclareV3](./transaction-hash-declare-v3) for V3 transactions.
+</Callout>
+
+Calculates the transaction hash for a Declare V2 transaction using the deprecated Pedersen-based hash calculation.
 
 ## Function Signature
 
-See [Hash.kb.md](/docs/Hash.kb.md) for detailed function signature and parameters.
+```go
+func TransactionHashDeclareV2(
+    txn *rpc.DeclareTxnV2,
+    chainID *felt.Felt,
+) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `txn` - The Declare V2 transaction containing:
+  - `Version` - Transaction version string
+  - `SenderAddress` - Address of the account declaring the class
+  - `ClassHash` - Hash of the Sierra contract class
+  - `CompiledClassHash` - Hash of the compiled (CASM) class
+  - `MaxFee` - Maximum fee willing to pay
+  - `Nonce` - Account nonce
+- `chainID` - The Starknet chain ID
+
+## Returns
+
+- `*felt.Felt` - The calculated transaction hash
+- `error` - Error if required parameters are missing
 
 ## Description
 
-This function is part of the Starknet transaction hash calculation suite. It computes the hash according to the Starknet specification for the specific transaction version and type.
+This function calculates the transaction hash for deprecated Declare V2 transactions. V2 introduced the compiled class hash for Cairo 1.0 contracts. It uses the Pedersen hash algorithm and is maintained for compatibility with historical transactions. Internally calls [CalculateDeprecatedTransactionHashCommon](./calculate-deprecated-transaction-hash-common).
+
+## Specification
+
+Follows the [V2 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation).
 
 ## Related Functions
 
-- [ClassHash](/docs/hash/functions/class-hash)
-- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+- [TransactionHashDeclareV1](./transaction-hash-declare-v1) - V1 variant without compiled class hash
+- [TransactionHashDeclareV3](./transaction-hash-declare-v3) - Current V3 standard
+- [CompiledClassHash](./compiled-class-hash) - Calculate compiled class hashes

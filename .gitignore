@@ -25,6 +25,10 @@ docs/sdk-issues-tracker.md
 docs/show-docs-status.sh
 
 # Test binaries (compiled executables, not .go files)
+# Ignore all executable binaries in docs/tests/ but keep .go files
+docs/tests/**/[!.]*.out
+docs/tests/**/[!.]*.test
+# Specific test binaries (pattern-based)
 docs/tests/curve/compute_hash_on_elements
 docs/tests/curve/get_random_keys
 docs/tests/curve/get_y_coordinate
@@ -40,3 +44,14 @@ docs/tests/curve/starknet_keccak
 docs/tests/curve/verify
 docs/tests/curve/verify_felts
 docs/tests/hash/class_hash
+# WebSocket test binaries
+docs/tests/rpc/websocket/subscribe_events
+docs/tests/rpc/websocket/subscribe_new_heads
+docs/tests/rpc/websocket/subscribe_new_transactions
+docs/tests/rpc/websocket/subscribe_new_transaction_receipts
+docs/tests/rpc/websocket/subscribe_transaction_status
+# Utils test binaries
+docs/tests/utils/bytes_to_big
+docs/tests/utils/hex_to_bytes
+docs/tests/utils/str_to_big
+docs/tests/utils/felt_arr_to_big_int_arr

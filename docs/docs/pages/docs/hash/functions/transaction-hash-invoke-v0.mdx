@@ -1,14 +1,40 @@
 # TransactionHashInvokeV0
 
-Calculates transaction hash invoke v0 for Starknet transactions.
+import { Callout } from 'vocs/components'
+
+<Callout type="info">
+  **Note**: V0 transactions are deprecated. For new applications, use [TransactionHashInvokeV3](./transaction-hash-invoke-v3) for V3 transactions.
+</Callout>
+
+Calculates the transaction hash for an Invoke V0 transaction using the deprecated Pedersen-based hash calculation.
 
 ## Function Signature
 
-See [Hash.kb.md](/docs/Hash.kb.md) for detailed function signature and parameters.
+```go
+func TransactionHashInvokeV0(
+    txn *rpc.InvokeTxnV0,
+    chainID *felt.Felt,
+) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `txn` - The Invoke V0 transaction containing:
+  - `Version` - Transaction version string
+  - `ContractAddress` - Address of the contract being invoked
+  - `EntryPointSelector` - Selector of the function to call
+  - `Calldata` - Array of felt values as function parameters
+  - `MaxFee` - Maximum fee willing to pay
+- `chainID` - The Starknet chain ID
+
+## Returns
+
+- `*felt.Felt` - The calculated transaction hash
+- `error` - Error if required parameters are missing
 
 ## Description
 
-This function is part of the Starknet transaction hash calculation suite. It computes the hash according to the Starknet specification for the specific transaction version and type.
+This function calculates the transaction hash for deprecated Invoke V0 transactions. It uses the Pedersen hash algorithm and is maintained for compatibility with historical transactions. Internally calls [CalculateDeprecatedTransactionHashCommon](./calculate-deprecated-transaction-hash-common).
 
 ## Related Functions
 

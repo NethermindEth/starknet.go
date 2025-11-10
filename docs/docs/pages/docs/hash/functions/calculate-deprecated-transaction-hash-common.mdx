@@ -1,14 +1,38 @@
 # CalculateDeprecatedTransactionHashCommon
 
-Calculates calculate deprecated transaction hash common for Starknet transactions.
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This is a low-level utility used internally by other hash functions. Most developers should use the specific transaction hash functions ([TransactionHashInvokeV1](./transaction-hash-invoke-v1), [TransactionHashDeclareV2](./transaction-hash-declare-v2), etc.) instead of calling this directly.
+</Callout>
+
+Calculates the common transaction hash for deprecated transaction versions (V0, V1, V2) using the Pedersen hash algorithm.
 
 ## Function Signature
 
-See [Hash.kb.md](/docs/Hash.kb.md) for detailed function signature and parameters.
+```go
+func CalculateDeprecatedTransactionHashCommon(
+    txHashPrefix *felt.Felt,
+    version *felt.Felt,
+    contractAddress *felt.Felt,
+    entryPointSelector *felt.Felt,
+    calldata *felt.Felt,
+    maxFee *felt.Felt,
+    chainID *felt.Felt,
+    additionalData []*felt.Felt,
+) *felt.Felt
+```
 
 ## Description
 
-This function is part of the Starknet transaction hash calculation suite. It computes the hash according to the Starknet specification for the specific transaction version and type.
+This internal helper function implements the deprecated (Pedersen-based) transaction hash calculation common to V0, V1, and V2 transactions. It is called by:
+- [TransactionHashInvokeV0](./transaction-hash-invoke-v0)
+- [TransactionHashInvokeV1](./transaction-hash-invoke-v1)
+- [TransactionHashDeclareV1](./transaction-hash-declare-v1)
+- [TransactionHashDeclareV2](./transaction-hash-declare-v2)
+- [TransactionHashDeployAccountV1](./transaction-hash-deploy-account-v1)
+
+**Note**: The word "Deprecated" refers to **deprecated transaction versions**, not a deprecated function. V3 transactions use the newer Poseidon hash algorithm instead.
 
 ## Related Functions
 

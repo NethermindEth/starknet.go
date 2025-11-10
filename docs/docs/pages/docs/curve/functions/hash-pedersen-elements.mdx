@@ -1,5 +1,11 @@
 # HashPedersenElements
 
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This is a low-level utility that works with `*big.Int` types. Most developers should use [PedersenArray](./pedersen-array) which works with `*felt.Felt` types instead.
+</Callout>
+
 Calculates Pedersen hash of a list of big.Int elements.
 
 ## Function Signature

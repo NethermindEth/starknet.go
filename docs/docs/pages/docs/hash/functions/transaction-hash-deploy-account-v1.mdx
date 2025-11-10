@@ -1,16 +1,49 @@
 # TransactionHashDeployAccountV1
 
-Calculates transaction hash deploy account v1 for Starknet transactions.
+import { Callout } from 'vocs/components'
+
+<Callout type="info">
+  **Note**: V1 transactions are deprecated. For new applications, use [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) for V3 transactions.
+</Callout>
+
+Calculates the transaction hash for a Deploy Account V1 transaction using the deprecated Pedersen-based hash calculation.
 
 ## Function Signature
 
-See [Hash.kb.md](/docs/Hash.kb.md) for detailed function signature and parameters.
+```go
+func TransactionHashDeployAccountV1(
+    txn *rpc.DeployAccountTxnV1,
+    contractAddress *felt.Felt,
+    chainID *felt.Felt,
+) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `txn` - The Deploy Account V1 transaction containing:
+  - `Version` - Transaction version string
+  - `ClassHash` - Hash of the account contract class
+  - `ContractAddressSalt` - Salt used in address calculation
+  - `ConstructorCalldata` - Constructor parameters
+  - `MaxFee` - Maximum fee willing to pay
+  - `Nonce` - Account nonce (usually 0 for deployment)
+- `contractAddress` - The precomputed contract address
+- `chainID` - The Starknet chain ID
+
+## Returns
+
+- `*felt.Felt` - The calculated transaction hash
+- `error` - Error if required parameters are missing
 
 ## Description
 
-This function is part of the Starknet transaction hash calculation suite. It computes the hash according to the Starknet specification for the specific transaction version and type.
+This function calculates the transaction hash for deprecated Deploy Account V1 transactions. It uses the Pedersen hash algorithm and is maintained for compatibility with historical transactions. Internally calls [CalculateDeprecatedTransactionHashCommon](./calculate-deprecated-transaction-hash-common).
+
+## Specification
+
+Follows the [V1 Deploy Account hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3).
 
 ## Related Functions
 
-- [ClassHash](/docs/hash/functions/class-hash)
-- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+- [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) - Current V3 standard
+- [PrecomputeAddress](/docs/contracts/) - Calculate contract addresses

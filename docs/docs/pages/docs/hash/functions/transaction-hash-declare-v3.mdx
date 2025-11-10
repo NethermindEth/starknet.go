@@ -1,16 +1,52 @@
 # TransactionHashDeclareV3
 
-Calculates transaction hash declare v3 for Starknet transactions.
+Calculates the transaction hash for a Declare V3 transaction with resource bounds using the Poseidon hash algorithm.
 
 ## Function Signature
 
-See [Hash.kb.md](/docs/Hash.kb.md) for detailed function signature and parameters.
+```go
+func TransactionHashDeclareV3(
+    txn *rpc.DeclareTxnV3,
+    chainID *felt.Felt,
+) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `txn` - The Declare V3 transaction containing:
+  - `Version` - Transaction version string
+  - `SenderAddress` - Address of the account declaring the class
+  - `ClassHash` - Hash of the Sierra contract class
+  - `CompiledClassHash` - Hash of the compiled (CASM) class
+  - `Nonce` - Account nonce
+  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
+  - `Tip` - Additional fee tip
+  - `PayMasterData` - Optional paymaster data
+  - `AccountDeploymentData` - Optional account deployment data
+  - `FeeMode` - Fee data availability mode
+  - `NonceDataMode` - Nonce data availability mode
+- `chainID` - The Starknet chain ID
+
+## Returns
+
+- `*felt.Felt` - The calculated transaction hash
+- `error` - Error if required parameters are missing
 
 ## Description
 
-This function is part of the Starknet transaction hash calculation suite. It computes the hash according to the Starknet specification for the specific transaction version and type.
+This function calculates the transaction hash for Declare V3 transactions using the Poseidon hash algorithm. V3 introduces resource bounds, data availability modes, and paymaster support.
+
+Internally uses:
+- [TipAndResourcesHash](./tip-and-resources-hash) - For tip and resource bounds hashing
+- [DataAvailabilityModeConc](./data-availability-mode-conc) - For DA mode concatenation
+
+## Specification
+
+Follows the [V3 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2) and [SNIP-8](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md).
 
 ## Related Functions
 
-- [ClassHash](/docs/hash/functions/class-hash)
-- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+- [TransactionHashDeclareV1](./transaction-hash-declare-v1) - Deprecated V1 variant
+- [TransactionHashDeclareV2](./transaction-hash-declare-v2) - Deprecated V2 variant
+- [TransactionHashBroadcastDeclareV3](./transaction-hash-broadcast-declare-v3) - Broadcast variant
+- [CompiledClassHash](./compiled-class-hash) - Calculate compiled class hashes

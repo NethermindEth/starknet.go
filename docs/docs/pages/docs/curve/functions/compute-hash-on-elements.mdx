@@ -1,5 +1,11 @@
 # ComputeHashOnElements
 
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This is a legacy utility that works with `*big.Int` types. Most developers should use [PedersenArray](./pedersen-array) which works with `*felt.Felt` types and is the modern approach for Starknet development.
+</Callout>
+
 Computes hash on elements with length prefix using Pedersen.
 
 ## Function Signature

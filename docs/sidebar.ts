@@ -213,6 +213,32 @@ export const sidebar: Sidebar = {
           text: "CompiledCasm",
           link: "/docs/rpc/methods/compiled-casm",
         },
+        {
+          text: "WebSocket Methods",
+          collapsed: true,
+          items: [
+            {
+              text: "SubscribeEvents",
+              link: "/docs/rpc/websocket/subscribe-events",
+            },
+            {
+              text: "SubscribeNewHeads",
+              link: "/docs/rpc/websocket/subscribe-new-heads",
+            },
+            {
+              text: "SubscribeNewTransactionReceipts",
+              link: "/docs/rpc/websocket/subscribe-new-transaction-receipts",
+            },
+            {
+              text: "SubscribeNewTransactions",
+              link: "/docs/rpc/websocket/subscribe-new-transactions",
+            },
+            {
+              text: "SubscribeTransactionStatus",
+              link: "/docs/rpc/websocket/subscribe-transaction-status",
+            },
+          ],
+        },
       ],
     },
     {
@@ -268,8 +294,12 @@ export const sidebar: Sidebar = {
           items: [
             { text: "HexToFelt", link: "/docs/utils/functions/hex-to-felt" },
             { text: "HexArrToFelt", link: "/docs/utils/functions/hex-arr-to-felt" },
+            { text: "HexToBytes", link: "/docs/utils/functions/hex-to-bytes" },
             { text: "FeltToBigInt", link: "/docs/utils/functions/felt-to-big-int" },
+            { text: "FeltArrToBigIntArr", link: "/docs/utils/functions/felt-arr-to-big-int-arr" },
             { text: "BigIntToFelt", link: "/docs/utils/functions/big-int-to-felt" },
+            { text: "BytesToBig", link: "/docs/utils/functions/bytes-to-big" },
+            { text: "StrToBig", link: "/docs/utils/functions/str-to-big" },
             { text: "HexToBN", link: "/docs/utils/functions/hex-to-bn" },
             { text: "BigToHex", link: "/docs/utils/functions/big-to-hex" },
             { text: "Uint64ToFelt", link: "/docs/utils/functions/uint64-to-felt" },
