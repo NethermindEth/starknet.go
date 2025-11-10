@@ -129,13 +129,6 @@ func hashEntryPointByType(entryPoint []contracts.SierraEntryPoint) *felt.Felt {
 	return curve.PoseidonArray(flattened...)
 }
 
-type hasherFunc = func() *felt.Felt
-
-type bytecodeSegment struct {
-	Hash hasherFunc
-	Size uint64
-}
-
 // getByteCodeSegmentHasher calculates hasher function for byte code array from
 // casm file. This code is adaptation of:
 // https://github.com/starkware-libs/cairo-lang/blob/efa9648f57568aad8f8a13fbf027d2de7c63c2c0/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
@@ -161,7 +154,8 @@ func getByteCodeSegmentHasher(
 	bytecodeSegmentLengths contracts.NestedUints,
 	visitedPcs *[]uint64,
 	bytecodeOffset uint64,
-) (hasherF hasherFunc, size uint64, err error) {
+	hashFunc func(...*felt.Felt) *felt.Felt,
+) (hash *felt.Felt, size uint64, err error) {
 	if !bytecodeSegmentLengths.IsArray {
 		segmentValue := *bytecodeSegmentLengths.Value
 		segmentEnd := bytecodeOffset + segmentValue
@@ -184,9 +178,12 @@ func getByteCodeSegmentHasher(
 
 		bytecodePart := bytecode[bytecodeOffset:segmentEnd]
 
-		return func() *felt.Felt {
-			return curve.PoseidonArray(bytecodePart...)
-		}, segmentValue, nil
+		return hashFunc(bytecodePart...), segmentValue, nil
+	}
+
+	type bytecodeSegment struct {
+		Value *felt.Felt
+		Size  uint64
 	}
 
 	segments := []bytecodeSegment{}
@@ -205,6 +202,7 @@ func getByteCodeSegmentHasher(
 			item,
 			visitedPcs,
 			bytecodeOffset,
+			hashFunc,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -225,26 +223,24 @@ func getByteCodeSegmentHasher(
 		}
 
 		segments = append(segments, bytecodeSegment{
-			Hash: segmentHash,
-			Size: segmentLen,
+			Value: segmentHash,
+			Size:  segmentLen,
 		})
 		bytecodeOffset += segmentLen
 		totalLen += segmentLen
 	}
 
-	return func() *felt.Felt {
-		components := make([]*felt.Felt, len(segments)*2)
+	components := make([]*felt.Felt, len(segments)*2)
 
-		for i, val := range segments {
-			components[i*2] = internalUtils.Uint64ToFelt(val.Size)
-			components[i*2+1] = val.Hash()
-		}
+	for i, val := range segments {
+		components[i*2] = internalUtils.Uint64ToFelt(val.Size)
+		components[i*2+1] = val.Value
+	}
 
-		return new(felt.Felt).Add(
-			internalUtils.Uint64ToFelt(1),
-			curve.PoseidonArray(components...),
-		)
-	}, totalLen, nil
+	return new(felt.Felt).Add(
+		internalUtils.Uint64ToFelt(1),
+		hashFunc(components...),
+	), totalLen, nil
 }
 
 // getByteCodeSegmentHasher calculates hash for byte code array from casm file
@@ -260,6 +256,7 @@ func getByteCodeSegmentHasher(
 func hashCasmClassByteCode(
 	bytecode []*felt.Felt,
 	bytecodeSegmentLengths contracts.NestedUints,
+	hashFunc func(...*felt.Felt) *felt.Felt,
 ) (*felt.Felt, error) {
 	visited := make([]uint64, len(bytecode))
 
@@ -269,14 +266,18 @@ func hashCasmClassByteCode(
 
 	slices.Reverse(visited)
 
-	hasher, _, err := getByteCodeSegmentHasher(
-		bytecode, bytecodeSegmentLengths, &visited, uint64(0),
+	hash, _, err := getByteCodeSegmentHasher(
+		bytecode,
+		bytecodeSegmentLengths,
+		&visited,
+		uint64(0),
+		hashFunc,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return hasher(), nil
+	return hash, nil
 }
 
 // compiledClassHash calculates the hash of a compiled class in the Casm format
@@ -303,6 +304,7 @@ func compiledClassHash(
 		ByteCodeHasH, err = hashCasmClassByteCode(
 			casmClass.ByteCode,
 			*casmClass.BytecodeSegmentLengths,
+			hashFunc,
 		)
 		if err != nil {
 			return nil, err
