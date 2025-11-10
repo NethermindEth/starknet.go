@@ -2,6 +2,176 @@
 
 Utility functions for converting between different data types commonly used in Starknet development.
 
+## Common Conversion Patterns
+
+Understanding when and how to use conversions is key to working efficiently with Starknet data types.
+
+### Conversion Flow Diagram
+
+```
+┌─────────────┐     ┌──────────┐     ┌──────────┐
+│  Hex String │ ←→  │   Felt   │ ←→  │  BigInt  │
+└─────────────┘     └──────────┘     └──────────┘
+       ↓                  ↓                ↓
+┌─────────────┐     ┌──────────┐     ┌──────────┐
+│ Hex Array   │ ←→  │ Felt[]   │ ←→  │BigInt[]  │
+└─────────────┘     └──────────┘     └──────────┘
+       ↓
+┌─────────────┐
+│    Bytes    │ ←→  BigInt
+└─────────────┘
+```
+
+### Pattern 1: Working with Contract Addresses
+
+```go
+// String → Felt (most common for addresses)
+addressStr := "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+address, err := utils.HexToFelt(addressStr)
+
+// Use in RPC calls
+balance, err := client.Call(ctx, rpc.FunctionCall{
+    ContractAddress: address,
+    // ...
+})
+```
+
+### Pattern 2: Mathematical Operations on Felt Values
+
+```go
+// Felt → BigInt → Math → Felt
+contractValue, _ := client.Call(ctx, call) // Returns felt
+bigValue := utils.FeltToBigInt(contractValue)
+
+// Perform operations
+doubled := new(big.Int).Mul(bigValue, big.NewInt(2))
+halved := new(big.Int).Div(bigValue, big.NewInt(2))
+
+// Convert back to felt for Starknet
+resultFelt := utils.BigIntToFelt(doubled)
+```
+
+### Pattern 3: Building Transaction Calldata
+
+```go
+// Multiple hex values → Felt array (common for calldata)
+calldata := []string{
+    "0x1",                    // Number of calls
+    "0x049d...",              // Contract address
+    "0x83afd3f4caedc6eeb...", // Function selector
+    "0x0",                    // Data offset
+    "0x2",                    // Data length
+    "0x1234",                 // First parameter
+    "0x5678",                 // Second parameter
+}
+
+calldataFelts, err := utils.HexArrToFelt(calldata)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Use in transaction
+tx := rpc.InvokeTxnV3{
+    Calldata: calldataFelts,
+    // ...
+}
+```
+
+### Pattern 4: Parsing Contract Output
+
+```go
+// Contract returns felt array, need to convert to readable format
+output := []*felt.Felt{...} // From contract call
+
+// Convert to big integers for processing
+bigInts := make([]*big.Int, len(output))
+for i, felt := range output {
+    bigInts[i] = utils.FeltToBigInt(felt)
+}
+
+// Or convert to hex strings for display
+hexStrings := make([]string, len(output))
+for i, felt := range output {
+    bigInt := utils.FeltToBigInt(felt)
+    hexStrings[i] = utils.BigToHex(bigInt)
+}
+```
+
+### Pattern 5: Working with Short Strings
+
+```go
+// Hex → Short string (for Cairo short strings)
+nameHex := "0x537461726b6e6574" // "Starknet" in hex
+name := utils.HexToShortStr(nameHex)
+fmt.Println(name) // Output: "Starknet"
+
+// String → Hex (for encoding short strings)
+text := "Hello"
+hexText := utils.StrToHex(text)
+```
+
+## Choosing the Right Conversion
+
+| From | To | Function | When to Use |
+|------|------|----------|-------------|
+| **Hex String** | Felt | `HexToFelt` | Contract addresses, transaction hashes, class hashes |
+| **Hex Array** | Felt Array | `HexArrToFelt` | Building calldata from string values |
+| **Felt** | BigInt | `FeltToBigInt` | Math operations, comparisons, working with other Go libraries |
+| **BigInt** | Felt | `BigIntToFelt` | Preparing results for Starknet calls |
+| **Hex** | BigInt | `HexToBN` | Quick hex parsing without intermediate felt |
+| **BigInt** | Hex | `BigToHex` | Display, logging, debugging |
+| **Hex** | Short String | `HexToShortStr` | Reading Cairo short strings |
+| **String** | Hex | `StrToHex` | Encoding short strings for Cairo |
+| **Hex** | Bytes | `HexToBytes` | Low-level operations, hashing |
+| **Bytes** | BigInt | `BytesToBig` | Processing raw byte data |
+| **Uint64** | Felt | `Uint64ToFelt` | Converting Go integers to Starknet values |
+
+## Performance Tips
+
+**Avoid Unnecessary Conversions:**
+```go
+// ❌ BAD: Multiple conversions
+hex := "0x123"
+felt, _ := utils.HexToFelt(hex)
+bigInt := utils.FeltToBigInt(felt)
+result := utils.BigToHex(bigInt)
+
+// ✅ GOOD: Direct conversion when possible
+bigInt, _ := utils.HexToBN("0x123")
+result := utils.BigToHex(bigInt)
+```
+
+**Batch Conversions:**
+```go
+// ✅ Convert arrays at once rather than in a loop
+hexValues := []string{"0x1", "0x2", "0x3"}
+felts, err := utils.HexArrToFelt(hexValues) // Single call
+
+// ❌ Avoid converting one at a time if you have many values
+for _, hex := range hexValues {
+    felt, _ := utils.HexToFelt(hex) // Multiple calls
+}
+```
+
+## Error Handling Best Practices
+
+```go
+// Always check conversion errors
+address, err := utils.HexToFelt(addressStr)
+if err != nil {
+    // Handle invalid hex format
+    log.Printf("Invalid address format: %v", err)
+    return err
+}
+
+// Validate before conversion
+if !strings.HasPrefix(addressStr, "0x") {
+    return errors.New("address must start with 0x")
+}
+```
+
+---
+
 ## Felt Conversions
 
 ### HexToFelt

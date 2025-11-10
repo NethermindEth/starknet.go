@@ -329,6 +329,13 @@ export const sidebar: Sidebar = {
       items: [
         { text: "Overview", link: "/docs/hash/" },
         {
+          text: "Concepts",
+          collapsed: true,
+          items: [
+            { text: "Transaction Hashing", link: "/docs/hash/concepts/transaction-hashing" },
+          ],
+        },
+        {
           text: "Functions",
           collapsed: true,
           items: [

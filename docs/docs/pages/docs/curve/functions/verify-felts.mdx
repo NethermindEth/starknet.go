@@ -8,13 +8,127 @@ Verifies a signature using felt.Felt parameters.
 func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error)
 ```
 
+## Parameters
+
+- `msgHash` (*felt.Felt): Message hash that was signed
+- `r`, `s` (*felt.Felt): Signature components
+- `pubX` (*felt.Felt): Public key X coordinate
+
+## Returns
+
+- `bool`: true if signature is valid, false otherwise
+- `error`: Error if verification fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+    // Message hash
+    msgHash, _ := new(felt.Felt).SetString("0x1234567890abcdef")
+
+    // Signature components (from SignFelts)
+    r, _ := new(felt.Felt).SetString("0x4d2b6e6e88e01af828b0f68237ffde7e6742ae86169a89c32185141ad1c6e7e")
+    s, _ := new(felt.Felt).SetString("0x4d6f5fe7927e73ffddd5bca9ea3be17e0ae62d12e34c772691fc7b829904f92")
+
+    // Public key X coordinate
+    pubX, _ := new(felt.Felt).SetString("0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca")
+
+    // Verify signature
+    valid, err := curve.VerifyFelts(msgHash, r, s, pubX)
+    if err != nil {
+        log.Fatal("Verification failed:", err)
+    }
+
+    if valid {
+        fmt.Println("✓ Signature is valid")
+    } else {
+        fmt.Println("✗ Signature is invalid")
+    }
+}
+```
+
 ## Expected Output
 
 ```
-VerifyFelts:
-  Message Hash: 0x1234567890abcdef
-  Valid: true
+✓ Signature is valid
 ```
+
+## Description
+
+VerifyFelts is the felt.Felt variant of [Verify](/docs/curve/functions/verify). It verifies an ECDSA signature on the Stark curve using felt.Felt types.
+
+**When to use VerifyFelts vs Verify:**
+- Use **VerifyFelts** when working with Starknet types (transaction verification, account contracts)
+- Use **Verify** when working with big.Int for interoperability with other Go libraries
+
+The verification algorithm is identical; only the input types differ.
+
+## Complete Sign and Verify Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+    // Message to sign
+    msgHash, _ := new(felt.Felt).SetString("0x1234567890abcdef")
+
+    // Private key (in production, load securely)
+    privKey, _ := new(felt.Felt).SetString("0x1234567890abcdef1234567890abcdef")
+
+    // Derive public key from private key
+    pubX, pubY, err := curve.PrivateKeyToPoint(privKey)
+    if err != nil {
+        log.Fatal("Failed to derive public key:", err)
+    }
+
+    // Sign the message
+    r, s, err := curve.SignFelts(msgHash, privKey)
+    if err != nil {
+        log.Fatal("Signing failed:", err)
+    }
+
+    fmt.Printf("Signed message: %s\n", msgHash)
+    fmt.Printf("Signature: (r=%s, s=%s)\n", r, s)
+    fmt.Printf("Public key: (x=%s, y=%s)\n", pubX, pubY)
+
+    // Verify the signature
+    valid, err := curve.VerifyFelts(msgHash, r, s, pubX)
+    if err != nil {
+        log.Fatal("Verification failed:", err)
+    }
+
+    if valid {
+        fmt.Println("✓ Signature verified successfully")
+    } else {
+        fmt.Println("✗ Signature verification failed")
+    }
+}
+```
+
+## Notes
+
+- Preferred when working with Starknet native types
+- More ergonomic for transaction signature verification
+- Only requires public key X coordinate (Y is derived)
+- See [Verify](/docs/curve/functions/verify) for detailed cryptographic explanation
 
 ## Related Functions
 
