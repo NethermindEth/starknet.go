@@ -1,0 +1,299 @@
+# Transaction Signing Concepts
+
+Understanding how transaction signing works in Starknet is essential for secure account management and transaction handling.
+
+## Overview
+
+In Starknet, all transactions must be signed with the account's private key before submission. The signing process creates a cryptographic signature that proves:
+1. The transaction was authorized by the account owner
+2. The transaction data has not been tampered with
+3. The transaction is bound to a specific chain and account
+
+## How Transaction Signing Works
+
+### The Signing Process
+
+```
+1. Transaction Data → 2. Hash Calculation → 3. Signature Generation → 4. Signed Transaction
+```
+
+**Step 1: Transaction Data**
+- Transaction type (Invoke, Declare, DeployAccount)
+- Account address and nonce
+- Transaction-specific parameters (calldata, contract class, etc.)
+- Fee parameters (max_fee or resource_bounds)
+
+**Step 2: Hash Calculation**
+- A unique hash is computed from the transaction data
+- The hash algorithm depends on the transaction version
+- This hash uniquely identifies the transaction
+
+**Step 3: Signature Generation**
+- The transaction hash is signed using the account's private key
+- Uses ECDSA signature on the Stark curve
+- Produces two values: `r` and `s` (signature components)
+
+**Step 4: Signed Transaction**
+- The signature is attached to the transaction
+- The signed transaction can now be submitted to the network
+
+## Signature Components
+
+A Starknet signature consists of two field elements:
+
+```go
+type Signature struct {
+    R *felt.Felt  // First component of ECDSA signature
+    S *felt.Felt  // Second component of ECDSA signature
+}
+```
+
+Before signing:
+```go
+transaction.Signature = []felt.Felt{}  // Empty signature array
+```
+
+After signing:
+```go
+transaction.Signature = []felt.Felt{r, s}  // Two signature components
+```
+
+## Transaction Hash Versions
+
+Different transaction versions use different hashing methods:
+
+### V0/V1/V2 Transactions
+- Use Pedersen hash
+- Include `max_fee` parameter
+- Legacy format
+
+### V3 Transactions
+- Use Poseidon hash
+- Include `resource_bounds` instead of `max_fee`
+- Support for Data Availability modes
+- Current standard for new transactions
+
+## Signature Verification
+
+The Starknet protocol verifies signatures by:
+
+1. **Extracting the public key** from the account contract
+2. **Recomputing the transaction hash** from the submitted data
+3. **Verifying the signature** using the public key and hash
+4. **Rejecting** transactions with invalid signatures
+
+## Security Considerations
+
+### Private Key Management
+
+**Never expose private keys:**
+```go
+// ❌ BAD: Hardcoded private key
+privateKey := "0x1234..."
+
+// ✅ GOOD: Load from secure storage
+privateKey := os.Getenv("PRIVATE_KEY")
+if privateKey == "" {
+    log.Fatal("Private key not found in secure storage")
+}
+```
+
+### Nonce Management
+
+Each transaction must have a unique, sequential nonce:
+```go
+// Get current nonce before signing
+nonce, err := account.Nonce(ctx)
+if err != nil {
+    return err
+}
+
+// Use nonce in transaction
+tx.Nonce = nonce
+```
+
+### Chain ID Verification
+
+Always verify you're signing for the correct network:
+```go
+// Get chain ID
+chainID, err := client.ChainID(ctx)
+
+// Chain IDs:
+// - Mainnet: "SN_MAIN"
+// - Sepolia: "SN_SEPOLIA"
+// - Devnet: varies by configuration
+```
+
+## Common Signing Patterns
+
+### Pattern 1: Sign and Submit Immediately
+
+```go
+// 1. Create transaction
+invokeTx := rpc.InvokeTxnV3{
+    // ... transaction data
+}
+
+// 2. Sign transaction
+err := account.SignInvokeTransaction(ctx, &invokeTx)
+if err != nil {
+    return err
+}
+
+// 3. Submit immediately
+txHash, err := account.AddInvokeTransaction(ctx, invokeTx)
+```
+
+### Pattern 2: Pre-sign for Later Submission
+
+```go
+// 1. Create and sign transaction
+invokeTx := rpc.InvokeTxnV3{
+    // ... transaction data
+}
+err := account.SignInvokeTransaction(ctx, &invokeTx)
+
+// 2. Store signed transaction
+signedTxData := serialize(invokeTx)
+saveToDatabase(signedTxData)
+
+// 3. Submit later (potentially from different service)
+// Note: Check nonce is still valid before submission
+txHash, err := client.AddInvokeTransaction(ctx, invokeTx)
+```
+
+### Pattern 3: Batch Signing
+
+```go
+// Sign multiple transactions with sequential nonces
+transactions := []rpc.InvokeTxnV3{tx1, tx2, tx3}
+
+baseNonce, _ := account.Nonce(ctx)
+for i, tx := range transactions {
+    tx.Nonce = baseNonce + uint64(i)
+    err := account.SignInvokeTransaction(ctx, &tx)
+    if err != nil {
+        return err
+    }
+}
+```
+
+## Error Handling
+
+### Common Signing Errors
+
+**Invalid Transaction Type:**
+```go
+err := account.SignInvokeTransaction(ctx, &tx)
+if err != nil {
+    if strings.Contains(err.Error(), "invalid transaction type") {
+        log.Println("Transaction type mismatch")
+    }
+}
+```
+
+**Hash Calculation Failure:**
+```go
+if strings.Contains(err.Error(), "failed to calculate hash") {
+    log.Println("Transaction data is invalid or incomplete")
+}
+```
+
+**Signing Failure:**
+```go
+if strings.Contains(err.Error(), "failed to sign") {
+    log.Println("Check private key and account configuration")
+}
+```
+
+## Best Practices
+
+### 1. Use High-Level Wrappers When Possible
+
+Instead of manual signing:
+```go
+// ❌ Manual process
+tx := BuildInvokeTxn(...)
+account.SignInvokeTransaction(ctx, &tx)
+client.AddInvokeTransaction(ctx, tx)
+receipt := WaitForReceipt(...)
+```
+
+Use built-in helpers:
+```go
+// ✅ Automated signing and submission
+txHash, err := account.BuildAndSendInvokeTxn(ctx, FunctionCall{...})
+receipt, err := account.WaitForTransactionReceipt(ctx, txHash, ...)
+```
+
+### 2. Always Verify Signature Before Submission
+
+```go
+// Sign transaction
+err := account.SignInvokeTransaction(ctx, &tx)
+
+// Verify signature was applied
+if len(tx.Signature) != 2 {
+    return errors.New("signature not properly applied")
+}
+```
+
+### 3. Handle Nonce Conflicts Gracefully
+
+```go
+txHash, err := client.AddInvokeTransaction(ctx, tx)
+if err != nil {
+    if strings.Contains(err.Error(), "invalid nonce") {
+        // Refresh nonce and retry
+        newNonce, _ := account.Nonce(ctx)
+        tx.Nonce = newNonce
+        err = account.SignInvokeTransaction(ctx, &tx)
+        txHash, err = client.AddInvokeTransaction(ctx, tx)
+    }
+}
+```
+
+### 4. Log Transaction Details Securely
+
+```go
+// ❌ DON'T log private keys or full signatures
+log.Printf("Signed tx: %+v", tx)
+
+// ✅ Log only identifiers
+log.Printf("Signed tx hash: %s, nonce: %d", txHash, tx.Nonce)
+```
+
+## Transaction-Specific Signing
+
+Different transaction types have specific signing methods:
+
+| Transaction Type | Signing Method | Hash Method | Use Case |
+|-----------------|----------------|-------------|----------|
+| Invoke | `SignInvokeTransaction` | `TransactionHashInvoke` | Execute contract functions |
+| Declare | `SignDeclareTransaction` | `TransactionHashDeclare` | Declare contract classes |
+| DeployAccount | `SignDeployAccountTransaction` | `TransactionHashDeployAccount` | Deploy new accounts |
+
+Each transaction type requires different parameters for hash calculation, but the signing process follows the same pattern.
+
+## Related Documentation
+
+- [Sign Method](/docs/account/methods/sign) - Low-level signing function
+- [SignInvokeTransaction](/docs/account/methods/sign-invoke-transaction) - Sign invoke transactions
+- [SignDeclareTransaction](/docs/account/methods/sign-declare-transaction) - Sign declare transactions
+- [SignDeployAccountTransaction](/docs/account/methods/sign-deploy-account-transaction) - Sign deploy account transactions
+- [TransactionHashInvoke](/docs/account/methods/transaction-hash-invoke) - Calculate invoke transaction hash
+- [TransactionHashDeclare](/docs/account/methods/transaction-hash-declare) - Calculate declare transaction hash
+- [TransactionHashDeployAccount](/docs/account/methods/transaction-hash-deploy-account) - Calculate deploy account transaction hash
+
+## Summary
+
+Transaction signing in Starknet:
+1. Requires calculating a transaction hash
+2. Uses ECDSA signatures on the Stark curve
+3. Produces two signature components (r, s)
+4. Must be done before transaction submission
+5. Binds the transaction to a specific account, chain, and nonce
+6. Is verified by the network before execution
+
+Understanding these concepts helps you implement secure transaction handling in your Starknet applications.

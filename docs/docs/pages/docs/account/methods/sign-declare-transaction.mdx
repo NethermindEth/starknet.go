@@ -85,22 +85,20 @@ Signature[1]: 0x3223d8c72505ee93d290146dc2f0e5ec13e138f9eb93ca6077131d539609797
 
 ## Description
 
-SignDeclareTransaction calculates the transaction hash for a declare transaction and signs it. Supports V1, V2, V3, and BroadcastDeclareTxnV3 formats.
+SignDeclareTransaction signs a declare transaction by:
+1. Calculating the transaction hash using [TransactionHashDeclare](./transaction-hash-declare)
+2. Signing the hash with the account's private key (see [Sign](./sign) for signing details)
+3. Setting the `Signature` field on the transaction with the resulting (r, s) signature components
 
-Typically handled automatically by BuildAndSendDeclareTxn.
+Supports V1, V2, V3, and BroadcastDeclareTxnV3 declare transactions.
+
+> For conceptual details about transaction signing, see [Transaction Signing Concepts](/docs/account/concepts/transaction-signing).
+
+**Note**: Typically handled automatically by [BuildAndSendDeclareTxn](./build-and-send-declare-txn), which manages transaction creation, signing, and submission in one call.
 
 ## Error Handling
 
-```go
-err := acc.SignDeclareTransaction(ctx, tx)
-if err != nil {
-	// Handle errors like:
-	// - Invalid transaction type
-	// - Hash calculation failure
-	// - Signing failure
-	return err
-}
-```
+Common errors include invalid transaction type, hash calculation failure, or signing failure. See [Transaction Signing Concepts - Error Handling](/docs/account/concepts/transaction-signing#error-handling) for detailed error scenarios and handling patterns.
 
 ## Related Methods
 

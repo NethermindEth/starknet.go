@@ -90,20 +90,20 @@ Signature[1]: 0x75fe32500627a2642e01b73a7a43168905e437b61f070ee2e557124ce679298
 
 ## Description
 
-SignDeployAccountTransaction signs a deploy account transaction using the precomputed address. Typically called internally by BuildAndEstimateDeployAccountTxn.
+SignDeployAccountTransaction signs a deploy account transaction by:
+1. Calculating the transaction hash using [TransactionHashDeployAccount](./transaction-hash-deploy-account) with the precomputed address
+2. Signing the hash with the account's private key (see [Sign](./sign) for signing details)
+3. Setting the `Signature` field on the transaction with the resulting (r, s) signature components
+
+The precomputed address is required because the account doesn't exist on-chain yet. See [PrecomputeAccountAddress](../functions/precompute-account-address) for address calculation.
+
+> For conceptual details about transaction signing, see [Transaction Signing Concepts](/docs/account/concepts/transaction-signing).
+
+**Note**: Typically handled automatically by [BuildAndEstimateDeployAccountTxn](./build-and-estimate-deploy-account-txn), which manages address computation, transaction creation, signing, and submission.
 
 ## Error Handling
 
-```go
-err := acc.SignDeployAccountTransaction(ctx, tx, precomputedAddr)
-if err != nil {
-	// Handle errors like:
-	// - Invalid transaction type
-	// - Hash calculation failure
-	// - Signing failure
-	return err
-}
-```
+Common errors include invalid transaction type, hash calculation failure, or signing failure. See [Transaction Signing Concepts - Error Handling](/docs/account/concepts/transaction-signing#error-handling) for detailed error scenarios and handling patterns.
 
 ## Related Methods
 

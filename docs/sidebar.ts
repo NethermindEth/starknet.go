@@ -20,6 +20,13 @@ export const sidebar: Sidebar = {
       items: [
         { text: "Overview", link: "/docs/account/" },
         {
+          text: "Concepts",
+          collapsed: true,
+          items: [
+            { text: "Transaction Signing", link: "/docs/account/concepts/transaction-signing" },
+          ],
+        },
+        {
           text: "Functions",
           collapsed: true,
           items: [

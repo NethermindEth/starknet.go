@@ -93,22 +93,20 @@ Signature[1]: 0x5c5e86aadb169eb8850ed2434fb6bb973051feaf17c8e9bf1421e3f97b1c8a6
 
 ## Description
 
-SignInvokeTransaction calculates the transaction hash and signs it, setting the Signature field on the transaction. Supports V0, V1, and V3 transactions.
+SignInvokeTransaction signs an invoke transaction by:
+1. Calculating the transaction hash using [TransactionHashInvoke](./transaction-hash-invoke)
+2. Signing the hash with the account's private key (see [Sign](./sign) for signing details)
+3. Setting the `Signature` field on the transaction with the resulting (r, s) signature components
 
-Typically, you don't call this directly. Use BuildAndSendInvokeTxn which handles signing automatically.
+Supports V0, V1, and V3 invoke transactions.
+
+> For conceptual details about transaction signing, see [Transaction Signing Concepts](/docs/account/concepts/transaction-signing).
+
+**Note**: Typically handled automatically by [BuildAndSendInvokeTxn](./build-and-send-invoke-txn), which manages transaction creation, signing, and submission in one call.
 
 ## Error Handling
 
-```go
-err := acc.SignInvokeTransaction(ctx, tx)
-if err != nil {
-	// Handle errors like:
-	// - Invalid transaction type
-	// - Hash calculation failure
-	// - Signing failure
-	return err
-}
-```
+Common errors include invalid transaction type, hash calculation failure, or signing failure. See [Transaction Signing Concepts - Error Handling](/docs/account/concepts/transaction-signing#error-handling) for detailed error scenarios and handling patterns.
 
 ## Related Methods
 
