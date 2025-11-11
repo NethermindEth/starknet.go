@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.16.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.17.0...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -15,12 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.17.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.17.0) - 2025-11-06
 ### Added
 - New `paymaster` pkg for interacting with paymaster services via the SNIP-29 API.
 - New `examples/paymaster` folder with examples of how to use the `paymaster` pkg.
-- New `rpc.IsCompatible` method to the `rpc.Provider` type. It returns whether the node RPC version is compatible
-with the version implemented by the starknet.go provider or not.
+- New `rpc.IsCompatible` function utility to check if the node RPC version is compatible
+with the version implemented by the starknet.go provider.
+- new `rpc.EstimateTip` function utility to estimate the tip to be used in a transaction.
 - New `rpc.ErrIncompatibleVersion` error variable, used in the `rpc.NewProvider` function.
+- New `rpc.U128.ToBigInt()` method to convert the `rpc.U128` type to a `*big.Int`, also validating if the value is within the range of a uint128.
+- New `utils.CustomFeeEstToResBoundsMap` function that does the same as `utils.FeeEstToResBoundsMap`, but accepts a `utils.FeeLimits` parameter to set custom limits for the resource bounds instead of using the Starknet default limits.
 
 ### Changed
 - The `rpc.NewProvider` and `rpc.NewWebsocketProvider` functions now accept a `context.Context` parameter.
@@ -28,10 +32,21 @@ with the version implemented by the starknet.go provider or not.
 implemented by the starknet.go provider. The returned Provider instance is still valid, but there might be
 unexpected behaviour.
 - The `typedata` pkg was renamed to `typeddata`, fixing the typo in the package name introduced in v0.16.0.
+- Now, all the `account.BuildAndSend*` methods will automatically estimate and set the tip to be used in the transaction
+based on the average tip of all transactions in the latest block. The user can set a custom tip by setting the `CustomTip`
+field in the `TxnOptions` type to override the automatic estimation.
+- In the `account.TxnOptions` type:
+  - The `Tip` field was renamed to `CustomTip`.
+  - The `Multiplier` field was renamed to `FeeMultiplier`.
+  - New `TipMultiplier` field was added to set the multiplier to be used when automatically estimating the tip.
 
 ### Removed
 - The warning message when the node RPC version is different from the version implemented by the
 starknet.go provider when calling the `rpc.NewProvider` function. Now, an error is returned instead.
+
+### Fixed
+- The `utils.FeeEstToResBoundsMap` function was using the max uint64 value for the L2 gas amount limit instead of the limit defined by Starknet, causing the txn to be rejected by the node when the amount was greater than the limit. Now, the limit is used correctly, and it's returned in the case of overflow.
+- The `utils.ResBoundsMapToOverallFee` function was not considering the tip when calculating the overall fee, causing incorrect fee calculations.
 
 ## [0.16.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.16.0) - 2025-10-14
 ### Added

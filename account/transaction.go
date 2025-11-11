@@ -47,7 +47,10 @@ func (account *Account) BuildAndSendInvokeTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	fmtTipAndMultiplier(opts)
+	tip, err := calculateTip(ctx, account.Provider, opts)
+	if err != nil {
+		return response, err
+	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastInvokeTxnV3 := utils.BuildInvokeTxn(
@@ -56,7 +59,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		callData,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         opts.Tip,
+			Tip:         tip,
 			UseQueryBit: opts.UseQueryBit,
 		},
 	)
@@ -77,7 +80,10 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return response, err
 	}
 	txnFee := estimateFee[0]
-	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastInvokeTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(
+		txnFee,
+		opts.FmtFeeMultiplier(),
+	)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -127,7 +133,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	fmtTipAndMultiplier(opts)
+	tip, err := calculateTip(ctx, account.Provider, opts)
+	if err != nil {
+		return response, err
+	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
@@ -137,7 +146,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         opts.Tip,
+			Tip:         tip,
 			UseQueryBit: opts.UseQueryBit,
 		},
 	)
@@ -161,7 +170,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return response, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDeclareTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(
+		txnFee,
+		opts.FmtFeeMultiplier(),
+	)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -215,8 +227,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	fmtTipAndMultiplier(opts)
-
+	tip, err := calculateTip(ctx, account.Provider, opts)
+	if err != nil {
+		return nil, nil, err
+	}
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDepAccTxnV3 := utils.BuildDeployAccountTxn(
 		&felt.Zero,
@@ -225,14 +239,14 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         opts.Tip,
+			Tip:         tip,
 			UseQueryBit: opts.UseQueryBit,
 		},
 	)
 
 	precomputedAddress := PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 
-	err := account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
+	err = account.SignDeployAccountTransaction(ctx, broadcastDepAccTxnV3, precomputedAddress)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -248,7 +262,10 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		return nil, nil, err
 	}
 	txnFee := estimateFee[0]
-	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(txnFee, opts.Multiplier)
+	broadcastDepAccTxnV3.ResourceBounds = utils.FeeEstToResBoundsMap(
+		txnFee,
+		opts.FmtFeeMultiplier(),
+	)
 
 	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
@@ -262,6 +279,26 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	return broadcastDepAccTxnV3, precomputedAddress, nil
+}
+
+// calculateTip returns the tip to be used in the transaction. If a custom tip is
+// provided, it returns it. Otherwise, it estimates the tip using the provider
+// based on the tip multiplier.
+func calculateTip(
+	ctx context.Context,
+	provider rpc.RPCProvider,
+	opts *TxnOptions,
+) (rpc.U64, error) {
+	if opts.CustomTip != "" {
+		return opts.CustomTip, nil
+	}
+
+	tip, err := rpc.EstimateTip(ctx, provider, opts.FmtTipMultiplier())
+	if err != nil {
+		return "", fmt.Errorf("failed to estimate tip: %w", err)
+	}
+
+	return tip, nil
 }
 
 // A helper to deploy a contract from an existing class using UDC.

@@ -14,17 +14,37 @@ import (
 )
 
 const (
-	maxUint64  uint64 = math.MaxUint64
-	maxUint128        = "0xffffffffffffffffffffffffffffffff"
+	// Ref: https://docs.starknet.io/learn/cheatsheets/chain-info#current-limits
+	maxL2GasAmount = "0x3b9aca00" // = 10^9 = 1_000_000_000
+
+	maxUint64  = "0xffffffffffffffff"
+	maxUint128 = "0xffffffffffffffffffffffffffffffff"
 
 	negativeResourceBoundsErr = "resource bounds cannot be negative, got '%#x'"
 	invalidResourceBoundsErr  = "invalid resource bounds: '%v' is not a valid big.Int"
 )
 
+// Default fee limits for the Starknet network.
+// Since there's no official limit for most resources, we use the max allowed values
+// of the corresponding types defined by the Starknet specification¹ (uint64 or uint128).
+// The L2 gas amount however is specified², so we use this value.
+//
+// ¹ Ref: https://github.com/starkware-libs/starknet-specs/blob/6485866d8b017f2dd615ee245275833028464419/api/starknet_api_openrpc.json#L3508
+// ² Ref: https://docs.starknet.io/learn/cheatsheets/chain-info#current-limits
+//
+//nolint:lll // The link would be unclickable if we break the line.
+var starknetLimits = FeeLimits{
+	L1GasPriceLimit:      maxUint128,
+	L1GasAmountLimit:     maxUint64,
+	L1DataGasPriceLimit:  maxUint128,
+	L1DataGasAmountLimit: maxUint64,
+	L2GasPriceLimit:      maxUint128,
+	L2GasAmountLimit:     maxL2GasAmount,
+}
+
 // Optional settings when building a transaction.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	// Note: only ready to be used after Starknet v0.14.0 upgrade.
 	Tip rpc.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
@@ -214,12 +234,31 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 	return functionCalls
 }
 
+// FeeLimits is a struct with custom limits for the fee values, used
+// as a parameter for the `CustomFeeEstToResBoundsMap` function.
+type FeeLimits struct {
+	// Custom max value for L1 gas price
+	L1GasPriceLimit rpc.U128
+	// Custom max value for L1 gas amount
+	L1GasAmountLimit rpc.U64
+
+	// Custom max value for L2 gas price
+	L2GasPriceLimit rpc.U128
+	// Custom max value for L2 gas amount
+	L2GasAmountLimit rpc.U64
+
+	// Custom max value for L1 data gas price
+	L1DataGasPriceLimit rpc.U128
+	// Custom max value for L1 data gas amount
+	L1DataGasAmountLimit rpc.U64
+}
+
 // FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0.
-//     If multiplier < 0, all resources bounds will be set to 0.
+//     If multiplier <= 0, all resources bounds will be set to 0.
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
 // Returns:
@@ -228,17 +267,56 @@ func FeeEstToResBoundsMap(
 	feeEstimation rpc.FeeEstimation,
 	multiplier float64,
 ) *rpc.ResourceBoundsMapping {
+	bounds := CustomFeeEstToResBoundsMap(feeEstimation, multiplier, &starknetLimits)
+
+	// TODO: return by value instead of pointer
+	return &bounds
+}
+
+// CustomFeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied
+// multipliers and limits.
+// Parameters:
+//   - feeEstimation: The fee estimation to convert
+//   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
+//     but at least greater than 0.
+//     If multiplier <= 0, all resources bounds will be set to 0.
+//     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
+//   - limits: Limits for the resource bounds. They are still capped to the max allowed
+//     values (U64 or U128).
+//
+// Returns:
+//   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
+func CustomFeeEstToResBoundsMap(
+	feeEstimation rpc.FeeEstimation,
+	multiplier float64,
+	limits *FeeLimits,
+) rpc.ResourceBoundsMapping {
 	// Create L1 resources bounds
-	l1Gas := toResourceBounds(feeEstimation.L1GasPrice, feeEstimation.L1GasConsumed, multiplier)
-	l1DataGas := toResourceBounds(
-		feeEstimation.L1DataGasPrice,
-		feeEstimation.L1DataGasConsumed,
+	l1Gas := toResourceBounds(
+		feeEstimation.L1GasPrice,
+		limits.L1GasPriceLimit,
+		feeEstimation.L1GasConsumed,
+		limits.L1GasAmountLimit,
 		multiplier,
 	)
-	// Create L2 resource bounds
-	l2Gas := toResourceBounds(feeEstimation.L2GasPrice, feeEstimation.L2GasConsumed, multiplier)
+	l1DataGas := toResourceBounds(
+		feeEstimation.L1DataGasPrice,
+		limits.L1DataGasPriceLimit,
+		feeEstimation.L1DataGasConsumed,
+		limits.L1DataGasAmountLimit,
+		multiplier,
+	)
 
-	return &rpc.ResourceBoundsMapping{
+	// Create L2 resource bounds
+	l2Gas := toResourceBounds(
+		feeEstimation.L2GasPrice,
+		limits.L2GasPriceLimit,
+		feeEstimation.L2GasConsumed,
+		limits.L2GasAmountLimit,
+		multiplier,
+	)
+
+	return rpc.ResourceBoundsMapping{
 		L1Gas:     l1Gas,
 		L1DataGas: l1DataGas,
 		L2Gas:     l2Gas,
@@ -250,18 +328,24 @@ func FeeEstToResBoundsMap(
 //
 // Parameters:
 //   - gasPrice: The gas price
+//   - gasPriceLimit: The limit for the gas price. If invalid, a default value
+//     will be used.
 //   - gasConsumed: The gas consumed
+//   - gasAmountLimit: The limit for the gas amount. If invalid, a default value
+//     will be used.
 //   - multiplier: Multiplier for max amount and max price per unit
 //
 // Returns:
 //   - rpc.ResourceBounds: Resource bounds with applied multiplier
 func toResourceBounds(
 	gasPrice *felt.Felt,
+	gasPriceLimit rpc.U128,
 	gasConsumed *felt.Felt,
+	gasAmountLimit rpc.U64,
 	multiplier float64,
 ) rpc.ResourceBounds {
-	// negative multiplier is not allowed, default to 0
-	if multiplier < 0 {
+	// multiplier must be greater than 0. Default to 0 if not
+	if multiplier <= 0 {
 		return rpc.ResourceBounds{
 			MaxAmount:       rpc.U64("0x0"),
 			MaxPricePerUnit: rpc.U128("0x0"),
@@ -272,34 +356,33 @@ func toResourceBounds(
 	gasPriceInt := gasPrice.BigInt(new(big.Int))
 	gasConsumedInt := gasConsumed.BigInt(new(big.Int))
 
-	// Check for overflow
-	maxUint64 := new(big.Int).SetUint64(maxUint64)
-	maxUint128, _ := new(big.Int).SetString(maxUint128, 0)
-	// max_price_per_unit is U128 by the spec
-	if gasPriceInt.Cmp(maxUint128) > 0 {
-		gasPriceInt = maxUint128
-	}
-	// max_amount is U64 by the spec
-	if gasConsumedInt.Cmp(maxUint64) > 0 {
-		gasConsumedInt = maxUint64
-	}
-
+	// multiply values by the multiplier
 	maxAmount := new(big.Float)
 	maxPricePerUnit := new(big.Float)
 
 	maxAmount.Mul(new(big.Float).SetInt(gasConsumedInt), big.NewFloat(multiplier))
 	maxPricePerUnit.Mul(new(big.Float).SetInt(gasPriceInt), big.NewFloat(multiplier))
-
 	// Convert big.Float to big.Int for proper hex formatting. The result is a truncated int
 	maxAmountInt, _ := maxAmount.Int(new(big.Int))
 	maxPricePerUnitInt, _ := maxPricePerUnit.Int(new(big.Int))
 
-	// Check for overflow after mul operation
-	if maxAmountInt.Cmp(maxUint64) > 0 {
-		maxAmountInt = maxUint64
+	// Get the limits OR set default values if invalid
+	gasPL, err := gasPriceLimit.ToBigInt()
+	if err != nil {
+		gasPL = internalUtils.HexToBN(maxUint128)
 	}
-	if maxPricePerUnitInt.Cmp(maxUint128) > 0 {
-		maxPricePerUnitInt = maxUint128
+	tempGasAL, err := gasAmountLimit.ToUint64()
+	if err != nil {
+		tempGasAL = uint64(math.MaxUint64)
+	}
+	gasAL := new(big.Int).SetUint64(tempGasAL)
+
+	// Check for overflow comparing with the limits
+	if maxAmountInt.Cmp(gasAL) > 0 {
+		maxAmountInt = gasAL
+	}
+	if maxPricePerUnitInt.Cmp(gasPL) > 0 {
+		maxPricePerUnitInt = gasPL
 	}
 
 	return rpc.ResourceBounds{
@@ -314,6 +397,7 @@ func toResourceBounds(
 //   - resBounds: The resource bounds to calculate the fee for
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0
+//   - tip: The tip amount in FRI in hexadecimal string format
 //
 // Returns:
 //   - *felt.Felt: The overall fee in FRI
@@ -321,15 +405,22 @@ func toResourceBounds(
 func ResBoundsMapToOverallFee(
 	resBounds *rpc.ResourceBoundsMapping,
 	multiplier float64,
+	tip rpc.U64,
 ) (*felt.Felt, error) {
 	if resBounds == nil {
 		return nil, errors.New("resource bounds are nil")
 	}
 
 	// negative multiplier is not allowed
-	if multiplier < 0 {
-		return nil, errors.New("multiplier cannot be negative")
+	if multiplier <= 0 {
+		return nil, errors.New("multiplier must be greater than 0")
 	}
+
+	tipInt, err := tip.ToUint64()
+	if err != nil {
+		return nil, fmt.Errorf("invalid tip: %w", err)
+	}
+	tipBigInt := new(big.Int).SetUint64(tipInt)
 
 	parseBound := func(value string) (*big.Int, error) {
 		// get big int values
@@ -376,9 +467,10 @@ func ResBoundsMapToOverallFee(
 	}
 
 	// calculate fee
+	// Ref: https://docs.starknet.io/learn/protocol/fees#overall-fee
 	l1GasFee := new(big.Int).Mul(l1GasAmount, l1GasPrice)
 	l1DataGasFee := new(big.Int).Mul(l1DataGasAmount, l1DataGasPrice)
-	l2GasFee := new(big.Int).Mul(l2GasAmount, l2GasPrice)
+	l2GasFee := l2GasPrice.Add(l2GasPrice, tipBigInt).Mul(l2GasPrice, l2GasAmount)
 	overallFee := l1GasFee.Add(l1GasFee, l1DataGasFee).Add(l1GasFee, l2GasFee)
 
 	// multiply fee by multiplier

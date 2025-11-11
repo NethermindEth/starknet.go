@@ -78,7 +78,7 @@ func NewProvider(
 	provider := &Provider{c: c, chainID: ""}
 
 	// Check version compatibility
-	isCompatible, nodeVersion, err := provider.IsCompatible(ctx)
+	isCompatible, nodeVersion, err := IsCompatible(ctx, provider)
 	if err != nil {
 		return nil, err
 	}
