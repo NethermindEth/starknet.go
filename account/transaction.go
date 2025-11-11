@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
@@ -59,8 +60,9 @@ func (account *Account) BuildAndSendInvokeTxn(
 		callData,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         tip,
-			UseQueryBit: opts.UseQueryBit,
+			Tip:            tip,
+			UseQueryBit:    opts.UseQueryBit,
+			UseBlake2sHash: false,
 		},
 	)
 
@@ -137,6 +139,10 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if err != nil {
 		return response, err
 	}
+	useBlake2sHash, err := shouldUseBlake2sHash(ctx, account.Provider)
+	if err != nil {
+		return response, err
+	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
 	broadcastDeclareTxnV3, err := utils.BuildDeclareTxn(
@@ -146,8 +152,9 @@ func (account *Account) BuildAndSendDeclareTxn(
 		nonce,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         tip,
-			UseQueryBit: opts.UseQueryBit,
+			Tip:            tip,
+			UseQueryBit:    opts.UseQueryBit,
+			UseBlake2sHash: useBlake2sHash,
 		},
 	)
 	if err != nil {
@@ -239,8 +246,9 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		classHash,
 		makeResourceBoundsMapWithZeroValues(),
 		&utils.TxnOptions{
-			Tip:         tip,
-			UseQueryBit: opts.UseQueryBit,
+			Tip:            tip,
+			UseQueryBit:    opts.UseQueryBit,
+			UseBlake2sHash: false,
 		},
 	)
 
@@ -464,4 +472,36 @@ func (account *Account) WaitForTransactionReceipt(
 			return receiptWithBlockInfo, nil
 		}
 	}
+}
+
+// shouldUseBlake2sHash determines whether to use the Blake2s hash function for the
+// compiled class hash.
+// Starknet v0.14.1 upgrade will deprecate the Poseidon hash function for the compiled class hash.
+//
+// Parameters:
+//   - ctx: The context
+//   - provider: The provider
+//
+// Returns:
+//   - bool: whether to use the Blake2s hash function for the compiled class hash
+//   - error: an error if any
+func shouldUseBlake2sHash(ctx context.Context, provider rpc.RPCProvider) (bool, error) {
+	block, err := provider.BlockWithTxHashes(ctx, rpc.WithBlockTag(rpc.BlockTagLatest))
+	if err != nil {
+		return false, fmt.Errorf("failed to get block with tx hashes: %w", err)
+	}
+
+	blockTxHashes, ok := block.(*rpc.BlockTxHashes)
+	if !ok {
+		return false, fmt.Errorf("block is not a BlockTxHashes: %T", block)
+	}
+
+	upgradeVersion := semver.MustParse("0.14.1")
+
+	currentVersion, err := semver.NewVersion(blockTxHashes.StarknetVersion)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse block's starknet version: %w", err)
+	}
+
+	return currentVersion.Compare(upgradeVersion) >= 0, nil
 }

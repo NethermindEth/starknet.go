@@ -130,6 +130,110 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeclareTxnV3).Tip)
 }
 
+func TestBuildAndSendDeclareTxnMock(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
+	ctrl := gomock.NewController(t)
+	mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
+
+	ks, pub, _ := account.GetRandomKeys()
+	// called when instantiating the account
+	mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+	acnt, err := account.NewAccount(
+		mockRPCProvider,
+		internalUtils.DeadBeef,
+		pub.String(),
+		ks,
+		account.CairoV2,
+	)
+	require.NoError(t, err)
+
+	// Class
+	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+		"",
+	)
+	// Casm Class
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+		"",
+	)
+
+	t.Run("compiled class hash", func(t *testing.T) {
+		testcases := []struct {
+			name                     string
+			starknetVersion          string
+			expectedCompileClassHash string
+		}{
+			{
+				name:                     "before 0.14.1",
+				starknetVersion:          "0.14.0",
+				expectedCompileClassHash: "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
+			},
+			{
+				name:                     "after 0.14.1",
+				starknetVersion:          "0.14.1",
+				expectedCompileClassHash: "0x23c2091df2547f77185ba592b06ee2e897b0c2a70f968521a6a24fc5bfc1b1e",
+			},
+		}
+
+		for _, test := range testcases {
+			t.Run(test.name, func(t *testing.T) {
+				// called in the BuildAndSendDeclareTxn method
+				mockRPCProvider.EXPECT().
+					Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
+					Return(new(felt.Felt).SetUint64(1), nil).
+					Times(1)
+				mockRPCProvider.EXPECT().
+					BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+					Return(&rpc.Block{}, nil).Times(1)
+				mockRPCProvider.EXPECT().
+					EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+					Return([]rpc.FeeEstimation{
+						{
+							FeeEstimationCommon: rpc.FeeEstimationCommon{
+								L1GasPrice:        new(felt.Felt).SetUint64(10),
+								L1GasConsumed:     new(felt.Felt).SetUint64(100),
+								L1DataGasPrice:    new(felt.Felt).SetUint64(5),
+								L1DataGasConsumed: new(felt.Felt).SetUint64(50),
+								L2GasPrice:        new(felt.Felt).SetUint64(3),
+								L2GasConsumed:     new(felt.Felt).SetUint64(200),
+							},
+						},
+					}, nil).
+					Times(1)
+
+				var compiledClassHash *felt.Felt
+
+				mockRPCProvider.EXPECT().
+					BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+					Return(&rpc.BlockTxHashes{
+						BlockHeader: rpc.BlockHeader{StarknetVersion: test.starknetVersion},
+					}, nil).Times(1)
+				mockRPCProvider.EXPECT().
+					AddDeclareTransaction(gomock.Any(), gomock.Any()).
+					DoAndReturn(
+						func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {
+							declareTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
+							require.True(t, ok)
+
+							compiledClassHash = declareTxn.CompiledClassHash
+
+							return rpc.AddDeclareTransactionResponse{}, nil
+						},
+					).Times(1)
+
+				_, err := acnt.BuildAndSendDeclareTxn(t.Context(), &casmClass, &class, nil)
+				require.NoError(t, err)
+
+				assert.Equal(t, test.expectedCompileClassHash, compiledClassHash.String())
+			})
+		}
+	})
+}
+
 // BuildAndEstimateDeployAccountTxn is a test function that tests the BuildAndSendDeployAccount method.
 //
 // This function tests the BuildAndSendDeployAccount method by setting up test data and invoking the method with different test sets.
