@@ -1,6 +1,12 @@
 # Utils
 
+import { Callout } from 'vocs/components'
+
 The utils package provides essential utility functions for Starknet development, including data conversions, transaction builders, cryptographic operations, and unit conversions.
+
+<Callout type="warning">
+  **Dependency Requirement**: The utils package requires `github.com/NethermindEth/juno v0.15.10` or later. In juno v0.15.10, the `SetRandom()` method signature changed from returning `(*Felt, error)` to returning `*Felt` (now panics on error instead). Ensure your `go.mod` has the correct juno version to avoid compilation errors.
+</Callout>
 
 ## Overview
 
