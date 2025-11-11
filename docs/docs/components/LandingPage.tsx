@@ -760,8 +760,8 @@ export function StarknetLanding() {
             maxWidth: '36rem',
             margin: '0 auto 2.5rem auto'
           }}>
-            Building the future of Starknet with a powerful Go implementation<br />
-            for scalable and efficient blockchain development.
+            A Go SDK for Starknet blockchain development.<br />
+            Build, deploy, and interact with Starknet smart contracts.
           </p>
 
           {/* Code Snippet */}

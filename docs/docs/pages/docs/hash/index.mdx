@@ -1,24 +1,25 @@
-# Hash
+# Hash Package
 
-The `hash` package provides utility functions for calculating transaction hashes and class hashes in the Starknet ecosystem. These hash calculations are essential for verifying transactions, deploying contracts, and validating contract classes.
+The hash package provides functions for calculating transaction hashes and class hashes in Starknet. Use it to verify transactions, compute class hashes before deployment, and validate contract classes.
 
-## Package Overview
+## What This Package Does
 
-The hash package offers three main categories of functionality:
+**Transaction Hash Calculation**
+- Calculate hashes for Invoke, Declare, and Deploy Account transactions
+- Support for versions V0, V1, V2, and V3
+- Generate unique identifiers for transaction verification
 
-1. **Transaction Hash Calculation** - Calculate unique identifiers for different transaction types and versions
-2. **Class Hash Calculation** - Compute hashes for contract classes in both Sierra and compiled (CASM) formats
-3. **Utility Functions** - Helper functions for data availability modes and resource bounds hashing
+**Class Hash Calculation**
+- Compute hashes for Sierra contract classes
+- Calculate compiled class hashes (CASM format)
+- Verify contract class integrity
 
-## Key Features
+**Utility Functions**
+- Helper functions for V3 transaction components
+- Data availability mode hashing
+- Resource bounds hashing
 
-- Support for multiple transaction versions (V0, V1, V2, V3)
-- Transaction types: Invoke, Declare, and Deploy Account
-- Class hash calculation for Sierra contract classes
-- Compiled class hash calculation for CASM format
-- Utility functions for V3 transaction hash components
-
-## Import Path
+## Import
 
 ```go
 import "github.com/NethermindEth/starknet.go/hash"
@@ -63,56 +64,132 @@ func main() {
 }
 ```
 
-## Documentation Sections
+## Available Functions
 
-- [Transaction Hash Functions](./transaction-hash.mdx) - Calculate hashes for Invoke, Declare, and Deploy Account transactions
-- [Class Hash Functions](./class-hash.mdx) - Calculate hashes for Sierra and compiled contract classes
-- [Utility Functions](./utilities.mdx) - Helper functions for V3 transaction components
+### Transaction Hash Functions
+
+Calculate hashes for different transaction types and versions:
+
+**Invoke Transactions:**
+- `TransactionHashInvokeV0` - Legacy invoke transactions (deprecated)
+- `TransactionHashInvokeV1` - Invoke V1 with MaxFee
+- `TransactionHashInvokeV3` - Invoke V3 with resource bounds
+
+**Declare Transactions:**
+- `TransactionHashDeclareV1` - Declare V1 with MaxFee
+- `TransactionHashDeclareV2` - Declare V2 with compiled class hash
+- `TransactionHashDeclareV3` - Declare V3 with resource bounds
+- `TransactionHashBroadcastDeclareV3` - Broadcast variant for V3
+
+**Deploy Account Transactions:**
+- `TransactionHashDeployAccountV1` - Deploy account V1 with MaxFee
+- `TransactionHashDeployAccountV3` - Deploy account V3 with resource bounds
+
+See [Transaction Hash Functions](./transaction-hash.mdx) for details.
+
+### Class Hash Functions
+
+Compute hashes for contract classes:
+
+- `ClassHash` - Calculate hash for Sierra contract class
+- `CompiledClassHash` - Calculate hash for compiled CASM class
+
+See [Class Hash Functions](./class-hash.mdx) for details.
+
+### Utility Functions
+
+Helper functions for V3 transactions:
+
+- `TipAndResourcesHash` - Hash tip and resource bounds
+- `Data AvailabilityModeConc` - Concatenate DA modes
+- `CalculateDeprecatedTransactionHashCommon` - Common deprecated hash calculation
+
+See [Utility Functions](./utilities.mdx) for details.
 
 ## Transaction Versions
 
-The hash package supports multiple transaction versions to accommodate Starknet's evolving protocol:
+Different transaction versions use different hash algorithms:
 
-- **V0 Transactions** - Deprecated legacy invoke transactions
-- **V1 Transactions** - Invoke, Declare, and Deploy Account with MaxFee
-- **V2 Transactions** - Declare transactions with compiled class hash
-- **V3 Transactions** - Modern transactions with resource bounds and data availability modes
+- **V0 Transactions** - Deprecated legacy format (Pedersen hash)
+- **V1 Transactions** - Invoke, Declare, Deploy Account with MaxFee (Pedersen hash)
+- **V2 Transactions** - Declare with compiled class hash (Pedersen hash)
+- **V3 Transactions** - Modern format with resource bounds (Poseidon hash)
 
 ## Hash Algorithms
 
-The package uses two primary hashing algorithms:
-
-- **Pedersen Hash** - Used for V0, V1, and V2 transactions
-- **Poseidon Hash** - Used for V3 transactions and contract class hashes
+- **Pedersen Hash** - Used in V0, V1, V2 transactions
+- **Poseidon Hash** - Used in V3 transactions and contract class hashes (more efficient)
 
 ## Common Use Cases
 
-1. **Transaction Verification** - Calculate expected transaction hash to verify transaction integrity
-2. **Contract Deployment** - Compute class hashes before declaring contracts
-3. **Transaction Monitoring** - Track transactions using their unique hash identifiers
-4. **Fee Estimation** - Calculate transaction hashes as part of fee estimation workflows
+### Transaction Verification
+
+Calculate expected hash to verify transaction integrity:
+
+```go
+expectedHash, err := hash.TransactionHashInvokeV3(txn, chainID)
+if expectedHash.String() != receivedHash.String() {
+    // Transaction has been modified
+}
+```
+
+### Contract Deployment
+
+Compute class hash before declaring:
+
+```go
+classHash, err := hash.ClassHash(contractClass)
+fmt.Printf("Class Hash: %s\n", classHash.String())
+```
+
+### Transaction Monitoring
+
+Track transactions using their unique hash:
+
+```go
+txHash, _ := hash.TransactionHashInvokeV1(txn, chainID)
+receipt, err := provider.TransactionReceipt(ctx, txHash)
+```
 
 ## Error Handling
 
-The hash functions return specific errors:
+Hash functions return specific errors:
 
-- `ErrNotAllParametersSet` - Required transaction parameters are missing
+- `ErrNotAllParametersSet` - Missing required transaction parameters
 - `ErrFeltToBigInt` - Conversion error from felt to BigInt
 
-Always check for errors when calculating hashes:
+Always check for errors:
 
 ```go
 txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
 if err != nil {
-	// Handle error appropriately
-	return err
+    if err == hash.ErrNotAllParametersSet {
+        // Handle missing parameters
+    }
+    return err
 }
 ```
 
+## Test Examples
+
+See the test files in `docs/tests/hash/` for working examples:
+
+- `transaction_hash_invoke_v0.go` - Invoke V0 example
+- `transaction_hash_declare_v1.go` - Declare V1 example
+- `transaction_hash_declare_v3.go` - Declare V3 with resource bounds
+- `transaction_hash_deploy_account_v1.go` - Deploy account V1 example
+- `transaction_hash_deploy_account_v3.go` - Deploy account V3 example
+
+## Related Packages
+
+- **[Account Package](/docs/account/)** - Uses hash package for transaction hash calculation
+- **[RPC Package](/docs/rpc/)** - Transaction submission and verification
+- **[Curve Package](/docs/curve/)** - Provides Pedersen and Poseidon hash functions
+
 ## Reference
 
-For more detailed information about hash calculations in Starknet, see:
+For more information:
 
 - [Starknet Transaction Hash Documentation](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/)
 - [Starknet Class Hash Documentation](https://docs.starknet.io/architecture-and-concepts/smart-contracts/class-hash/)
-- [Package Documentation on pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/hash)
+- [pkg.go.dev Documentation](https://pkg.go.dev/github.com/NethermindEth/starknet.go/hash)
