@@ -19,7 +19,7 @@ func main() {
 	// Create keystore with test key
 	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
 	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
+	account.SetNewMemKeystore(publicKey, privateKey)
 
 	fmt.Println("Account parameters prepared:")
 	fmt.Printf("Account address: %s\n", accountAddress)

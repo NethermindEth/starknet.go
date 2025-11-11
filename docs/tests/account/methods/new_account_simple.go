@@ -33,7 +33,7 @@ func main() {
 	fmt.Printf("Public key: %s\n", publicKey)
 
 	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
+	account.SetNewMemKeystore(publicKey, privateKey)
 	fmt.Printf("Keystore created with private key: %s\n", privateKey)
 
 	fmt.Println("\nCairo versions:")
