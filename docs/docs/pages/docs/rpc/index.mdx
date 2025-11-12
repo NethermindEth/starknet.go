@@ -84,7 +84,7 @@ Type definitions for all RPC operations. Provides compile-time type safety for r
 ### Transaction Methods
 
 - **[TransactionByHash](/docs/rpc/methods/transaction-by-hash)** - Get transaction by hash
-- **[TransactionByBlockIdAndIndex](/docs/rpc/methods/transaction-by-block-id-and-index)** - Get transaction by position
+- **[GetTransactionByBlockIdAndIndex](/docs/rpc/methods/get-transaction-by-block-id-and-index)** - Get transaction by position
 - **[TransactionReceipt](/docs/rpc/methods/transaction-receipt)** - Get execution results
 - **[GetTransactionStatus](/docs/rpc/methods/get-transaction-status)** - Check status
 - **[AddInvokeTransaction](/docs/rpc/methods/add-invoke-transaction)** - Submit invoke transaction
@@ -95,19 +95,19 @@ Type definitions for all RPC operations. Provides compile-time type safety for r
 ### Contract Methods
 
 - **[Call](/docs/rpc/methods/call)** - Read-only contract calls
-- **[Class](/docs/rpc/methods/class)** - Get contract class definition
-- **[ClassAt](/docs/rpc/methods/class-at)** - Get class at address
-- **[ClassHashAt](/docs/rpc/methods/class-hash-at)** - Get class hash for address
-- **[StorageAt](/docs/rpc/methods/storage-at)** - Read contract storage
-- **[Nonce](/docs/rpc/methods/nonce)** - Get account nonce
+- **[GetClass](/docs/rpc/methods/get-class)** - Get contract class definition
+- **[GetClassAt](/docs/rpc/methods/get-class-at)** - Get class at address
+- **[GetClassHashAt](/docs/rpc/methods/get-class-hash-at)** - Get class hash for address
+- **[GetStorageAt](/docs/rpc/methods/get-storage-at)** - Read contract storage
+- **[GetNonce](/docs/rpc/methods/get-nonce)** - Get account nonce
 - **[EstimateFee](/docs/rpc/methods/estimate-fee)** - Estimate transaction fees
 - **[EstimateMessageFee](/docs/rpc/methods/estimate-message-fee)** - Estimate L1→L2 message fees
-- **[GetStorageProof](/docs/rpc/methods/get-storage-proof)** - Get storage Merkle proof
+- **[StorageProof](/docs/rpc/methods/storage-proof)** - Get storage Merkle proof
 - **[CompiledCasm](/docs/rpc/methods/compiled-casm)** - Get compiled CASM class
 
 ### Chain Information
 
-- **[ChainID](/docs/rpc/methods/chain-id)** - Get chain identifier
+- **[ChainID](/docs/rpc/methods/chain-ID)** - Get chain identifier
 - **[Syncing](/docs/rpc/methods/syncing)** - Get node sync status
 - **[SpecVersion](/docs/rpc/methods/spec-version)** - Get RPC spec version
 
@@ -115,13 +115,11 @@ Type definitions for all RPC operations. Provides compile-time type safety for r
 
 - **[Events](/docs/rpc/methods/events)** - Query historical events (supports filtering by block range, contract address, event keys)
 
-See the [Read Events example](/docs/examples/read-events) for filtering patterns.
-
 ### Debug & Tracing
 
 - **[TraceTransaction](/docs/rpc/methods/trace-transaction)** - Get transaction execution trace
 - **[TraceBlockTransactions](/docs/rpc/methods/trace-block-transactions)** - Trace all transactions in block
-- **[SimulateTransactions](/docs/rpc/methods/simulate-transactions)** - Simulate before sending
+- **[SimulateTransaction](/docs/rpc/methods/simulate-transaction)** - Simulate before sending
 
 ## Network Support
 
