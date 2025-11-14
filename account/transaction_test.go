@@ -560,6 +560,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		})
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
+			mockRPCProvider.EXPECT().
+				BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+				Return(&rpc.BlockTxHashes{
+					BlockHeader: rpc.BlockHeader{StarknetVersion: "0.14.1"},
+				}, nil).Times(1)
 			mockRPCProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {
 					bcTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
