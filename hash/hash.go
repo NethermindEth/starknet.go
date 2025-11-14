@@ -129,13 +129,6 @@ func hashEntryPointByType(entryPoint []contracts.SierraEntryPoint) *felt.Felt {
 	return curve.PoseidonArray(flattened...)
 }
 
-type hasherFunc = func() *felt.Felt
-
-type bytecodeSegment struct {
-	Hash hasherFunc
-	Size uint64
-}
-
 // getByteCodeSegmentHasher calculates hasher function for byte code array from
 // casm file. This code is adaptation of:
 // https://github.com/starkware-libs/cairo-lang/blob/efa9648f57568aad8f8a13fbf027d2de7c63c2c0/src/starkware/starknet/core/os/contract_class/compiled_class_hash.py
@@ -161,7 +154,8 @@ func getByteCodeSegmentHasher(
 	bytecodeSegmentLengths contracts.NestedUints,
 	visitedPcs *[]uint64,
 	bytecodeOffset uint64,
-) (hasherF hasherFunc, size uint64, err error) {
+	hashFunc func(...*felt.Felt) *felt.Felt,
+) (hash *felt.Felt, size uint64, err error) {
 	if !bytecodeSegmentLengths.IsArray {
 		segmentValue := *bytecodeSegmentLengths.Value
 		segmentEnd := bytecodeOffset + segmentValue
@@ -184,9 +178,12 @@ func getByteCodeSegmentHasher(
 
 		bytecodePart := bytecode[bytecodeOffset:segmentEnd]
 
-		return func() *felt.Felt {
-			return curve.PoseidonArray(bytecodePart...)
-		}, segmentValue, nil
+		return hashFunc(bytecodePart...), segmentValue, nil
+	}
+
+	type bytecodeSegment struct {
+		Value *felt.Felt
+		Size  uint64
 	}
 
 	segments := []bytecodeSegment{}
@@ -205,6 +202,7 @@ func getByteCodeSegmentHasher(
 			item,
 			visitedPcs,
 			bytecodeOffset,
+			hashFunc,
 		)
 		if err != nil {
 			return nil, 0, err
@@ -225,26 +223,24 @@ func getByteCodeSegmentHasher(
 		}
 
 		segments = append(segments, bytecodeSegment{
-			Hash: segmentHash,
-			Size: segmentLen,
+			Value: segmentHash,
+			Size:  segmentLen,
 		})
 		bytecodeOffset += segmentLen
 		totalLen += segmentLen
 	}
 
-	return func() *felt.Felt {
-		components := make([]*felt.Felt, len(segments)*2)
+	components := make([]*felt.Felt, len(segments)*2)
 
-		for i, val := range segments {
-			components[i*2] = internalUtils.Uint64ToFelt(val.Size)
-			components[i*2+1] = val.Hash()
-		}
+	for i, val := range segments {
+		components[i*2] = internalUtils.Uint64ToFelt(val.Size)
+		components[i*2+1] = val.Value
+	}
 
-		return new(felt.Felt).Add(
-			internalUtils.Uint64ToFelt(1),
-			curve.PoseidonArray(components...),
-		)
-	}, totalLen, nil
+	return new(felt.Felt).Add(
+		internalUtils.Uint64ToFelt(1),
+		hashFunc(components...),
+	), totalLen, nil
 }
 
 // getByteCodeSegmentHasher calculates hash for byte code array from casm file
@@ -260,6 +256,7 @@ func getByteCodeSegmentHasher(
 func hashCasmClassByteCode(
 	bytecode []*felt.Felt,
 	bytecodeSegmentLengths contracts.NestedUints,
+	hashFunc func(...*felt.Felt) *felt.Felt,
 ) (*felt.Felt, error) {
 	visited := make([]uint64, len(bytecode))
 
@@ -269,28 +266,36 @@ func hashCasmClassByteCode(
 
 	slices.Reverse(visited)
 
-	hasher, _, err := getByteCodeSegmentHasher(
-		bytecode, bytecodeSegmentLengths, &visited, uint64(0),
+	hash, _, err := getByteCodeSegmentHasher(
+		bytecode,
+		bytecodeSegmentLengths,
+		&visited,
+		uint64(0),
+		hashFunc,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return hasher(), nil
+	return hash, nil
 }
 
-// CompiledClassHash calculates the hash of a compiled class in the Casm format.
+// compiledClassHash calculates the hash of a compiled class in the Casm format
+// using the provided hash function.
 //
 // Parameters:
 //   - casmClass: A `contracts.CasmClass` object
 //
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
-func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
+func compiledClassHash(
+	casmClass *contracts.CasmClass,
+	hashFunc func(...*felt.Felt) *felt.Felt,
+) (*felt.Felt, error) {
 	ContractClassVersionHash := new(felt.Felt).SetBytes([]byte("COMPILED_CLASS_V1"))
-	ExternalHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.External)
-	L1HandleHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.L1Handler)
-	ConstructorHash := hashCasmClassEntryPointByType(casmClass.EntryPointsByType.Constructor)
+	ExternalHash := hashCasmEntryPoints(casmClass.EntryPointsByType.External, hashFunc)
+	L1HandleHash := hashCasmEntryPoints(casmClass.EntryPointsByType.L1Handler, hashFunc)
+	ConstructorHash := hashCasmEntryPoints(casmClass.EntryPointsByType.Constructor, hashFunc)
 
 	var ByteCodeHasH *felt.Felt
 	var err error
@@ -299,17 +304,18 @@ func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
 		ByteCodeHasH, err = hashCasmClassByteCode(
 			casmClass.ByteCode,
 			*casmClass.BytecodeSegmentLengths,
+			hashFunc,
 		)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		ByteCodeHasH = curve.PoseidonArray(casmClass.ByteCode...)
+		ByteCodeHasH = hashFunc(casmClass.ByteCode...)
 	}
 
 	//nolint:lll // The link would be unclickable if we break the line.
 	// https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/hash/casm_class_hash.py#L18
-	return curve.PoseidonArray(
+	return hashFunc(
 		ContractClassVersionHash,
 		ExternalHash,
 		L1HandleHash,
@@ -318,21 +324,53 @@ func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
 	), nil
 }
 
-// hashCasmClassEntryPointByType calculates the hash of a CasmClassEntryPoint array.
+// CompiledClassHash calculates the hash of a compiled class in the Casm format
+// using the Poseidon hash function.
+// This function will be deprecated in Starknet v0.14.1 onwards.
+//
+// Parameters:
+//   - casmClass: A `contracts.CasmClass` object
+//
+// Returns:
+//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error) {
+	return compiledClassHash(casmClass, curve.PoseidonArray)
+}
+
+// CompiledClassHashV2 calculates the hash of a compiled class in the Casm format
+// using the Blake2s hash function. This is correct hash function to calculate the
+// compiled class hash for Starknet v0.14.1 onwards.
+//
+// Parameters:
+//   - casmClass: A `contracts.CasmClass` object
+//
+// Returns:
+//   - *felt.Felt: a pointer to a felt.Felt object that represents the calculated hash.
+func CompiledClassHashV2(casmClass *contracts.CasmClass) (*felt.Felt, error) {
+	return compiledClassHash(casmClass, curve.Blake2sArray)
+}
+
+// hashCasmEntryPoints calculates the hash of a CasmClassEntryPoint array
+// using the provided hash function.
 //
 // Parameters:
 //   - entryPoint: An array of CasmClassEntryPoint objects
+//   - hashFunc: A function that takes a variadic number of pointers to felt.Felt
+//     and returns a pointer to a felt.Felt
 //
 // Returns:
 //   - *felt.Felt: a pointer to a Felt type
-func hashCasmClassEntryPointByType(entryPoint []contracts.CasmEntryPoint) *felt.Felt {
+func hashCasmEntryPoints(
+	entryPoint []contracts.CasmEntryPoint,
+	hashFunc func(...*felt.Felt) *felt.Felt,
+) *felt.Felt {
 	flattened := make([]*felt.Felt, 0, len(entryPoint))
 	for _, elt := range entryPoint {
 		builtInFlat := []*felt.Felt{}
 		for _, builtIn := range elt.Builtins {
 			builtInFlat = append(builtInFlat, new(felt.Felt).SetBytes([]byte(builtIn)))
 		}
-		builtInHash := curve.PoseidonArray(builtInFlat...)
+		builtInHash := hashFunc(builtInFlat...)
 		flattened = append(
 			flattened,
 			elt.Selector,
@@ -341,7 +379,7 @@ func hashCasmClassEntryPointByType(entryPoint []contracts.CasmEntryPoint) *felt.
 		)
 	}
 
-	return curve.PoseidonArray(flattened...)
+	return hashFunc(flattened...)
 }
 
 // TransactionHashInvokeV0 calculates the transaction hash for a invoke V0 transaction.
