@@ -58,6 +58,7 @@ type TxnOptions struct {
 	// the Starknet v0.14.1 upgrade, when the Poseidon hash function will be deprecated
 	// for the compiled class hash.
 	UseBlake2sHash bool
+	// TODO: remove this field after the Starknet v0.14.1 upgrade
 }
 
 // TxnVersion returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and

@@ -133,21 +133,6 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
-	ctrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
-
-	ks, pub, _ := account.GetRandomKeys()
-	// called when instantiating the account
-	mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
-	acnt, err := account.NewAccount(
-		mockRPCProvider,
-		internalUtils.DeadBeef,
-		pub.String(),
-		ks,
-		account.CairoV2,
-	)
-	require.NoError(t, err)
-
 	// Class
 	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
@@ -164,23 +149,73 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 	t.Run("compiled class hash", func(t *testing.T) {
 		testcases := []struct {
 			name                     string
+			txnOptions               *account.TxnOptions
 			starknetVersion          string
 			expectedCompileClassHash string
 		}{
 			{
 				name:                     "before 0.14.1",
+				txnOptions:               nil,
+				starknetVersion:          "0.14.0",
+				expectedCompileClassHash: "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
+			},
+			{
+				name: "before 0.14.1 + UseBlake2sHash true",
+				txnOptions: &account.TxnOptions{
+					UseBlake2sHash: &[]bool{true}[0],
+				},
+				starknetVersion:          "0.14.0",
+				expectedCompileClassHash: "0x23c2091df2547f77185ba592b06ee2e897b0c2a70f968521a6a24fc5bfc1b1e",
+			},
+			{
+				name: "before 0.14.1 + UseBlake2sHash false",
+				txnOptions: &account.TxnOptions{
+					UseBlake2sHash: &[]bool{false}[0],
+				},
 				starknetVersion:          "0.14.0",
 				expectedCompileClassHash: "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
 			},
 			{
 				name:                     "after 0.14.1",
+				txnOptions:               nil,
 				starknetVersion:          "0.14.1",
 				expectedCompileClassHash: "0x23c2091df2547f77185ba592b06ee2e897b0c2a70f968521a6a24fc5bfc1b1e",
+			},
+			{
+				name: "after 0.14.1 + UseBlake2sHash true",
+				txnOptions: &account.TxnOptions{
+					UseBlake2sHash: &[]bool{true}[0],
+				},
+				starknetVersion:          "0.14.1",
+				expectedCompileClassHash: "0x23c2091df2547f77185ba592b06ee2e897b0c2a70f968521a6a24fc5bfc1b1e",
+			},
+			{
+				name: "after 0.14.1 + UseBlake2sHash false",
+				txnOptions: &account.TxnOptions{
+					UseBlake2sHash: &[]bool{false}[0],
+				},
+				starknetVersion:          "0.14.1",
+				expectedCompileClassHash: "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
 			},
 		}
 
 		for _, test := range testcases {
 			t.Run(test.name, func(t *testing.T) {
+				ctrl := gomock.NewController(t)
+				mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
+
+				ks, pub, _ := account.GetRandomKeys()
+				// called when instantiating the account
+				mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+				acnt, err := account.NewAccount(
+					mockRPCProvider,
+					internalUtils.DeadBeef,
+					pub.String(),
+					ks,
+					account.CairoV2,
+				)
+				require.NoError(t, err)
+
 				// called in the BuildAndSendDeclareTxn method
 				mockRPCProvider.EXPECT().
 					Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -207,11 +242,16 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 
 				var compiledClassHash *felt.Felt
 
-				mockRPCProvider.EXPECT().
-					BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
-					Return(&rpc.BlockTxHashes{
-						BlockHeader: rpc.BlockHeader{StarknetVersion: test.starknetVersion},
-					}, nil).Times(1)
+				if test.txnOptions == nil {
+					// if txnOptions is nil, the code should call the BlockWithTxHashes method to get the
+					// Starknet version and decide whether to use the Blake2s hash function
+					mockRPCProvider.EXPECT().
+						BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+						Return(&rpc.BlockTxHashes{
+							BlockHeader: rpc.BlockHeader{StarknetVersion: test.starknetVersion},
+						}, nil).Times(1)
+				}
+
 				mockRPCProvider.EXPECT().
 					AddDeclareTransaction(gomock.Any(), gomock.Any()).
 					DoAndReturn(
@@ -225,7 +265,12 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 						},
 					).Times(1)
 
-				_, err := acnt.BuildAndSendDeclareTxn(t.Context(), &casmClass, &class, nil)
+				_, err = acnt.BuildAndSendDeclareTxn(
+					t.Context(),
+					&casmClass,
+					&class,
+					test.txnOptions,
+				)
 				require.NoError(t, err)
 
 				assert.Equal(t, test.expectedCompileClassHash, compiledClassHash.String())

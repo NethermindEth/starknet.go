@@ -139,9 +139,15 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if err != nil {
 		return response, err
 	}
-	useBlake2sHash, err := shouldUseBlake2sHash(ctx, account.Provider)
-	if err != nil {
-		return response, err
+
+	var useBlake2sHash bool
+	if opts.UseBlake2sHash == nil {
+		useBlake2sHash, err = shouldUseBlake2sHash(ctx, account.Provider)
+		if err != nil {
+			return response, fmt.Errorf("failed to check whether to use Blake2s hash: %w", err)
+		}
+	} else {
+		useBlake2sHash = *opts.UseBlake2sHash
 	}
 
 	// building and signing the txn, as it needs a signature to estimate the fee
