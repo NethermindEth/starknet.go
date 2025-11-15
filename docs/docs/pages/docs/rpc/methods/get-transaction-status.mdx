@@ -1,22 +1,45 @@
-# GetTransactionStatus
+# TransactionStatus
 
-Gets the status of a transaction, including finality and execution status.
+Gets the transaction status, including finality status and execution status. This method can reflect if the transaction is still in the mempool or has been dropped from it.
 
 ## Method Signature
 
 ```go
-func (provider *Provider) GetTransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
+func (provider *Provider) TransactionStatus(
+    ctx context.Context,
+    transactionHash *felt.Felt,
+) (*TxnStatusResult, error)
 ```
+
+**Source:** [transaction.go:L88-L99](https://github.com/NethermindEth/starknet.go/blob/main/rpc/transaction.go#L88-L99)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `transactionHash` - Transaction hash as a felt.Felt
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `transactionHash` (*felt.Felt): The transaction hash to get the status for
 
 ## Returns
 
-- `*TxnStatusResult` - Transaction status information
-- `error` - Error if the request fails
+- `*TxnStatusResult`: Transaction status result with finality and execution status
+- `error`: Error if the request fails
+:::note
+This can return `ErrHashNotFound` if the transaction hash doesn't exist.
+:::
+
+## Type Definitions
+
+### TxnStatusResult
+
+```go
+type TxnStatusResult struct {
+    FinalityStatus  TxnStatus          `json:"finality_status"`
+    ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+    // the failure reason, only appears if execution_status is REVERTED
+    FailureReason string `json:"failure_reason,omitempty"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L232-L237](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L232-L237)
 
 ## Usage Example
 
@@ -25,72 +48,92 @@ package main
 
 import (
     "context"
-    "encoding/json"
     "fmt"
     "log"
-	"os"
+    "os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
-
-	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
     }
 
-    // Use a known successful transaction hash (invoke transaction)
-    txHashStr := "0x02b900ba6bfb6a7d256d34c5d3a895abbfa0805d23f80253958e101069700020"
-    txHash, err := new(felt.Felt).SetString(txHashStr)
-    if err != nil {
-        log.Fatal("Failed to parse transaction hash:", err)
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
     }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get a transaction hash from the latest block
+    blockID := rpc.WithBlockTag("latest")
+    blockResult, err := provider.BlockWithTxHashes(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    block, ok := blockResult.(*rpc.BlockTxHashes)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    if len(block.Transactions) == 0 {
+        log.Fatal("No transactions in latest block")
+    }
+
+    txHash := block.Transactions[0]
 
     // Get transaction status
-    status, err := client.GetTransactionStatus(ctx, txHash)
+    status, err := provider.TransactionStatus(ctx, txHash)
     if err != nil {
-        log.Fatal("Failed to get transaction status:", err)
+        log.Fatal(err)
     }
 
-    // Pretty print the status
-    statusJSON, err := json.MarshalIndent(status, "", "  ")
-    if err != nil {
-        log.Fatal("Failed to marshal status:", err)
+    fmt.Printf("Transaction Hash: %s\n", txHash)
+    fmt.Printf("Finality Status: %s\n", status.FinalityStatus)
+    fmt.Printf("Execution Status: %s\n", status.ExecutionStatus)
+    if status.FailureReason != "" {
+        fmt.Printf("Failure Reason: %s\n", status.FailureReason)
     }
-
-    fmt.Printf("Transaction status:\n%s\n", statusJSON)
 }
 ```
-
-## Expected Output
-
-```json
-{
-  "finality_status": "ACCEPTED_ON_L1",
-  "execution_status": "SUCCEEDED"
-}
-```
-
-This shows a successful transaction that has been accepted on L1 (fully finalized) with successful execution.
 
 ## Error Handling
 
 ```go
-status, err := client.GetTransactionStatus(ctx, txHash)
+status, err := provider.TransactionStatus(ctx, txHash)
 if err != nil {
+    if errors.Is(err, rpc.ErrHashNotFound) {
+        log.Printf("Transaction hash not found: %s", txHash)
+        return
+    }
     log.Printf("Error getting transaction status: %v", err)
     return
 }
 
-fmt.Printf("Transaction status: Finality=%s, Execution=%s\n",
-    status.FinalityStatus, status.ExecutionStatus)
+// Check execution status
+if status.ExecutionStatus == rpc.TxnExecutionStatusREVERTED {
+    fmt.Printf("Transaction reverted: %s\n", status.FailureReason)
+} else if status.ExecutionStatus == rpc.TxnExecutionStatusSUCCEEDED {
+    fmt.Printf("Transaction succeeded with finality: %s\n", status.FinalityStatus)
+}
 ```
+
+## Common Use Cases
+
+- Monitoring transaction finality progression from mempool to L1 finalization.
+- Checking if a transaction succeeded or reverted before proceeding.
+
