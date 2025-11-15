@@ -2,6 +2,154 @@
 
 Comprehensive examples for using Starknet RPC methods.
 
+## <span id="block-with-tx-hashes">BlockWithTxHashes Examples</span>
+
+### Lightweight Block Monitoring
+
+Monitor blocks efficiently without downloading full transaction data:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Monitor blocks every 10 seconds
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    fmt.Println("Monitoring blocks...")
+    for range ticker.C {
+        blockID := rpc.WithBlockTag("latest")
+        result, err := provider.BlockWithTxHashes(ctx, blockID)
+        if err != nil {
+            log.Printf("Error: %v", err)
+            continue
+        }
+
+        // Type assert to BlockTxHashes
+        block, ok := result.(*rpc.BlockTxHashes)
+        if !ok {
+            log.Printf("Unexpected block type")
+            continue
+        }
+
+        fmt.Printf("\nBlock #%d\n", block.Number)
+        fmt.Printf("Hash: %s\n", block.Hash)
+        fmt.Printf("Transactions: %d\n", len(block.Transactions))
+        fmt.Printf("Status: %s\n", block.Status)
+    }
+}
+```
+
+### Transaction Inclusion Check
+
+Quickly verify if a transaction hash is included in a block:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func isTransactionInBlock(ctx context.Context, provider *rpc.Provider, blockNum uint64, txHash string) (bool, error) {
+    blockID := rpc.WithBlockNumber(blockNum)
+    result, err := provider.BlockWithTxHashes(ctx, blockID)
+    if err != nil {
+        return false, fmt.Errorf("failed to get block: %w", err)
+    }
+
+    // Type assert to BlockTxHashes
+    block, ok := result.(*rpc.BlockTxHashes)
+    if !ok {
+        return false, fmt.Errorf("unexpected block type")
+    }
+
+    // Check if transaction hash is in the block
+    for _, hash := range block.Transactions {
+        if hash.String() == txHash {
+            return true, nil
+        }
+    }
+
+    return false, nil
+}
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Check if a specific transaction is in a block
+    txHash := "0x233dc4da3ba77d376a8a1fcf5148a363d3e74f4e9e2b067639423256dc6ba05"
+    blockNum := uint64(100000)
+
+    found, err := isTransactionInBlock(ctx, provider, blockNum, txHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if found {
+        fmt.Printf("✓ Transaction %s found in block #%d\n", txHash, blockNum)
+    } else {
+        fmt.Printf("✗ Transaction %s not found in block #%d\n", txHash, blockNum)
+    }
+}
+```
+
 ## <span id="block-with-txs">BlockWithTxs Examples</span>
 
 ### Transaction Analysis
