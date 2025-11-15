@@ -2,6 +2,107 @@
 
 Comprehensive examples for using Starknet RPC methods.
 
+### Transaction Outcome Analysis
+
+Analyze complete transaction execution including gas costs and events:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get specific block with receipts
+    blockID := rpc.WithBlockNumber(100000)
+    result, err := provider.BlockWithReceipts(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to BlockWithReceipts
+    block, ok := result.(*rpc.BlockWithReceipts)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    fmt.Printf("=== Block #%d Analysis ===\n", block.Number)
+    fmt.Printf("Hash: %s\n", block.Hash)
+    fmt.Printf("Total Transactions: %d\n\n", len(block.Transactions))
+
+    // Analyze each transaction and its receipt
+    var totalGasUsed uint64
+    var successCount, failCount int
+
+    for i, txWithReceipt := range block.Transactions {
+        receipt := txWithReceipt.Receipt
+
+        fmt.Printf("Transaction %d:\n", i+1)
+        fmt.Printf("  Hash: %s\n", receipt.TransactionHash)
+        fmt.Printf("  Type: %s\n", receipt.Type())
+        fmt.Printf("  Status: %s\n", receipt.ExecutionStatus())
+        fmt.Printf("  Finality: %s\n", receipt.FinalityStatus())
+
+        // Track execution status
+        if receipt.ExecutionStatus() == "SUCCEEDED" {
+            successCount++
+        } else {
+            failCount++
+        }
+
+        // Gas analysis
+        if execReceipt, ok := receipt.(interface{ ExecutionResources() rpc.ExecutionResources }); ok {
+            resources := execReceipt.ExecutionResources()
+            l2Gas := resources.L2Gas
+            totalGasUsed += l2Gas
+            fmt.Printf("  L2 Gas Used: %d\n", l2Gas)
+        }
+
+        // Events emitted
+        if execReceipt, ok := receipt.(interface{ Events() []rpc.Event }); ok {
+            events := execReceipt.Events()
+            fmt.Printf("  Events Emitted: %d\n", len(events))
+        }
+
+        fmt.Println()
+    }
+
+    // Summary
+    fmt.Printf("=== Block Summary ===\n")
+    fmt.Printf("Successful Transactions: %d\n", successCount)
+    fmt.Printf("Failed Transactions: %d\n", failCount)
+    fmt.Printf("Total L2 Gas Used: %d\n", totalGasUsed)
+}
+```
+
+
 ## <span id="block-with-tx-hashes">BlockWithTxHashes Examples</span>
 
 ### Lightweight Block Monitoring
