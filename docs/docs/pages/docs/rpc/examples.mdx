@@ -1305,3 +1305,138 @@ func main() {
     // without downloading the entire state
 }
 ```
+
+## TransactionReceipt
+
+### Gas Analysis and Fee Tracking
+
+Analyze actual gas consumption, fees paid, and execution resources:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // First, get a transaction hash from the latest block
+    blockID := rpc.WithBlockTag("latest")
+    blockResult, err := provider.BlockWithTxHashes(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to BlockTxHashes
+    block, ok := blockResult.(*rpc.BlockTxHashes)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    if len(block.Transactions) == 0 {
+        log.Fatal("No transactions in latest block")
+    }
+
+    // Get receipt for the first transaction
+    txHash := block.Transactions[0]
+    receipt, err := provider.TransactionReceipt(ctx, txHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Display transaction information
+    fmt.Printf("=== Transaction Receipt ===\n")
+    fmt.Printf("Transaction Hash: %s\n", receipt.Hash)
+    fmt.Printf("Transaction Type: %s\n", receipt.Type)
+    fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
+    fmt.Printf("Block Hash: %s\n", receipt.BlockHash)
+    fmt.Printf("\n")
+
+    // Display execution status
+    fmt.Printf("=== Execution Status ===\n")
+    fmt.Printf("Finality Status: %s\n", receipt.FinalityStatus)
+    fmt.Printf("Execution Status: %s\n", receipt.ExecutionStatus)
+    if receipt.RevertReason != "" {
+        fmt.Printf("Revert Reason: %s\n", receipt.RevertReason)
+    }
+    fmt.Printf("\n")
+
+    // Display gas and fee information
+    fmt.Printf("=== Gas and Fee Analysis ===\n")
+    fmt.Printf("Actual Fee: %s %s\n", receipt.ActualFee.Amount, receipt.ActualFee.Unit)
+    fmt.Printf("\n")
+
+    // Display execution resources
+    fmt.Printf("=== Execution Resources ===\n")
+    resources := receipt.ExecutionResources
+    fmt.Printf("L1 Gas: %d\n", resources.L1Gas)
+    fmt.Printf("L1 Data Gas: %d\n", resources.L1DataGas)
+    fmt.Printf("L2 Gas: %d\n", resources.L2Gas)
+    fmt.Printf("\n")
+
+    // Display events emitted
+    fmt.Printf("=== Events Emitted ===\n")
+    fmt.Printf("Total Events: %d\n", len(receipt.Events))
+    for i, event := range receipt.Events {
+        if i >= 3 {
+            fmt.Printf("... and %d more events\n", len(receipt.Events)-3)
+            break
+        }
+        fmt.Printf("\nEvent %d:\n", i+1)
+        fmt.Printf("  From Contract: %s\n", event.FromAddress)
+        fmt.Printf("  Keys: %d\n", len(event.Keys))
+        fmt.Printf("  Data: %d elements\n", len(event.Data))
+    }
+    fmt.Printf("\n")
+
+    // Display messages sent to L1
+    if len(receipt.MessagesSent) > 0 {
+        fmt.Printf("=== Messages to L1 ===\n")
+        fmt.Printf("Total Messages: %d\n", len(receipt.MessagesSent))
+        for i, msg := range receipt.MessagesSent {
+            fmt.Printf("\nMessage %d:\n", i+1)
+            fmt.Printf("  From Address: %s\n", msg.FromAddress)
+            fmt.Printf("  To Address: %s\n", msg.ToAddress)
+            fmt.Printf("  Payload Length: %d\n", len(msg.Payload))
+        }
+        fmt.Printf("\n")
+    }
+
+    // Calculate cost efficiency metrics
+    if receipt.ExecutionStatus == rpc.TxnExecutionStatusSUCCEEDED {
+        fmt.Printf("=== Cost Efficiency ===\n")
+        totalL2Gas := resources.L2Gas
+        if totalL2Gas > 0 {
+            fmt.Printf("Total L2 Gas: %d\n", totalL2Gas)
+            fmt.Printf("Events Emitted per 1000 L2 Gas: %.2f\n",
+                float64(len(receipt.Events))*1000/float64(totalL2Gas))
+        }
+    }
+}
+```

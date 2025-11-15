@@ -1,23 +1,44 @@
 # TransactionReceipt
 
-Gets the receipt of a transaction by its hash, showing execution results and resource consumption.
+Gets the execution receipt of a transaction by its hash. The receipt contains execution results including success/failure status, actual fees paid, gas consumed, events emitted, messages sent, and detailed revert reasons if the transaction failed. This is essential for verifying transaction execution, analyzing costs, and debugging failed transactions. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*TransactionReceiptWithBlockInfo, error)
+func (provider *Provider) TransactionReceipt(
+    ctx context.Context,
+    transactionHash *felt.Felt,
+) (*TransactionReceiptWithBlockInfo, error)
 ```
+
+**Source:** [transaction.go:L65-L76](https://github.com/NethermindEth/starknet.go/blob/main/rpc/transaction.go#L65-L76)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `transactionHash` - Transaction hash as a felt.Felt
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `transactionHash` (*felt.Felt): The transaction hash to get the receipt for
 
 ## Returns
 
-- `*TransactionReceiptWithBlockInfo` - Transaction receipt with execution details
-- `error` - Error if the request fails
+- `*TransactionReceiptWithBlockInfo`: Transaction receipt with execution details and block information
+- `error`: Error if the request fails
+:::note
+This can return `ErrHashNotFound` if the transaction hash doesn't exist.
+:::
 
+## Type Definitions
+
+### TransactionReceiptWithBlockInfo
+
+```go
+type TransactionReceiptWithBlockInfo struct {
+    TransactionReceipt
+    BlockHash   *felt.Felt `json:"block_hash,omitempty"`
+    BlockNumber uint       `json:"block_number,omitempty"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L245-L249](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L245-L249)
 ## Usage Example
 
 ```go
@@ -28,103 +49,85 @@ import (
     "encoding/json"
     "fmt"
     "log"
-	"os"
+    "os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
-
-	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
     }
 
-    // Use a known transaction hash to get its receipt
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Parse transaction hash
     txHashStr := "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa"
     txHash, err := new(felt.Felt).SetString(txHashStr)
     if err != nil {
-        log.Fatal("Failed to parse transaction hash:", err)
+        log.Fatal(err)
     }
 
     // Get transaction receipt
-    receipt, err := client.TransactionReceipt(ctx, txHash)
+    receipt, err := provider.TransactionReceipt(context.Background(), txHash)
     if err != nil {
-        log.Fatal("Failed to get transaction receipt:", err)
+        log.Fatal(err)
     }
 
-    // Pretty print the full receipt
-    receiptJSON, err := json.MarshalIndent(receipt, "", "  ")
-    if err != nil {
-        log.Fatal("Failed to marshal receipt:", err)
-    }
-
+    // Pretty print the result
+    receiptJSON, _ := json.MarshalIndent(receipt, "", "  ")
     fmt.Printf("Transaction receipt:\n%s\n", receiptJSON)
 }
 ```
 
-## Expected Output
-
-```json
-{
-  "transaction_hash": "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
-  "type": "INVOKE",
-  "actual_fee": {
-    "amount": "0x627bebf0c73a80",
-    "unit": "FRI"
-  },
-  "finality_status": "ACCEPTED_ON_L1",
-  "messages_sent": [],
-  "events": [
-    {
-      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "keys": [
-        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-      ],
-      "data": [
-        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-        "0x627bebf0c73a80",
-        "0x0"
-      ]
-    }
-  ],
-  "execution_resources": {
-    "l1_gas": 0,
-    "l1_data_gas": 128,
-    "l2_gas": 9240267
-  },
-  "execution_status": "REVERTED",
-  "revert_reason": "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x019ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da, class hash: 0x079a9a12fdfa0481e8d8d46599b90226cd7247b2667358bb00636dd864002314, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nExecution failed. Failure reason:\nError in contract (contract address: 0x019ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da, class hash: 0x079a9a12fdfa0481e8d8d46599b90226cd7247b2667358bb00636dd864002314, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nError in contract (contract address: 0x036970a65c6b1e9e2d85e724a1517ee6a9a7c106fcc2c8f384ed839c1176e5c0, class hash: 0x068bd2daa00cf3fe305174a053db9d7b0d526d16fedf84156041ff76cc65286a, selector: 0x00ab6bbf074217bd209077ef38d1fe65034d0327dbceeb5dc94a0d7050798c99):\n0x494e56414c49445f535441524b5f4b45595f5349474e4154555245 ('INVALID_STARK_KEY_SIGNATURE').\n",
-  "block_hash": "0x66fa94498a5413e02d11aeb8646d4d47f1c2a067d8dbe3e33b2f0e8bb7f31df",
-  "block_number": 1675853
-}
-```
-
-This example shows a reverted transaction receipt with execution status, fees paid (even though reverted), events emitted, and detailed revert reason.
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-receipt, err := client.TransactionReceipt(ctx, txHash)
+receipt, err := provider.TransactionReceipt(ctx, txHash)
 if err != nil {
-    log.Printf("Error getting receipt: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrHashNotFound):
+        log.Printf("Transaction not found")
+    default:
+        log.Printf("Failed to get receipt: %v", err)
+    }
     return
 }
 
-// Check if transaction was successful
-if receipt.ExecutionStatus == "REVERTED" {
-    fmt.Printf("Transaction failed: %s\n", receipt.RevertReason)
+// Check execution status
+executionStatus := receipt.TransactionReceipt.ExecutionStatus()
+if executionStatus == "REVERTED" {
+    fmt.Printf("Transaction failed\n")
+    if revertReason := receipt.TransactionReceipt.RevertReason(); revertReason != "" {
+        fmt.Printf("Revert reason: %s\n", revertReason)
+    }
 } else {
-    fmt.Printf("Transaction succeeded, fee: %s\n", receipt.ActualFee.Amount)
+    fmt.Printf("Transaction succeeded\n")
 }
 ```
+
+## Common Use Cases
+
+This method is commonly used for:
+
+- Verifying if a transaction executed successfully.
+- Analyzing actual gas consumption and fees paid. See [example](/docs/rpc/examples#gas-analysis-and-fee-tracking).
 
