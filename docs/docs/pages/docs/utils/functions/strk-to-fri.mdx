@@ -1,0 +1,51 @@
+# STRKToFRI
+
+Converts STRK amount to FRI (smallest unit).
+
+## Function Signature
+
+```go
+func STRKToFRI(strk float64) *felt.Felt
+```
+
+## Parameters
+
+- `strk` (float64): Amount in STRK
+
+## Returns
+
+- `*felt.Felt`: Amount in FRI (1 STRK = 10^18 FRI)
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Convert 1 STRK to FRI
+	fri := utils.STRKToFRI(1.0)
+	fmt.Printf("1 STRK = %s FRI\n", fri.String())
+	// Output: 0xde0b6b3a7640000
+
+	// Convert 0.5 STRK to FRI
+	fri2 := utils.STRKToFRI(0.5)
+	fmt.Printf("0.5 STRK = %s FRI\n", fri2.String())
+	// Output: 0x6f05b59d3b20000
+
+	// Convert 10 STRK to FRI
+	fri3 := utils.STRKToFRI(10.0)
+	fmt.Printf("10 STRK = %s FRI\n", fri3.String())
+	// Output: 0x8ac7230489e80000
+}
+```
+
+## Related Functions
+
+- [FRIToSTRK](/docs/utils/functions/fri-to-strk)
+- [ETHToWei](/docs/utils/functions/eth-to-wei)

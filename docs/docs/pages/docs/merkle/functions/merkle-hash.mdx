@@ -1,0 +1,95 @@
+# MerkleHash
+
+Calculates the Merkle hash of two big integers using Pedersen hash.
+
+## Function Signature
+
+```go
+func MerkleHash(x, y *big.Int) *big.Int
+```
+
+## Parameters
+
+- `x` (*big.Int): The first big integer
+- `y` (*big.Int): The second big integer
+
+## Returns
+
+- `*big.Int`: The Merkle hash of the two big integers
+
+## Description
+
+MerkleHash computes the Pedersen hash of two big integers, which is commonly used for building Merkle trees in Starknet. This function is the building block for constructing Merkle proofs and verifying membership in Merkle trees.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create two big integers to hash
+	x := big.NewInt(100)
+	y := big.NewInt(200)
+
+	// Calculate Merkle hash
+	hash := merkle.MerkleHash(x, y)
+
+	fmt.Println("MerkleHash:")
+	fmt.Printf("  Input X: %s\n", x.String())
+	fmt.Printf("  Input Y: %s\n", y.String())
+	fmt.Printf("  Merkle Hash: %s\n", hash.String())
+}
+```
+
+## Expected Output
+
+```
+MerkleHash:
+  Input X: 100
+  Input Y: 200
+  Merkle Hash: 1190318657291239389318004338386448811383527911496343880521068778567968702926
+```
+
+## Use Cases
+
+### 1. Building Merkle Tree Nodes
+```go
+// Hash two sibling nodes to create parent
+leftChild := big.NewInt(123)
+rightChild := big.NewInt(456)
+parentNode := merkle.MerkleHash(leftChild, rightChild)
+```
+
+### 2. Verifying Merkle Proofs
+```go
+// Reconstruct root by hashing leaf with proof elements
+currentHash := leafValue
+for _, proofElement := range proof {
+    currentHash = merkle.MerkleHash(currentHash, proofElement)
+}
+```
+
+### 3. Storage Proof Verification
+```go
+// Verify storage value is part of state tree
+storageHash := merkle.MerkleHash(key, value)
+```
+
+## Notes
+
+- Uses Pedersen hash internally for cryptographic security
+- The hash is deterministic - same inputs always produce same output
+- Order matters: MerkleHash(x, y) ≠ MerkleHash(y, x)
+- Used as the fundamental building block for Merkle tree operations
+
+## Related Functions
+
+- [ProofMerklePath](/docs/merkle/functions/proof-merkle-path) - Verify Merkle proofs
+- [NewFixedSizeMerkleTree](/docs/merkle/functions/new-fixed-size-merkle-tree) - Create Merkle trees

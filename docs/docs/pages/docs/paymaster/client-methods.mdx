@@ -1,0 +1,475 @@
+# Paymaster Client Methods
+
+This page documents all methods available on the Paymaster client for building, executing, and tracking transactions through a paymaster service.
+
+## Client Creation
+
+### New
+
+Creates a new paymaster client for the given service URL.
+
+#### Method Signature
+
+```go
+func New(ctx context.Context, url string, options ...client.ClientOption) (*Paymaster, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for controlling the function call
+- `url` - The URL of the paymaster service (HTTP or HTTPS)
+- `options` - Optional client configuration options (e.g., custom headers for API keys)
+
+#### Returns
+
+- `*Paymaster` - A new paymaster client instance
+- `error` - Error if the client creation fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+    "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+    // Basic connection
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println("Connected to paymaster service")
+
+    // Connection with API key (for sponsored transactions)
+    pmWithKey, err := paymaster.New(
+        context.Background(),
+        "https://sepolia.paymaster.avnu.fi",
+        client.WithHeader("x-paymaster-api-key", "your-api-key"),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println("Connected with API key for sponsored mode")
+}
+```
+
+#### Notes
+
+The New function automatically sets up cookie jar support for session management with the paymaster service.
+
+---
+
+## Service Status Methods
+
+### IsAvailable
+
+Returns the status of the paymaster service.
+
+#### Method Signature
+
+```go
+func (p *Paymaster) IsAvailable(ctx context.Context) (bool, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for controlling the function call
+
+#### Returns
+
+- `bool` - True if the paymaster service is correctly functioning, false otherwise
+- `error` - Error if the request fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    available, err := pm.IsAvailable(context.Background())
+    if err != nil {
+        log.Fatal("Error checking availability:", err)
+    }
+
+    if available {
+        fmt.Println("Paymaster service is available")
+    } else {
+        fmt.Println("Paymaster service is unavailable")
+    }
+}
+```
+
+#### Notes
+
+Check service availability before building or executing transactions to ensure the paymaster is operational.
+
+---
+
+### GetSupportedTokens
+
+Get a list of the tokens that the paymaster supports, together with their prices in STRK.
+
+#### Method Signature
+
+```go
+func (p *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for controlling the function call
+
+#### Returns
+
+- `[]TokenData` - An array of token data containing address, decimals, and price
+- `error` - Error if the request fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    tokens, err := pm.GetSupportedTokens(context.Background())
+    if err != nil {
+        log.Fatal("Error getting supported tokens:", err)
+    }
+
+    fmt.Println("Supported tokens:")
+    for i, token := range tokens {
+        fmt.Printf("%d. Address: %s\n", i+1, token.TokenAddress.String())
+        fmt.Printf("   Decimals: %d\n", token.Decimals)
+        fmt.Printf("   Price in STRK: %s\n", token.PriceInStrk)
+        fmt.Println()
+    }
+}
+```
+
+#### Notes
+
+Token prices are returned in STRK (FRI units) and may change over time. Always fetch fresh token data before building transactions.
+
+---
+
+## Transaction Methods
+
+### BuildTransaction
+
+Receives the transaction the user wants to execute and returns the typed data along with the estimated gas cost and the maximum gas cost suggested to ensure execution.
+
+#### Method Signature
+
+```go
+func (p *Paymaster) BuildTransaction(
+    ctx context.Context,
+    request *BuildTransactionRequest,
+) (BuildTransactionResponse, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for controlling the function call
+- `request` - The BuildTransactionRequest containing the transaction and parameters
+
+#### Returns
+
+- `BuildTransactionResponse` - The response containing typed data and fee estimate
+- `error` - Error if the request fails
+
+#### Possible Errors
+
+- `ErrInvalidAddress` - Invalid account or contract address
+- `ErrClassHashNotSupported` - Account class hash not supported by paymaster
+- `ErrInvalidDeploymentData` - Invalid deployment data provided
+- `ErrTokenNotSupported` - Specified gas token not supported
+- `ErrInvalidTimeBounds` - Invalid time bounds in parameters
+- `ErrTransactionExecutionError` - Transaction would fail on execution
+- `ErrUnknownError` - Unknown error occurred
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+    "github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Define the invoke call
+    userAddress, _ := utils.HexToFelt("0x1234...")
+    contractAddress, _ := utils.HexToFelt("0x5678...")
+    strkAddress, _ := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
+
+    request := &paymaster.BuildTransactionRequest{
+        Transaction: paymaster.UserTransaction{
+            Type: paymaster.UserTxnInvoke,
+            Invoke: &paymaster.UserInvoke{
+                UserAddress: userAddress,
+                Calls: []paymaster.Call{
+                    {
+                        To:       contractAddress,
+                        Selector: utils.GetSelectorFromNameFelt("transfer"),
+                        Calldata: []*felt.Felt{/* calldata */},
+                    },
+                },
+            },
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode:     paymaster.FeeModeDefault,
+                GasToken: strkAddress,
+                Tip: &paymaster.TipPriority{
+                    Priority: paymaster.TipPriorityNormal,
+                },
+            },
+        },
+    }
+
+    response, err := pm.BuildTransaction(context.Background(), request)
+    if err != nil {
+        log.Fatal("Error building transaction:", err)
+    }
+
+    fmt.Println("Transaction built successfully")
+    fmt.Printf("Estimated fee in STRK: %s\n", response.Fee.EstimatedFeeInStrk.String())
+    fmt.Printf("Suggested max fee in STRK: %s\n", response.Fee.SuggestedMaxFeeInStrk.String())
+}
+```
+
+#### Notes
+
+The response includes detailed fee estimates in both STRK and the specified gas token. Review the fee estimates before proceeding to sign and execute the transaction.
+
+---
+
+### ExecuteTransaction
+
+Sends the signed typed data to the paymaster service for execution.
+
+#### Method Signature
+
+```go
+func (p *Paymaster) ExecuteTransaction(
+    ctx context.Context,
+    request *ExecuteTransactionRequest,
+) (ExecuteTransactionResponse, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for controlling the function call
+- `request` - The signed typed data of the transaction to be executed by the paymaster service
+
+#### Returns
+
+- `ExecuteTransactionResponse` - The hash of the transaction broadcasted by the paymaster and the tracking ID corresponding to the user execute request
+- `error` - Error if the request fails
+
+#### Possible Errors
+
+- `ErrInvalidAddress` - Invalid account or contract address
+- `ErrClassHashNotSupported` - Account class hash not supported by paymaster
+- `ErrInvalidDeploymentData` - Invalid deployment data provided
+- `ErrInvalidSignature` - Invalid signature for the typed data
+- `ErrMaxAmountTooLow` - Maximum fee amount too low for execution
+- `ErrTransactionExecutionError` - Transaction would fail on execution
+- `ErrUnknownError` - Unknown error occurred
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Assume we have a built transaction and signature from previous steps
+    // builtTxn from BuildTransaction
+    // signature from signing the typed data
+
+    request := &paymaster.ExecuteTransactionRequest{
+        Transaction: paymaster.ExecutableUserTransaction{
+            Type: paymaster.UserTxnInvoke,
+            Invoke: &paymaster.ExecutableUserInvoke{
+                UserAddress: userAddress,
+                TypedData:   builtTxn.TypedData,
+                Signature:   signature,
+            },
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode:     paymaster.FeeModeDefault,
+                GasToken: strkAddress,
+            },
+        },
+    }
+
+    response, err := pm.ExecuteTransaction(context.Background(), request)
+    if err != nil {
+        log.Fatal("Error executing transaction:", err)
+    }
+
+    fmt.Println("Transaction executed successfully")
+    fmt.Printf("Tracking ID: %s\n", response.TrackingID.String())
+    fmt.Printf("Transaction Hash: %s\n", response.TransactionHash.String())
+}
+```
+
+#### Notes
+
+The fee mode parameters must match those used in BuildTransaction. Different fee parameters will result in different actual fees than estimated.
+
+---
+
+## Tracking Methods
+
+### TrackingIDToLatestHash
+
+Gets the latest transaction hash and status for a given tracking ID.
+
+#### Method Signature
+
+```go
+func (p *Paymaster) TrackingIDToLatestHash(
+    ctx context.Context,
+    trackingID *felt.Felt,
+) (TrackingIDResponse, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for controlling the function call
+- `trackingID` - A unique identifier used to track an execution request. This identifier is returned by the paymaster after a successful call to ExecuteTransaction
+
+#### Returns
+
+- `TrackingIDResponse` - The hash of the latest transaction broadcasted by the paymaster corresponding to the requested ID and the status of the ID
+- `error` - Error if the request fails
+
+#### Possible Errors
+
+- `ErrInvalidID` - Invalid or unknown tracking ID
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // trackingID from ExecuteTransaction response
+    // trackingID := response.TrackingID
+
+    // Poll for transaction status
+    for {
+        result, err := pm.TrackingIDToLatestHash(context.Background(), trackingID)
+        if err != nil {
+            log.Fatal("Error tracking transaction:", err)
+        }
+
+        fmt.Printf("Status: %s\n", result.Status.String())
+        fmt.Printf("Transaction Hash: %s\n", result.TransactionHash.String())
+
+        switch result.Status {
+        case paymaster.TxnStatusAccepted:
+            fmt.Println("Transaction accepted on L2!")
+            return
+        case paymaster.TxnStatusDropped:
+            fmt.Println("Transaction was dropped")
+            return
+        case paymaster.TxnStatusActive:
+            fmt.Println("Transaction still active, waiting...")
+            time.Sleep(5 * time.Second)
+        }
+    }
+}
+```
+
+#### Notes
+
+The tracking ID allows monitoring of transactions even if the paymaster sends multiple transactions (e.g., fee bumps during congestion). The latest hash is always returned.
+
+---
+
+## Related Documentation
+
+- [Transaction Building Guide](/docs/paymaster/transaction-building) - Complete guide on building and executing transactions
+- [Types Reference](/docs/paymaster/types) - Detailed type definitions
+- [Account Package](/docs/account/) - Account creation and signing
+
+## SNIP-29 Compliance
+
+All methods implement the SNIP-29 API specification:
+[SNIP-29 Specification](https://github.com/starknet-io/SNIPs/blob/ea46a8777d8c8d53a43f45b7beb1abcc301a1a69/assets/snip-29/paymaster_api.json)

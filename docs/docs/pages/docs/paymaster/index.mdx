@@ -1,0 +1,155 @@
+# Paymaster Package
+
+The paymaster package provides a client for interacting with paymaster services that sponsor transaction fees on Starknet. This enables fee abstraction, allowing transactions to be paid by a third party (the paymaster) instead of the user, or using alternative tokens beyond the default gas token.
+
+## Overview
+
+The paymaster package implements the SNIP-29 API specification for paymaster services. A paymaster is a service that can cover transaction fees on behalf of users, enabling:
+
+- Sponsored transactions where an entity covers the fees
+- Payment with alternative ERC-20 tokens instead of STRK
+- Simplified onboarding for users without gas tokens
+- Account deployment without pre-funding
+
+## Main Components
+
+### Paymaster Client
+
+The `Paymaster` type is the primary interface for interacting with paymaster services. It provides methods to:
+- Build transactions with fee estimates
+- Execute transactions through the paymaster
+- Query supported tokens and service status
+- Track transaction status via tracking IDs
+
+### Transaction Types
+
+The package supports three transaction types:
+- **Deploy** - Deploy a new account contract
+- **Invoke** - Execute function calls on existing contracts
+- **Deploy and Invoke** - Deploy an account and execute calls in a single transaction
+
+### Fee Modes
+
+Transactions can use two fee payment modes:
+- **Sponsored** - The paymaster covers all fees (requires API key)
+- **Default** - User pays fees using a supported ERC-20 token
+
+## Quick Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+    "github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+    // Connect to paymaster service
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Check service availability
+    available, err := pm.IsAvailable(context.Background())
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Paymaster available: %v\n", available)
+
+    // Get supported tokens
+    tokens, err := pm.GetSupportedTokens(context.Background())
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    for _, token := range tokens {
+        fmt.Printf("Token: %s, Decimals: %d, Price: %s STRK\n",
+            token.TokenAddress.String(),
+            token.Decimals,
+            token.PriceInStrk,
+        )
+    }
+}
+```
+
+## Available Documentation
+
+- [Client Methods](/docs/paymaster/client-methods) - Paymaster client methods for building and executing transactions
+- [Transaction Building](/docs/paymaster/transaction-building) - Complete guide on building and executing transactions
+- [Types](/docs/paymaster/types) - Type definitions for requests, responses, and configuration
+
+## Getting Started
+
+To use the paymaster package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/paymaster"
+```
+
+## Key Features
+
+### Fee Abstraction
+- Enable transactions without requiring users to hold gas tokens
+- Support for multiple ERC-20 tokens as payment
+- Transparent fee estimation before execution
+
+### Account Deployment
+- Deploy accounts with sponsored fees
+- Deploy and execute calls in a single transaction
+- Support for SNIP-9 compatible account contracts
+
+### Transaction Tracking
+- Unique tracking IDs for each transaction request
+- Monitor transaction status through the paymaster
+- Handle fee bumps during network congestion
+
+### Service Integration
+- Simple HTTP/HTTPS connection to paymaster services
+- Custom header support for API keys
+- Compatible with any SNIP-29 compliant paymaster
+
+## Important Requirements
+
+### Account Compatibility
+
+Accounts must implement the SNIP-9 standard for outside execution to work with paymaster services. This standard defines the interface for allowing external entities to execute transactions on behalf of the account.
+
+Reference: [SNIP-9 Specification](https://github.com/starknet-io/SNIPs/blob/ea46a8777d8c8d53a43f45b7beb1abcc301a1a69/SNIPS/snip-9.md)
+
+### Cairo Version
+
+Only Cairo 1 and later account contracts are supported. Cairo 0 accounts cannot be used with paymaster services.
+
+## Transaction Flow
+
+Using a paymaster involves three main steps:
+
+1. **Build Transaction** - Call `BuildTransaction` to get typed data and fee estimates
+2. **Sign Transaction** - Sign the returned typed data with the account's private key
+3. **Execute Transaction** - Submit the signed transaction via `ExecuteTransaction`
+
+The paymaster service handles:
+- Broadcasting the transaction to the network
+- Monitoring transaction status
+- Handling fee bumps if needed during congestion
+
+## Related Packages
+
+- [Account Package](/docs/account/) - Account management and transaction signing
+- [RPC Package](/docs/rpc/) - Direct Starknet RPC methods
+- [Typed Data Package](/docs/typeddata/) - SNIP-12 typed data signing
+
+## Specification
+
+This package implements the SNIP-29 API specification for paymaster services:
+[SNIP-29 Specification](https://github.com/starknet-io/SNIPs/blob/dfd91b275ea65413f8c8aedb26677a8afff70f37/SNIPS/snip-29.md)
+
+## Version
+
+This documentation is based on the latest version of the Starknet.go library.

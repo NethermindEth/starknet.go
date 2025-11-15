@@ -1,72 +1,130 @@
-# Add Deploy Account Transaction
+# AddDeployAccountTransaction
 
-Adds a deploy account transaction to the network.
+Submits a deploy account transaction to the network to create a new account contract.
+
+## Method Signature
+
+```go
+func (provider *Provider) AddDeployAccountTransaction(
+    ctx context.Context,
+    deployAccountTransaction *BroadcastDeployAccountTxnV3,
+) (AddDeployAccountTransactionResponse, error)
+```
 
 ## Parameters
 
-- `transaction` - The deploy account transaction object containing:
-  - Contract class hash
-  - Contract address salt
-  - Constructor calldata
-  - Signature
-  - Nonce
-  - Version
-  - Other transaction-specific data
+- `ctx` - Context for request cancellation and timeout
+- `deployAccountTransaction` - The deploy account transaction to submit
 
 ## Returns
 
-Returns the transaction hash as a Felt.
+- `AddDeployAccountTransactionResponse` - Response containing transaction hash and contract address
+- `error` - Error if the submission fails
 
-## Example
+## Usage Example
 
 ```go
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+	"os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
 )
 
 func main() {
-	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	client, err := rpc.NewClient(rpcUrl)
-	if err != nil {
-		log.Fatal(err)
+    // Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
 	}
 
-	provider := rpc.NewProvider(client)
-	
-	// Convert string hashes to Felt
-	classHash, _ := utils.HexToFelt("0x123...")
-	contractAddressSalt, _ := utils.HexToFelt("0x456...")
-	
-	// Create deploy account transaction
-	transaction := rpc.DeployAccountTxn{
-		Type: rpc.TransactionType_DeployAccount,
-		Version: rpc.TransactionV1,
-		MaxFee: new(felt.Felt).SetUint64(1000000),
-		Signature: []*felt.Felt{},
-		ClassHash: classHash,
-		ContractAddressSalt: contractAddressSalt,
-		ConstructorCalldata: []*felt.Felt{},
-	}
-	
-	result, err := provider.AddDeployAccountTransaction(context.Background(), transaction)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Transaction Hash:", result)
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    classHash, _ := new(felt.Felt).SetString("0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
+    contractAddressSalt, _ := new(felt.Felt).SetString("0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+    publicKey, _ := new(felt.Felt).SetString("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+
+    // Create a V3 deploy account transaction
+    deployAccountTxn := &rpc.BroadcastDeployAccountTxnV3{
+        Type:                rpc.TransactionType("DEPLOY_ACCOUNT"),
+        Version:             rpc.TransactionVersion("0x3"),
+        ClassHash:           classHash,
+        ContractAddressSalt: contractAddressSalt,
+        ConstructorCalldata: []*felt.Felt{publicKey}, // Public key for account
+        Signature: []*felt.Felt{
+            new(felt.Felt).SetString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
+            new(felt.Felt).SetString("0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"),
+        },
+        Nonce: new(felt.Felt).SetUint64(0), // Nonce is always 0 for deploy account
+        ResourceBounds: &rpc.ResourceBoundsMapping{
+            L1Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x0"),
+                MaxPricePerUnit: rpc.U128("0x33a937098d80"),
+            },
+            L2Gas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0x15c2a0"),
+                MaxPricePerUnit: rpc.U128("0x10c388d00"),
+            },
+            L1DataGas: rpc.ResourceBounds{
+                MaxAmount:       rpc.U64("0xc0"),
+                MaxPricePerUnit: rpc.U128("0xdb31"),
+            },
+        },
+        Tip:           rpc.U64("0x0"),
+        PayMasterData: []*felt.Felt{},
+        NonceDataMode: rpc.DAModeL1,
+        FeeMode:       rpc.DAModeL1,
+    }
+
+    // Submit the deploy account transaction
+    result, err := client.AddDeployAccountTransaction(ctx, deployAccountTxn)
+    if err != nil {
+        log.Fatal("Failed to add deploy account transaction:", err)
+    }
+
+    // Print the result
+    resultJSON, _ := json.MarshalIndent(result, "", "  ")
+    fmt.Printf("Account deployed:\n%s\n", resultJSON)
 }
 ```
 
-## Error Cases
+## Expected Output
 
-- `INVALID_TRANSACTION` - If the transaction is invalid
-- `INVALID_CLASS_HASH` - If the class hash is invalid
-- `INVALID_CONTRACT_ADDRESS_SALT` - If the contract address salt is invalid
-- `INVALID_CONSTRUCTOR_CALLDATA` - If the constructor calldata is invalid
-- `INVALID_SIGNATURE` - If the signature is invalid
-- `INVALID_MAX_FEE` - If the max fee is invalid 
+```json
+{
+  "transaction_hash": "0x05a12345678901234567890123456789012345678901234567890123456789ab",
+  "contract_address": "0x0517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802"
+}
+```
+
+## Error Handling
+
+Common errors include invalid class hash, incorrect constructor calldata, and insufficient balance for fees. The nonce must always be 0 for deploy account transactions.
+
+```go
+result, err := client.AddDeployAccountTransaction(ctx, deployAccountTxn)
+if err != nil {
+    log.Printf("Failed to deploy account: %v", err)
+    return
+}
+// Safe to use result.TransactionHash and result.ContractAddress
+```
+
+## Related Methods
+
+- [ClassHashAt](/docs/rpc/methods/get-class-hash-at) - Verify the deployed account's class hash
+- [Nonce](/docs/rpc/methods/get-nonce) - Check account nonce after deployment
+- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate deployment fees
+- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Check deployment status
+- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test deployment before submitting

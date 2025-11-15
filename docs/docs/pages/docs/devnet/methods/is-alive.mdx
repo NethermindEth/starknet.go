@@ -1,0 +1,118 @@
+# IsAlive
+
+Checks if the DevNet server is running and responding to requests.
+
+## Method Signature
+
+```go
+func (devnet *DevNet) IsAlive() bool
+```
+
+## Parameters
+
+None
+
+## Returns
+
+- `bool` - `true` if DevNet is alive and responding, `false` otherwise
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/devnet"
+)
+
+func main() {
+	// Get DevNet URL from environment variable
+	devnetURL := os.Getenv("DEVNET_URL")
+	if devnetURL == "" {
+		devnetURL = "http://localhost:5050"
+	}
+
+	devNet := devnet.NewDevNet(devnetURL)
+
+	// Check if DevNet is alive
+	if devNet.IsAlive() {
+		fmt.Println("DevNet Status: Running ✓")
+	} else {
+		fmt.Println("DevNet Status: Not Running ✗")
+		log.Fatal("Please start DevNet with: starknet-devnet")
+	}
+}
+```
+
+## Expected Output
+
+```
+DevNet Status: Running ✓
+```
+
+## Use Cases
+
+### Health Check Before Tests
+
+```go
+func TestSetup(t *testing.T) {
+	devNet := devnet.NewDevNet()
+
+	if !devNet.IsAlive() {
+		t.Skip("DevNet is not running, skipping tests")
+	}
+
+	// Proceed with tests...
+}
+```
+
+### Retry Logic
+
+```go
+func waitForDevNet(devNet *devnet.DevNet, timeout time.Duration) error {
+	start := time.Now()
+
+	for time.Since(start) < timeout {
+		if devNet.IsAlive() {
+			return nil
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	return fmt.Errorf("DevNet did not start within %v", timeout)
+}
+```
+
+### CI/CD Integration
+
+```go
+func main() {
+	devNet := devnet.NewDevNet()
+
+	// Wait for DevNet to be ready
+	for i := 0; i < 30; i++ {
+		if devNet.IsAlive() {
+			fmt.Println("DevNet is ready")
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+```
+
+## Implementation Details
+
+- Sends GET request to `/is_alive` endpoint
+- Has 3-second timeout
+- Returns `false` on any error (network, timeout, etc.)
+- No exceptions thrown - safe to call without error handling
+
+## Related Methods
+
+- [NewDevNet](./new-devnet.mdx) - Create DevNet instance
+- [Accounts](./accounts.mdx) - Get test accounts after verifying DevNet is alive
+- [Mint](./mint.mdx) - Mint tokens (requires DevNet to be alive)

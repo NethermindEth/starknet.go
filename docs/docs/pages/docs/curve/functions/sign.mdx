@@ -1,0 +1,107 @@
+# Sign
+
+Signs a message hash using the Stark curve ECDSA algorithm.
+
+## Function Signature
+
+```go
+func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error)
+```
+
+## Parameters
+
+- `msgHash` (*big.Int): The message hash to sign
+- `privKey` (*big.Int): The private key for signing
+
+## Returns
+
+- `r` (*big.Int): The R component of the signature
+- `s` (*big.Int): The S component of the signature
+- `err` (error): Error if signing fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate a key pair
+	privKey, pubX, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal("Failed to generate keys:", err)
+	}
+
+	// Message hash to sign
+	msgHash := new(big.Int)
+	msgHash.SetString("1234567890abcdef", 16)
+
+	// Sign the message
+	r, s, err := curve.Sign(msgHash, privKey)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
+	}
+
+	fmt.Println("Sign:")
+	fmt.Printf("  Message Hash: 0x%x\n", msgHash)
+	fmt.Printf("  Private Key: 0x%x\n", privKey)
+	fmt.Printf("  Public Key X: 0x%x\n", pubX)
+	fmt.Printf("  Signature R: 0x%x\n", r)
+	fmt.Printf("  Signature S: 0x%x\n", s)
+}
+```
+
+## Expected Output
+
+```
+Sign:
+  Message Hash: 0x1234567890abcdef
+  Private Key: 0x23f36d87b2eda5fd50005c20237d0e27fffaebd97a7eb4e2de46b6d3ebd4661
+  Public Key X: 0x22f22bba1a0ad2687fa10ea944993498da09bc565eb77a51aed6e70f91135fa
+  Signature R: 0x27da56d08ac35e37c892a94ec7f99b94f6a12eb453f673b7439f6835564e615
+  Signature S: 0x46a23aae9e2a44bee73582f7d397c792296255692f53870461d4d3479d070cd
+```
+
+## Use Cases
+
+### 1. Sign Transaction
+```go
+txHash := new(big.Int).SetString("0xabc...", 0)
+r, s, err := curve.Sign(txHash, privateKey)
+// Use r, s in transaction signature field
+```
+
+### 2. Sign Message
+```go
+messageHash := new(big.Int).SetString("0xdef...", 0)
+r, s, _ := curve.Sign(messageHash, privateKey)
+```
+
+### 3. Multi-signature Setup
+```go
+// Each signer signs the same message
+for _, privKey := range signerKeys {
+    r, s, _ := curve.Sign(msgHash, privKey)
+    signatures = append(signatures, Signature{R: r, S: s})
+}
+```
+
+## Notes
+
+- The signature is deterministic for the same input
+- Both R and S components are required for verification
+- Use [SignFelts](/docs/curve/functions/sign-felts) for felt.Felt parameters
+- The signature can be verified using [Verify](/docs/curve/functions/verify)
+
+## Related Functions
+
+- [SignFelts](/docs/curve/functions/sign-felts) - Sign with felt.Felt parameters
+- [Verify](/docs/curve/functions/verify) - Verify a signature
+- [GetRandomKeys](/docs/curve/functions/get-random-keys) - Generate key pair

@@ -1,30 +1,252 @@
 # Account Package
 
-The account package provides functionality for interacting with Starknet accounts. This package contains various components and utilities for managing and interacting with Starknet accounts.
+The account package handles Starknet account management, transaction building, signing, and execution. Use it to create accounts, send transactions, and manage cryptographic keys.
 
-## Overview
+## What This Package Does
 
-The account package includes:
-- Account management
-- Transaction handling
-- Signature verification
-- Account-related utilities
+- Create and manage Starknet accounts
+- Build, sign, and execute transactions (invoke, declare, deploy)
+- Estimate fees and manage resource bounds
+- Handle key storage through the Keystore interface
+- Support both Cairo 0 and Cairo 2 contracts
 
-## Available Submodules
+## Quick Start
 
-- [Account Management](/docs/account/account-management)
-- [Transaction Handling](/docs/account/transaction-handling)
-- [Signature Verification](/docs/account/signature-verification)
-- [Account Utilities](/docs/account/account-utilities)
+```go
+package main
 
-## Getting Started
+import (
+	"context"
+	"fmt"
+	"log"
 
-To use the account package, import it in your Go code:
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Create RPC provider
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate random keys for testing
+	ks, pubKey, privKey := account.GetRandomKeys()
+	fmt.Printf("Public Key: %s\n", pubKey.String())
+	fmt.Printf("Private Key: %s\n", privKey.String())
+
+	// Create account
+	accountAddress, _ := felt.SetString("0x1234...")
+	acc, err := account.NewAccount(provider, accountAddress, pubKey.String(), ks, account.CairoV2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get nonce
+	nonce, err := acc.Nonce(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Account nonce: %s\n", nonce.String())
+}
+```
+
+**See Also:**
+- [Deploy Account example](/docs/examples/deploy-account) - Deploy a new account
+- [Invoke Contract example](/docs/examples/invoke) - Send transactions
+- [Deploy with UDC example](/docs/examples/deploy-contract-udc) - Deploy contracts
+
+## Package Structure
+
+### [Functions](./functions.mdx)
+
+Standalone functions for calldata formatting, address computation, and key management:
+
+- `FmtCallDataCairo0` / `FmtCallDataCairo2` - Format calldata for Cairo versions
+- `PrecomputeAccountAddress` - Calculate address before deployment
+- `GetRandomKeys` - Generate key pairs for testing
+- `NewMemKeystore` / `SetNewMemKeystore` - Create in-memory keystores
+
+### [Keystore](./keystore.mdx)
+
+Key management interface and implementations:
+
+- `Keystore` interface - Define custom key storage
+- `MemKeystore` - In-memory keystore for development
+
+### [Methods](./methods.mdx)
+
+Account methods for transactions and cryptographic operations:
+
+- `BuildAndSendInvokeTxn` - Execute contract functions
+- `BuildAndSendDeclareTxn` - Declare contract classes
+- `Sign` / `SignInvokeTransaction` / `SignDeclareTransaction` - Sign messages and transactions
+- `TransactionHashInvoke` / `TransactionHashDeclare` - Calculate transaction hashes
+- `Nonce` - Get account nonce
+- `Verify` - Verify signatures
+- `WaitForTransactionReceipt` - Wait for confirmation
+
+### [Types](./types.mdx)
+
+Type definitions and structures:
+
+- `Account` - Main account structure
+- `AccountInterface` - Account interface
+- `CairoVersion` - Cairo version constants
+- `TxnOptions` - Transaction configuration
+- `UDCOptions` - Universal Deployer Contract options
+
+## Key Features
+
+### Transaction Handling
+
+Build, sign, and send transactions with automatic nonce management and fee estimation:
+
+```go
+// Simple invoke
+resp, err := accnt.BuildAndSendInvokeTxn(
+    context.Background(),
+    []rpc.InvokeFunctionCall{fnCall},
+    nil,
+)
+```
+
+See the [Invoke example](/docs/examples/invoke) for both simple and detailed approaches.
+
+### Fee Estimation
+
+Estimate fees before sending transactions:
+
+```go
+feeEst, err := accnt.EstimateFee(
+    context.Background(),
+    []rpc.BroadcastTxn{invokeTxn},
+    []rpc.SimulationFlag{},
+    rpc.WithBlockTag("latest"),
+)
+```
+
+### Key Management
+
+The Keystore interface allows custom key storage implementations. Use `MemKeystore` for development or implement your own for production:
+
+```go
+// Create keystore
+ks := account.NewMemKeystore()
+
+// Store keys
+ks.Put(publicKey, privateKey)
+
+// Use with account
+acc, err := account.NewAccount(provider, address, pubKey, ks, account.CairoV2)
+```
+
+### Cairo Version Support
+
+Supports both Cairo 0 and Cairo 2 contract formats with automatic calldata formatting:
+
+```go
+// Cairo 2 account
+acc, _ := account.NewAccount(provider, address, pubKey, ks, account.CairoV2)
+
+// Cairo 0 account
+acc, _ := account.NewAccount(provider, address, pubKey, ks, account.CairoV0)
+```
+
+## Common Workflows
+
+### Deploy a New Account
+
+```go
+// 1. Generate keys
+ks, pubKey, _ := account.GetRandomKeys()
+
+// 2. Precompute address
+address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+
+// 3. Fund the address (use faucet or transfer)
+
+// 4. Build and send deploy transaction
+deployTx, precomputedAddr, err := acc.BuildAndEstimateDeployAccountTxn(
+    context.Background(),
+    pubKey,
+    classHash,
+    constructorCalldata,
+    1.5,
+)
+resp, err := acc.SendTransaction(context.Background(), deployTx)
+```
+
+See the [Deploy Account example](/docs/examples/deploy-account) for the complete flow.
+
+### Execute Contract Function
+
+```go
+// Build function call
+fnCall := rpc.InvokeFunctionCall{
+    ContractAddress: contractAddr,
+    FunctionName:    "transfer",
+    CallData:        calldata,
+}
+
+// Send transaction
+resp, err := acc.BuildAndSendInvokeTxn(
+    context.Background(),
+    []rpc.InvokeFunctionCall{fnCall},
+    nil,
+)
+
+// Wait for confirmation
+receipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
+```
+
+### Declare Contract Class
+
+```go
+// Load contract files
+casmClass, err := utils.UnmarshalJSONFileToType[contracts.CasmClass]("contract.casm.json", "")
+contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass]("contract.sierra.json", "")
+
+// Declare
+resp, err := acc.BuildAndSendDeclareTxn(
+    context.Background(),
+    casmClass,
+    contractClass,
+    nil,
+)
+```
+
+See the [Declare example](/docs/examples/simple-declare) for details.
+
+## Installation
+
+```bash
+go get github.com/NethermindEth/starknet.go
+```
+
+## Import
 
 ```go
 import "github.com/NethermindEth/starknet.go/account"
 ```
 
-## Version
+## Related Packages
 
-This documentation is based on version v0.8.1 of the Starknet.go library. 
+- **[RPC Package](/docs/rpc/)** - Low-level RPC operations (accounts are built on RPC)
+- **[Curve Package](/docs/curve/)** - Cryptographic operations for signing
+- **[Hash Package](/docs/hash/)** - Transaction hash calculations
+- **[Utils Package](/docs/utils/)** - Helper functions for conversions
+
+## Examples
+
+- **[Deploy Account](/docs/examples/deploy-account)** - Deploy a new account
+- **[Invoke Contract](/docs/examples/invoke)** - Execute contract functions
+- **[Deploy with UDC](/docs/examples/deploy-contract-udc)** - Deploy contracts using UDC
+- **[Declare Contract](/docs/examples/simple-declare)** - Declare contract classes
+- **[Paymaster](/docs/examples/paymaster)** - Use paymasters for fee abstraction
+
+## Reference
+
+Full API reference: [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/account)

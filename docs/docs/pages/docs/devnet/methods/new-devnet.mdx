@@ -1,0 +1,101 @@
+# NewDevNet
+
+Creates a new DevNet instance to interact with a local Starknet development network.
+
+## Function Signature
+
+```go
+func NewDevNet(baseURL ...string) *DevNet
+```
+
+## Parameters
+
+- `baseURL` (optional) - Base URL of the DevNet server
+  - If not provided, defaults to `"http://localhost:5050"`
+  - Can be customized for different ports or hosts
+
+## Returns
+
+- `*DevNet` - Pointer to a new DevNet instance
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/devnet"
+)
+
+func main() {
+	// Get DevNet URL from environment variable
+	devnetURL := os.Getenv("DEVNET_URL")
+	if devnetURL == "" {
+		devnetURL = "http://localhost:5050"
+	}
+
+	// Create DevNet instance
+	devNet := devnet.NewDevNet(devnetURL)
+
+	fmt.Printf("DevNet instance created for: %s\n", devnetURL)
+
+	// Verify connection
+	if devNet.IsAlive() {
+		fmt.Println("✓ DevNet is running")
+	} else {
+		log.Fatal("✗ DevNet is not running")
+	}
+}
+```
+
+## Expected Output
+
+```
+DevNet instance created for: http://localhost:5050
+✓ DevNet is running
+```
+
+## Common Use Cases
+
+### Default Local DevNet
+
+```go
+// Connect to default localhost:5050
+devNet := devnet.NewDevNet()
+```
+
+### Custom Port
+
+```go
+// Connect to DevNet on custom port
+devNet := devnet.NewDevNet("http://localhost:5051")
+```
+
+### Docker Container
+
+```go
+// Connect to DevNet in Docker
+devNet := devnet.NewDevNet("http://devnet-container:5050")
+```
+
+## Error Handling
+
+The constructor itself doesn't return errors, but you should verify the connection:
+
+```go
+devNet := devnet.NewDevNet()
+
+if !devNet.IsAlive() {
+	log.Fatal("DevNet is not running. Start it with: starknet-devnet")
+}
+```
+
+## Related Methods
+
+- [IsAlive](./is-alive.mdx) - Check if DevNet is running
+- [Accounts](./accounts.mdx) - Get pre-funded test accounts
+- [Mint](./mint.mdx) - Mint tokens for testing

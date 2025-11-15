@@ -1,0 +1,118 @@
+# Verify
+
+Verifies a signature for a given message hash using the Stark curve.
+
+## Function Signature
+
+```go
+func Verify(msgHash, r, s, pubX *big.Int) (bool, error)
+```
+
+## Parameters
+
+- `msgHash` (*big.Int): The message hash that was signed
+- `r` (*big.Int): The R component of the signature
+- `s` (*big.Int): The S component of the signature
+- `pubX` (*big.Int): The X-coordinate of the public key
+
+## Returns
+
+- `bool`: `true` if the signature is valid, `false` otherwise
+- `error`: Error if verification process fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate a key pair
+	privKey, pubX, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal("Failed to generate keys:", err)
+	}
+
+	// Message hash to sign
+	msgHash := new(big.Int)
+	msgHash.SetString("1234567890abcdef", 16)
+
+	// Sign the message
+	r, s, err := curve.Sign(msgHash, privKey)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
+	}
+
+	// Verify the signature
+	valid, err := curve.Verify(msgHash, r, s, pubX)
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+
+	fmt.Println("Verify:")
+	fmt.Printf("  Message Hash: 0x%x\n", msgHash)
+	fmt.Printf("  Public Key X: 0x%x\n", pubX)
+	fmt.Printf("  Signature R: 0x%x\n", r)
+	fmt.Printf("  Signature S: 0x%x\n", s)
+	fmt.Printf("  Valid: %v\n", valid)
+}
+```
+
+## Expected Output
+
+```
+Verify:
+  Message Hash: 0x1234567890abcdef
+  Public Key X: 0x55ee8b9fe765b75772260106a65c8f644bb6e44ae6871a513b2f69f48ea21d5
+  Signature R: 0x2f3405619c1d177588837cbeba7ed4a4346f64e81153d909432f2a32fcf36dd
+  Signature S: 0x6b87ab91d0d689f11203092666d11bb88ad5d28a08f32ffc93f1c7def2c41bc
+  Valid: true
+```
+
+## Use Cases
+
+### 1. Verify Transaction Signature
+```go
+valid, err := curve.Verify(txHash, sigR, sigS, senderPubKey)
+if !valid {
+    return errors.New("invalid transaction signature")
+}
+```
+
+### 2. Verify Account Ownership
+```go
+challengeHash := new(big.Int).SetString("0x123...", 0)
+valid, _ := curve.Verify(challengeHash, r, s, claimedPubKey)
+if valid {
+    fmt.Println("Account ownership verified")
+}
+```
+
+### 3. Multi-signature Verification
+```go
+allValid := true
+for i, sig := range signatures {
+    valid, _ := curve.Verify(msgHash, sig.R, sig.S, pubKeys[i])
+    allValid = allValid && valid
+}
+```
+
+## Notes
+
+- Returns `false` if signature is invalid (no error thrown)
+- The public key X coordinate is sufficient for verification
+- Use [VerifyFelts](/docs/curve/functions/verify-felts) for felt.Felt parameters
+- Verification is faster than signing
+
+## Related Functions
+
+- [VerifyFelts](/docs/curve/functions/verify-felts) - Verify with felt.Felt parameters
+- [Sign](/docs/curve/functions/sign) - Create a signature
+- [GetYCoordinate](/docs/curve/functions/get-y-coordinate) - Get Y from X if needed

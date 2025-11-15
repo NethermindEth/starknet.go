@@ -1,21 +1,20 @@
-# ChainID Method Usage
+# ChainID
 
+Returns the chain ID for transaction replay protection.
 
-
-
-
+## Method Signature
 
 ```go
-ChainID(ctx context.Context) (string, error)
+func (provider *Provider) ChainID(ctx context.Context) (string, error)
 ```
 
 ## Parameters
 
-- `ctx` - Context for the request
+- `ctx` - Context for request cancellation and timeout
 
 ## Returns
 
-- `string` - The chain ID for transaction replay protection
+- `string` - The chain ID (e.g., "SN_MAIN", "SN_SEPOLIA")
 - `error` - Error if the request fails
 
 ## Usage Example
@@ -24,27 +23,34 @@ ChainID(ctx context.Context) (string, error)
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
 
-    // Get chain ID
-    chainID, err := client.ChainID(context.Background())
-    if err != nil {
-        log.Fatal("Failed to get chain ID:", err)
-    }
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create client:", err)
+	}
 
-    fmt.Printf("Chain ID: %s\n", chainID)
+	// Get chain ID
+	chainID, err := client.ChainID(ctx)
+	if err != nil {
+		log.Fatal("Failed to get chain ID:", err)
+	}
+
+	fmt.Printf("Chain ID: %s\n", chainID)
 }
 ```
 
@@ -54,17 +60,17 @@ func main() {
 Chain ID: SN_SEPOLIA
 ```
 
-## Chain ID Values
+## Error Handling
 
-- **SN_MAIN** - Starknet Mainnet
-- **SN_SEPOLIA** - Starknet Sepolia Testnet
+```go
+chainID, err := client.ChainID(ctx)
+if err != nil {
+	// Handle error
+	return err
+}
+```
 
-## Use Cases
+## Related Methods
 
-- **Transaction Signing**: Chain ID is used for transaction replay protection
-- **Network Verification**: Confirm you're connected to the expected network
-- **Multi-Chain Applications**: Determine which Starknet network you're interacting with
-
----
-
-*ChainID is essential for transaction replay protection and network identification.*
+- [SpecVersion](./spec-version.mdx) - Get RPC specification version
+- [Syncing](./syncing.mdx) - Get node sync status

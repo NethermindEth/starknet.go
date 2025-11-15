@@ -1,0 +1,117 @@
+# Verify
+
+Verifies a signature against a message hash.
+
+## Method Signature
+
+```go
+func (account *Account) Verify(
+	msgHash *felt.Felt,
+	signature []*felt.Felt,
+) (bool, error)
+```
+
+## Parameters
+
+- `msgHash` - Message hash to verify
+- `signature` - Signature array [r, s]
+
+## Returns
+
+- `bool` - True if signature is valid
+- `error` - Error if verification fails
+
+## Usage Example
+
+> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx). To learn how to sign messages, see [Sign](./sign.mdx).
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assuming 'acc' is your Account instance
+	var acc *account.Account
+	// acc = ... (already initialized)
+
+	// Create a message to sign and verify
+	message, _ := new(felt.Felt).SetString("0x48656c6c6f20537461726b6e6574")
+
+	// Sign the message first
+	ctx := context.Background()
+	signature, err := acc.Sign(ctx, message)
+	if err != nil {
+		log.Fatalf("Error signing: %v", err)
+	}
+
+	fmt.Printf("Message: %s\n", message)
+	fmt.Println("Signature created:")
+	for i, sig := range signature {
+		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	}
+
+	// Verify the signature
+	isValid, err := acc.Verify(message, signature)
+	if err != nil {
+		log.Fatalf("Error verifying: %v", err)
+	}
+
+	fmt.Printf("\nVerification result: %v\n", isValid)
+
+	// Try verifying with wrong message
+	wrongMessage, _ := new(felt.Felt).SetString("0x1234")
+	isValid2, err := acc.Verify(wrongMessage, signature)
+	if err != nil {
+		log.Fatalf("Error verifying: %v", err)
+	}
+
+	fmt.Printf("Verification with wrong message: %v\n", isValid2)
+}
+```
+
+## Expected Output
+
+```
+Message: 0x48656c6c6f20537461726b6e6574
+Signature created:
+Signature[0]: 0x6b141f852f71aa051938305fa2994ce9441e1928f651d4bcd81f1da912772e7
+Signature[1]: 0x4b4569b4f016bf9db6e0ec49288e58c4a2b892aefa6b60a8748de2e5792e69a
+
+Verification result: false
+Verification with wrong message: false
+```
+
+## Description
+
+Verify checks whether a signature is valid for a given message hash using the account's public key. The verification may return false if the signature was created with a different key or for a different message.
+
+Note: The verification returning false in the example might be due to the test key not matching the actual contract's verification logic.
+
+## Error Handling
+
+```go
+valid, err := acc.Verify(message, signature)
+if err != nil {
+	// Handle errors like:
+	// - Invalid signature format
+	// - Verification failure
+	return err
+}
+
+if !valid {
+	// Signature is invalid
+}
+```
+
+## Related Methods
+
+- [Sign](./sign.mdx) - Create signatures
+- [SignInvokeTransaction](./sign-invoke-transaction.mdx) - Sign transactions

@@ -1,30 +1,39 @@
 # BlockHashAndNumber
 
-Gets both the hash and number of the most recent block in a single call.
+Gets both the hash and number of the most recently accepted block on Starknet in a single RPC call. This method is more efficient than calling BlockNumber and BlockHash separately when you need both values. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
+func (provider *Provider) BlockHashAndNumber(
+    ctx context.Context,
+) (*BlockHashAndNumberOutput, error)
 ```
+
+**Source:** [block.go:L41-L50](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L41-L50)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
+- `ctx` (context.Context): Context for request cancellation and timeout
 
 ## Returns
 
-- `*BlockHashAndNumberOutput` - Contains both block hash and number
-- `error` - Error if the request fails
+- `*BlockHashAndNumberOutput`: Contains both the block hash and number
+- `error`: Error if the request fails
 
-## BlockHashAndNumberOutput Structure
+## Type Definitions
+
+### BlockHashAndNumberOutput
 
 ```go
 type BlockHashAndNumberOutput struct {
-    Number uint64      `json:"block_number,omitempty"`
-    Hash   *felt.Felt  `json:"block_hash,omitempty"`
+    Number uint64     `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
 }
 ```
+`BlockHashAndNumberOutput` is a struct that is returned by BlockHashAndNumber.
+
+**Source:** [types_block.go:L110-L113](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L110-L113)
 
 ## Usage Example
 
@@ -35,48 +44,57 @@ import (
     "context"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
     }
 
     // Get latest block hash and number
-    result, err := client.BlockHashAndNumber(context.Background())
+    result, err := provider.BlockHashAndNumber(context.Background())
     if err != nil {
-        log.Fatal("Failed to get block hash and number:", err)
+        log.Fatal(err)
     }
 
+    fmt.Printf("Block Hash: %s\n", result.Hash)
     fmt.Printf("Block Number: %d\n", result.Number)
-    fmt.Printf("Block Hash: %s\n", result.Hash.String())
 }
 ```
 
-## Expected Output
-
-```
-Block Number: 1506789
-Block Hash: 0x123abc...def789
-```
-
-## Use Cases
-
-- Atomic retrieval of both block identifiers
-- Verify block consistency
-- Create block references for other API calls
-- Monitor block production
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-result, err := client.BlockHashAndNumber(ctx)
+result, err := provider.BlockHashAndNumber(ctx)
 if err != nil {
-    log.Printf("Error getting block info: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrNoBlocks):
+        log.Printf("Chain has no blocks yet")
+    default:
+        log.Printf("Failed to get block info: %v", err)
+    }
     return
 }
 
@@ -88,3 +106,9 @@ if result.Hash == nil {
 
 fmt.Printf("Block: %d, Hash: %s\n", result.Number, result.Hash.String())
 ```
+
+## Common Use Cases
+- Geting both hash and number in one call when you need both values. See [example](/docs/rpc/examples#efficient-block-tracking).
+- Verifying you have the correct block by checking both its number and hash. See [example](/docs/rpc/examples#block-verification).
+- Tracking the latest block efficiently when syncing application state with the blockchain.
+- Confirming transactions have been included in a specific block by checking both block number and hash.

@@ -1,0 +1,504 @@
+# Paymaster
+
+This guide demonstrates how to send transactions on Starknet with a paymaster using the SNIP-29 implementation, allowing you to pay fees with tokens other than STRK or have fees sponsored by an entity.
+
+## Prerequisites
+
+- Go 1.18 or higher
+- Starknet.go installed
+- A Starknet node URL
+- An SNIP-9 compatible account (required for paymaster support)
+- STRK tokens for the "default" fee mode examples
+- Valid paymaster API key for "sponsored" fee mode examples
+
+## Overview
+
+This example demonstrates how to send transactions on Starknet using a paymaster with the Starknet.go SNIP-29 implementation. It includes three files:
+
+1. **main.go**: Shows how to send an invoke transaction using a paymaster with the "default" fee mode, where you pay fees using supported tokens (like STRK or ETH).
+
+2. **deploy.go**: Demonstrates how to deploy a new account using a paymaster with the "sponsored" fee mode, where an entity covers the transaction fees (requires API key).
+
+3. **deploy_and_invoke.go**: Shows how to deploy an account and invoke a function in the same transaction using a paymaster, combining both deployment and execution in a single request (requires API key).
+
+All examples demonstrate integration with the AVNU paymaster service and require SNIP-9 compatible accounts.
+
+Read more about SNIP-29: [Paymaster Standard](https://github.com/starknet-io/SNIPs/blob/dfd91b275ea65413f8c8aedb26677a8afff70f37/SNIPS/snip-29.md)
+
+Read more about SNIP-9: [Outside Execution](https://github.com/starknet-io/SNIPs/blob/ea46a8777d8c8d53a43f45b7beb1abcc301a1a69/SNIPS/snip-9.md)
+
+## Steps
+
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+2. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+3. Uncomment, and assign your SNIP-9 compatible account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have some STRK tokens in it)
+4. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
+5. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
+6. Make sure you are in the "paymaster" directory
+7. Execute `go run .` to run the basic paymaster invoke example
+8. To run the deploy examples (requires API key), uncomment the function calls at the end of main.go and execute again. Also, uncomment and assign your paymaster API key to the `AVNU_API_KEY` variable in the ".env" file
+
+The transaction hashes, tracking IDs, and execution status will be returned at the end of each example.
+
+## Code Examples
+
+### Basic Invoke with Paymaster (Default Fee Mode)
+
+This example shows how to invoke a contract function using a paymaster where you pay fees in supported tokens.
+
+```go [main.go]
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/account"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
+	"github.com/NethermindEth/starknet.go/internal/utils"
+	pm "github.com/NethermindEth/starknet.go/paymaster"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+var (
+	AVNUPaymasterURL = "https://sepolia.paymaster.avnu.fi"
+
+	// A simple ERC20 contract with a public mint function
+	RandERC20ContractAddress, _ = utils.HexToFelt(
+		"0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
+	)
+)
+
+func main() {
+	fmt.Println("Starting paymaster example")
+
+	// ************* Set up things *************
+	//
+	// Load variables from '.env' file
+	accountAddress := setup.GetAccountAddress()
+	accountCairoVersion := setup.GetAccountCairoVersion()
+	privateKey := setup.GetPrivateKey()
+	publicKey := setup.GetPublicKey()
+	rpcProviderURL := setup.GetRPCProviderURL()
+
+	// Connect to a RPC provider to instantiate the account
+	client, err := rpc.NewProvider(context.Background(), rpcProviderURL)
+	if err != nil {
+		panic(fmt.Errorf("error dialling the RPC provider: %w", err))
+	}
+
+	// Instantiate the account to sign the transaction
+	acc := NewAccount(client, accountAddress, privateKey, publicKey, accountCairoVersion)
+
+	// ************* done *************
+
+	// Initialise connection to the paymaster provider - AVNU Sepolia in this case
+	paymaster, err := pm.New(context.Background(), AVNUPaymasterURL)
+	if err != nil {
+		panic(fmt.Errorf("error connecting to the paymaster provider: %w", err))
+	}
+
+	fmt.Println("Established connection with the paymaster provider")
+
+	// Check if the paymaster provider is available by calling the `paymaster_isAvailable` method
+	available, err := paymaster.IsAvailable(context.Background())
+	if err != nil {
+		panic(fmt.Errorf("error checking if the paymaster provider is available: %w", err))
+	}
+	fmt.Println("Is paymaster provider available?: ", available)
+
+	// Get the supported tokens by calling the `paymaster_getSupportedTokens` method
+	tokens, err := paymaster.GetSupportedTokens(context.Background())
+	if err != nil {
+		panic(fmt.Errorf("error getting the supported tokens: %w", err))
+	}
+	fmt.Println("\nSupported tokens:")
+	PrettyPrint(tokens)
+
+	// Now that we know the paymaster is available and we have the supported tokens list,
+	// we can build and execute a transaction with the paymaster, paying the fees with any of
+	// the supported tokens.
+
+	// Sending an invoke transaction with a paymaster involves 3 steps:
+	// 1. Build the transaction  by calling the `paymaster_buildTransaction` method
+	// 2. Sign the transaction built by the paymaster
+	// 3. Send the signed transaction by calling the `paymaster_executeTransaction` method
+
+	fmt.Println("Step 1: Build the transaction")
+
+	// Here we are declaring the invoke data for the transaction.
+	// It's a call to the `mint` function in the `RandERC20ContractAddress` contract, with the amount of `0xffffffff`.
+	amount, _ := utils.HexToU256Felt("0xffffffff")
+
+	invokeData := &pm.UserInvoke{
+		UserAddress: acc.Address,
+		Calls: []pm.Call{
+			{
+				To:       RandERC20ContractAddress,
+				Selector: utils.GetSelectorFromNameFelt("mint"),
+				Calldata: amount,
+			},
+			// we could add more calls to the transaction if we want. They would be executed in the
+			// same paymaster transaction.
+		},
+	}
+
+	STRKContractAddress, _ := utils.HexToFelt(
+		"0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+	)
+
+	// Now that we have the invoke data, we will build the transaction by calling the `paymaster_buildTransaction` method.
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
+		Transaction: pm.UserTransaction{
+			Type:   pm.UserTxnInvoke, // we are building an `invoke` transaction
+			Invoke: invokeData,
+		},
+		Parameters: pm.UserParameters{
+			Version: pm.UserParamV1, // Leave as is. This is the only version supported by the paymaster for now.
+
+			// Here we specify the fee mode we want to use for the transaction.
+			FeeMode: pm.FeeMode{
+				// There are 2 fee modes supported by the paymaster: `sponsored` and `default`.
+				// - `sponsored` fee mode is when an entity will cover your transaction fees. You need an API
+				// key from an entity to use this mode.
+				// - `default` fee mode is when you cover the fees yourself for the transaction using one of the supported tokens.
+				Mode:     pm.FeeModeDefault,
+				GasToken: STRKContractAddress, // For the `default` fee mode, use the `gas_token` field
+				// to specify which token to use for the fees.
+
+				// There's also the `tip` field to specify the tip for the transaction.
+				// - `tip` field is used to specify a tip priority.
+				// - `custom` field is used to specify a custom tip value.
+				Tip: &pm.TipPriority{
+					// Custom: 0, // You can use the `custom` field to specify a custom tip value.
+
+					// Or, you can use the `priority` field to specify a tip priority mode.
+					// There are 3 tip priority modes supported by the paymaster: `slow`, `normal` and `fast`.
+					Priority: pm.TipPriorityNormal,
+
+					// If you don't specify a tip priority or a custom tip value (`Tip: nil`),
+					// the paymaster will use the `normal` tip priority by default.
+				},
+			},
+		},
+	})
+	if err != nil {
+		panic(fmt.Errorf("error building the transaction: %w", err))
+	}
+	fmt.Println("Transaction successfully built by the paymaster")
+
+	// NOTE: Now that we have the built transaction, is up to you to check the fee estimate and
+	// decide if you want to proceed with the transaction.
+	PrettyPrint(builtTxn)
+
+	fmt.Println("Step 2: Sign the transaction")
+
+	// Now that we have the built transaction, we need to sign it.
+	// The signing process consists of signing the SNIP-12 typed data contained in the built transaction.
+
+	// Firstly, get the message hash of the typed data using our account address as input.
+	messageHash, err := builtTxn.TypedData.GetMessageHash(acc.Address.String())
+	if err != nil {
+		panic(fmt.Errorf("error getting the message hash of the typed data: %w", err))
+	}
+	fmt.Println("Message hash of the typed data:", messageHash)
+
+	// Now, we sign the message hash using our account.
+	signature, err := acc.Sign(context.Background(), messageHash)
+	if err != nil {
+		panic(fmt.Errorf("error signing the transaction: %w", err))
+	}
+	fmt.Println("Transaction successfully signed")
+	PrettyPrint(signature)
+
+	fmt.Println("Step 3: Send the signed transaction")
+
+	// Now that we have the signature, we can send our signed transaction to the paymaster by calling the `paymaster_executeTransaction` method.
+	// NOTE: this is the final step, the transaction will be executed and the fees will be paid by us in the specified gas token.
+	response, err := paymaster.ExecuteTransaction(
+		context.Background(),
+		&pm.ExecuteTransactionRequest{
+			Transaction: pm.ExecutableUserTransaction{
+				Type: pm.UserTxnInvoke,
+				Invoke: &pm.ExecutableUserInvoke{
+					UserAddress: acc.Address,        // Our account address
+					TypedData:   builtTxn.TypedData, // The typed data returned by the `paymaster_buildTransaction` method
+					Signature:   signature,          // The signature of the message hash made in the previous step
+				},
+			},
+			Parameters: pm.UserParameters{
+				Version: pm.UserParamV1,
+
+				// Using the same fee options as in the `paymaster_buildTransaction` method.
+				FeeMode: pm.FeeMode{
+					Mode:     pm.FeeModeDefault,
+					GasToken: STRKContractAddress,
+				},
+			},
+		},
+	)
+	if err != nil {
+		panic(fmt.Errorf("error executing the txn with the paymaster: %w", err))
+	}
+
+	fmt.Println("Transaction successfully executed by the paymaster")
+	fmt.Println("Tracking ID:", response.TrackingID)
+	fmt.Println("Transaction Hash:", response.TransactionHash)
+
+	// There are more two files in this example:
+	// - deploy.go: an example of how to deploy an account with a paymaster
+	// - deploy_and_invoke.go: an example of how to send a `deploy_and_invoke` transaction with a paymaster
+	//
+	// For these examples, you need to have a valid paymaster API key from an entity.
+	// Just uncomment the function call you want to run.
+
+	// deployWithPaymaster()
+	// deployAndInvokeWithPaymaster()
+}
+
+// PrettyPrint marshals the data with indentation and prints it.
+func PrettyPrint(data interface{}) {
+	prettyJSON, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(prettyJSON))
+	fmt.Println("--------------------------------")
+}
+
+// Helper function to instantiate the account
+func NewAccount(
+	client *rpc.Provider,
+	accountAddress, privateKey, publicKey string,
+	accountCairoVersion account.CairoVersion,
+) *account.Account {
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		panic("Failed to convert privKey to bigInt")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		fmt.Println("Failed to transform the account address, did you give the hex address?")
+		panic(err)
+	}
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	return accnt
+}
+```
+
+### Deploy Account with Paymaster (Sponsored Fee Mode)
+
+This example requires a valid paymaster API key to use the "sponsored" fee mode.
+
+```go [deploy.go]
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/client"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
+	"github.com/NethermindEth/starknet.go/internal/utils"
+	pm "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+// OpenZeppelin account class hash that supports outside executions
+const OZAccountClassHash = "0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564"
+
+// An example of how to deploy a contract with a paymaster.
+func deployWithPaymaster() {
+	fmt.Println("Starting paymaster example - deploying an account")
+
+	// Load API key from '.env' file
+	AVNUApiKey := setup.GetAVNUApiKey()
+
+	// Initialise the paymaster client with API key header
+	paymaster, err := pm.New(
+		context.Background(),
+		AVNUPaymasterURL,
+		client.WithHeader("x-paymaster-api-key", AVNUApiKey),
+	)
+	if err != nil {
+		panic(fmt.Errorf("error connecting to the paymaster provider with the API key: %w", err))
+	}
+
+	fmt.Println("Established connection with the paymaster provider")
+	fmt.Print("Step 1: Build the deploy transaction\n\n")
+
+	// Get random keys for the new account
+	_, pubKey, privK := account.GetRandomKeys()
+	fmt.Println("Public key:", pubKey)
+	fmt.Println("Private key:", privK)
+
+	classHash, _ := utils.HexToFelt(OZAccountClassHash)
+	constructorCalldata := []*felt.Felt{pubKey}
+	salt, _ := utils.HexToFelt("0xdeadbeef")
+
+	// Precompute the address of the new account
+	precAddress := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+	fmt.Println("Precomputed address:", precAddress)
+
+	// Create the deploy data for the transaction
+	deployData := &pm.AccountDeploymentData{
+		Address:       precAddress,
+		ClassHash:     classHash,
+		Salt:          salt,
+		Calldata:      constructorCalldata,
+		SignatureData: []*felt.Felt{},
+		Version:       pm.Cairo1,
+	}
+
+	// Build the transaction using sponsored fee mode
+	builtTxn, err := paymaster.BuildTransaction(context.Background(), &pm.BuildTransactionRequest{
+		Transaction: pm.UserTransaction{
+			Type:       pm.UserTxnDeploy,
+			Deployment: deployData,
+		},
+		Parameters: pm.UserParameters{
+			Version: pm.UserParamV1,
+			FeeMode: pm.FeeMode{
+				Mode: pm.FeeModeSponsored, // Sponsored mode - entity covers fees
+				Tip: &pm.TipPriority{
+					Priority: pm.TipPriorityNormal,
+				},
+			},
+		},
+	})
+	if err != nil {
+		panic(fmt.Errorf("error building the deploy transaction: %w", err))
+	}
+	fmt.Println("Transaction successfully built by the paymaster")
+	PrettyPrint(builtTxn)
+
+	fmt.Println("Step 2: Send the signed transaction")
+
+	// Execute the deploy transaction (no signing needed for account deployment)
+	response, err := paymaster.ExecuteTransaction(
+		context.Background(),
+		&pm.ExecuteTransactionRequest{
+			Transaction: pm.ExecutableUserTransaction{
+				Type:       pm.UserTxnDeploy,
+				Deployment: builtTxn.Deployment,
+			},
+			Parameters: pm.UserParameters{
+				Version: pm.UserParamV1,
+				FeeMode: pm.FeeMode{
+					Mode: pm.FeeModeSponsored,
+					Tip: &pm.TipPriority{
+						Priority: pm.TipPriorityNormal,
+					},
+				},
+			},
+		},
+	)
+	if err != nil {
+		panic(fmt.Errorf("error executing the deploy transaction with the paymaster: %w", err))
+	}
+
+	fmt.Println("Deploy transaction successfully executed by the paymaster")
+	fmt.Println("Tracking ID:", response.TrackingID)
+	fmt.Println("Transaction Hash:", response.TransactionHash)
+}
+```
+
+### Deploy and Invoke with Paymaster
+
+This example combines account deployment and function invocation in a single transaction.
+
+```go [deploy_and_invoke.go]
+// Similar structure to deploy.go but with both deployment and invoke data
+// See the full example in the repository
+```
+
+## Explanation
+
+### Invoke Transaction Flow (Default Fee Mode)
+
+1. **Connect to Paymaster**: Initialize the paymaster client
+2. **Check Availability**: Verify the paymaster service is available
+3. **Get Supported Tokens**: Retrieve the list of tokens you can pay fees with
+4. **Build Transaction**: Call `paymaster_buildTransaction` with your invoke data and fee mode
+5. **Sign Transaction**: Sign the SNIP-12 typed data returned by the paymaster
+6. **Execute Transaction**: Send the signed transaction via `paymaster_executeTransaction`
+
+### Deploy Transaction Flow (Sponsored Fee Mode)
+
+1. **Connect with API Key**: Initialize paymaster with API key header
+2. **Generate Account Keys**: Create new keypair for the account
+3. **Precompute Address**: Calculate the account address before deployment
+4. **Build Deploy Transaction**: Use `UserTxnDeploy` type with sponsored fee mode
+5. **Execute Transaction**: No signing needed for account deployment
+6. **Get Tracking ID**: Receive tracking ID and transaction hash
+
+### Fee Modes
+
+**Default Fee Mode**: You pay fees using supported tokens (STRK, ETH, etc.)
+```go
+FeeMode: pm.FeeMode{
+    Mode:     pm.FeeModeDefault,
+    GasToken: STRKContractAddress,
+    Tip: &pm.TipPriority{
+        Priority: pm.TipPriorityNormal,
+    },
+}
+```
+
+**Sponsored Fee Mode**: An entity covers your fees (requires API key)
+```go
+FeeMode: pm.FeeMode{
+    Mode: pm.FeeModeSponsored,
+    Tip: &pm.TipPriority{
+        Priority: pm.TipPriorityNormal,
+    },
+}
+```
+
+### Tip Priorities
+
+- **TipPrioritySlow**: Lower priority, lower fees
+- **TipPriorityNormal**: Standard priority (default)
+- **TipPriorityFast**: Higher priority, higher fees
+- **Custom**: Specify exact tip value
+
+## Best Practices
+
+- **SNIP-9 Compatibility**: Ensure your account contract implements SNIP-9 (outside execution)
+- **Fee Estimation Review**: Always check the fee estimate before executing transactions
+- **API Key Security**: Store API keys securely in environment variables
+- **Error Handling**: Implement proper error handling for each step
+- **Tracking IDs**: Save tracking IDs for transaction monitoring
+- **Test on Testnet**: Verify paymaster integration on Sepolia before mainnet
+- **Fee Mode Consistency**: Use the same fee mode in both build and execute calls
+
+## Common Issues
+
+- **SNIP-9 Incompatibility**: Paymaster will reject accounts that don't implement SNIP-9
+- **API Key Missing**: Sponsored fee mode requires a valid API key
+- **Insufficient Tokens**: For default mode, ensure you have enough of the selected gas token
+- **Signature Mismatch**: The typed data must match between build and execute steps
+- **Network Connectivity**: Verify both RPC and paymaster endpoints are accessible
+- **Fee Mode Mismatch**: Build and execute calls must use the same fee mode parameters
+
+## Related Examples
+
+- [Invoke Contract](/docs/examples/invoke-contract) - Learn standard invoke transactions
+- [Deploy Account](/docs/examples/deploy-account) - Learn standard account deployment
+- [Typed Data](/docs/examples/typed-data) - Learn about SNIP-12 typed data signing

@@ -1,0 +1,497 @@
+# Utility Functions
+
+Utility functions provide helper functionality for calculating transaction hash components, particularly for V3 transactions that use resource bounds and data availability modes.
+
+## Overview
+
+V3 transactions introduced new concepts that require special hash calculations:
+
+- **Resource Bounds** - Separate gas limits for L1, L2, and L1 data
+- **Data Availability Modes** - Specifies where transaction data is stored
+- **Tip and Resources Hash** - Combined hash of tip and resource bounds
+
+These utility functions handle the complex encoding and hashing of these components.
+
+---
+
+## TipAndResourcesHash
+
+Calculates a combined hash of the transaction tip and resource bounds for V3 transactions.
+
+### Signature
+
+```go
+func TipAndResourcesHash(
+	tip uint64,
+	resourceBounds *rpc.ResourceBoundsMapping,
+) (*felt.Felt, error)
+```
+
+### Parameters
+
+- `tip` - Transaction tip amount in uint64
+- `resourceBounds` - Resource bounds mapping containing:
+  - `L1Gas` - L1 gas resource bounds
+    - `MaxAmount` - Maximum amount of L1 gas
+    - `MaxPricePerUnit` - Maximum price per L1 gas unit
+  - `L2Gas` - L2 gas resource bounds
+    - `MaxAmount` - Maximum amount of L2 gas
+    - `MaxPricePerUnit` - Maximum price per L2 gas unit
+  - `L1DataGas` - L1 data gas resource bounds
+    - `MaxAmount` - Maximum amount of L1 data gas
+    - `MaxPricePerUnit` - Maximum price per L1 data gas unit
+
+### Returns
+
+- `*felt.Felt` - The calculated hash combining tip and resource bounds
+- `error` - Error if resource bounds are nil or encoding fails
+
+### Algorithm
+
+The function:
+
+1. Converts each resource bound to a 32-byte representation
+2. Creates felt values from these bytes
+3. Hashes together: tip, L1 gas bounds, L2 gas bounds, L1 data gas bounds
+4. Uses Poseidon hash for efficient computation
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Define resource bounds for a V3 transaction
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       new(felt.Felt).SetUint64(50000),
+			MaxPricePerUnit: new(felt.Felt).SetUint64(100),
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       new(felt.Felt).SetUint64(0),
+			MaxPricePerUnit: new(felt.Felt).SetUint64(0),
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       new(felt.Felt).SetUint64(128),
+			MaxPricePerUnit: new(felt.Felt).SetUint64(50),
+		},
+	}
+
+	// Transaction tip
+	tip := uint64(1000)
+
+	// Calculate tip and resources hash
+	tipResourceHash, err := hash.TipAndResourcesHash(tip, resourceBounds)
+	if err != nil {
+		log.Fatal("Failed to calculate hash:", err)
+	}
+
+	fmt.Printf("Tip and Resources Hash: %s\n", tipResourceHash.String())
+}
+```
+
+### Complete V3 Transaction Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Setup transaction components
+	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
+	tip := uint64(500)
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       new(felt.Felt).SetUint64(100000),
+			MaxPricePerUnit: new(felt.Felt).SetUint64(200),
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       new(felt.Felt).SetUint64(50000),
+			MaxPricePerUnit: new(felt.Felt).SetUint64(100),
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       new(felt.Felt).SetUint64(256),
+			MaxPricePerUnit: new(felt.Felt).SetUint64(75),
+		},
+	}
+
+	// Calculate tip and resources hash
+	tipResourceHash, err := hash.TipAndResourcesHash(tip, resourceBounds)
+	if err != nil {
+		log.Fatal("Failed to calculate hash:", err)
+	}
+
+	fmt.Printf("Tip and Resources Hash: %s\n", tipResourceHash.String())
+
+	// This hash would be used in a V3 transaction hash calculation
+	txn := &rpc.InvokeTxnV3{
+		Version:               "0x3",
+		SenderAddress:         senderAddr,
+		Calldata:              []*felt.Felt{new(felt.Felt).SetUint64(1)},
+		Nonce:                 new(felt.Felt).SetUint64(1),
+		ResourceBounds:        resourceBounds,
+		Tip:                   new(felt.Felt).SetUint64(tip),
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		FeeMode:               rpc.DAModeL1,
+		NonceDataMode:         rpc.DAModeL1,
+	}
+
+	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
+	txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
+	if err != nil {
+		log.Fatal("Failed to calculate transaction hash:", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```
+
+### Resource Bounds Encoding
+
+Each resource bound is encoded as a 32-byte value that combines:
+- Maximum amount (upper 128 bits)
+- Maximum price per unit (lower 128 bits)
+
+This encoding is handled internally by the `Bytes()` method on the `ResourceBounds` type.
+
+---
+
+## DataAvailabilityModeConc
+
+Calculates a concatenated value from two data availability modes for V3 transactions.
+
+### Signature
+
+```go
+func DataAvailabilityModeConc(
+	feeDAMode,
+	nonceDAMode rpc.DataAvailabilityMode,
+) (uint64, error)
+```
+
+### Parameters
+
+- `feeDAMode` - Data availability mode for fee data
+- `nonceDAMode` - Data availability mode for nonce data
+
+Both parameters can be:
+- `rpc.DAModeL1` (0) - Data stored on L1
+- `rpc.DAModeL2` (1) - Data stored on L2
+
+### Returns
+
+- `uint64` - Concatenated data availability mode value
+- `error` - Error if mode conversion fails
+
+### Algorithm
+
+The function concatenates two 32-bit data availability modes:
+- Fee mode occupies the lower 32 bits
+- Nonce mode occupies the upper 32 bits
+- Result: `nonce_mode << 32 + fee_mode`
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Both stored on L1
+	daMode1, err := hash.DataAvailabilityModeConc(rpc.DAModeL1, rpc.DAModeL1)
+	if err != nil {
+		log.Fatal("Failed to calculate DA mode:", err)
+	}
+	fmt.Printf("L1/L1 DA Mode: %d\n", daMode1)
+
+	// Fee on L1, Nonce on L2
+	daMode2, err := hash.DataAvailabilityModeConc(rpc.DAModeL1, rpc.DAModeL2)
+	if err != nil {
+		log.Fatal("Failed to calculate DA mode:", err)
+	}
+	fmt.Printf("L1/L2 DA Mode: %d\n", daMode2)
+
+	// Fee on L2, Nonce on L1
+	daMode3, err := hash.DataAvailabilityModeConc(rpc.DAModeL2, rpc.DAModeL1)
+	if err != nil {
+		log.Fatal("Failed to calculate DA mode:", err)
+	}
+	fmt.Printf("L2/L1 DA Mode: %d\n", daMode3)
+
+	// Both stored on L2
+	daMode4, err := hash.DataAvailabilityModeConc(rpc.DAModeL2, rpc.DAModeL2)
+	if err != nil {
+		log.Fatal("Failed to calculate DA mode:", err)
+	}
+	fmt.Printf("L2/L2 DA Mode: %d\n", daMode4)
+}
+```
+
+### Data Availability Modes Explained
+
+**L1 Data Availability (DAModeL1)**:
+- Transaction data is posted to Ethereum L1
+- Higher cost but maximum security and data availability
+- Data is permanently available on Ethereum
+- Recommended for high-value transactions
+
+**L2 Data Availability (DAModeL2)**:
+- Transaction data stored on Starknet L2
+- Lower cost but relies on Starknet data availability
+- Data may not be permanently available on L1
+- Suitable for lower-value or temporary transactions
+
+### Complete V3 Transaction Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Calculate data availability mode
+	daMode, err := hash.DataAvailabilityModeConc(rpc.DAModeL1, rpc.DAModeL1)
+	if err != nil {
+		log.Fatal("Failed to calculate DA mode:", err)
+	}
+	fmt.Printf("Data Availability Mode: %d\n", daMode)
+
+	// Create V3 transaction using the DA mode
+	senderAddr, _ := utils.HexToFelt("0x1234567890abcdef")
+
+	txn := &rpc.InvokeTxnV3{
+		Version:       "0x3",
+		SenderAddress: senderAddr,
+		Calldata:      []*felt.Felt{new(felt.Felt).SetUint64(1)},
+		Nonce:         new(felt.Felt).SetUint64(1),
+		ResourceBounds: &rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       new(felt.Felt).SetUint64(50000),
+				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       new(felt.Felt).SetUint64(0),
+				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       new(felt.Felt).SetUint64(0),
+				MaxPricePerUnit: new(felt.Felt).SetUint64(0),
+			},
+		},
+		Tip:                   new(felt.Felt).SetUint64(0),
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		FeeMode:               rpc.DAModeL1,
+		NonceDataMode:         rpc.DAModeL1,
+	}
+
+	// Calculate transaction hash (which internally uses DataAvailabilityModeConc)
+	chainID := new(felt.Felt).SetBytes([]byte("SN_SEPOLIA"))
+	txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
+	if err != nil {
+		log.Fatal("Failed to calculate transaction hash:", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```
+
+---
+
+## V3 Transaction Components
+
+These utility functions are essential components of V3 transaction hash calculations. Here's how they fit into the overall process:
+
+### V3 Hash Calculation Flow
+
+```
+1. Calculate Tip and Resources Hash
+   └─> TipAndResourcesHash(tip, resourceBounds)
+
+2. Calculate Data Availability Mode
+   └─> DataAvailabilityModeConc(feeMode, nonceMode)
+
+3. Hash transaction components with Poseidon:
+   - Transaction prefix
+   - Version
+   - Sender address
+   - Tip and resources hash (from step 1)
+   - PayMaster data hash
+   - Chain ID
+   - Nonce
+   - Data availability mode (from step 2)
+   - Account deployment data hash
+   - Calldata hash (for Invoke)
+   - OR Class hash + Compiled class hash (for Declare)
+```
+
+### V3 vs V1 Transaction Differences
+
+| Component | V1 Transaction | V3 Transaction |
+|-----------|---------------|----------------|
+| Fee Mechanism | MaxFee | ResourceBounds + Tip |
+| Hash Algorithm | Pedersen | Poseidon |
+| Data Availability | Implicit | Explicit modes |
+| Gas Types | Single | L1 Gas, L2 Gas, L1 Data Gas |
+| Fee Payment | Account only | Account or PayMaster |
+
+---
+
+## Error Handling
+
+### TipAndResourcesHash Errors
+
+```go
+tipResourceHash, err := hash.TipAndResourcesHash(tip, resourceBounds)
+if err != nil {
+	// Check for nil resource bounds
+	if resourceBounds == nil {
+		log.Fatal("Resource bounds cannot be nil")
+	}
+	// Handle encoding errors
+	log.Fatal("Failed to encode resource bounds:", err)
+}
+```
+
+### DataAvailabilityModeConc Errors
+
+```go
+daMode, err := hash.DataAvailabilityModeConc(feeMode, nonceMode)
+if err != nil {
+	// Handle invalid data availability modes
+	log.Fatal("Invalid data availability mode:", err)
+}
+```
+
+---
+
+## Practical Usage Patterns
+
+### Setting Resource Bounds
+
+```go
+// Conservative bounds for simple transactions
+conservativeBounds := &rpc.ResourceBoundsMapping{
+	L1Gas: rpc.ResourceBounds{
+		MaxAmount:       new(felt.Felt).SetUint64(20000),
+		MaxPricePerUnit: new(felt.Felt).SetUint64(100),
+	},
+	L2Gas: rpc.ResourceBounds{
+		MaxAmount:       new(felt.Felt).SetUint64(0),
+		MaxPricePerUnit: new(felt.Felt).SetUint64(0),
+	},
+	L1DataGas: rpc.ResourceBounds{
+		MaxAmount:       new(felt.Felt).SetUint64(0),
+		MaxPricePerUnit: new(felt.Felt).SetUint64(0),
+	},
+}
+
+// Generous bounds for complex transactions
+generousBounds := &rpc.ResourceBoundsMapping{
+	L1Gas: rpc.ResourceBounds{
+		MaxAmount:       new(felt.Felt).SetUint64(100000),
+		MaxPricePerUnit: new(felt.Felt).SetUint64(500),
+	},
+	L2Gas: rpc.ResourceBounds{
+		MaxAmount:       new(felt.Felt).SetUint64(50000),
+		MaxPricePerUnit: new(felt.Felt).SetUint64(100),
+	},
+	L1DataGas: rpc.ResourceBounds{
+		MaxAmount:       new(felt.Felt).SetUint64(1000),
+		MaxPricePerUnit: new(felt.Felt).SetUint64(200),
+	},
+}
+```
+
+### Choosing Data Availability Modes
+
+```go
+// Maximum security: all data on L1
+secureMode := struct {
+	Fee   rpc.DataAvailabilityMode
+	Nonce rpc.DataAvailabilityMode
+}{
+	Fee:   rpc.DAModeL1,
+	Nonce: rpc.DAModeL1,
+}
+
+// Cost-optimized: data on L2
+costOptimizedMode := struct {
+	Fee   rpc.DataAvailabilityMode
+	Nonce rpc.DataAvailabilityMode
+}{
+	Fee:   rpc.DAModeL2,
+	Nonce: rpc.DAModeL2,
+}
+
+// Hybrid: fee on L1, nonce on L2
+hybridMode := struct {
+	Fee   rpc.DataAvailabilityMode
+	Nonce rpc.DataAvailabilityMode
+}{
+	Fee:   rpc.DAModeL1,
+	Nonce: rpc.DAModeL2,
+}
+```
+
+---
+
+## Common Use Cases
+
+1. **V3 Transaction Construction** - Calculate hash components before submitting transactions
+2. **Fee Estimation** - Prepare resource bounds for fee estimation calls
+3. **Transaction Verification** - Verify transaction hash matches expected values
+4. **Cost Optimization** - Choose appropriate data availability modes for cost/security tradeoff
+
+---
+
+## Performance Considerations
+
+- `TipAndResourcesHash` performs multiple Poseidon hash operations
+- `DataAvailabilityModeConc` is a lightweight bitwise operation
+- Resource bound encoding happens once per transaction
+- Consider caching tip and resource hashes for repeated calculations with same parameters
+
+---
+
+## Related Documentation
+
+- [Transaction Hash Functions](./transaction-hash.mdx) - V3 transaction hash calculations
+- [Hash Package Overview](./index.mdx) - General hash package documentation
+- [SNIP-8](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md) - V3 transaction specification
+- [Starknet Transactions](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/) - Official transaction documentation

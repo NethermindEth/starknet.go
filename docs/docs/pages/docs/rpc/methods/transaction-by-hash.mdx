@@ -1,22 +1,31 @@
 # TransactionByHash
 
-Gets the details of a transaction by its hash.
+Gets the complete details of a transaction by its hash. This method returns full transaction information including type, calldata, signatures, resource bounds, and all transaction-specific fields. This is essential for transaction verification, analysis, and displaying transaction details. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+func (provider *Provider) TransactionByHash(
+    ctx context.Context,
+    hash *felt.Felt,
+) (*BlockTransaction, error)
 ```
+
+**Source:** [transaction.go:L19-L29](https://github.com/NethermindEth/starknet.go/blob/main/rpc/transaction.go#L19-L29)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `hash` - Transaction hash as a felt.Felt
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `hash` (*felt.Felt): The transaction hash to look up
 
 ## Returns
 
-- `*BlockTransaction` - Complete transaction details
-- `error` - Error if the request fails
+- `*BlockTransaction`: Complete transaction details
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrHashNotFound` if the transaction hash doesn't exist.
+:::
 
 ## Usage Example
 
@@ -28,29 +37,43 @@ import (
     "encoding/json"
     "fmt"
     "log"
+    "os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
     }
 
-    // Use a transaction hash from previous examples
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Parse transaction hash
     txHashStr := "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa"
     txHash, err := new(felt.Felt).SetString(txHashStr)
     if err != nil {
-        log.Fatal("Failed to parse transaction hash:", err)
+        log.Fatal(err)
     }
 
     // Get transaction by hash
-    transaction, err := client.TransactionByHash(context.Background(), txHash)
+    transaction, err := provider.TransactionByHash(context.Background(), txHash)
     if err != nil {
-        log.Fatal("Failed to get transaction:", err)
+        log.Fatal(err)
     }
 
     // Pretty print the result
@@ -59,133 +82,32 @@ func main() {
 }
 ```
 
-## Expected Output
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
-```json
-{
-  "transaction_hash": "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
-  "type": "INVOKE",
-  "version": "0x3",
-  "nonce": "0x15a7c",
-  "sender_address": "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-  "calldata": [
-    "0x16",
-    "0x36970a65c6b1e9e2d85e724a1517ee6a9a7c106fcc2c8f384ed839c1176e5c0",
-    "0x287f639b99cb45c7554126ab864326d3ccd832c1ae40ef3530b37107721c6d2"
-  ],
-  "signature": [
-    "0x237b47a4359ff52a65f86bc54d2a7ac41f5e96f5f84ee2e87931bcb079bc2fe",
-    "0x8d719bd60fefc6abc396d61a2e82cbab4656f0e25df265ba77647b3bdd6800"
-  ],
-  "resource_bounds": {
-    "l1_gas": {
-      "max_amount": "0x0",
-      "max_price_per_unit": "0x1566a00e5d302"
-    },
-    "l2_gas": {
-      "max_amount": "0x2540be400",
-      "max_price_per_unit": "0x6fc23ac00"
-    },
-    "l1_data_gas": {
-      "max_amount": "0x9600",
-      "max_price_per_unit": "0x5adca"
-    }
-  },
-  "tip": "0x0",
-  "fee_data_availability_mode": "L1",
-  "nonce_data_availability_mode": "L1",
-  "paymaster_data": [],
-  "account_deployment_data": []
-}
-```
-
-Shows complete transaction details including calldata, signatures, resource bounds, and fee configuration for a v3 invoke transaction.
-
-## Multiple Transactions Example
-
-```go
-// Look up multiple transactions
-txHashes := []string{
-    "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
-    "0x54fed1df2162fffe2afe8ff866eea1e219a5c416eb3fd68f9f22ecc1e73a4ff",
-}
-
-for i, hashStr := range txHashes {
-    txHash, err := new(felt.Felt).SetString(hashStr)
-    if err != nil {
-        log.Printf("Failed to parse hash %d: %v", i, err)
-        continue
-    }
-
-    transaction, err := client.TransactionByHash(context.Background(), txHash)
-    if err != nil {
-        log.Printf("Failed to get transaction %d: %v", i, err)
-        continue
-    }
-
-    fmt.Printf("Transaction %d: Type=%s, Version=%s, Nonce=%s\n", 
-        i, transaction.Transaction.GetType(), 
-        transaction.Transaction.GetVersion(), 
-        transaction.Hash.String())
-}
-```
-
-## Transaction Structure Analysis
-
-Based on the actual output, the transaction contains:
-
-**Basic Information:**
-- `transaction_hash` - Unique transaction identifier
-- `type` - Transaction type (INVOKE, DECLARE, DEPLOY_ACCOUNT)
-- `version` - Transaction version (0x3 for latest)
-- `nonce` - Account nonce to prevent replay attacks
-
-**Account Information:**
-- `sender_address` - Address initiating the transaction
-- `signature` - Digital signature proving authorization
-
-**Execution Data:**
-- `calldata` - Function call parameters (extensive array for complex operations)
-- `tip` - Additional fee for priority processing
-- `paymaster_data` - Data for paymaster fee payment (empty if not used)
-- `account_deployment_data` - Account deployment info (empty for regular transactions)
-
-**Fee Configuration:**
-- `resource_bounds` - Gas limits and prices for L1, L2, and data gas
-- `fee_data_availability_mode` - Where fee data is stored (L1 or L2)
-- `nonce_data_availability_mode` - Where nonce data is stored
-
-## Use Cases
-
-- **Transaction Analysis** - Examine transaction details for auditing or debugging
-- **Wallet Integration** - Display transaction information to users
-- **Block Explorers** - Show detailed transaction pages
-- **Transaction Monitoring** - Track specific transactions by hash
-- **Forensic Analysis** - Investigate transaction patterns and behaviors
-- **Smart Contract Debugging** - Analyze failed transactions to understand issues
 
 ## Error Handling
 
 ```go
-transaction, err := client.TransactionByHash(ctx, txHash)
+transaction, err := provider.TransactionByHash(ctx, txHash)
 if err != nil {
-    // Handle different error types
-    log.Printf("Error getting transaction: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrHashNotFound):
+        log.Printf("Transaction not found")
+    default:
+        log.Printf("Failed to get transaction: %v", err)
+    }
     return
 }
 
-// Verify transaction data
-if transaction.Hash == nil {
-    log.Printf("Invalid transaction hash received")
-    return
-}
-
-fmt.Printf("Retrieved transaction: %s\n", transaction.Hash.String())
+fmt.Printf("Transaction type: %s\n", transaction.Type())
 ```
 
-## Performance Notes
+## Common Use Cases
 
-- Transaction lookups are generally fast as they're indexed by hash
-- Large calldata arrays (like in this example with 300+ entries) increase response size
-- Consider caching frequently accessed transactions
-- Use this method when you have a specific transaction hash to investigate
+- Verifying transaction details and status.
+- Analyzing transaction calldata, signatures, and resource usage.
+- Displaying complete transaction information to users.
+- Debuging failed transactions by examining their details.
+

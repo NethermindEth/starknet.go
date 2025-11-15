@@ -1,0 +1,189 @@
+# Mint
+
+Mints tokens to a specified address for testing purposes.
+
+## Method Signature
+
+```go
+func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, error)
+```
+
+## Parameters
+
+- `address` - The address to mint tokens to (as `*felt.Felt`)
+- `amount` - The amount of tokens to mint (as `*big.Int`)
+
+## Returns
+
+- `*MintResponse` - Contains new balance, unit, and transaction hash
+- `error` - Error if the minting fails
+
+## MintResponse Structure
+
+```go
+type MintResponse struct {
+    NewBalance      string `json:"new_balance"`
+    Unit            string `json:"unit"`
+    TransactionHash string `json:"tx_hash"`
+}
+```
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+	"os"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/devnet"
+	"github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+	// Get DevNet URL from environment variable
+	devnetURL := os.Getenv("DEVNET_URL")
+	if devnetURL == "" {
+		devnetURL = "http://localhost:5050"
+	}
+
+	devNet := devnet.NewDevNet(devnetURL)
+
+	// Address to mint tokens to
+	address, err := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	if err != nil {
+		log.Fatal("Failed to parse address:", err)
+	}
+
+	// Amount: 1 ETH = 1e18 wei
+	amount := new(big.Int)
+	amount.SetString("1000000000000000000", 10)
+
+	// Mint tokens
+	response, err := devNet.Mint(address, amount)
+	if err != nil {
+		log.Fatal("Failed to mint tokens:", err)
+	}
+
+	fmt.Println("Tokens minted successfully!")
+	fmt.Printf("New Balance: %s %s\n", response.NewBalance, response.Unit)
+	fmt.Printf("Transaction Hash: %s\n", response.TransactionHash)
+}
+```
+
+## Expected Output
+
+```
+Tokens minted successfully!
+New Balance: 1000000000000000000 WEI
+Transaction Hash: 0x...
+```
+
+## Use Cases
+
+### Fund Test Account
+
+```go
+// Get test accounts
+accounts, err := devNet.Accounts()
+if err != nil {
+	log.Fatal(err)
+}
+
+// Parse address
+address, _ := utils.HexToFelt(accounts[0].Address)
+
+// Mint 10 ETH
+amount := new(big.Int).Mul(big.NewInt(10), big.NewInt(1e18))
+response, err := devNet.Mint(address, amount)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+### Fund Contract Address
+
+```go
+// After deploying a contract, fund it for testing
+contractAddress, _ := utils.HexToFelt("0x123...")
+amount := big.NewInt(5000000000000000000) // 5 ETH
+
+_, err := devNet.Mint(contractAddress, amount)
+if err != nil {
+	log.Fatal("Failed to fund contract:", err)
+}
+```
+
+### Prepare Multiple Accounts
+
+```go
+addresses := []string{
+	"0x1234...",
+	"0x5678...",
+	"0xabcd...",
+}
+
+amount := new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))
+
+for _, addrStr := range addresses {
+	addr, _ := utils.HexToFelt(addrStr)
+	_, err := devNet.Mint(addr, amount)
+	if err != nil {
+		log.Printf("Failed to mint to %s: %v", addrStr, err)
+	}
+}
+```
+
+## Common Amounts
+
+```go
+// 1 wei
+amount := big.NewInt(1)
+
+// 1 ETH = 1e18 wei
+amount := new(big.Int).SetString("1000000000000000000", 10)
+
+// 100 ETH
+amount := new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18))
+
+// Custom amount
+amount, _ := new(big.Int).SetString("123456789012345678", 10)
+```
+
+## Error Handling
+
+```go
+response, err := devNet.Mint(address, amount)
+if err != nil {
+	if strings.Contains(err.Error(), "connection refused") {
+		log.Fatal("DevNet is not running")
+	} else if strings.Contains(err.Error(), "invalid") {
+		log.Fatal("Invalid address or amount")
+	} else {
+		log.Fatal("Minting failed:", err)
+	}
+}
+
+// Verify minting succeeded
+if response.TransactionHash == "" {
+	log.Fatal("No transaction hash returned")
+}
+```
+
+## Notes
+
+- Minting is instant on DevNet (no block delay)
+- The minted amount is added to existing balance
+- Transaction hash can be used to verify the operation
+- DevNet must be running for minting to work
+- No gas fees are charged for minting
+
+## Related Methods
+
+- [Accounts](./accounts.mdx) - Get pre-funded test accounts
+- [FeeToken](./fee-token.mdx) - Get information about the fee token
+- [IsAlive](./is-alive.mdx) - Verify DevNet is running before minting

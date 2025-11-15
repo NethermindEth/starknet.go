@@ -1,23 +1,37 @@
-# Get Class Hash At
+# ClassHashAt
 
-Returns the class hash of the contract at the given address.
+Retrieves the class hash at a specific contract address.
+
+## Method Signature
+
+```go
+func (provider *Provider) ClassHashAt(
+	ctx context.Context,
+	blockID BlockID,
+	contractAddress *felt.Felt,
+) (*felt.Felt, error)
+```
 
 ## Parameters
 
-- `ctx` - The context of the request.
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
 - `contractAddress` - The address of the contract
-- `blockID` - The block identifier. Can be:
-  - `BlockHash` - The hash of the block.
-  - `BlockNumber` - The number of the block.
-  - `"latest"` for the latest block
-  - `"pending"` for the pending block
 
 ## Returns
 
-- `Felt` - The class hash of the contract.
-- `error` - An error if any occurred.
+- `*felt.Felt` - The class hash
+- `error` - Error if the request fails
 
-## Example
+## BlockID Parameter
+
+The `blockID` parameter specifies which block state to query. See [BlockID helper functions](../helper-functions.mdx) for available options:
+- `WithBlockTag("latest")` - Latest block
+- `WithBlockTag("pending")` - Pending block
+- `WithBlockNumber(n)` - Specific block number
+- `WithBlockHash(hash)` - Specific block hash
+
+## Usage Example
 
 ```go
 package main
@@ -26,40 +40,59 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	"encoding/json"
 )
 
 func main() {
-	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	provider, err := rpc.NewProvider(rpcUrl)
-	if err != nil {
-		log.Fatal(err)
+	// Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
 	}
 
-	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
-	result, err := provider.ClassHashAt(context.Background(), rpc.BlockID{Tag: "latest"}, contractAddress)
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create client:", err)
 	}
-	resultJson, err := json.MarshalIndent(result, "", "  ")
+
+	// ETH contract address on Sepolia
+	contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse contract address:", err)
 	}
-	fmt.Println("Class hash:", string(resultJson))
+
+	// Get class hash at contract address
+	classHash, err := client.ClassHashAt(ctx, rpc.WithBlockTag("latest"), contractAddress)
+	if err != nil {
+		log.Fatal("Failed to get class hash at:", err)
+	}
+
+	fmt.Printf("Class hash at contract: %s\n", classHash)
 }
 ```
 
-## Output
-```json 
-Class hash: "0x9f9205f50528a4c6308c69c675c14e65f31c72b1f7f1d2375d04fae1eec546"
+## Expected Output
+
+```
+Class hash at contract: 0x76791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a
 ```
 
-## Error Cases
+## Error Handling
 
-- `CONTRACT_NOT_FOUND` - If the contract does not exist
-- `INVALID_BLOCK_ID` - If the block identifier is invalid
-- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid 
+```go
+classHash, err := client.ClassHashAt(ctx, rpc.WithBlockTag("latest"), contractAddress)
+if err != nil {
+	// Handle errors like contract not found, invalid block ID, etc.
+	return err
+}
+```
+
+## Related Methods
+
+- [Class](./get-class.mdx) - Get class definition by class hash
+- [ClassAt](./get-class-at.mdx) - Get class definition at a specific contract address

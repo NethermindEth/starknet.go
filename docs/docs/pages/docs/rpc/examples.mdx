@@ -1,142 +1,1442 @@
 # RPC Examples
 
-The RPC examples submodule provides examples of how to use the Starknet RPC.
+Comprehensive examples for using Starknet RPC methods.
 
-## Basic Examples
 
-### Getting a Block
+### Blockchain Indexing
+
+Index all state changes for analytics and querying:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Get a block by number
-    block, err := rpc.GetBlockByNumber(1)
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Block hash: %s\n", block.Hash)
-    fmt.Printf("Block number: %d\n", block.Number)
-    fmt.Printf("Block timestamp: %d\n", block.Timestamp)
+    ctx := context.Background()
+
+    // Get state update for specific block
+    blockID := rpc.WithBlockNumber(100000)
+    stateUpdate, err := provider.StateUpdate(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("=== State Update for Block #100000 ===\n")
+    fmt.Printf("Block Hash: %s\n", stateUpdate.BlockHash)
+    fmt.Printf("Old Root: %s\n", stateUpdate.OldRoot)
+    fmt.Printf("New Root: %s\n", stateUpdate.NewRoot)
+    fmt.Printf("\n")
+
+    // Index storage changes
+    fmt.Printf("=== Storage Changes ===\n")
+    for i, storageDiff := range stateUpdate.StateDiff.StorageDiffs {
+        fmt.Printf("%d. Contract: %s\n", i+1, storageDiff.Address)
+        fmt.Printf("   Storage entries modified: %d\n", len(storageDiff.StorageEntries))
+
+        // Show first few storage entries
+        for j, entry := range storageDiff.StorageEntries {
+            if j >= 3 {
+                fmt.Printf("   ... and %d more entries\n", len(storageDiff.StorageEntries)-3)
+                break
+            }
+            fmt.Printf("   Key: %s -> Value: %s\n", entry.Key, entry.Value)
+        }
+    }
+    fmt.Printf("\n")
+
+    // Index declared classes
+    fmt.Printf("=== Declared Classes ===\n")
+    for i, declaredClass := range stateUpdate.StateDiff.DeclaredClasses {
+        fmt.Printf("%d. Class Hash: %s\n", i+1, declaredClass.ClassHash)
+        fmt.Printf("   Compiled Class Hash: %s\n", declaredClass.CompiledClassHash)
+    }
+    fmt.Printf("\n")
+
+    // Index deployed contracts
+    fmt.Printf("=== Deployed Contracts ===\n")
+    for i, deployed := range stateUpdate.StateDiff.DeployedContracts {
+        fmt.Printf("%d. Address: %s\n", i+1, deployed.Address)
+        fmt.Printf("   Class Hash: %s\n", deployed.ClassHash)
+    }
+    fmt.Printf("\n")
+
+    // Index nonce updates
+    fmt.Printf("=== Nonce Updates ===\n")
+    for i, nonceUpdate := range stateUpdate.StateDiff.Nonces {
+        fmt.Printf("%d. Contract: %s\n", i+1, nonceUpdate.ContractAddress)
+        fmt.Printf("   New Nonce: %s\n", nonceUpdate.Nonce)
+    }
+    fmt.Printf("\n")
+
+    // Summary
+    fmt.Printf("=== Summary ===\n")
+    fmt.Printf("Total contracts with storage changes: %d\n", len(stateUpdate.StateDiff.StorageDiffs))
+    fmt.Printf("Total declared classes: %d\n", len(stateUpdate.StateDiff.DeclaredClasses))
+    fmt.Printf("Total deployed contracts: %d\n", len(stateUpdate.StateDiff.DeployedContracts))
+    fmt.Printf("Total nonce updates: %d\n", len(stateUpdate.StateDiff.Nonces))
 }
 ```
 
-### Getting a Transaction
+### Transaction Volume Monitoring
+
+Track network activity by monitoring transaction counts over time:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
+    "time"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Get a transaction by hash
-    tx, err := rpc.GetTransactionByHash("0x123...")
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Transaction type: %s\n", tx.Type)
-    fmt.Printf("Transaction status: %s\n", tx.Status)
-    fmt.Printf("Transaction hash: %s\n", tx.Hash)
+    ctx := context.Background()
+
+    // Monitor transaction volume every 10 seconds
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    fmt.Println("Monitoring transaction volume...")
+    var txCounts []uint64
+    var blockNumbers []uint64
+
+    for range ticker.C {
+        // Get latest block number
+        blockNum, err := provider.BlockNumber(ctx)
+        if err != nil {
+            log.Printf("Error getting block number: %v", err)
+            continue
+        }
+
+        // Get transaction count
+        blockID := rpc.WithBlockNumber(blockNum)
+        txCount, err := provider.BlockTransactionCount(ctx, blockID)
+        if err != nil {
+            log.Printf("Error getting tx count: %v", err)
+            continue
+        }
+
+        blockNumbers = append(blockNumbers, blockNum)
+        txCounts = append(txCounts, txCount)
+
+        fmt.Printf("Block #%d: %d transactions\n", blockNum, txCount)
+
+        // Calculate average over last 10 blocks
+        if len(txCounts) >= 10 {
+            var sum uint64
+            for i := len(txCounts) - 10; i < len(txCounts); i++ {
+                sum += txCounts[i]
+            }
+            avg := float64(sum) / 10.0
+            fmt.Printf("Average tx/block (last 10): %.2f\n\n", avg)
+        }
+    }
 }
 ```
 
-## Advanced Examples
+### Block Analysis
 
-### Sending a Transaction
+Quickly identify busy blocks without fetching full transaction data:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create a transaction
-    tx := rpc.NewTransaction(
-        "0x456...", // contract address
-        "0x789...", // entry point selector
-        []string{"0xabc..."}, // calldata
-        "1000000000000000", // max fee
-        "0x1", // version
-        "0x1", // nonce
-    )
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-    // Send the transaction
-    txHash, err := rpc.SendTransaction(tx)
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Transaction sent with hash: %s\n", txHash)
+    ctx := context.Background()
+
+    // Analyze last 100 blocks
+    latestBlock, err := provider.BlockNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Analyzing blocks %d to %d...\n\n", latestBlock-99, latestBlock)
+
+    var maxCount uint64
+    var maxBlockNum uint64
+    var emptyBlocks int
+    var totalTxs uint64
+
+    for i := latestBlock - 99; i <= latestBlock; i++ {
+        blockID := rpc.WithBlockNumber(i)
+        txCount, err := provider.BlockTransactionCount(ctx, blockID)
+        if err != nil {
+            log.Printf("Error at block %d: %v", i, err)
+            continue
+        }
+
+        totalTxs += txCount
+
+        // Track busiest block
+        if txCount > maxCount {
+            maxCount = txCount
+            maxBlockNum = i
+        }
+
+        // Track empty blocks
+        if txCount == 0 {
+            emptyBlocks++
+        }
+    }
+
+    // Statistics
+    fmt.Printf("=== Block Analysis Summary ===\n")
+    fmt.Printf("Blocks analyzed: 100\n")
+    fmt.Printf("Total transactions: %d\n", totalTxs)
+    fmt.Printf("Average tx/block: %.2f\n", float64(totalTxs)/100.0)
+    fmt.Printf("Busiest block: #%d with %d transactions\n", maxBlockNum, maxCount)
+    fmt.Printf("Empty blocks: %d\n", emptyBlocks)
 }
 ```
 
-### Calling a Contract
+### Transaction Outcome Analysis
+
+Analyze complete transaction execution including gas costs and events:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Call a contract
-    result, err := rpc.CallContract(
-        "0x456...", // contract address
-        "0x789...", // entry point selector
-        []string{"0xabc..."}, // calldata
-    )
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Call result: %s\n", result)
+    ctx := context.Background()
+
+    // Get specific block with receipts
+    blockID := rpc.WithBlockNumber(100000)
+    result, err := provider.BlockWithReceipts(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to BlockWithReceipts
+    block, ok := result.(*rpc.BlockWithReceipts)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    fmt.Printf("=== Block #%d Analysis ===\n", block.Number)
+    fmt.Printf("Hash: %s\n", block.Hash)
+    fmt.Printf("Total Transactions: %d\n\n", len(block.Transactions))
+
+    // Analyze each transaction and its receipt
+    var totalGasUsed uint64
+    var successCount, failCount int
+
+    for i, txWithReceipt := range block.Transactions {
+        receipt := txWithReceipt.Receipt
+
+        fmt.Printf("Transaction %d:\n", i+1)
+        fmt.Printf("  Hash: %s\n", receipt.TransactionHash)
+        fmt.Printf("  Type: %s\n", receipt.Type())
+        fmt.Printf("  Status: %s\n", receipt.ExecutionStatus())
+        fmt.Printf("  Finality: %s\n", receipt.FinalityStatus())
+
+        // Track execution status
+        if receipt.ExecutionStatus() == "SUCCEEDED" {
+            successCount++
+        } else {
+            failCount++
+        }
+
+        // Gas analysis
+        if execReceipt, ok := receipt.(interface{ ExecutionResources() rpc.ExecutionResources }); ok {
+            resources := execReceipt.ExecutionResources()
+            l2Gas := resources.L2Gas
+            totalGasUsed += l2Gas
+            fmt.Printf("  L2 Gas Used: %d\n", l2Gas)
+        }
+
+        // Events emitted
+        if execReceipt, ok := receipt.(interface{ Events() []rpc.Event }); ok {
+            events := execReceipt.Events()
+            fmt.Printf("  Events Emitted: %d\n", len(events))
+        }
+
+        fmt.Println()
+    }
+
+    // Summary
+    fmt.Printf("=== Block Summary ===\n")
+    fmt.Printf("Successful Transactions: %d\n", successCount)
+    fmt.Printf("Failed Transactions: %d\n", failCount)
+    fmt.Printf("Total L2 Gas Used: %d\n", totalGasUsed)
 }
 ```
 
-### Getting Contract Storage
+### Lightweight Block Monitoring
+
+Monitor blocks efficiently without downloading full transaction data:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
+    "time"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Get contract storage
-    storage, err := rpc.GetContractStorage(
-        "0x456...", // contract address
-        "0x789...", // key
-    )
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Storage value: %s\n", storage)
-} 
+    ctx := context.Background()
+
+    // Monitor blocks every 10 seconds
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    fmt.Println("Monitoring blocks...")
+    for range ticker.C {
+        blockID := rpc.WithBlockTag("latest")
+        result, err := provider.BlockWithTxHashes(ctx, blockID)
+        if err != nil {
+            log.Printf("Error: %v", err)
+            continue
+        }
+
+        // Type assert to BlockTxHashes
+        block, ok := result.(*rpc.BlockTxHashes)
+        if !ok {
+            log.Printf("Unexpected block type")
+            continue
+        }
+
+        fmt.Printf("\nBlock #%d\n", block.Number)
+        fmt.Printf("Hash: %s\n", block.Hash)
+        fmt.Printf("Transactions: %d\n", len(block.Transactions))
+        fmt.Printf("Status: %s\n", block.Status)
+    }
+}
+```
+
+### Transaction Inclusion Check
+
+Quickly verify if a transaction hash is included in a block:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func isTransactionInBlock(ctx context.Context, provider *rpc.Provider, blockNum uint64, txHash string) (bool, error) {
+    blockID := rpc.WithBlockNumber(blockNum)
+    result, err := provider.BlockWithTxHashes(ctx, blockID)
+    if err != nil {
+        return false, fmt.Errorf("failed to get block: %w", err)
+    }
+
+    // Type assert to BlockTxHashes
+    block, ok := result.(*rpc.BlockTxHashes)
+    if !ok {
+        return false, fmt.Errorf("unexpected block type")
+    }
+
+    // Check if transaction hash is in the block
+    for _, hash := range block.Transactions {
+        if hash.String() == txHash {
+            return true, nil
+        }
+    }
+
+    return false, nil
+}
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Check if a specific transaction is in a block
+    txHash := "0x233dc4da3ba77d376a8a1fcf5148a363d3e74f4e9e2b067639423256dc6ba05"
+    blockNum := uint64(100000)
+
+    found, err := isTransactionInBlock(ctx, provider, blockNum, txHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if found {
+        fmt.Printf("✓ Transaction %s found in block #%d\n", txHash, blockNum)
+    } else {
+        fmt.Printf("✗ Transaction %s not found in block #%d\n", txHash, blockNum)
+    }
+}
+```
+
+
+### Transaction Analysis
+
+Analyze all transactions in a block with full details:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get latest block with full transactions
+    blockID := rpc.WithBlockTag("latest")
+    result, err := provider.BlockWithTxs(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to Block
+    block, ok := result.(*rpc.Block)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    fmt.Printf("Block #%d (%s)\n", block.Number, block.Hash)
+    fmt.Printf("Total transactions: %d\n\n", len(block.Transactions))
+
+    // Analyze transactions by type
+    txTypes := make(map[string]int)
+    for _, tx := range block.Transactions {
+        txType := tx.Type()
+        txTypes[txType]++
+    }
+
+    fmt.Println("Transaction types:")
+    for txType, count := range txTypes {
+        fmt.Printf("  %s: %d\n", txType, count)
+    }
+}
+```
+
+### Block Explorer
+
+Display complete block information including all transaction data:
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get specific block by number
+    blockID := rpc.WithBlockNumber(100000)
+    result, err := provider.BlockWithTxs(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to Block
+    block, ok := result.(*rpc.Block)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    // Display block header information
+    fmt.Printf("=== Block #%d ===\n", block.Number)
+    fmt.Printf("Hash: %s\n", block.Hash)
+    fmt.Printf("Parent Hash: %s\n", block.ParentHash)
+    fmt.Printf("Timestamp: %d\n", block.Timestamp)
+    fmt.Printf("Sequencer: %s\n", block.SequencerAddress)
+    fmt.Printf("Status: %s\n", block.Status)
+    fmt.Printf("Starknet Version: %s\n", block.StarknetVersion)
+    fmt.Printf("\n")
+
+    // Display transactions
+    fmt.Printf("Transactions (%d):\n", len(block.Transactions))
+    for i, tx := range block.Transactions {
+        fmt.Printf("\n%d. Type: %s\n", i+1, tx.Type())
+
+        // Pretty print transaction details
+        txJSON, _ := json.MarshalIndent(tx, "   ", "  ")
+        fmt.Printf("   %s\n", txJSON)
+    }
+}
+```
+
+### Efficient Block Tracking
+
+Get both hash and number in one call instead of making two separate requests:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Track block changes efficiently
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    var lastBlockHash string
+    fmt.Println("Tracking blocks...")
+
+    for range ticker.C {
+        result, err := provider.BlockHashAndNumber(ctx)
+        if err != nil {
+            log.Printf("Error: %v", err)
+            continue
+        }
+
+        currentHash := result.Hash.String()
+
+        // Detect new block
+        if currentHash != lastBlockHash {
+            fmt.Printf("New block detected!\n")
+            fmt.Printf("  Number: %d\n", result.Number)
+            fmt.Printf("  Hash: %s\n", currentHash)
+            lastBlockHash = currentHash
+        } else {
+            fmt.Printf("Still on block %d\n", result.Number)
+        }
+    }
+}
+```
+
+### Block Verification
+
+Verify you have the correct block by checking both its number and hash:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func verifyBlock(ctx context.Context, provider *rpc.Provider, expectedNumber uint64, expectedHash string) error {
+    result, err := provider.BlockHashAndNumber(ctx)
+    if err != nil {
+        return fmt.Errorf("failed to get block info: %w", err)
+    }
+
+    // Verify block number
+    if result.Number != expectedNumber {
+        return fmt.Errorf("block number mismatch: expected %d, got %d", expectedNumber, result.Number)
+    }
+
+    // Verify block hash
+    if result.Hash.String() != expectedHash {
+        return fmt.Errorf("block hash mismatch: expected %s, got %s", expectedHash, result.Hash.String())
+    }
+
+    fmt.Printf("✓ Block verified: #%d with hash %s\n", result.Number, result.Hash.String())
+    return nil
+}
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get current block to use as reference
+    current, err := provider.BlockHashAndNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Current block: #%d, hash: %s\n", current.Number, current.Hash.String())
+
+    // Verify the block
+    err = verifyBlock(ctx, provider, current.Number, current.Hash.String())
+    if err != nil {
+        log.Fatalf("Verification failed: %v", err)
+    }
+}
+```
+
+### Monitor Network Height
+
+Poll for new blocks at regular intervals:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Poll for new blocks every 10 seconds
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    fmt.Println("Monitoring network height...")
+    for range ticker.C {
+        blockNum, err := provider.BlockNumber(ctx)
+        if err != nil {
+            log.Printf("Error: %v", err)
+            continue
+        }
+        fmt.Printf("Current block: %d\n", blockNum)
+    }
+}
+```
+
+### Wait for Specific Block Height
+
+Wait until the network reaches a specific block number:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func waitForBlock(ctx context.Context, provider *rpc.Provider, targetBlock uint64) error {
+    fmt.Printf("Waiting for block %d...\n", targetBlock)
+    for {
+        currentBlock, err := provider.BlockNumber(ctx)
+        if err != nil {
+            return err
+        }
+
+        if currentBlock >= targetBlock {
+            fmt.Printf("Reached block %d\n", currentBlock)
+            return nil
+        }
+
+        fmt.Printf("Current block: %d, waiting...\n", currentBlock)
+        time.Sleep(2 * time.Second)
+    }
+}
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get current block
+    currentBlock, err := provider.BlockNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Wait for 5 blocks ahead
+    targetBlock := currentBlock + 5
+    err = waitForBlock(ctx, provider, targetBlock)
+    if err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+### Proving Class Membership
+
+Prove that specific classes exist in the classes trie:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Class hashes to prove membership for
+    classHash1, _ := new(felt.Felt).SetString("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
+    classHash2, _ := new(felt.Felt).SetString("0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918")
+
+    input := rpc.StorageProofInput{
+        BlockID:     rpc.BlockID{Tag: "latest"},
+        ClassHashes: []*felt.Felt{classHash1, classHash2},
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Classes proof nodes: %d\n", len(proof.ClassesProof))
+
+    // Iterate through class proofs
+    for i, nodeMapping := range proof.ClassesProof {
+        fmt.Printf("Class proof node %d:\n", i)
+        fmt.Printf("  Node Hash: %s\n", nodeMapping.NodeHash)
+        fmt.Printf("  Node Type: %s\n", nodeMapping.Node.Type)
+    }
+}
+```
+
+### Proving Contract Existence
+
+Prove that specific contracts exist in the global state trie:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Contract addresses to prove membership for
+    contract1, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    contract2, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+    input := rpc.StorageProofInput{
+        BlockID:           rpc.BlockID{Tag: "latest"},
+        ContractAddresses: []*felt.Felt{contract1, contract2},
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Access contract leaves data
+    for i, leafData := range proof.ContractsProof.ContractLeavesData {
+        fmt.Printf("Contract %d:\n", i)
+        fmt.Printf("  Nonce: %s\n", leafData.Nonce)
+        fmt.Printf("  Class Hash: %s\n", leafData.ClassHash)
+        if leafData.StorageRoot != nil {
+            fmt.Printf("  Storage Root: %s\n", leafData.StorageRoot)
+        }
+    }
+}
+```
+
+### Mixed Proof Request
+
+Request all three types of proofs (classes, contracts, and storage) in a single call:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    classHash, _ := new(felt.Felt).SetString("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    storageKey, _ := new(felt.Felt).SetString("0x1")
+
+    input := rpc.StorageProofInput{
+        BlockID:           rpc.BlockID{Number: 100000},
+        ClassHashes:       []*felt.Felt{classHash},
+        ContractAddresses: []*felt.Felt{contractAddr},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: contractAddr,
+                StorageKeys:     []*felt.Felt{storageKey},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // You now have proofs for all three: classes, contracts, and storage
+    fmt.Printf("Classes proof nodes: %d\n", len(proof.ClassesProof))
+    fmt.Printf("Contracts proof nodes: %d\n", len(proof.ContractsProof.Nodes))
+    fmt.Printf("Storage proofs: %d\n", len(proof.ContractsStorageProofs))
+
+    // Access global roots
+    fmt.Printf("\nGlobal Roots:\n")
+    fmt.Printf("  Contracts Tree Root: %s\n", proof.GlobalRoots.ContractsTreeRoot)
+    fmt.Printf("  Classes Tree Root: %s\n", proof.GlobalRoots.ClassesTreeRoot)
+    fmt.Printf("  Block Hash: %s\n", proof.GlobalRoots.BlockHash)
+}
+```
+
+### Processing Merkle Nodes
+
+Handle different Merkle node types (EdgeNode and BinaryNode):
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+
+    input := rpc.StorageProofInput{
+        BlockID:           rpc.BlockID{Tag: "latest"},
+        ContractAddresses: []*felt.Felt{contractAddr},
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Iterate through contract proof nodes
+    for i, nodeMapping := range proof.ContractsProof.Nodes {
+        fmt.Printf("Node %d hash: %s\n", i, nodeMapping.NodeHash)
+
+        // Check the type of merkle node
+        switch nodeMapping.Node.Type {
+        case "BinaryNode":
+            binaryNode := nodeMapping.Node.Data.(rpc.BinaryNode)
+            fmt.Printf("  Binary node - Left: %s, Right: %s\n", binaryNode.Left, binaryNode.Right)
+        case "EdgeNode":
+            edgeNode := nodeMapping.Node.Data.(rpc.EdgeNode)
+            fmt.Printf("  Edge node - Path: %s, Length: %d, Child: %s\n",
+                edgeNode.Path, edgeNode.Length, edgeNode.Child)
+        }
+    }
+}
+```
+
+### Historical State Proofs
+
+Get proofs for a specific block in the past:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    storageKey1, _ := new(felt.Felt).SetString("0x1")
+    storageKey2, _ := new(felt.Felt).SetString("0x2")
+
+    // Get proof at block height 100000
+    input := rpc.StorageProofInput{
+        BlockID: rpc.BlockID{Number: 100000},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: contractAddr,
+                StorageKeys:     []*felt.Felt{storageKey1, storageKey2},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // The proof is valid for the state at block 100000
+    fmt.Printf("Proof for block: %s\n", proof.GlobalRoots.BlockHash)
+    fmt.Printf("Storage proofs count: %d\n", len(proof.ContractsStorageProofs))
+
+    // Each storage proof corresponds to a contract's storage
+    for i, storageProof := range proof.ContractsStorageProofs {
+        fmt.Printf("Storage proof %d has %d nodes\n", i, len(storageProof))
+    }
+}
+```
+
+### Multiple Contracts with Multiple Storage Keys
+
+Prove storage for multiple contracts with multiple keys each:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // ETH token contract
+    ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    // STRK token contract
+    strkContract, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+    // Storage keys for ETH contract
+    ethKey1, _ := new(felt.Felt).SetString("0x1")
+    ethKey2, _ := new(felt.Felt).SetString("0x2")
+
+    // Storage keys for STRK contract
+    strkKey1, _ := new(felt.Felt).SetString("0x1")
+    strkKey2, _ := new(felt.Felt).SetString("0x2")
+
+    input := rpc.StorageProofInput{
+        BlockID: rpc.BlockID{Tag: "latest"},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: ethContract,
+                StorageKeys:     []*felt.Felt{ethKey1, ethKey2},
+            },
+            {
+                ContractAddress: strkContract,
+                StorageKeys:     []*felt.Felt{strkKey1, strkKey2},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Total storage proofs: %d\n", len(proof.ContractsStorageProofs))
+
+    // First proof is for ETH contract
+    fmt.Printf("ETH contract storage proof nodes: %d\n", len(proof.ContractsStorageProofs[0]))
+
+    // Second proof is for STRK contract
+    if len(proof.ContractsStorageProofs) > 1 {
+        fmt.Printf("STRK contract storage proof nodes: %d\n", len(proof.ContractsStorageProofs[1]))
+    }
+}
+```
+
+### Light Client Verification Pattern
+
+Example pattern for light client to verify storage without full state:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Light client scenario: verify a storage value
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    storageKey, _ := new(felt.Felt).SetString("0x1")
+
+    input := rpc.StorageProofInput{
+        BlockID: rpc.BlockID{Tag: "latest"},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: contractAddr,
+                StorageKeys:     []*felt.Felt{storageKey},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Light client now has:
+    // 1. Global roots (contracts tree root, classes tree root, block hash)
+    // 2. Contract proof nodes
+    // 3. Storage proof nodes
+
+    fmt.Printf("Verification data:\n")
+    fmt.Printf("  Block Hash: %s\n", proof.GlobalRoots.BlockHash)
+    fmt.Printf("  Contracts Tree Root: %s\n", proof.GlobalRoots.ContractsTreeRoot)
+    fmt.Printf("  Contract Proof Nodes: %d\n", len(proof.ContractsProof.Nodes))
+    fmt.Printf("  Storage Proof Nodes: %d\n", len(proof.ContractsStorageProofs[0]))
+
+    // Light client can now verify the storage value against the trusted block hash
+    // without downloading the entire state
+}
+```
+
+## TransactionReceipt
+
+### Gas Analysis and Fee Tracking
+
+Analyze actual gas consumption, fees paid, and execution resources:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // First, get a transaction hash from the latest block
+    blockID := rpc.WithBlockTag("latest")
+    blockResult, err := provider.BlockWithTxHashes(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to BlockTxHashes
+    block, ok := blockResult.(*rpc.BlockTxHashes)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    if len(block.Transactions) == 0 {
+        log.Fatal("No transactions in latest block")
+    }
+
+    // Get receipt for the first transaction
+    txHash := block.Transactions[0]
+    receipt, err := provider.TransactionReceipt(ctx, txHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Display transaction information
+    fmt.Printf("=== Transaction Receipt ===\n")
+    fmt.Printf("Transaction Hash: %s\n", receipt.Hash)
+    fmt.Printf("Transaction Type: %s\n", receipt.Type)
+    fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
+    fmt.Printf("Block Hash: %s\n", receipt.BlockHash)
+    fmt.Printf("\n")
+
+    // Display execution status
+    fmt.Printf("=== Execution Status ===\n")
+    fmt.Printf("Finality Status: %s\n", receipt.FinalityStatus)
+    fmt.Printf("Execution Status: %s\n", receipt.ExecutionStatus)
+    if receipt.RevertReason != "" {
+        fmt.Printf("Revert Reason: %s\n", receipt.RevertReason)
+    }
+    fmt.Printf("\n")
+
+    // Display gas and fee information
+    fmt.Printf("=== Gas and Fee Analysis ===\n")
+    fmt.Printf("Actual Fee: %s %s\n", receipt.ActualFee.Amount, receipt.ActualFee.Unit)
+    fmt.Printf("\n")
+
+    // Display execution resources
+    fmt.Printf("=== Execution Resources ===\n")
+    resources := receipt.ExecutionResources
+    fmt.Printf("L1 Gas: %d\n", resources.L1Gas)
+    fmt.Printf("L1 Data Gas: %d\n", resources.L1DataGas)
+    fmt.Printf("L2 Gas: %d\n", resources.L2Gas)
+    fmt.Printf("\n")
+
+    // Display events emitted
+    fmt.Printf("=== Events Emitted ===\n")
+    fmt.Printf("Total Events: %d\n", len(receipt.Events))
+    for i, event := range receipt.Events {
+        if i >= 3 {
+            fmt.Printf("... and %d more events\n", len(receipt.Events)-3)
+            break
+        }
+        fmt.Printf("\nEvent %d:\n", i+1)
+        fmt.Printf("  From Contract: %s\n", event.FromAddress)
+        fmt.Printf("  Keys: %d\n", len(event.Keys))
+        fmt.Printf("  Data: %d elements\n", len(event.Data))
+    }
+    fmt.Printf("\n")
+
+    // Display messages sent to L1
+    if len(receipt.MessagesSent) > 0 {
+        fmt.Printf("=== Messages to L1 ===\n")
+        fmt.Printf("Total Messages: %d\n", len(receipt.MessagesSent))
+        for i, msg := range receipt.MessagesSent {
+            fmt.Printf("\nMessage %d:\n", i+1)
+            fmt.Printf("  From Address: %s\n", msg.FromAddress)
+            fmt.Printf("  To Address: %s\n", msg.ToAddress)
+            fmt.Printf("  Payload Length: %d\n", len(msg.Payload))
+        }
+        fmt.Printf("\n")
+    }
+
+    // Calculate cost efficiency metrics
+    if receipt.ExecutionStatus == rpc.TxnExecutionStatusSUCCEEDED {
+        fmt.Printf("=== Cost Efficiency ===\n")
+        totalL2Gas := resources.L2Gas
+        if totalL2Gas > 0 {
+            fmt.Printf("Total L2 Gas: %d\n", totalL2Gas)
+            fmt.Printf("Events Emitted per 1000 L2 Gas: %.2f\n",
+                float64(len(receipt.Events))*1000/float64(totalL2Gas))
+        }
+    }
+}
+```

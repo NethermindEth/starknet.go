@@ -1,0 +1,432 @@
+# FixedSizeMerkleTree
+
+A fixed-size Merkle tree implementation that builds a binary tree structure from a set of leaf values and provides methods for proof generation. This type is ideal for creating cryptographic commitments to datasets where efficient proof verification is required.
+
+## Type Definition
+
+```go
+type FixedSizeMerkleTree struct {
+	Leaves   []*big.Int
+	Branches [][]*big.Int
+	Root     *big.Int
+}
+```
+
+### Fields
+
+- `Leaves` - The original leaf values used to build the tree
+- `Branches` - A 2D slice containing all intermediate levels of the tree
+- `Root` - The root hash representing the entire tree
+
+## Constructor
+
+### NewFixedSizeMerkleTree
+
+Creates a new fixed-size Merkle tree from the provided leaf values.
+
+```go
+func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree
+```
+
+#### Parameters
+
+- `leaves` - Variable number of `*big.Int` values representing the leaf nodes
+
+#### Returns
+
+- `*FixedSizeMerkleTree` - A pointer to the constructed Merkle tree with computed root
+
+#### How It Works
+
+1. Accepts any number of leaf values
+2. Builds the tree bottom-up by repeatedly hashing pairs of nodes
+3. If there's an odd number of nodes at any level, the last node is paired with zero
+4. Stores all intermediate branches for efficient proof generation
+5. Computes and stores the root hash
+
+## Methods
+
+### Proof Method
+
+Generates a Merkle proof for a given leaf, which can be used to verify that the leaf is part of the tree.
+
+```go
+func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error)
+```
+
+#### Parameters
+
+- `leaf` - The leaf value for which to generate a proof
+
+#### Returns
+
+- `[]*big.Int` - A slice of sibling hashes forming the proof path from leaf to root
+- `error` - An error if the leaf is not found in the tree
+
+#### Error Conditions
+
+The method returns an error if:
+- The specified leaf value is not found in any branch of the tree
+- Error message format: `"key 0x%s not found in branch"`
+
+## Usage Examples
+
+### Creating a Basic Merkle Tree
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree with 4 leaves
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+	}
+
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Access tree properties
+	fmt.Printf("Number of leaves: %d\n", len(tree.Leaves))
+	fmt.Printf("Number of branch levels: %d\n", len(tree.Branches))
+	fmt.Printf("Root: 0x%s\n", tree.Root.Text(16))
+}
+```
+
+### Generating and Verifying a Proof
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Build a tree
+	leaves := []*big.Int{
+		big.NewInt(10),
+		big.NewInt(20),
+		big.NewInt(30),
+		big.NewInt(40),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Generate proof for a leaf
+	targetLeaf := big.NewInt(30)
+	proof, err := tree.Proof(targetLeaf)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Generated proof with %d elements:\n", len(proof))
+	for i, hash := range proof {
+		fmt.Printf("  [%d]: 0x%s\n", i, hash.Text(16))
+	}
+
+	// Verify the proof
+	isValid := merkle.ProofMerklePath(tree.Root, targetLeaf, proof)
+	fmt.Printf("\nProof verification: %v\n", isValid)
+}
+```
+
+### Working with Large Trees
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a larger tree
+	var leaves []*big.Int
+	for i := 1; i <= 100; i++ {
+		leaves = append(leaves, big.NewInt(int64(i)))
+	}
+
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	fmt.Printf("Tree Statistics:\n")
+	fmt.Printf("  Leaves: %d\n", len(tree.Leaves))
+	fmt.Printf("  Levels: %d\n", len(tree.Branches))
+	fmt.Printf("  Root: 0x%s\n", tree.Root.Text(16))
+
+	// Proof size is logarithmic
+	proof, _ := tree.Proof(big.NewInt(50))
+	fmt.Printf("  Proof size for 100 leaves: %d hashes\n", len(proof))
+}
+```
+
+### Handling Odd Number of Leaves
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create tree with odd number of leaves
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+		big.NewInt(5), // Odd leaf
+	}
+
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// The tree handles this by pairing the last leaf with 0
+	fmt.Printf("Tree with %d leaves created successfully\n", len(leaves))
+	fmt.Printf("Root: 0x%s\n", tree.Root.Text(16))
+
+	// Generate proof for the odd leaf
+	proof, err := tree.Proof(big.NewInt(5))
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Proof for odd leaf contains %d elements\n", len(proof))
+}
+```
+
+### Error Handling
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree
+	leaves := []*big.Int{
+		big.NewInt(100),
+		big.NewInt(200),
+		big.NewInt(300),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Try to generate proof for non-existent leaf
+	nonExistentLeaf := big.NewInt(999)
+	proof, err := tree.Proof(nonExistentLeaf)
+
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		// Output: Error: key 0x3e7 not found in branch
+	} else {
+		fmt.Printf("Proof: %v\n", proof)
+	}
+}
+```
+
+### Inspecting Tree Structure
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+	}
+
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Examine the tree structure
+	fmt.Println("Tree Structure:")
+	fmt.Printf("Level 0 (Leaves): %d nodes\n", len(tree.Branches[0]))
+	for i, branch := range tree.Branches {
+		fmt.Printf("Level %d: %d nodes\n", i, len(branch))
+	}
+	fmt.Printf("Root: 0x%s\n", tree.Root.Text(16))
+}
+```
+
+### Batch Proof Generation
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree
+	leaves := []*big.Int{
+		big.NewInt(10),
+		big.NewInt(20),
+		big.NewInt(30),
+		big.NewInt(40),
+		big.NewInt(50),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Generate proofs for all leaves
+	fmt.Println("Generating proofs for all leaves:")
+	for i, leaf := range leaves {
+		proof, err := tree.Proof(leaf)
+		if err != nil {
+			fmt.Printf("  Leaf %d: Error - %v\n", i, err)
+			continue
+		}
+
+		isValid := merkle.ProofMerklePath(tree.Root, leaf, proof)
+		fmt.Printf("  Leaf %d (value=%d): proof_size=%d, valid=%v\n",
+			i, leaf.Int64(), len(proof), isValid)
+	}
+}
+```
+
+## Tree Construction Algorithm
+
+The tree is built using a bottom-up approach:
+
+```
+Initial leaves: [1, 2, 3, 4, 5]
+
+Level 0: [1, 2, 3, 4, 5]
+         ↓  ↓  ↓  ↓  ↓
+Level 1: [H(1,2), H(3,4), H(5,0)]  ← Note: 5 paired with 0
+         ↓       ↓       ↓
+Level 2: [H(H(1,2), H(3,4)), H(5,0)]
+         ↓
+Root:    H(H(H(1,2), H(3,4)), H(5,0))
+```
+
+Where `H(a,b)` represents `MerkleHash(a,b)`.
+
+## Proof Generation Algorithm
+
+To generate a proof for a leaf:
+
+1. Find the leaf in the bottom branch
+2. Get its sibling at that level
+3. Compute the hash of the pair
+4. Move up to the next level
+5. Repeat until reaching the root
+6. Return the path of sibling hashes
+
+Example for proving leaf value 3 in tree [1,2,3,4]:
+```
+Level 0: [1, 2, 3, 4]  → sibling of 3 is 4
+Level 1: [H(1,2), H(3,4)]  → sibling of H(3,4) is H(1,2)
+Proof: [4, H(1,2)]
+```
+
+## Common Use Cases
+
+### Membership Proofs
+
+Prove that a value is part of a dataset without revealing the entire dataset.
+
+```go
+tree := merkle.NewFixedSizeMerkleTree(allowedAddresses...)
+proof, _ := tree.Proof(userAddress)
+// Share proof with user to prove they're allowed
+```
+
+### State Commitments
+
+Create a compact commitment to a large state that can be efficiently verified.
+
+```go
+tree := merkle.NewFixedSizeMerkleTree(stateValues...)
+stateCommitment := tree.Root
+// Use root as commitment, generate proofs for individual state items
+```
+
+### Data Integrity
+
+Verify specific elements of a dataset without downloading all the data.
+
+```go
+tree := merkle.NewFixedSizeMerkleTree(dataBlocks...)
+proof, _ := tree.Proof(specificBlock)
+// Verify block without needing all blocks
+```
+
+## Performance Characteristics
+
+- **Tree Construction**: O(n) where n is the number of leaves
+- **Proof Generation**: O(log n)
+- **Space Complexity**: O(n) to store all branches
+- **Proof Size**: O(log n) hashes
+
+For a tree with 1,000 leaves:
+- Construction requires ~2,000 hash operations
+- Each proof contains ~10 hashes
+- Verification requires ~10 hash operations
+
+## Important Notes
+
+- The tree is immutable after construction - leaves cannot be added or removed
+- All intermediate branches are stored for efficient proof generation
+- Odd numbers of leaves are handled by pairing the last leaf with zero
+- The tree uses `MerkleHash` which employs Pedersen hash function
+- All values must be convertible to `*big.Int`
+
+## Comparison with Other Approaches
+
+### Fixed Size vs Dynamic
+
+This implementation is **fixed-size**, meaning:
+- All leaves must be provided at construction time
+- The tree cannot grow after creation
+- More efficient for static datasets
+- Suitable for snapshots and commitments
+
+For dynamic trees where leaves can be added:
+- Consider using a different data structure
+- Or rebuild the entire tree when changes occur
+
+### Memory vs Computation Tradeoff
+
+This implementation stores all branches:
+- **Advantage**: Very fast proof generation
+- **Disadvantage**: Higher memory usage
+- **Alternative**: Recompute branches during proof generation to save memory
+
+## Related Functions
+
+- [MerkleHash](./merkle-hash) - The hash function used for tree construction
+- [ProofMerklePath](./proof-merkle-path) - Verify proofs generated by this tree
+- [Merkle Package Overview](./index) - General information about Merkle trees

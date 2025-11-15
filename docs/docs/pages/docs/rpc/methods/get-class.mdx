@@ -1,190 +1,124 @@
-# Get Class
+# Class
 
-Returns the contract class definition associated with the given class hash.
+Retrieves the contract class definition associated with the given class hash.
+
+## Method Signature
+
+```go
+func (provider *Provider) Class(
+	ctx context.Context,
+	blockID BlockID,
+	classHash *felt.Felt,
+) (ClassOutput, error)
+```
 
 ## Parameters
 
-- `ctx` - The context of the request.
-- `classHash` - The hash of the class to get
-- `blockID` - The block identifier. Can be:
-  - `BlockHash` - The hash of the block.
-  - `BlockNumber` - The number of the block.
-  - `"latest"` for the latest block
-  - `"pending"` for the pending block
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
+- `classHash` - The hash of the class to retrieve
 
 ## Returns
 
-- `ClassOutput` - The output of the class. 
-- `error` - An error if any occurred.
+- `ClassOutput` - The contract class definition (includes sierra_program, entry_points_by_type, and abi)
+- `error` - Error if the request fails
 
-## Example
+## BlockID Parameter
+
+The `blockID` parameter specifies which block state to query. See [BlockID helper functions](../helper-functions.mdx) for available options:
+- `WithBlockTag("latest")` - Latest block
+- `WithBlockTag("pending")` - Pending block
+- `WithBlockNumber(n)` - Specific block number
+- `WithBlockHash(hash)` - Specific block hash
+
+## Usage Example
 
 ```go
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	"encoding/json"
 )
 
 func main() {
-	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	provider, err := rpc.NewProvider(rpcUrl)
-	if err != nil {
-		log.Fatal(err)
+	// Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
 	}
 
-	classHash, _ := utils.HexToFelt("0x3131fa018d520a037686ce3efddeab8f28895662f019ca3ca18a626650f7d1e")
-	result, err := provider.Class(context.Background(), rpc.BlockID{Tag: "latest"}, classHash)
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create client:", err)
 	}
-	resultJson, err := json.MarshalIndent(result, "", "  ")
+
+	// ETH contract class hash on Sepolia
+	classHash, err := utils.HexToFelt("0x046ded64ae2dead6448e247234bab192a9c483644395b66f2155f2614e5804b0")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse class hash:", err)
 	}
-	fmt.Println("Class:", string(resultJson))
+
+	// Get class information
+	class, err := client.Class(ctx, rpc.WithBlockTag("latest"), classHash)
+	if err != nil {
+		log.Fatal("Failed to get class:", err)
+	}
+
+	// Print result (first 500 characters)
+	classJSON, _ := json.MarshalIndent(class, "", "  ")
+	fmt.Printf("Class info (first 500 chars):\n%s\n", string(classJSON)[:500])
 }
 ```
 
-## Output 
-<details>
-<summary>Output</summary>
-
-```json
-Class: {
-  "program": "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",
-  "entry_points_by_type": {
-    "CONSTRUCTOR": [
-      {
-        "offset": "0x91",
-        "selector": "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"
-      }
-    ],
-    "EXTERNAL": [
-      {
-        "offset": "0xde",
-        "selector": "0x0"
-      },
-      {
-        "offset": "0xbd",
-        "selector": "0x21691762da057c1b71f851f9b709e0c143628acf6e0cbc9735411a65663d747"
-      }
-    ],
-    "L1_HANDLER": [
-      {
-        "offset": "0xf7",
-        "selector": "0x0"
-      }
-    ]
-  },
-  "abi": [
-    {
-      "type": "event",
-      "name": "Upgraded",
-      "keys": [],
-      "data": [
-        {
-          "name": "implementation",
-          "type": "felt"
-        }
-      ]
-    },
-    {
-      "type": "constructor",
-      "name": "constructor",
-      "inputs": [
-        {
-          "name": "implementation_address",
-          "type": "felt"
-        },
-        {
-          "name": "initializer_selector",
-          "type": "felt"
-        },
-        {
-          "name": "calldata_len",
-          "type": "felt"
-        },
-        {
-          "name": "calldata",
-          "type": "felt*"
-        }
-      ],
-      "outputs": []
-    },
-    {
-      "type": "function",
-      "name": "get_implementation",
-      "stateMutability": "view",
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "implementation",
-          "type": "felt"
-        }
-      ]
-    },
-    {
-      "type": "function",
-      "name": "__default__",
-      "inputs": [
-        {
-          "name": "selector",
-          "type": "felt"
-        },
-        {
-          "name": "calldata_size",
-          "type": "felt"
-        },
-        {
-          "name": "calldata",
-          "type": "felt*"
-        }
-      ],
-      "outputs": [
-        {
-          "name": "retdata_size",
-          "type": "felt"
-        },
-        {
-          "name": "retdata",
-          "type": "felt*"
-        }
-      ]
-    },
-    {
-      "type": "l1_handler",
-      "name": "__l1_default__",
-      "inputs": [
-        {
-          "name": "selector",
-          "type": "felt"
-        },
-        {
-          "name": "calldata_size",
-          "type": "felt"
-        },
-        {
-          "name": "calldata",
-          "type": "felt*"
-        }
-      ],
-      "outputs": []
-    }
-  ]
-}
+## Expected Output
 
 ```
-</details>
+Class info (first 500 chars):
+{
+  "sierra_program": [
+    "0x1",
+    "0x4",
+    "0x0",
+    "0x2",
+    "0x4",
+    "0x1",
+    "0x367",
+    "0x99",
+    "0x59",
+    "0x52616e6765436865636b",
+    "0x800000000000000100000000000000000000000000000000",
+    "0x75313238",
+    "0x800000000000000700000000000000000000000000000000",
+    "0x537472756374",
+    "0x800000000000000f00000000000000000000000000000001",
+    "0x0",
+    "0x2ee1e2b1b89f8c495f200e4956278a4d47395fe262f27b52e5865c9524c08c3",
+    "0x456e756d",
+    "0x80000000000000070000
+```
 
-## Error Cases
+**Note:** The full output contains the complete sierra program, entry points, and ABI. Only the first 500 characters are shown here for brevity.
 
-- `CLASS_NOT_FOUND` - If the class does not exist
-- `INVALID_BLOCK_ID` - If the block identifier is invalid
-- `INVALID_CLASS_HASH` - If the class hash is invalid 
+## Error Handling
+
+```go
+class, err := client.Class(ctx, rpc.WithBlockTag("latest"), classHash)
+if err != nil {
+	// Handle errors like class not found, invalid block ID, etc.
+	return err
+}
+```
+
+## Related Methods
+
+- [ClassAt](./get-class-at.mdx) - Get class definition at a specific contract address
+- [ClassHashAt](./get-class-hash-at.mdx) - Get class hash at a specific contract address

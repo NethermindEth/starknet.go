@@ -1,0 +1,102 @@
+# GetSupportedTokens
+
+Retrieves the list of tokens supported by the paymaster for fee payment.
+
+## Method Signature
+
+```go
+func (pm *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for the operation
+
+## Returns
+
+- `[]TokenData`: Array of supported token information
+- `error`: Error if request fails
+
+## TokenData Structure
+
+```go
+type TokenData struct {
+    TokenAddress  *felt.Felt
+    TokenSymbol   string
+    TokenDecimals uint8
+}
+```
+
+## Description
+
+GetSupportedTokens returns all tokens that can be used to pay transaction fees through this paymaster. Each token includes its address, symbol, and decimal precision.
+
+## Usage Example
+
+```go
+tokens, err := pm.GetSupportedTokens(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+for _, token := range tokens {
+    fmt.Printf("Token: %s (%s)\n", token.TokenSymbol, token.TokenAddress)
+    fmt.Printf("  Decimals: %d\n", token.TokenDecimals)
+}
+```
+
+## Expected Output
+
+```
+Token: ETH (0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7)
+  Decimals: 18
+Token: STRK (0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d)
+  Decimals: 18
+Token: USDC (0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8)
+  Decimals: 6
+```
+
+## Use Cases
+
+### 1. Display Fee Options to User
+```go
+tokens, _ := pm.GetSupportedTokens(ctx)
+for i, token := range tokens {
+    fmt.Printf("%d. Pay with %s\n", i+1, token.TokenSymbol)
+}
+```
+
+### 2. Validate Token Selection
+```go
+tokens, _ := pm.GetSupportedTokens(ctx)
+isSupported := false
+for _, token := range tokens {
+    if token.TokenAddress.Equal(selectedToken) {
+        isSupported = true
+        break
+    }
+}
+```
+
+### 3. Auto-select Best Token
+```go
+tokens, _ := pm.GetSupportedTokens(ctx)
+// Select token user has balance in
+for _, token := range tokens {
+    balance, _ := getTokenBalance(userAddr, token.TokenAddress)
+    if balance.Cmp(requiredAmount) >= 0 {
+        return token
+    }
+}
+```
+
+## Notes
+
+- Token list may change as paymaster adds/removes support
+- Check regularly if caching token information
+- Decimals needed for amount formatting
+
+## Related Methods
+
+- [BuildTransaction](/docs/paymaster/methods/build-transaction)
+- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)

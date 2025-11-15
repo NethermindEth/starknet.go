@@ -1,0 +1,54 @@
+# HexToFelt
+
+Converts a hexadecimal string to a Felt value.
+
+## Function Signature
+
+```go
+func HexToFelt(hex string) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `hex` (string): Hexadecimal string (with or without "0x" prefix)
+
+## Returns
+
+- `*felt.Felt`: The Felt representation
+- `error`: Error if conversion fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Convert hex strings to Felt
+	felt, err := utils.HexToFelt("0x123")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Output: %s\n", felt.String())
+	// Output: 0x123
+
+	// Convert contract address
+	felt2, err := utils.HexToFelt("0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Output: %s\n", felt2.String())
+	// Output: 0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a
+}
+```
+
+## Related Functions
+
+- [FeltToBigInt](/docs/utils/functions/felt-to-big-int)
+- [BigIntToFelt](/docs/utils/functions/big-int-to-felt)

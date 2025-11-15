@@ -1,0 +1,46 @@
+# Poseidon
+
+Computes the Poseidon hash of two field elements.
+
+## Function Signature
+
+```go
+func Poseidon(a, b *felt.Felt) *felt.Felt
+```
+
+## Parameters
+
+- `a` (*felt.Felt): First field element
+- `b` (*felt.Felt): Second field element
+
+## Returns
+
+- `*felt.Felt`: The Poseidon hash
+
+## Usage Example
+
+```go
+a := new(felt.Felt).SetUint64(123)
+b := new(felt.Felt).SetUint64(456)
+hash := curve.Poseidon(a, b)
+fmt.Printf("Hash: %s\n", hash.String())
+```
+
+## Expected Output
+
+```
+Poseidon Hash:
+  Input a: 0x7b
+  Input b: 0x1c8
+  Hash: 0x5b79b5a2c3fae5ffe6f223e1bb26e82f6c14415569bf83500b7ebbf137064ea
+```
+
+## Notes
+
+- Poseidon is more efficient than Pedersen for SNARK-friendly operations
+- Suitable for use in ZK-STARKs
+
+## Related Functions
+
+- [PoseidonArray](/docs/curve/functions/poseidon-array)
+- [Pedersen](/docs/curve/functions/pedersen)

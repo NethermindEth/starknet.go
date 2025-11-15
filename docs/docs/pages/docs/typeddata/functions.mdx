@@ -1,0 +1,837 @@
+# Functions
+
+This page documents utility functions and supporting types in the typedata package that help with encoding, revision management, and type validation.
+
+## EncodeData Function
+
+Encodes a type definition with its data according to the SNIP-12 specification.
+
+### Function Signature
+
+```go
+func EncodeData(
+	typeDef *TypeDefinition,
+	td *TypedData,
+	context ...string,
+) (enc []*felt.Felt, err error)
+```
+
+### Parameters
+
+- **typeDef**: Pointer to the TypeDefinition to encode
+- **td**: Pointer to the TypedData containing the message data
+- **context**: Optional path to nested data within the message (variadic)
+
+### Returns
+
+- **enc**: Slice of encoded felt values
+- **err**: Error if encoding fails
+
+### Description
+
+The `EncodeData` function transforms structured data into a slice of felt values according to the type definition. This encoded data is used when calculating struct hashes.
+
+The function handles:
+- Basic types (felt, bool, string, etc.)
+- Complex types (structs, arrays, enums)
+- Nested structures via the context parameter
+- Revision-specific encoding rules
+
+### Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Person": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "age", "type": "felt" }
+			]
+		},
+		"primaryType": "Person",
+		"domain": {
+			"name": "Example",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"name": "Alice",
+			"age": "30"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the Person type definition
+	personType := td.Types["Person"]
+
+	// Encode the Person data
+	encoded, err := typeddata.EncodeData(&personType, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Encoded data (%d felts):\n", len(encoded))
+	for i, felt := range encoded {
+		fmt.Printf("  [%d] %s\n", i, felt.String())
+	}
+}
+```
+
+### Using Context for Nested Data
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Address": [
+				{ "name": "street", "type": "felt" },
+				{ "name": "city", "type": "felt" }
+			],
+			"Person": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "address", "type": "Address" }
+			]
+		},
+		"primaryType": "Person",
+		"domain": {
+			"name": "Example",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"name": "Alice",
+			"address": {
+				"street": "123 Main St",
+				"city": "New York"
+			}
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Encode the nested Address data using context
+	addressType := td.Types["Address"]
+	encoded, err := typeddata.EncodeData(&addressType, &td, "address")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Encoded address data:\n")
+	for i, felt := range encoded {
+		fmt.Printf("  [%d] %s\n", i, felt.String())
+	}
+}
+```
+
+## GetRevision Function
+
+Retrieves the revision configuration based on the revision number.
+
+### Function Signature
+
+```go
+func GetRevision(version uint8) (rev *revision, err error)
+```
+
+### Parameters
+
+- **version**: The revision number (0 or 1)
+
+### Returns
+
+- **rev**: Pointer to the revision configuration
+- **err**: Error if revision number is invalid
+
+### Description
+
+Returns the revision configuration which determines:
+- Hash algorithm (Pedersen for v0, Poseidon for v1)
+- Domain type name ("StarkNetDomain" for v0, "StarknetDomain" for v1)
+- Supported types (basic types, preset types)
+
+### Revisions
+
+#### Revision 0
+- **Hash Method**: Pedersen
+- **Domain Type**: "StarkNetDomain"
+- **Basic Types**: felt, bool, string (≤31 chars), selector, merkletree
+- **Preset Types**: None
+
+#### Revision 1
+- **Hash Method**: Poseidon (more efficient)
+- **Domain Type**: "StarknetDomain"
+- **Basic Types**: All from v0 plus enum, u128, i128, ContractAddress, ClassHash, timestamp, shortstring
+- **Preset Types**: u256, TokenAmount, NftId
+- **Note**: string type supports arbitrary length (use shortstring for ≤31 chars)
+
+### Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Get Revision 0
+	rev0, err := typeddata.GetRevision(0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Revision 0 domain type: %s\n", rev0.Domain())
+	fmt.Printf("Revision 0 version: %d\n", rev0.Version())
+
+	// Get Revision 1
+	rev1, err := typeddata.GetRevision(1)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Revision 1 domain type: %s\n", rev1.Domain())
+	fmt.Printf("Revision 1 version: %d\n", rev1.Version())
+
+	// Invalid revision
+	_, err = typeddata.GetRevision(2)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err) // "invalid revision version"
+	}
+
+	// Test hash methods
+	testData1 := new(felt.Felt).SetUint64(123)
+	testData2 := new(felt.Felt).SetUint64(456)
+
+	hash0 := rev0.HashMethod(testData1, testData2)
+	hash1 := rev1.HashMethod(testData1, testData2)
+
+	fmt.Printf("\nPedersen (v0) hash: %s\n", hash0.String())
+	fmt.Printf("Poseidon (v1) hash: %s\n", hash1.String())
+}
+```
+
+## Supported Types
+
+The typedata package supports different types based on the revision.
+
+### Basic Types (All Revisions)
+
+```go
+// Revision 0 and 1
+"felt"        // Field element
+"bool"        // Boolean (0 or 1)
+"selector"    // Function selector
+"merkletree"  // Merkle tree hash
+
+// Revision 0 only
+"string"      // String up to 31 ASCII characters
+
+// Revision 1 additions
+"enum"              // Enum type
+"u128"              // Unsigned 128-bit integer
+"i128"              // Signed 128-bit integer
+"ContractAddress"   // Contract address
+"ClassHash"         // Class hash
+"timestamp"         // Unix timestamp
+"shortstring"       // String up to 31 ASCII characters
+"string"            // Arbitrary length string (behavior changed in v1)
+```
+
+### Array Types
+
+Any type can be made into an array by appending `*`:
+
+```go
+"felt*"             // Array of felts
+"Person*"           // Array of Person structs
+"u128*"             // Array of u128 values
+"ContractAddress*"  // Array of contract addresses
+```
+
+### Preset Types (Revision 1 Only)
+
+Revision 1 includes predefined complex types:
+
+```go
+"u256"          // 256-bit unsigned integer (low: u128, high: u128)
+"TokenAmount"   // Token amount (token_address: ContractAddress, amount: u256)
+"NftId"         // NFT identifier (collection_address: ContractAddress, token_id: u256)
+```
+
+### Example: Using Different Types
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Revision 1 typed data with various types
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Transfer": [
+				{ "name": "from", "type": "ContractAddress" },
+				{ "name": "to", "type": "ContractAddress" },
+				{ "name": "amount", "type": "u256" },
+				{ "name": "timestamp", "type": "timestamp" },
+				{ "name": "approved", "type": "bool" }
+			]
+		},
+		"primaryType": "Transfer",
+		"domain": {
+			"name": "MyToken",
+			"version": "1",
+			"chainId": "SN_MAIN",
+			"revision": "1"
+		},
+		"message": {
+			"from": "0x1234567890abcdef",
+			"to": "0xfedcba0987654321",
+			"amount": {
+				"low": "1000000000000000000",
+				"high": "0"
+			},
+			"timestamp": "1735689600",
+			"approved": true
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Using revision: %d\n", td.Domain.Revision)
+	fmt.Printf("Primary type: %s\n", td.PrimaryType)
+
+	// Calculate hash
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Message hash: %s\n", messageHash.String())
+}
+```
+
+## Type Validation Functions
+
+The package includes internal type validation functions:
+
+### Type Categories
+
+```go
+// Basic types (felt, bool, string, u128, etc.)
+isBasicType(typeName string) bool
+
+// Standard types (basic + preset types)
+isStandardType(typeName string) bool
+
+// Preset types (u256, TokenAmount, NftId)
+isPresetType(typeName string) bool
+```
+
+These functions automatically handle array types by stripping the `*` suffix.
+
+## Revision Types Structure
+
+Each revision has an associated types structure:
+
+```go
+type RevisionTypes struct {
+	Basic  []string                     // List of basic type names
+	Preset map[string]TypeDefinition    // Predefined complex types
+}
+```
+
+### Example: Inspecting Revision Types
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Get revision 1
+	rev, err := typeddata.GetRevision(1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Access revision types
+	types := rev.Types()
+
+	fmt.Println("Basic types in Revision 1:")
+	for _, typeName := range types.Basic {
+		fmt.Printf("  - %s\n", typeName)
+	}
+
+	fmt.Println("\nPreset types in Revision 1:")
+	for typeName := range types.Preset {
+		fmt.Printf("  - %s\n", typeName)
+	}
+}
+```
+
+## Enum Support (Revision 1)
+
+Revision 1 supports enum types for representing sum types:
+
+### Enum Definition
+
+```json
+{
+	"types": {
+		"Action": [
+			{ "name": "Transfer", "type": "(ContractAddress,u256)" },
+			{ "name": "Approve", "type": "(ContractAddress,u256)" },
+			{ "name": "Revoke", "type": "()" }
+		],
+		"Message": [
+			{ "name": "action", "type": "enum", "contains": "Action" }
+		]
+	}
+}
+```
+
+### Enum Message
+
+```json
+{
+	"message": {
+		"action": {
+			"Transfer": ["0x1234", { "low": "100", "high": "0" }]
+		}
+	}
+}
+```
+
+### Example: Using Enums
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Action": [
+				{ "name": "Transfer", "type": "(felt,felt)" },
+				{ "name": "Approve", "type": "(felt)" },
+				{ "name": "Revoke", "type": "()" }
+			],
+			"Command": [
+				{ "name": "action", "type": "enum", "contains": "Action" }
+			]
+		},
+		"primaryType": "Command",
+		"domain": {
+			"name": "MyContract",
+			"version": "1",
+			"chainId": "SN_MAIN",
+			"revision": "1"
+		},
+		"message": {
+			"action": {
+				"Transfer": ["0x1234", "1000"]
+			}
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Enum message hash: %s\n", messageHash.String())
+}
+```
+
+## Merkle Tree Support
+
+The package supports merkle tree hashing for array data:
+
+### Merkle Tree Type
+
+```json
+{
+	"types": {
+		"Session": [
+			{ "name": "key", "type": "felt" },
+			{ "name": "expires", "type": "felt" },
+			{ "name": "root", "type": "merkletree", "contains": "Policy" }
+		],
+		"Policy": [
+			{ "name": "contract", "type": "felt" },
+			{ "name": "selector", "type": "felt" }
+		]
+	}
+}
+```
+
+### Example: Merkle Tree Hashing
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Policy": [
+				{ "name": "contract", "type": "felt" },
+				{ "name": "selector", "type": "felt" }
+			],
+			"Session": [
+				{ "name": "key", "type": "felt" },
+				{ "name": "expires", "type": "felt" },
+				{ "name": "root", "type": "merkletree", "contains": "Policy" }
+			]
+		},
+		"primaryType": "Session",
+		"domain": {
+			"name": "SessionKeys",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"key": "0xabcd",
+			"expires": "1735689600",
+			"root": [
+				{ "contract": "0x1234", "selector": "0x5678" },
+				{ "contract": "0xabcd", "selector": "0xef00" }
+			]
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Session with merkle tree hash: %s\n", messageHash.String())
+}
+```
+
+## Complete Example: Multi-Type Message
+
+Here's a comprehensive example using various types and features:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Complex typed data with multiple features
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Token": [
+				{ "name": "address", "type": "ContractAddress" },
+				{ "name": "amount", "type": "u256" }
+			],
+			"Recipient": [
+				{ "name": "address", "type": "ContractAddress" },
+				{ "name": "name", "type": "shortstring" }
+			],
+			"Transfer": [
+				{ "name": "from", "type": "ContractAddress" },
+				{ "name": "recipients", "type": "Recipient*" },
+				{ "name": "tokens", "type": "Token*" },
+				{ "name": "deadline", "type": "timestamp" },
+				{ "name": "executed", "type": "bool" }
+			]
+		},
+		"primaryType": "Transfer",
+		"domain": {
+			"name": "MultiTransfer",
+			"version": "2",
+			"chainId": "SN_MAIN",
+			"revision": "1"
+		},
+		"message": {
+			"from": "0x1234567890abcdef",
+			"recipients": [
+				{
+					"address": "0xaaaa",
+					"name": "Alice"
+				},
+				{
+					"address": "0xbbbb",
+					"name": "Bob"
+				}
+			],
+			"tokens": [
+				{
+					"address": "0xtoken1",
+					"amount": { "low": "1000", "high": "0" }
+				},
+				{
+					"address": "0xtoken2",
+					"amount": { "low": "2000", "high": "0" }
+				}
+			],
+			"deadline": "1735689600",
+			"executed": false
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Demonstrate various hash calculations
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+
+	// Message hash
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Message hash: %s\n", messageHash.String())
+
+	// Domain hash
+	domainHash, err := td.GetStructHash("StarknetDomain")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Domain hash: %s\n", domainHash.String())
+
+	// Type hashes
+	transferTypeHash, err := td.GetTypeHash("Transfer")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Transfer type hash: %s\n", transferTypeHash.String())
+
+	tokenTypeHash, err := td.GetTypeHash("Token")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Token type hash: %s\n", tokenTypeHash.String())
+
+	// Encoding
+	transferType := td.Types["Transfer"]
+	encoded, err := typeddata.EncodeData(&transferType, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("\nEncoded transfer data (%d felts)\n", len(encoded))
+}
+```
+
+## Error Handling
+
+Common errors when using these functions:
+
+```go
+// Invalid revision
+_, err := typeddata.GetRevision(99)
+// err: "invalid revision version"
+
+// Missing required type parameter
+encoded, err := typeddata.EncodeData(typeDef, td)
+// err: "error trying to get the value of the 'field_name' param"
+
+// Invalid context path
+encoded, err := typeddata.EncodeData(typeDef, td, "nonexistent")
+// err: "context error: parameter 'nonexistent' not found in the data map"
+
+// Type not found
+hash, err := td.GetTypeHash("NonExistent")
+// err: "type 'NonExistent' not found"
+```
+
+## Best Practices
+
+### 1. Choose the Right Revision
+
+```go
+// For new projects, use Revision 1
+domain := typeddata.Domain{
+	Name:     "MyNewDApp",
+	Version:  "1",
+	ChainID:  "SN_MAIN",
+	Revision: 1, // Poseidon hash, more types
+}
+
+// For compatibility with existing systems
+domain := typeddata.Domain{
+	Name:     "LegacyDApp",
+	Version:  "1",
+	ChainID:  "SN_MAIN",
+	Revision: 0, // Pedersen hash, basic types
+}
+```
+
+### 2. Use Appropriate Types
+
+```go
+// Revision 1: Use specific types
+"address": "ContractAddress"  // Not "felt"
+"amount": "u256"              // Not "felt" for large numbers
+"name": "shortstring"         // Not "string" for short text
+"id": "ClassHash"             // Not "felt" for class hashes
+```
+
+### 3. Validate User Input
+
+```go
+func createTypedData(userInput []byte) (*typeddata.TypedData, error) {
+	var td typeddata.TypedData
+	err := json.Unmarshal(userInput, &td)
+	if err != nil {
+		return nil, fmt.Errorf("invalid typed data: %w", err)
+	}
+
+	// Additional validation
+	if td.PrimaryType == "" {
+		return nil, fmt.Errorf("primary type not set")
+	}
+
+	return &td, nil
+}
+```
+
+### 4. Test Hash Consistency
+
+```go
+func TestMessageHashConsistency(t *testing.T) {
+	var td typeddata.TypedData
+	json.Unmarshal(testData, &td)
+
+	account := "0xtest"
+
+	// Hash should be consistent
+	hash1, _ := td.GetMessageHash(account)
+	hash2, _ := td.GetMessageHash(account)
+
+	if hash1.String() != hash2.String() {
+		t.Error("Message hash not consistent")
+	}
+}
+```
+
+## Related Documentation
+
+- [TypedData](./typed-data) - Core TypedData type and methods
+- [Domain](./domain) - Domain structure and usage
+- [Overview](./index) - Package overview and quick start
+
+## Reference
+
+- [SNIP-12 Specification](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-12.md)
+- [Package Documentation](https://pkg.go.dev/github.com/NethermindEth/starknet.go/typeddata)

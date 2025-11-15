@@ -1,0 +1,197 @@
+# SubscribeNewTransactions
+
+Subscribe to new transactions via WebSocket stream.
+
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers (like Alchemy) currently do not support transaction subscriptions. Check your provider's documentation for WebSocket method availability.
+</Callout>
+
+## Method Signature
+
+```go
+func (ws *WsProvider) SubscribeNewTransactions(
+    ctx context.Context,
+    newTxns chan<- *TxnWithHashAndStatus,
+    options *SubNewTxnsInput,
+) (*client.ClientSubscription, error)
+```
+
+## Parameters
+
+- `ctx` - The context.Context object for controlling the function call
+- `newTxns` - The channel to send new transactions to
+- `options` - Optional input struct containing transaction filters. Set to nil if no filters are needed
+
+## Returns
+
+- `*client.ClientSubscription` - The client subscription object, used to unsubscribe from the stream and to get errors
+- `error` - An error, if any
+
+## Description
+
+SubscribeNewTransactions creates a WebSocket stream that fires events when new transactions are submitted to Starknet. This provides real-time visibility into pending transactions before they're included in blocks.
+
+You can optionally filter transactions by sender address to monitor activity from specific accounts.
+
+The subscription will continue to send transactions until unsubscribed or the connection is closed.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Connect to WebSocket endpoint
+	wsProvider, err := rpc.NewProvider("wss://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := context.Background()
+
+	// Create channel to receive new transactions
+	txnsChan := make(chan *rpc.TxnWithHashAndStatus)
+
+	// Subscribe to transactions from a specific sender
+	senderAddress, _ := new(felt.Felt).SetString("0x1234567890abcdef...")
+	options := &rpc.SubNewTxnsInput{
+		SenderAddress: []*felt.Felt{senderAddress},
+	}
+
+	sub, err := wsProvider.SubscribeNewTransactions(ctx, txnsChan, options)
+	if err != nil {
+		log.Fatal("Failed to subscribe:", err)
+	}
+	defer sub.Unsubscribe()
+
+	fmt.Println("Subscribed to new transactions...")
+
+	// Listen for new transactions
+	for {
+		select {
+		case txn := <-txnsChan:
+			fmt.Printf("New Transaction:\n")
+			fmt.Printf("  Hash: %s\n", txn.TransactionHash)
+			fmt.Printf("  Status: %s\n", txn.Status)
+
+			// Access transaction details based on type
+			switch t := txn.Transaction.(type) {
+			case *rpc.InvokeTxnV1:
+				fmt.Printf("  Type: Invoke V1\n")
+				fmt.Printf("  Sender: %s\n", t.SenderAddress)
+			case *rpc.InvokeTxnV3:
+				fmt.Printf("  Type: Invoke V3\n")
+				fmt.Printf("  Sender: %s\n", t.SenderAddress)
+			case *rpc.DeclareTxn:
+				fmt.Printf("  Type: Declare\n")
+			case *rpc.DeployAccountTxn:
+				fmt.Printf("  Type: Deploy Account\n")
+			}
+		case err := <-sub.Err():
+			log.Fatal("Subscription error:", err)
+		case <-time.After(60 * time.Second):
+			fmt.Println("No transactions received in 60s, exiting...")
+			return
+		}
+	}
+}
+```
+
+## Filter Options
+
+The `SubNewTxnsInput` struct allows filtering by sender address:
+
+```go
+type SubNewTxnsInput struct {
+	SenderAddress []*felt.Felt  // Filter by transaction sender addresses
+}
+```
+
+**Examples:**
+
+```go
+// Subscribe to all new transactions
+wsProvider.SubscribeNewTransactions(ctx, txnsChan, nil)
+
+// Subscribe to transactions from specific sender
+options := &rpc.SubNewTxnsInput{
+	SenderAddress: []*felt.Felt{senderAddr},
+}
+
+// Subscribe to transactions from multiple senders
+options := &rpc.SubNewTxnsInput{
+	SenderAddress: []*felt.Felt{addr1, addr2, addr3},
+}
+```
+
+## Transaction Information
+
+The `TxnWithHashAndStatus` contains:
+
+- **Transaction Hash** - Unique identifier for the transaction
+- **Transaction** - Full transaction details (type varies: InvokeTxn, DeclareTxn, DeployAccountTxn, etc.)
+- **Status** - Current transaction status ("RECEIVED", "PENDING", etc.)
+
+## Transaction Types
+
+New transactions can be one of several types:
+
+1. **InvokeTxnV1/V3** - Contract function calls
+2. **DeclareTxn** - Contract class declarations
+3. **DeployAccountTxn** - Account contract deployments
+4. **DeployTxn** - Generic contract deployments (legacy)
+5. **L1HandlerTxn** - Messages from L1
+
+## Common Use Cases
+
+1. **Mempool Monitoring**: Track pending transactions in real-time
+2. **Account Activity**: Monitor all transactions from specific accounts
+3. **Transaction Aggregation**: Collect and analyze transaction patterns
+4. **Front-Running Detection**: Observe pending transactions before execution
+5. **Network Analytics**: Monitor network activity and transaction volume
+
+## Error Handling
+
+```go
+sub, err := wsProvider.SubscribeNewTransactions(ctx, txnsChan, options)
+if err != nil {
+	// Handle subscription errors
+	log.Fatal("Failed to subscribe:", err)
+}
+
+// Listen for stream errors
+go func() {
+	err := <-sub.Err()
+	if err != nil {
+		log.Printf("Stream error: %v", err)
+	}
+}()
+```
+
+## Possible Errors
+
+- `ErrTooManyAddressesInFilter` - Too many sender addresses in the filter
+- Connection errors - WebSocket connection issues
+
+## Related Methods
+
+- [SubscribeEvents](./subscribe-events) - Subscribe to contract events
+- [SubscribeNewTransactionReceipts](./subscribe-new-transaction-receipts) - Subscribe to transaction receipts
+- [SubscribeTransactionStatus](./subscribe-transaction-status) - Subscribe to transaction status updates
+- [TransactionByHash](../methods/transaction-by-hash) - Query transaction by hash (non-streaming)
+
+## Specification
+
+Follows the Starknet WebSocket RPC specification for `starknet_subscribeNewTransactions`.

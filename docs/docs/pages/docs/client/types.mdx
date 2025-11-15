@@ -1,0 +1,831 @@
+# Client Types
+
+This page documents the types available in the client package for JSON-RPC communication, subscriptions, and server functionality.
+
+## Client Types
+
+### Client
+
+The Client type represents a JSON-RPC client connection. It is the primary type for making RPC calls to Starknet nodes.
+
+#### Type Definition
+
+```go
+type Client struct {
+    // Internal fields are not directly accessible
+}
+```
+
+#### Creation
+
+Create a Client using the package-level functions:
+
+```go
+// HTTP connection
+client, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+
+// WebSocket connection
+client, err := client.DialWebsocket(ctx, "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+```
+
+#### Methods
+
+- `Call(result, method, args...)` - Make a JSON-RPC call
+- `CallContext(ctx, result, method, args...)` - Make a context-aware JSON-RPC call
+- `Subscribe(ctx, namespace, methodSuffix, channel, args...)` - Create a subscription
+- `BatchCall(batch)` - Execute multiple requests in a batch
+- `Close()` - Close the client connection
+
+See [Client Methods](/docs/client/methods) for detailed documentation.
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create client
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Use client
+    var result string
+    err = c.CallContext(context.Background(), &result, "starknet_specVersion")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Spec Version: %s\n", result)
+}
+```
+
+### ClientOption
+
+ClientOption is a function type used to configure the Client during creation.
+
+#### Type Definition
+
+```go
+type ClientOption func(*Client)
+```
+
+#### Available Options
+
+While specific options depend on the implementation, common patterns include:
+
+- `WithHTTPClient(httpClient)` - Use a custom HTTP client
+- `WithHeader(key, value)` - Add default headers
+- `WithWebsocketDialer(dialer)` - Use a custom WebSocket dialer
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "net/http"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create custom HTTP client with timeout
+    httpClient := &http.Client{
+        Timeout: 30 * time.Second,
+    }
+
+    // Create client with options
+    c, err := client.DialHTTPWithOptions(
+        "https://starknet-sepolia.public.blastapi.io/rpc/v0_8",
+        client.WithHTTPClient(httpClient),
+        client.WithHeader("User-Agent", "MyApp/1.0"),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+}
+```
+
+## Subscription Types
+
+### ClientSubscription
+
+ClientSubscription represents an active subscription on the client side. It provides methods to manage the subscription lifecycle and receive errors.
+
+#### Type Definition
+
+```go
+type ClientSubscription struct {
+    // Internal fields are not directly accessible
+}
+```
+
+#### Methods
+
+##### Unsubscribe
+
+```go
+func (sub *ClientSubscription) Unsubscribe()
+```
+
+Cancels the subscription and closes the notification channel.
+
+##### Err
+
+```go
+func (sub *ClientSubscription) Err() <-chan error
+```
+
+Returns a channel that receives any error that caused the subscription to end.
+
+##### ID
+
+```go
+func (sub *ClientSubscription) ID() ID
+```
+
+Returns the unique identifier for this subscription.
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialWebsocket(context.Background(), "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    headers := make(chan map[string]interface{})
+
+    sub, err := c.Subscribe(context.Background(), "starknet", "subscribeNewHeads", headers)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer sub.Unsubscribe()
+
+    fmt.Printf("Subscription ID: %v\n", sub.ID())
+
+    for {
+        select {
+        case header := <-headers:
+            fmt.Printf("New block: %v\n", header)
+        case err := <-sub.Err():
+            if err != nil {
+                log.Printf("Subscription error: %v\n", err)
+            }
+            return
+        }
+    }
+}
+```
+
+### Subscription
+
+Subscription is the server-side representation of a subscription, created by a Notifier.
+
+#### Type Definition
+
+```go
+type Subscription struct {
+    ID        ID
+    namespace string
+    // Internal fields
+}
+```
+
+#### Fields
+
+- `ID` - Unique identifier for the subscription
+- `namespace` - The RPC namespace for this subscription
+
+#### Usage Example
+
+This type is typically used on the server side when implementing RPC services with subscription support.
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+type BlockService struct{}
+
+func (s *BlockService) SubscribeNewHeads(ctx context.Context) (*client.Subscription, error) {
+    notifier, ok := client.NotifierFromContext(ctx)
+    if !ok {
+        return nil, fmt.Errorf("no notifier in context")
+    }
+
+    // Create subscription
+    sub := notifier.CreateSubscription()
+
+    // Send notifications in background
+    go func() {
+        for {
+            // Get new block header...
+            err := notifier.Notify(sub.ID, blockHeader)
+            if err != nil {
+                return
+            }
+        }
+    }()
+
+    return sub, nil
+}
+```
+
+### ReorgEvent
+
+ReorgEvent represents a blockchain reorganization event in a subscription stream.
+
+#### Type Definition
+
+```go
+type ReorgEvent struct {
+    OldChain []interface{}
+    NewChain []interface{}
+}
+```
+
+#### Fields
+
+- `OldChain` - The blocks that were removed from the chain
+- `NewChain` - The new blocks that replaced the old chain
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialWebsocket(context.Background(), "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    events := make(chan interface{})
+
+    sub, err := c.Subscribe(context.Background(), "starknet", "subscribeNewHeads", events)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer sub.Unsubscribe()
+
+    for event := range events {
+        switch e := event.(type) {
+        case map[string]interface{}:
+            fmt.Printf("New block: %v\n", e)
+        case *client.ReorgEvent:
+            fmt.Printf("Reorg detected!\n")
+            fmt.Printf("  Old chain: %v\n", e.OldChain)
+            fmt.Printf("  New chain: %v\n", e.NewChain)
+        }
+    }
+}
+```
+
+#### Handling Reorgs
+
+When a reorganization occurs:
+
+1. The subscription channel receives a `ReorgEvent`
+2. Old blocks in `OldChain` should be considered invalid
+3. New blocks in `NewChain` represent the current canonical chain
+4. Applications should update their state accordingly
+
+## Server Types
+
+### Server
+
+Server represents a JSON-RPC server that can handle HTTP and WebSocket requests.
+
+#### Type Definition
+
+```go
+type Server struct {
+    // Internal fields are not directly accessible
+}
+```
+
+#### Creation
+
+```go
+server := client.NewServer()
+```
+
+#### Methods
+
+##### RegisterName
+
+```go
+func (s *Server) RegisterName(name string, receiver interface{}) error
+```
+
+Registers a service with the given name. All exported methods of the receiver become available as RPC methods.
+
+##### ServeHTTP
+
+```go
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request)
+```
+
+Handles HTTP requests. Implements the `http.Handler` interface.
+
+##### WebsocketHandler
+
+```go
+func (s *Server) WebsocketHandler(allowedOrigins []string) http.Handler
+```
+
+Returns an HTTP handler for WebSocket connections.
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+// CalculatorService provides math operations
+type CalculatorService struct{}
+
+func (c *CalculatorService) Add(a, b int) int {
+    return a + b
+}
+
+func (c *CalculatorService) Multiply(a, b int) int {
+    return a * b
+}
+
+func main() {
+    // Create server
+    server := client.NewServer()
+
+    // Register service
+    err := server.RegisterName("calculator", new(CalculatorService))
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Set up HTTP handlers
+    http.Handle("/rpc", server)
+    http.Handle("/ws", server.WebsocketHandler([]string{"*"}))
+
+    // Start server
+    log.Println("RPC server listening on :8080")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+#### Service Registration
+
+Services must follow these rules:
+
+1. Methods must be exported (start with uppercase letter)
+2. Methods can return `error` as the last return value
+3. Methods can accept `context.Context` as the first parameter
+4. All parameters and return values must be JSON-serializable
+
+Example service:
+
+```go
+type MyService struct{}
+
+// Valid RPC method
+func (s *MyService) GetData(id int) (string, error) {
+    return "data", nil
+}
+
+// Valid with context
+func (s *MyService) GetDataWithContext(ctx context.Context, id int) (string, error) {
+    return "data", nil
+}
+
+// Invalid - not exported
+func (s *MyService) privateMethod() {}
+
+// Invalid - no return value
+func (s *MyService) SetData(data string) {}
+```
+
+### Notifier
+
+Notifier is used on the server side to send notifications to subscribed clients.
+
+#### Type Definition
+
+```go
+type Notifier struct {
+    // Internal fields are not directly accessible
+}
+```
+
+#### Methods
+
+##### CreateSubscription
+
+```go
+func (n *Notifier) CreateSubscription() *Subscription
+```
+
+Creates a new subscription that can receive notifications.
+
+##### Notify
+
+```go
+func (n *Notifier) Notify(id ID, data interface{}) error
+```
+
+Sends a notification to the subscription with the given ID.
+
+##### Closed
+
+```go
+func (n *Notifier) Closed() <-chan interface{}
+```
+
+Returns a channel that's closed when the client disconnects.
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+type EventService struct{}
+
+func (s *EventService) Subscribe(ctx context.Context, eventType string) (*client.Subscription, error) {
+    // Get notifier from context
+    notifier, ok := client.NotifierFromContext(ctx)
+    if !ok {
+        return nil, fmt.Errorf("no notifier in context")
+    }
+
+    // Create subscription
+    sub := notifier.CreateSubscription()
+
+    // Send notifications
+    go func() {
+        ticker := time.NewTicker(1 * time.Second)
+        defer ticker.Stop()
+
+        for {
+            select {
+            case <-ticker.C:
+                // Send event notification
+                event := map[string]interface{}{
+                    "type":      eventType,
+                    "timestamp": time.Now().Unix(),
+                }
+                err := notifier.Notify(sub.ID, event)
+                if err != nil {
+                    return
+                }
+            case <-notifier.Closed():
+                // Client disconnected
+                return
+            }
+        }
+    }()
+
+    return sub, nil
+}
+```
+
+## Utility Types
+
+### PeerInfo
+
+PeerInfo contains information about a peer connection.
+
+#### Type Definition
+
+```go
+type PeerInfo struct {
+    Transport  string
+    RemoteAddr string
+    HTTP       struct {
+        Version string
+        // HTTP-specific fields
+    }
+}
+```
+
+#### Fields
+
+- `Transport` - The transport protocol (http, ws, ipc)
+- `RemoteAddr` - The remote address of the peer
+- `HTTP` - HTTP-specific information
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+type InfoService struct{}
+
+func (s *InfoService) GetConnectionInfo(ctx context.Context) (map[string]string, error) {
+    peerInfo, ok := client.PeerInfoFromContext(ctx)
+    if !ok {
+        return nil, fmt.Errorf("no peer info available")
+    }
+
+    info := map[string]string{
+        "transport":   peerInfo.Transport,
+        "remote_addr": peerInfo.RemoteAddr,
+    }
+
+    if peerInfo.Transport == "http" {
+        info["http_version"] = peerInfo.HTTP.Version
+    }
+
+    return info, nil
+}
+```
+
+### ID
+
+ID represents a unique identifier for subscriptions.
+
+#### Type Definition
+
+```go
+type ID string
+```
+
+#### Creation
+
+```go
+id := client.NewID()
+```
+
+#### Usage
+
+IDs are primarily used internally for subscription management but may be useful when building custom RPC servers or debugging subscription issues.
+
+### BatchElem
+
+BatchElem represents a single element in a batch request.
+
+#### Type Definition
+
+```go
+type BatchElem struct {
+    Method string
+    Args   []interface{}
+    Result interface{}
+    Error  error
+}
+```
+
+#### Fields
+
+- `Method` - The JSON-RPC method name to call
+- `Args` - Slice of arguments for the method
+- `Result` - Pointer to store the result
+- `Error` - Error for this specific call (populated after batch execution)
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    var (
+        version string
+        chainID string
+        blockNum uint64
+    )
+
+    batch := []client.BatchElem{
+        {
+            Method: "starknet_specVersion",
+            Args:   []interface{}{},
+            Result: &version,
+        },
+        {
+            Method: "starknet_chainId",
+            Args:   []interface{}{},
+            Result: &chainID,
+        },
+        {
+            Method: "starknet_blockNumber",
+            Args:   []interface{}{},
+            Result: &blockNum,
+        },
+    }
+
+    err = c.BatchCall(batch)
+    if err != nil {
+        log.Fatal("Batch failed:", err)
+    }
+
+    // Check individual errors
+    for i, elem := range batch {
+        if elem.Error != nil {
+            fmt.Printf("Call %d failed: %v\n", i, elem.Error)
+        }
+    }
+
+    fmt.Printf("Version: %s, Chain: %s, Block: %d\n", version, chainID, blockNum)
+}
+```
+
+## Error Types
+
+### HTTPError
+
+HTTPError represents an HTTP-specific error.
+
+#### Type Definition
+
+```go
+type HTTPError struct {
+    StatusCode int
+    Status     string
+    Body       []byte
+}
+```
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "errors"
+    "fmt"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func handleError(err error) {
+    var httpErr *client.HTTPError
+    if errors.As(err, &httpErr) {
+        fmt.Printf("HTTP Error %d: %s\n", httpErr.StatusCode, httpErr.Status)
+        fmt.Printf("Response body: %s\n", httpErr.Body)
+        return
+    }
+
+    // Handle other errors
+    fmt.Printf("Error: %v\n", err)
+}
+```
+
+## Type Relationships
+
+```
+Client
+├── Call() -> error
+├── CallContext() -> error
+├── Subscribe() -> *ClientSubscription, error
+├── BatchCall([]BatchElem) -> error
+└── Close()
+
+ClientSubscription
+├── Unsubscribe()
+├── Err() -> <-chan error
+└── ID() -> ID
+
+Server
+├── RegisterName()
+├── ServeHTTP()
+└── WebsocketHandler() -> http.Handler
+
+Notifier
+├── CreateSubscription() -> *Subscription
+├── Notify(ID, interface{}) -> error
+└── Closed() -> <-chan interface{}
+```
+
+## Best Practices
+
+### Type Safety
+
+Always use proper types for results:
+
+```go
+// Good: Type-safe result
+var blockNumber uint64
+c.CallContext(ctx, &blockNumber, "starknet_blockNumber")
+
+// Avoid: Using interface{}
+var result interface{}
+c.CallContext(ctx, &result, "starknet_blockNumber")
+blockNumber := result.(uint64) // Type assertion required
+```
+
+### Error Handling
+
+Check both batch errors and individual element errors:
+
+```go
+err := c.BatchCall(batch)
+if err != nil {
+    // Entire batch failed
+    return err
+}
+
+for i, elem := range batch {
+    if elem.Error != nil {
+        // Individual call failed
+        log.Printf("Call %d failed: %v", i, elem.Error)
+    }
+}
+```
+
+### Resource Management
+
+Always clean up subscriptions and clients:
+
+```go
+// Client
+c, err := client.DialHTTP(url)
+if err != nil {
+    return err
+}
+defer c.Close()
+
+// Subscription
+sub, err := c.Subscribe(ctx, ns, method, ch)
+if err != nil {
+    return err
+}
+defer sub.Unsubscribe()
+```
+
+## Related Documentation
+
+- [Client Functions](/docs/client/functions) - Functions for creating clients and managing context
+- [Client Methods](/docs/client/methods) - Methods for making RPC calls and managing subscriptions
+- [Client Overview](/docs/client/) - Package overview and quick start guide
+- [RPC Methods](/docs/rpc/) - High-level Starknet RPC method wrappers

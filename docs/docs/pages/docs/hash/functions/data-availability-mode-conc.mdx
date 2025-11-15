@@ -1,0 +1,33 @@
+# DataAvailabilityModeConc
+
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This is a low-level utility used internally by V3 transaction hash functions. Most developers should use [TransactionHashInvokeV3](./transaction-hash-invoke-v3), [TransactionHashDeclareV3](./transaction-hash-declare-v3), or [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) instead.
+</Callout>
+
+Concatenates data availability modes for fee and nonce into a single uint64 value.
+
+## Function Signature
+
+```go
+func DataAvailabilityModeConc(
+    feeDAMode rpc.DataAvailabilityMode,
+    nonceDAMode rpc.DataAvailabilityMode,
+) (uint64, error)
+```
+
+## Description
+
+This internal helper function concatenates the fee data availability mode and nonce data availability mode into a single uint64 value used in V3 transaction hash calculations. It is automatically called by:
+- [TransactionHashInvokeV3](./transaction-hash-invoke-v3)
+- [TransactionHashDeclareV3](./transaction-hash-declare-v3)
+- [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3)
+- [TransactionHashBroadcastDeclareV3](./transaction-hash-broadcast-declare-v3)
+
+Data availability modes specify whether transaction data is posted to L1 or L2, affecting gas costs and security guarantees.
+
+## Related Functions
+
+- [ClassHash](/docs/hash/functions/class-hash)
+- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)

@@ -57,6 +57,7 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
@@ -64,7 +65,14 @@ import (
 
 func main() {
     // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
@@ -189,86 +197,6 @@ Comprehensive fee breakdown:
 }
 ```
 
-## Output Field Explanations
-
-### Execute Invocation
-- `contract_address`: The account contract executing the transaction
-- `entry_point_selector`: The `__execute__` function selector
-- `calldata`: Parameters passed to the execute function
-- `result`: Return values from the execution
-- `calls`: Nested contract calls made during execution
-- `execution_resources`: Gas consumed by the execution
-
-### Fee Transfer Invocation  
-- `contract_address`: The ETH token contract for fee payment
-- `calldata`: [sequencer_address, fee_amount, 0]
-- Shows the fee transfer to the sequencer
-
-### State Diff
-- `storage_diffs`: Storage changes made by the transaction
-- `nonces`: Nonce updates (account nonce incremented from 0x3 to 0x4)
-- `deployed_contracts`, `declared_classes`: New contracts/classes (empty in this case)
-
-### Fee Estimation
-- `l1_gas_consumed`: L1 gas used (0 in this case)
-- `l2_gas_consumed`: L2 gas used (0xc8500 = 820,480 gas)
-- `l1_data_gas_consumed`: Data gas for L1 submission (0x80 = 128 gas)
-- `overall_fee`: Total fee in FRI (0x8beaaa91c9c00 = 2,470,000,000,000 FRI)
-- `unit`: Fee denomination (FRI = 10^-18 STRK)
-
-### Execution Resources
-- `l1_gas`: Gas for L1 operations
-- `l1_data_gas`: Gas for data availability on L1  
-- `l2_gas`: Gas for L2 computation
-
-## Use Cases
-
-- **Pre-flight checks**: Validate transactions before signing and submission
-- **Fee estimation**: Get accurate gas costs for transaction planning  
-- **Debug transactions**: Analyze execution flow and identify issues
-- **State analysis**: Preview state changes without executing
-- **Gas optimization**: Test different approaches to minimize costs
-
-## Transaction Reverts and Error Handling
-
-**Important:** SimulateTransactions has special error handling behavior:
-
-### Reverted Transactions
-- **No error is thrown** when transactions revert during simulation
-- Revert details are captured in the `revert_error` property of the trace
-- The simulation continues and returns results with revert information
-- Check the `is_reverted` field and `revert_reason` in execution traces
-
-### Error Types
-1. **Transaction Reverts**: Included in results with revert details
-2. **Validation Failures**: Result in `TRANSACTION_EXECUTION_ERROR` 
-3. **Unexpected Errors**: Result in `TRANSACTION_EXECUTION_ERROR`
-
-### Sequential Simulation
-When simulating multiple transactions, each transaction runs on the state resulting from applying all previous ones in the array.
-
-## Simulation Flags Usage
-
-### SKIP_VALIDATE
-Use when simulating unsigned transactions:
-```go
-[]rpc.SimulationFlag{rpc.SKIP_VALIDATE}
-```
-Skips signature validation, perfect for testing transaction logic.
-
-### SKIP_FEE_CHARGE  
-Use when testing without fee deduction:
-```go
-[]rpc.SimulationFlag{rpc.SKIP_FEE_CHARGE}
-```
-Simulates execution without charging fees from account balance.
-
-### Combined Flags
-Use both for maximum simulation flexibility:
-```go
-[]rpc.SimulationFlag{rpc.SKIP_VALIDATE, rpc.SKIP_FEE_CHARGE}
-```
-
 ## Error Handling
 
 SimulateTransactions has unique error handling behavior:
@@ -295,3 +223,9 @@ for i, result := range simResult {
 - **Method errors** (`err != nil`): Validation failures, unexpected errors
 - **Transaction reverts**: Captured in trace with `is_reverted: true` and `revert_reason`
 - **Execution success**: Normal completion with `is_reverted: false`
+
+## Related Methods
+
+- [TraceTransaction](/docs/rpc/methods/trace-transaction) - Get execution trace of a submitted transaction
+- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate fees for transactions
+- [AddInvokeTransaction](/docs/rpc/methods/add-invoke-transaction) - Submit transactions to the network

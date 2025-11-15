@@ -1,0 +1,78 @@
+# Nonce
+
+Retrieves the current nonce for the account.
+
+## Method Signature
+
+```go
+func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `ctx` - Context for cancellation and timeout
+
+## Returns
+
+- `*felt.Felt` - Current account nonce
+- `error` - Error if retrieval fails
+
+## Usage Example
+
+> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assuming 'acc' is your Account instance
+	var acc *account.Account
+	// acc = ... (already initialized)
+
+	// Get current nonce
+	ctx := context.Background()
+	nonce, err := acc.Nonce(ctx)
+	if err != nil {
+		log.Fatalf("Error getting nonce: %v", err)
+	}
+
+	fmt.Printf("Current nonce: %s\n", nonce)
+	fmt.Printf("Nonce as uint64: %d\n", nonce.Uint64())
+}
+```
+
+## Expected Output
+
+```
+Current nonce: 0x0
+Nonce as uint64: 0
+```
+
+## Description
+
+Nonce retrieves the current transaction nonce for the account from the `pending` block. The nonce is automatically managed by BuildAndSendInvokeTxn and BuildAndSendDeclareTxn.
+
+## Error Handling
+
+```go
+nonce, err := acc.Nonce(ctx)
+if err != nil {
+	// Handle errors like:
+	// - Network errors
+	// - Account not found
+	return err
+}
+```
+
+## Related Methods
+
+- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - Uses nonce automatically
+- [BuildAndSendDeclareTxn](./build-and-send-declare-txn.mdx) - Uses nonce automatically

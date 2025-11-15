@@ -1,0 +1,27 @@
+# StarknetKeccak
+
+Computes the Starknet Keccak hash of a byte slice.
+
+## Function Signature
+
+```go
+func StarknetKeccak(b []byte) *felt.Felt
+```
+
+## Expected Output
+
+```
+StarknetKeccak Hash:
+  Input: Hello Starknet
+  Hash: 0x33f08beeb7fc856bf2304c456db9b24e958b1d7f834f3950e2e4efdbd22653a
+```
+
+## Use Cases
+
+- Function selector calculation
+- Event key generation
+
+## Related Functions
+
+- [Pedersen](/docs/curve/functions/pedersen)
+- [Poseidon](/docs/curve/functions/poseidon)

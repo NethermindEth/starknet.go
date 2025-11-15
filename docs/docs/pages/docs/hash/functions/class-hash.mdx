@@ -1,0 +1,42 @@
+# ClassHash
+
+Calculates the hash of a Sierra contract class.
+
+## Function Signature
+
+```go
+func ClassHash(contract *contracts.ContractClass) *felt.Felt
+```
+
+## Parameters
+
+- `contract` (*contracts.ContractClass): The Sierra contract class to hash
+
+## Returns
+
+- `*felt.Felt`: The calculated class hash
+
+## Description
+
+Calculates the hash of a contract class by combining the contract class version, entry points, ABI, and Sierra program using the Poseidon hash function.
+
+## Usage Example
+
+```go
+var contractClass contracts.ContractClass
+json.Unmarshal(data, &contractClass)
+
+classHash := hash.ClassHash(&contractClass)
+fmt.Printf("Class Hash: %s\n", classHash.String())
+```
+
+## Use Cases
+
+- Contract deployment (class hash required for declaring)
+- Contract verification
+- Class hash registry
+
+## Related Functions
+
+- [CompiledClassHash](/docs/hash/functions/compiled-class-hash)
+- [TransactionHashDeclareV2](/docs/hash/functions/transaction-hash-declare-v2)

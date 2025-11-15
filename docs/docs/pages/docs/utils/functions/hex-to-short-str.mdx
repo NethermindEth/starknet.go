@@ -1,0 +1,60 @@
+# HexToShortStr
+
+Converts a hexadecimal string to a short string (ASCII text).
+
+## Function Signature
+
+```go
+func HexToShortStr(hexStr string) string
+```
+
+## Parameters
+
+- `hexStr` (string): Hexadecimal string representing ASCII text
+
+## Returns
+
+- `string`: Decoded ASCII string
+
+## Description
+
+Decodes a hexadecimal string into its ASCII representation. Commonly used for reading short strings stored in Starknet contracts.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Decode "Hello"
+	str := utils.HexToShortStr("0x48656c6c6f")
+	fmt.Printf("0x48656c6c6f = %s\n", str)
+	// Output: Hello
+
+	// Decode "World"
+	str2 := utils.HexToShortStr("0x576f726c64")
+	fmt.Printf("0x576f726c64 = %s\n", str2)
+	// Output: World
+
+	// Decode "Starknet"
+	str3 := utils.HexToShortStr("0x537461726b6e6574")
+	fmt.Printf("0x537461726b6e6574 = %s\n", str3)
+	// Output: Starknet
+}
+```
+
+## Use Cases
+
+- Reading contract names
+- Decoding token symbols
+- Processing short string data from contracts
+
+## Related Functions
+
+- [StrToHex](/docs/utils/functions/str-to-hex)

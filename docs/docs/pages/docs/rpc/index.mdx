@@ -1,13 +1,13 @@
 # RPC Package
 
-The RPC package provides complete access to Starknet's JSON-RPC API. It implements the Starknet RPC v0.9.0 specification for interacting with Starknet nodes.
+The RPC package provides direct access to Starknet's JSON-RPC API (v0.9.0 specification). Use it to query blockchain data, submit transactions, and subscribe to real-time updates.
 
-## What You Can Do
+## What This Package Does
 
 **Query Blockchain Data**
-- Get latest blocks and transactions
+- Fetch blocks and transactions
 - Read contract storage and state
-- Query historical events
+- Query event logs with filters
 
 **Submit Transactions**
 - Deploy accounts and contracts
@@ -33,46 +33,123 @@ import (
 )
 
 func main() {
-    // Create RPC client
     client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
     if err != nil {
         log.Fatal(err)
     }
 
-    // Make RPC calls
     blockNumber, err := client.BlockNumber(context.Background())
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Latest block number: %d\n", blockNumber)
+    fmt.Printf("Latest block: %d\n", blockNumber)
 }
 ```
 
+**See Also:**
+- [WebSocket example](/docs/examples/websocket) - Real-time subscriptions
+- [Read events example](/docs/examples/read-events) - Event filtering
+- [Simple call example](/docs/examples/simple-call) - Contract state reads
+
 ## Core Components
 
-**Provider**: HTTP client for standard RPC calls
-**WebSocketProvider**: Real-time subscriptions and updates
-**Types**: Complete type definitions for all operations
+### Provider
+HTTP client for standard RPC calls. Handles requests/responses for querying blocks, reading state, and submitting transactions.
 
-## Method Categories
+### WebSocketProvider  
+WebSocket client for subscriptions. Use this when you need real-time event streaming or block notifications.
 
-**Blocks** - `BlockNumber()`, `BlockHashAndNumber()`, `BlockWithTxs()`, `BlockWithTxHashes()`, `BlockWithReceipts()`, `BlockTransactionCount()`, `StateUpdate()`
+### Types
+Type definitions for all RPC operations. Provides compile-time type safety for requests and responses.
 
-**Transactions** - `TransactionByHash()`, `TransactionByBlockIdAndIndex()`, `TransactionReceipt()`, `GetTransactionStatus()`, `AddInvokeTransaction()`, `AddDeclareTransaction()`, `AddDeployAccountTransaction()`, `GetMessagesStatus()`
+## Available Methods
 
-**Contracts** - `Call()`, `Class()`, `ClassAt()`, `ClassHashAt()`, `StorageAt()`, `Nonce()`, `EstimateFee()`, `EstimateMessageFee()`, `GetStorageProof()`, `CompiledCasm()`
+### Block Methods
 
-**Chain** - `ChainID()`, `Syncing()`, `SpecVersion()`
+- **[BlockNumber](/docs/rpc/methods/block-number)** - Get latest block number
+- **[BlockHashAndNumber](/docs/rpc/methods/block-hash-and-number)** - Get both hash and number
+- **[BlockWithTxHashes](/docs/rpc/methods/block-with-tx-hashes)** - Block with transaction hashes only
+- **[BlockWithTxs](/docs/rpc/methods/block-with-txs)** - Block with full transaction details
+- **[BlockWithReceipts](/docs/rpc/methods/block-with-receipts)** - Block with transactions and receipts
+- **[BlockTransactionCount](/docs/rpc/methods/block-transaction-count)** - Count transactions in a block
+- **[StateUpdate](/docs/rpc/methods/state-update)** - State changes in a block
 
-**Events** - `Events()` with comprehensive filtering support
+**Which method to use:**
+- Just need the block number? Use `BlockNumber()`
+- Want minimal data? Use `BlockWithTxHashes()`
+- Need full transaction data? Use `BlockWithTxs()`
+- Analyzing execution results? Use `BlockWithReceipts()`
 
-**Debug & Tracing** - `TraceTransaction()`, `TraceBlockTransactions()`, `SimulateTransactions()`
+### Transaction Methods
+
+- **[TransactionByHash](/docs/rpc/methods/transaction-by-hash)** - Get transaction by hash
+- **[GetTransactionByBlockIdAndIndex](/docs/rpc/methods/get-transaction-by-block-id-and-index)** - Get transaction by position
+- **[TransactionReceipt](/docs/rpc/methods/transaction-receipt)** - Get execution results
+- **[GetTransactionStatus](/docs/rpc/methods/get-transaction-status)** - Check status
+- **[AddInvokeTransaction](/docs/rpc/methods/add-invoke-transaction)** - Submit invoke transaction
+- **[AddDeclareTransaction](/docs/rpc/methods/add-declare-transaction)** - Submit declare transaction
+- **[AddDeployAccountTransaction](/docs/rpc/methods/add-deploy-account-transaction)** - Submit deploy account transaction
+- **[GetMessagesStatus](/docs/rpc/methods/get-messages-status)** - Check L1→L2 message status
+
+### Contract Methods
+
+- **[Call](/docs/rpc/methods/call)** - Read-only contract calls
+- **[GetClass](/docs/rpc/methods/get-class)** - Get contract class definition
+- **[GetClassAt](/docs/rpc/methods/get-class-at)** - Get class at address
+- **[GetClassHashAt](/docs/rpc/methods/get-class-hash-at)** - Get class hash for address
+- **[GetStorageAt](/docs/rpc/methods/get-storage-at)** - Read contract storage
+- **[GetNonce](/docs/rpc/methods/get-nonce)** - Get account nonce
+- **[EstimateFee](/docs/rpc/methods/estimate-fee)** - Estimate transaction fees
+- **[EstimateMessageFee](/docs/rpc/methods/estimate-message-fee)** - Estimate L1→L2 message fees
+- **[StorageProof](/docs/rpc/methods/storage-proof)** - Get storage Merkle proof
+- **[CompiledCasm](/docs/rpc/methods/compiled-casm)** - Get compiled CASM class
+
+### Chain Information
+
+- **[ChainID](/docs/rpc/methods/chain-ID)** - Get chain identifier
+- **[Syncing](/docs/rpc/methods/syncing)** - Get node sync status
+- **[SpecVersion](/docs/rpc/methods/spec-version)** - Get RPC spec version
+
+### Events
+
+- **[Events](/docs/rpc/methods/events)** - Query historical events (supports filtering by block range, contract address, event keys)
+
+### Debug & Tracing
+
+- **[TraceTransaction](/docs/rpc/methods/trace-transaction)** - Get transaction execution trace
+- **[TraceBlockTransactions](/docs/rpc/methods/trace-block-transactions)** - Trace all transactions in block
+- **[SimulateTransaction](/docs/rpc/methods/simulate-transaction)** - Simulate before sending
 
 ## Network Support
 
-Works with all Starknet networks - mainnet, sepolia testnet, and local devnets. Simply change the RPC URL to switch networks.
+Works with mainnet, testnet, and local devnets. Just change the RPC URL:
 
----
+```go
+// Mainnet
+mainnetClient, _ := rpc.NewProvider("https://starknet-mainnet.public.blastapi.io/rpc/v0_8")
 
-Ready to interact with Starknet? The RPC package provides everything you need to build robust applications on Starknet.
+// Sepolia Testnet
+sepoliaClient, _ := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+
+// Local DevNet
+devnetClient, _ := rpc.NewProvider("http://localhost:5050/rpc")
+```
+
+## Related Packages
+
+- **[Account Package](/docs/account/)** - Transaction signing and sending (built on RPC)
+- **[Client Package](/docs/client/)** - Low-level JSON-RPC client
+- **[DevNet Package](/docs/devnet/)** - Local development utilities
+
+## Examples
+
+- **[Deploy Account](/docs/examples/deploy-account)** - Deploy a Starknet account
+- **[Invoke Contract](/docs/examples/invoke)** - Execute contract functions
+- **[Read Events](/docs/examples/read-events)** - Query and filter events
+- **[Simple Call](/docs/examples/simple-call)** - Read contract state
+- **[WebSocket](/docs/examples/websocket)** - Real-time subscriptions
+
+## Reference
+
+Implements Starknet RPC v0.9.0. Full API reference: [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/rpc)

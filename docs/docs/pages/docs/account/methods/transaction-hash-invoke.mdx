@@ -1,0 +1,101 @@
+# TransactionHashInvoke
+
+Calculates the transaction hash for an invoke transaction.
+
+## Method Signature
+
+```go
+func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `tx` - Invoke transaction (V0, V1, or V3)
+
+## Returns
+
+- `*felt.Felt` - Transaction hash
+- `error` - Error if hash calculation fails
+
+## Usage Example
+
+> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Assuming 'acc' is your Account instance
+	var acc *account.Account
+	// acc = ... (already initialized)
+
+	// Create an invoke transaction
+	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	contractAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	entryPointSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
+	recipient, _ := new(felt.Felt).SetString("0x1234567890abcdef")
+
+	invokeTx := rpc.InvokeTxnV1{
+		Type:          rpc.TransactionTypeInvoke,
+		SenderAddress: accountAddress,
+		Nonce:         new(felt.Felt).SetUint64(0),
+		MaxFee:        new(felt.Felt).SetUint64(1000000000000),
+		Version:       rpc.TransactionV1,
+		Signature:     []*felt.Felt{},
+		Calldata: []*felt.Felt{
+			new(felt.Felt).SetUint64(1), // num calls
+			contractAddress,
+			entryPointSelector,
+			new(felt.Felt).SetUint64(3), // calldata len
+			recipient,
+			new(felt.Felt).SetUint64(100), // amount
+			new(felt.Felt).SetUint64(0),   // amount high
+		},
+	}
+
+	// Calculate transaction hash
+	txHash, err := acc.TransactionHashInvoke(invokeTx)
+	if err != nil {
+		log.Fatalf("Error calculating hash: %v", err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", txHash)
+}
+```
+
+## Expected Output
+
+```
+Transaction hash: 0x6ad2b2da49112548087b2426b3cace08327288b7fd5ed860ec28d81651069da
+```
+
+## Description
+
+TransactionHashInvoke calculates the unique hash for an invoke transaction according to Starknet specifications. This hash is used for signing and transaction identification.
+
+## Error Handling
+
+```go
+hash, err := acc.TransactionHashInvoke(tx)
+if err != nil {
+	// Handle errors like:
+	// - Invalid transaction type
+	// - Hash calculation failure
+	return err
+}
+```
+
+## Related Methods
+
+- [SignInvokeTransaction](./sign-invoke-transaction.mdx) - Uses this to calculate hash before signing
+- [TransactionHashDeclare](./transaction-hash-declare.mdx) - For declare transactions
+- [TransactionHashDeployAccount](./transaction-hash-deploy-account.mdx) - For deploy account transactions

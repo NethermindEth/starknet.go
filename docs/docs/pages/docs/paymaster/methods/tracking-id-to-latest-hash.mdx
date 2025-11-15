@@ -1,0 +1,88 @@
+# TrackingIDToLatestHash
+
+Retrieves the latest transaction hash associated with a tracking ID.
+
+## Method Signature
+
+```go
+func (pm *Paymaster) TrackingIDToLatestHash(
+    ctx context.Context,
+    trackingID *felt.Felt,
+) (TrackingIDResponse, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for the operation
+- `trackingID` (*felt.Felt): Tracking ID from BuildTransaction
+
+## TrackingIDResponse Structure
+
+```go
+type TrackingIDResponse struct {
+    TransactionHash *felt.Felt
+    Status          string
+}
+```
+
+## Description
+
+TrackingIDToLatestHash maps a tracking ID (received from BuildTransaction) to the latest transaction hash. This is useful for monitoring transaction status and handling retries if a transaction fails.
+
+## Usage Example
+
+```go
+// Get tracking ID from BuildTransaction
+buildResp, _ := pm.BuildTransaction(ctx, request)
+trackingID := buildResp.TrackingID
+
+// Later, check transaction status
+response, err := pm.TrackingIDToLatestHash(ctx, trackingID)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction Hash: %s\n", response.TransactionHash)
+fmt.Printf("Status: %s\n", response.Status)
+```
+
+## Use Cases
+
+### 1. Transaction Status Monitoring
+```go
+trackingResp, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
+receipt, _ := rpcProvider.TransactionReceipt(ctx, trackingResp.TransactionHash)
+```
+
+### 2. Retry Management
+```go
+response, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
+if response.Status == "FAILED" {
+    // Retry the transaction
+    pm.BuildTransaction(ctx, originalRequest)
+}
+```
+
+### 3. User Status Updates
+```go
+ticker := time.NewTicker(5 * time.Second)
+for range ticker.C {
+    resp, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
+    fmt.Printf("Status: %s\n", resp.Status)
+    if resp.Status == "ACCEPTED_ON_L2" {
+        break
+    }
+}
+```
+
+## Notes
+
+- TrackingID is obtained from BuildTransaction
+- If transaction is replaced/retried, returns the latest hash
+- Status values depend on paymaster implementation
+- Useful for long-running transaction monitoring
+
+## Related Methods
+
+- [BuildTransaction](/docs/paymaster/methods/build-transaction)
+- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)

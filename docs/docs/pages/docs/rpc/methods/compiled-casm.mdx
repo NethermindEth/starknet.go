@@ -1,0 +1,143 @@
+# CompiledCasm
+
+Retrieves the compiled CASM (Cairo Assembly) for a declared contract class.
+
+## Method Signature
+
+```go
+func (p *Provider) CompiledCasm(
+    ctx context.Context,
+    classHash *felt.Felt,
+) (*contracts.CasmClass, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for request cancellation and timeouts
+- `classHash` (*felt.Felt): The hash of the declared class
+
+## Returns
+
+- `*contracts.CasmClass`: The compiled CASM class containing bytecode and entry points
+- `error`: Error if the class is not found or compilation failed
+
+## Description
+
+CompiledCasm returns the compiled Cairo Assembly (CASM) for a declared Sierra class. This method retrieves the low-level compiled bytecode that is executed on Starknet.
+
+The CASM class includes:
+- **ByteCode**: The compiled Cairo assembly instructions
+- **Entry Points**: External, L1 Handler, and Constructor entry points
+- **Prime**: The prime number used in field arithmetic
+- **Compiler Version**: Version of the Cairo compiler used
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    client, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Class hash of a declared contract
+    classHash, _ := new(felt.Felt).SetString("0x05400e90f7e0ae78bd02c77cd75527280470e2fe19c54970dd79dc37a9d3645c")
+
+    // Get compiled CASM
+    casmClass, err := client.CompiledCasm(context.Background(), classHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Prime: %s\n", casmClass.Prime)
+    fmt.Printf("Compiler Version: %s\n", casmClass.CompilerVersion)
+    fmt.Printf("Bytecode Length: %d\n", len(casmClass.ByteCode))
+    fmt.Printf("External Entry Points: %d\n", len(casmClass.EntryPointsByType.External))
+    
+    // Example output:
+    // Prime: 0x800000000000011000000000000000000000000000000000000000000000001
+    // Compiler Version: 2.1.0
+    // Bytecode Length: 1250
+    // External Entry Points: 5
+}
+```
+
+## CasmClass Structure
+
+```go
+type CasmClass struct {
+    EntryPointsByType      CasmEntryPointsByType
+    ByteCode              []*felt.Felt
+    Prime                 NumAsHex
+    CompilerVersion       string
+    Hints                 []Hints
+    BytecodeSegmentLengths *NestedUints
+}
+
+type CasmEntryPointsByType struct {
+    Constructor []CasmEntryPoint
+    External    []CasmEntryPoint
+    L1Handler   []CasmEntryPoint
+}
+
+type CasmEntryPoint struct {
+    Selector *felt.Felt
+    Offset   int
+    Builtins []string
+}
+```
+
+## Use Cases
+
+1. **Contract Analysis**: Examine the compiled bytecode of a contract
+2. **Debugging**: Understand the low-level execution of contract functions
+3. **Verification**: Verify that Sierra code compiles to expected CASM
+4. **Gas Optimization**: Analyze bytecode for optimization opportunities
+
+## Error Handling
+
+```go
+casmClass, err := client.CompiledCasm(ctx, classHash)
+if err != nil {
+    switch {
+    case errors.Is(err, rpc.ErrClassHashNotFound):
+        // Class hash not found - contract not declared
+        log.Println("Class not declared")
+    case errors.Is(err, rpc.ErrCompilationError):
+        // Compilation error - invalid Sierra
+        log.Println("Sierra compilation failed")
+    default:
+        log.Printf("RPC error: %v", err)
+    }
+}
+```
+
+## Related Methods
+
+- [Class](/docs/rpc/methods/get-class) - Get Sierra contract class
+- [ClassAt](/docs/rpc/methods/get-class-at) - Get class deployed at address
+- [ClassHashAt](/docs/rpc/methods/get-class-hash-at) - Get class hash at address
+
+## RPC Specification
+
+- **Method**: `starknet_getCompiledCasm`
+- **Version**: RPC v0.9.0
+- **Returns**: Compiled CASM class with bytecode and entry points
+
+## Notes
+
+- CASM is the low-level compiled format executed on Starknet
+- Sierra classes are compiled to CASM before execution
+- Not all nodes may support this method (check node capabilities)
+- The bytecode is represented as felt values

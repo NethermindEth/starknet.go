@@ -1,0 +1,101 @@
+# Pedersen
+
+Computes the Pedersen hash of two field elements.
+
+## Function Signature
+
+```go
+func Pedersen(a, b *felt.Felt) *felt.Felt
+```
+
+## Parameters
+
+- `a` (*felt.Felt): First field element to hash
+- `b` (*felt.Felt): Second field element to hash
+
+## Returns
+
+- `*felt.Felt`: The Pedersen hash of the two inputs
+
+## Description
+
+The Pedersen hash function is a cryptographic hash function used extensively in Starknet. It takes two field elements and produces a single field element as the hash output. This function is collision-resistant and suitable for Merkle trees and commitment schemes.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create two felt values to hash
+	a := new(felt.Felt).SetUint64(123)
+	b := new(felt.Felt).SetUint64(456)
+
+	// Compute Pedersen hash
+	hash := curve.Pedersen(a, b)
+	if hash == nil {
+		log.Fatal("Failed to compute Pedersen hash")
+	}
+
+	fmt.Println("Pedersen Hash:")
+	fmt.Printf("  Input a: %s\n", a.String())
+	fmt.Printf("  Input b: %s\n", b.String())
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
+```
+
+## Expected Output
+
+```
+Pedersen Hash:
+  Input a: 0x7b
+  Input b: 0x1c8
+  Hash: 0x5c9d88a1de4e8a88f3a14ee67d10cc244cf6eb630751faf26a6c83a86205e0
+```
+
+## Use Cases
+
+### 1. Merkle Tree Construction
+```go
+// Hash two sibling nodes in a Merkle tree
+leftNode := new(felt.Felt).SetString("0x123...")
+rightNode := new(felt.Felt).SetString("0x456...")
+parentHash := curve.Pedersen(leftNode, rightNode)
+```
+
+### 2. State Commitment
+```go
+// Commit to a state with key-value pair
+key := new(felt.Felt).SetString("0xabc...")
+value := new(felt.Felt).SetString("0xdef...")
+commitment := curve.Pedersen(key, value)
+```
+
+### 3. Contract Address Calculation
+```go
+// Part of contract address derivation
+salt := new(felt.Felt).SetString("0x1234...")
+classHash := new(felt.Felt).SetString("0x5678...")
+hash := curve.Pedersen(salt, classHash)
+```
+
+## Notes
+
+- The Pedersen hash is deterministic - same inputs always produce same output
+- It's more efficient than Poseidon for two-input hashing
+- For hashing more than two elements, use [PedersenArray](/docs/curve/functions/pedersen-array)
+- The hash output is always a valid field element in the Starknet field
+
+## Related Functions
+
+- [PedersenArray](/docs/curve/functions/pedersen-array) - Hash multiple elements
+- [Poseidon](/docs/curve/functions/poseidon) - Alternative hash function
+- [ComputeHashOnElements](/docs/curve/functions/compute-hash-on-elements) - Hash array with length prefix

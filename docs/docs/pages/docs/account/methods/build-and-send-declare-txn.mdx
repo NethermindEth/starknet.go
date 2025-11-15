@@ -1,0 +1,108 @@
+# BuildAndSendDeclareTxn
+
+Builds, signs, and sends a declare transaction to register a new contract class.
+
+## Method Signature
+
+```go
+func (account *Account) BuildAndSendDeclareTxn(
+	ctx context.Context,
+	casmClass *contracts.CasmClass,
+	contractClass *contracts.ContractClass,
+	opts *TxnOptions,
+) (rpc.AddDeclareTransactionResponse, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `casmClass` - Compiled CASM (Cairo Assembly) class
+- `contractClass` - Sierra contract class
+- `opts` - Transaction options. Pass `nil` for defaults
+
+## Returns
+
+- `rpc.AddDeclareTransactionResponse` - Response with transaction hash and class hash
+- `error` - Error if declaration fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Load compiled contract
+	sierraFile, _ := os.ReadFile("contract.sierra.json")
+	casmFile, _ := os.ReadFile("contract.casm.json")
+
+	contractClass, err := contracts.UnmarshalContractClass(sierraFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	casmClass, err := contracts.UnmarshalCasmClass(casmFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Declare the contract
+	response, err := acc.BuildAndSendDeclareTxn(
+		context.Background(),
+		casmClass,
+		contractClass,
+		nil, // Use default options
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
+	fmt.Printf("Class hash: %s\n", response.ClassHash)
+}
+```
+
+## Description
+
+BuildAndSendDeclareTxn registers a new contract class on Starknet. The process:
+
+1. Fetches current nonce
+2. Builds declare transaction with zero fees
+3. Signs for fee estimation
+4. Estimates fees
+5. Updates with estimated fees
+6. Signs again with final fees
+7. Sends to network
+
+The returned class hash is used to deploy instances of this contract.
+
+## Error Handling
+
+```go
+response, err := acc.BuildAndSendDeclareTxn(ctx, casmClass, contractClass, opts)
+if err != nil {
+	// Handle errors like:
+	// - Class already declared
+	// - Invalid contract class
+	// - Compilation errors
+	// - Insufficient balance
+	return err
+}
+```
+
+## Related Methods
+
+- [SignDeclareTransaction](./sign-declare-transaction.mdx) - Sign declare transactions
+- [DeployContractWithUDC](./deploy-contract-with-udc.mdx) - Deploy declared contract

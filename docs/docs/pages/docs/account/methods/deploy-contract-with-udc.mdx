@@ -1,0 +1,116 @@
+# DeployContractWithUDC
+
+Deploys a contract using the Universal Deployer Contract (UDC).
+
+## Method Signature
+
+```go
+func (account *Account) DeployContractWithUDC(
+	ctx context.Context,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	txnOpts *TxnOptions,
+	udcOpts *UDCOptions,
+) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation
+- `classHash` - Class hash of contract to deploy
+- `constructorCalldata` - Constructor parameters. Pass `nil` if no constructor
+- `txnOpts` - Transaction options. Pass `nil` for defaults
+- `udcOpts` - UDC-specific options (salt, unique). Pass `nil` for defaults
+
+## Returns
+
+- `rpc.AddInvokeTransactionResponse` - Transaction response
+- `*felt.Felt` - Salt used for deployment
+- `error` - Error if deployment fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Assume acc is already created
+	var acc *account.Account
+
+	// Class hash of previously declared contract
+	classHash, _ := utils.HexToFelt("0x1234...")
+
+	// Constructor parameters (if any)
+	owner, _ := utils.HexToFelt("0xabcd...")
+	constructorCalldata := []*felt.Felt{owner}
+
+	// Deploy with default options (random salt)
+	response, salt, err := acc.DeployContractWithUDC(
+		context.Background(),
+		classHash,
+		constructorCalldata,
+		nil, // Transaction options
+		nil, // UDC options
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
+	fmt.Printf("Salt: %s\n", salt.String())
+
+	// Calculate deployed address
+	deployedAddress := utils.CalculateUDCAddress(classHash, salt, constructorCalldata)
+	fmt.Printf("Deployed at: %s\n", deployedAddress.String())
+}
+```
+
+## Usage with Custom Options
+
+```go
+// Specify deployment options
+udcOpts := &utils.UDCOptions{
+	Salt:   new(felt.Felt).SetUint64(42), // Specific salt
+	Unique: true,                         // Make address unique to deployer
+}
+
+response, salt, err := acc.DeployContractWithUDC(
+	context.Background(),
+	classHash,
+	constructorCalldata,
+	nil,
+	udcOpts,
+)
+```
+
+## Description
+
+DeployContractWithUDC uses Starknet's Universal Deployer Contract to deploy contract instances. This is the recommended way to deploy contracts.
+
+## Error Handling
+
+```go
+response, salt, err := acc.DeployContractWithUDC(ctx, classHash, calldata, txnOpts, udcOpts)
+if err != nil {
+	// Handle errors like:
+	// - Class not declared
+	// - Invalid constructor calldata
+	// - Insufficient balance
+	return err
+}
+```
+
+## Related Methods
+
+- [BuildAndSendDeclareTxn](./build-and-send-declare-txn.mdx) - Declare before deploying
+- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - Underlying invoke method

@@ -1,0 +1,85 @@
+# PedersenArray
+
+Computes the Pedersen hash of multiple field elements.
+
+## Function Signature
+
+```go
+func PedersenArray(felts ...*felt.Felt) *felt.Felt
+```
+
+## Parameters
+
+- `felts` (...*felt.Felt): Variadic number of field elements to hash
+
+## Returns
+
+- `*felt.Felt`: The Pedersen hash of all inputs
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create array of felt values
+	felt1 := new(felt.Felt).SetUint64(1)
+	felt2 := new(felt.Felt).SetUint64(2)
+	felt3 := new(felt.Felt).SetUint64(3)
+	felt4 := new(felt.Felt).SetUint64(4)
+
+	// Compute Pedersen hash of array
+	hash := curve.PedersenArray(felt1, felt2, felt3, felt4)
+	if hash == nil {
+		log.Fatal("Failed to compute PedersenArray hash")
+	}
+
+	fmt.Println("PedersenArray Hash:")
+	fmt.Printf("  Input: [%s, %s, %s, %s]\n", felt1.String(), felt2.String(), felt3.String(), felt4.String())
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
+```
+
+## Expected Output
+
+```
+PedersenArray Hash:
+  Input: [0x1, 0x2, 0x3, 0x4]
+  Hash: 0x66bd4335902683054d08a0572747ea78ebd9e531536fb43125424ca9f902084
+```
+
+## Use Cases
+
+### 1. Hash Transaction Data
+```go
+// Hash multiple transaction fields
+nonce := new(felt.Felt).SetUint64(1)
+amount := new(felt.Felt).SetString("0x1000")
+recipient := new(felt.Felt).SetString("0xabc...")
+txHash := curve.PedersenArray(nonce, amount, recipient)
+```
+
+### 2. Hash Calldata
+```go
+// Hash array of calldata parameters
+calldata := []*felt.Felt{
+    new(felt.Felt).SetString("0x1"),
+    new(felt.Felt).SetString("0x2"),
+    new(felt.Felt).SetString("0x3"),
+}
+calldataHash := curve.PedersenArray(calldata...)
+```
+
+## Related Functions
+
+- [Pedersen](/docs/curve/functions/pedersen) - Hash two elements
+- [PoseidonArray](/docs/curve/functions/poseidon-array) - Alternative array hash
+- [ComputeHashOnElements](/docs/curve/functions/compute-hash-on-elements) - Hash with length prefix

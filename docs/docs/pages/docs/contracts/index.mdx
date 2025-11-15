@@ -1,0 +1,191 @@
+# Contracts Package
+
+The contracts package provides types and utilities for working with Starknet contract classes, ABIs, and deployment. Use it to load contract files, parse ABIs, and compute contract addresses.
+
+## What This Package Does
+
+**Contract Class Handling**
+- Work with Sierra contract classes (Cairo 1.0+)
+- Handle CASM (Cairo Assembly) compiled classes
+- Support deprecated Cairo 0 contracts
+
+**ABI Parsing**
+- Parse contract ABIs
+- Access function definitions and parameters
+- Work with event and struct definitions
+
+**Address Computation**
+- Precompute contract addresses before deployment
+- Calculate deployment addresses deterministically
+
+## Import
+
+```go
+import "github.com/NethermindEth/starknet.go/contracts"
+```
+
+## Quick Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Precompute a contract address
+	deployerAddress := new(felt.Felt).SetUint64(0x123)
+	salt := new(felt.Felt).SetUint64(0x456)
+	classHash := new(felt.Felt).SetUint64(0x789)
+	constructorCalldata := []*felt.Felt{}
+
+	address := contracts.PrecomputeAddress(
+		deployerAddress,
+		salt,
+		classHash,
+		constructorCalldata,
+	)
+
+	fmt.Printf("Precomputed address: %s\n", address.String())
+
+	// Load a CASM class from file
+	casmClass, err := contracts.UnmarshalCasmClass("./my_contract.casm.json")
+	if err != nil {
+		log.Fatal("Failed to load CASM class:", err)
+	}
+
+	fmt.Printf("CASM compiler version: %s\n", casmClass.CompilerVersion)
+}
+```
+
+## Available Functions
+
+### [PrecomputeAddress](./functions/precompute-address)
+
+Calculate where a contract will be deployed before actually deploying it:
+
+```go
+address := contracts.PrecomputeAddress(
+    deployerAddress,
+    salt,
+    classHash,
+    constructorCalldata,
+)
+```
+
+Useful for:
+- Funding addresses before deployment
+- Predicting contract addresses
+- Deterministic deployments
+
+### [UnmarshalCasmClass](./functions/unmarshal-casm-class)
+
+Load and parse a compiled CASM class from a JSON file:
+
+```go
+casmClass, err := contracts.UnmarshalCasmClass("./contract.casm.json")
+```
+
+## Available Types
+
+### Contract Classes
+
+- **[ContractClass](./contract-classes)** - Sierra format (Cairo 1.0+)
+- **[CasmClass](./contract-classes)** - Compiled Cairo Assembly format
+- **[DeprecatedContractClass](./contract-classes)** - Legacy Cairo 0 format
+
+### ABI Types
+
+- **[ABI Types](./abi-types)** - Function, event, and struct definitions
+- Type parameters and return values
+- Interface definitions
+
+### Entry Points
+
+- **[Entry Points](./entry-points)** - Constructor, external, and L1 handler entry points
+- Event entry points
+- Entry point selectors
+
+## Common Workflows
+
+### Load Contract Files
+
+```go
+// Load CASM class
+casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Or use utils for more flexibility
+import "github.com/NethermindEth/starknet.go/utils"
+
+sierraClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](
+    "contract.sierra.json",
+    "",
+)
+```
+
+### Compute Deployment Address
+
+Before deploying a contract:
+
+```go
+// 1. Get deployment parameters
+deployerAddr := accountAddress  // Your account address
+salt := utils.GetRandomFelt()   // Random salt
+classHash := declaredClassHash   // From declare transaction
+calldata := constructorCalldata  // Constructor parameters
+
+// 2. Precompute address
+contractAddr := contracts.PrecomputeAddress(
+    deployerAddr,
+    salt,
+    classHash,
+    calldata,
+)
+
+fmt.Printf("Contract will be deployed at: %s\n", contractAddr.String())
+
+// 3. Fund the address if needed, then deploy
+```
+
+### Parse Contract ABI
+
+```go
+// Access contract class
+contractClass, _ := utils.UnmarshalJSONFileToType[contracts.ContractClass](
+    "contract.sierra.json",
+    "",
+)
+
+// Iterate through ABI entries
+for _, entry := range contractClass.ABI {
+    switch e := entry.(type) {
+    case contracts.FunctionABIEntry:
+        fmt.Printf("Function: %s\n", e.Name)
+    case contracts.EventABIEntry:
+        fmt.Printf("Event: %s\n", e.Name)
+    }
+}
+```
+
+## Related Packages
+
+- **[Account Package](/docs/account/)** - Uses contracts for deployment
+- **[Utils Package](/docs/utils/)** - Helper functions for loading contract files
+- **[RPC Package](/docs/rpc/)** - Contract interaction methods
+
+## Examples
+
+- **[Declare Contract](/docs/examples/simple-declare)** - Declaring contract classes
+- **[Deploy with UDC](/docs/examples/deploy-contract-udc)** - Deploying contracts with UDC
+
+## Reference
+
+Full API reference: [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/contracts)

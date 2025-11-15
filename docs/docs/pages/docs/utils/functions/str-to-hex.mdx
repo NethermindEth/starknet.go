@@ -1,0 +1,60 @@
+# StrToHex
+
+Converts a string to its hexadecimal representation.
+
+## Function Signature
+
+```go
+func StrToHex(str string) string
+```
+
+## Parameters
+
+- `str` (string): ASCII string to convert
+
+## Returns
+
+- `string`: Hexadecimal string with "0x" prefix
+
+## Description
+
+Encodes an ASCII string into hexadecimal format. Useful for preparing short strings to store in Starknet contracts.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Encode "Hello"
+	hex := utils.StrToHex("Hello")
+	fmt.Printf("Hello = %s\n", hex)
+	// Output: 0x48656c6c6f
+
+	// Encode "World"
+	hex2 := utils.StrToHex("World")
+	fmt.Printf("World = %s\n", hex2)
+	// Output: 0x576f726c64
+
+	// Encode "Starknet"
+	hex3 := utils.StrToHex("Starknet")
+	fmt.Printf("Starknet = %s\n", hex3)
+	// Output: 0x537461726b6e6574
+}
+```
+
+## Use Cases
+
+- Encoding contract names
+- Preparing token symbols
+- Converting short strings for contract calls
+
+## Related Functions
+
+- [HexToShortStr](/docs/utils/functions/hex-to-short-str)

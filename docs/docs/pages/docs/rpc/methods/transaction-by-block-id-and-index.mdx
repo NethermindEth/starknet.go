@@ -1,0 +1,161 @@
+# TransactionByBlockIdAndIndex
+
+Gets the details of a transaction by specifying the block and the transaction's index within that block.
+
+## Method Signature
+
+```go
+func (provider *Provider) TransactionByBlockIdAndIndex(ctx context.Context, blockID BlockID, index uint64) (*BlockTransaction, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - Block identifier (number, hash, or tag)
+- `index` - Transaction index within the block (0-based)
+
+## BlockID Parameter
+
+This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
+
+```go
+// Using block number
+blockID := rpc.WithBlockNumber(123456)
+
+// Using block hash
+hash, _ := new(felt.Felt).SetString("0x1234...")
+blockID := rpc.WithBlockHash(hash)
+
+// Using block tag
+blockID := rpc.WithBlockTag("latest")
+```
+
+**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
+
+## Returns
+
+- `*BlockTransaction` - Complete transaction details
+- `error` - Error if the request fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+	"os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // First, get a block with transactions to ensure we have valid data
+    blockWithTxs, err := client.BlockWithTxHashes(ctx, rpc.WithBlockTag("latest"))
+    if err != nil {
+        log.Fatal("Failed to get block:", err)
+    }
+
+    // Print block info to see available transactions
+    blockJSON, _ := json.Marshal(blockWithTxs)
+    fmt.Printf("Block info: %s\n\n", blockJSON)
+
+    // Get the first transaction (index 0) from the latest block
+    blockID := rpc.WithBlockTag("latest")
+    txIndex := uint64(0)
+
+    transaction, err := client.TransactionByBlockIdAndIndex(ctx, blockID, txIndex)
+    if err != nil {
+        log.Fatal("Failed to get transaction:", err)
+    }
+
+    // Pretty print the transaction
+    txJSON, err := json.MarshalIndent(transaction, "", "  ")
+    if err != nil {
+        log.Fatal("Failed to marshal transaction:", err)
+    }
+
+    fmt.Printf("Transaction at index %d:\n%s\n", txIndex, txJSON)
+}
+```
+:::note
+The example uses `BlockWithTxHashes` to first verify the block contains transactions. This method returns a block with transaction hashes only. See [BlockWithTxHashes](/docs/rpc/methods/block-with-tx-hashes) for more details.
+:::
+
+## Expected Output
+
+```
+Block info: {"block_hash":"0x31dd77e69845b0ff4804e39375835ad1ebbe9a8da5627cb5da29a84b3846933","parent_hash":"0x17830493ec4c0029f2111450aa0f4750d6f286f7372b61110eccdacacc9a8b","block_number":2747004,"new_root":"0x3ae2ac3bc8a4bd104f27a2e3480ee3a369e4e7c733bea2e35591a94740a8f3","timestamp":1762011004,"sequencer_address":"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8","l1_gas_price":{"price_in_fri":"0x1bd83f65c9ab","price_in_wei":"0x3b9aca08"},"l2_gas_price":{"price_in_fri":"0xb2d05e00","price_in_wei":"0x17ec5"},"l1_data_gas_price":{"price_in_fri":"0x7797","price_in_wei":"0x1"},"l1_da_mode":"BLOB","starknet_version":"0.14.0","status":"ACCEPTED_ON_L2","transactions":["0x202b311fd037ed15fd51eb43d41f17188d6b24a25b97dad5805f6b688863767","0x14f5607442cd982d8e0c8b18ecf580f415381a151bf108bb6d792906927fc87","0x20ecf7620b0110c7e8b8e1b9fa489eaba90c477a74317e416ebdf7bea3ba848","0x21c2c2ba3ed1bcce9dc4ec6d5862228992303c1921407e8daae1c6daeedff4e","0x14c68372344fca42392b93b407544eb34450b3e26f52d88fd54a48f3bab1603","0x414c46b410dfed41abdc9e77a561a59297063c8f6e5456e3adfaa1c48e197d4","0x13e6274bca11ccf83b9cfb459dac2740a3dfe77fa390b3b7e9b2ef9df1980c4","0x179fad791264154eb0ecef47ea2cfe2fafa5ece718fd9d029b41d4d324ffef5","0x16eeb74419fc9a00ba329f22da979d8c035d0e900c7509d9a0cfdd58d6844d4","0x12337e42470e1eadbf7802fe083a054f729c6969ae1aa4c52cff39fa19a751f","0x3012c5a40b967b6b77058e1d00ec3c419a8a51f4838f2076a5835a26fc812a4"]}
+
+Transaction at index 0:
+{
+  "account_deployment_data": [],
+  "calldata": [
+    "0x1",
+    "0x21d980d405158f62464649ce2c8a433e1c61096d7ca045d70a9b70c8923700d",
+    "0x31aafc75f498fdfa7528880ad27246b4c15af4954f96228c9a132b328de1c92",
+    "0x6",
+    "0xf9aa1bf6d11b2404ce4ece75b5a24f69c045d83787fc35551cab68d045c095",
+    "0x3",
+    "0x3479d630443cbe2c34e03383d69ec9ea53dcc1943ee623cffb67e3ac5a5b1b8",
+    "0x451946c263a78c32631651ef9dd0a7b1ca11598a61de7c9ca0f34dfc110e94e",
+    "0x681957ad30493c68894f399a9d18052695808cf882a6857bcee76c5072d8926",
+    "0x1fadd47982a2a6f36544dff73a358a6358cfacf106bb097bea030690f62a7f"
+  ],
+  "fee_data_availability_mode": "L1",
+  "nonce": "0x87d2bf",
+  "nonce_data_availability_mode": "L1",
+  "paymaster_data": [],
+  "resource_bounds": {
+    "l1_data_gas": {
+      "max_amount": "0x2710",
+      "max_price_per_unit": "0x8d79883d20000"
+    },
+    "l1_gas": {
+      "max_amount": "0x11170",
+      "max_price_per_unit": "0x8d79883d20000"
+    },
+    "l2_gas": {
+      "max_amount": "0x5f5e100",
+      "max_price_per_unit": "0xba43b7400"
+    }
+  },
+  "sender_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+  "signature": [
+    "0x5476b90da77159c2a3395a35172b15e630cc6c144869ef55bd5263afb8c4f1c",
+    "0x5d6f2bd404c6cc230291a2e944aa2bf73ebd90dda3741f15ecf36ffebdf49b"
+  ],
+  "tip": "0x5f5e100",
+  "transaction_hash": "0x202b311fd037ed15fd51eb43d41f17188d6b24a25b97dad5805f6b688863767",
+  "type": "INVOKE",
+  "version": "0x3"
+}
+```
+
+## Error Handling
+
+```go
+transaction, err := client.TransactionByBlockIdAndIndex(ctx, blockID, index)
+if err != nil {
+    log.Printf("Error getting transaction at index %d: %v", index, err)
+    return
+}
+
+fmt.Printf("Retrieved transaction: %s\n", transaction.Hash.String())
+```

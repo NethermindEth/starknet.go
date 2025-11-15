@@ -1,18 +1,76 @@
----
-title: starknet_specVersion
-description: Returns the version of the Starknet JSON-RPC specification being used.
----
+# SpecVersion
 
-# starknet_specVersion
+Returns the version of the Starknet JSON-RPC specification being used.
 
-Returns the version of the Starknet JSON-RPC specification being used by the node.
+## Method Signature
+
+```go
+func (provider *Provider) SpecVersion(ctx context.Context) (string, error)
+```
 
 ## Parameters
 
-None
+- `ctx` - Context for request cancellation and timeout
 
 ## Returns
 
-- `version` - A string representing the specification version in the format "X.Y.Z".
+- `string` - The specification version (e.g., "0.8.1")
+- `error` - Error if the request fails
 
-## Example
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create client:", err)
+	}
+
+	// Get spec version
+	specVersion, err := client.SpecVersion(ctx)
+	if err != nil {
+		log.Fatal("Failed to get spec version:", err)
+	}
+
+	fmt.Printf("Spec Version: %s\n", specVersion)
+}
+```
+
+## Expected Output
+
+```
+Spec Version: 0.9.0
+```
+
+## Error Handling
+
+```go
+specVersion, err := client.SpecVersion(ctx)
+if err != nil {
+	// Handle error
+	return err
+}
+```
+
+## Related Methods
+
+- [ChainID](./chain-ID.mdx) - Get chain ID
+- [Syncing](./syncing.mdx) - Get node sync status

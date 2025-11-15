@@ -1,0 +1,835 @@
+# Paymaster Types
+
+This page documents all type definitions used in the paymaster package for building and executing transactions through a paymaster service.
+
+## Core Types
+
+### Paymaster
+
+The main client type for interacting with a paymaster service via the SNIP-29 API.
+
+#### Type Definition
+
+```go
+type Paymaster struct {
+    // Internal fields are not directly accessible
+}
+```
+
+#### Creation
+
+Create a Paymaster client using the New function:
+
+```go
+pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+```
+
+#### Methods
+
+See [Client Methods](/docs/paymaster/client-methods) for detailed method documentation.
+
+---
+
+## Transaction Request Types
+
+### BuildTransactionRequest
+
+Request structure for building a transaction through the paymaster.
+
+#### Type Definition
+
+```go
+type BuildTransactionRequest struct {
+    Transaction UserTransaction `json:"transaction"`
+    Parameters  UserParameters  `json:"parameters"`
+}
+```
+
+#### Fields
+
+- `Transaction` - The transaction to be executed by the paymaster
+- `Parameters` - Execution parameters for the transaction
+
+#### Usage Example
+
+```go
+request := &paymaster.BuildTransactionRequest{
+    Transaction: paymaster.UserTransaction{
+        Type: paymaster.UserTxnInvoke,
+        Invoke: &paymaster.UserInvoke{
+            UserAddress: accountAddress,
+            Calls:       []paymaster.Call{...},
+        },
+    },
+    Parameters: paymaster.UserParameters{
+        Version: paymaster.UserParamV1,
+        FeeMode: paymaster.FeeMode{
+            Mode:     paymaster.FeeModeDefault,
+            GasToken: tokenAddress,
+        },
+    },
+}
+```
+
+---
+
+### ExecuteTransactionRequest
+
+Request structure for executing a signed transaction through the paymaster.
+
+#### Type Definition
+
+```go
+type ExecuteTransactionRequest struct {
+    Transaction ExecutableUserTransaction `json:"transaction"`
+    Parameters  UserParameters             `json:"parameters"`
+}
+```
+
+#### Fields
+
+- `Transaction` - The signed transaction to be executed
+- `Parameters` - Execution parameters (must match BuildTransaction parameters)
+
+#### Usage Example
+
+```go
+request := &paymaster.ExecuteTransactionRequest{
+    Transaction: paymaster.ExecutableUserTransaction{
+        Type: paymaster.UserTxnInvoke,
+        Invoke: &paymaster.ExecutableUserInvoke{
+            UserAddress: accountAddress,
+            TypedData:   builtTxn.TypedData,
+            Signature:   signature,
+        },
+    },
+    Parameters: paymaster.UserParameters{
+        Version: paymaster.UserParamV1,
+        FeeMode: feeMode,
+    },
+}
+```
+
+---
+
+## Transaction Types
+
+### UserTransaction
+
+Represents a user transaction to be built by the paymaster.
+
+#### Type Definition
+
+```go
+type UserTransaction struct {
+    Type       UserTxnType            `json:"type"`
+    Deployment *AccountDeploymentData `json:"deployment,omitempty"`
+    Invoke     *UserInvoke            `json:"invoke,omitempty"`
+}
+```
+
+#### Fields
+
+- `Type` - The type of transaction (deploy, invoke, or deploy_and_invoke)
+- `Deployment` - Deployment data for deploy and deploy_and_invoke transactions (nil for invoke)
+- `Invoke` - Invoke data for invoke and deploy_and_invoke transactions (nil for deploy)
+
+#### Usage Example
+
+```go
+// Invoke transaction
+invokeTxn := paymaster.UserTransaction{
+    Type: paymaster.UserTxnInvoke,
+    Invoke: &paymaster.UserInvoke{
+        UserAddress: accountAddress,
+        Calls:       calls,
+    },
+}
+
+// Deploy transaction
+deployTxn := paymaster.UserTransaction{
+    Type:       paymaster.UserTxnDeploy,
+    Deployment: deploymentData,
+}
+
+// Deploy and invoke transaction
+deployAndInvokeTxn := paymaster.UserTransaction{
+    Type:       paymaster.UserTxnDeployAndInvoke,
+    Deployment: deploymentData,
+    Invoke:     invokeData,
+}
+```
+
+---
+
+### ExecutableUserTransaction
+
+Represents a signed user transaction ready for execution.
+
+#### Type Definition
+
+```go
+type ExecutableUserTransaction struct {
+    Type       UserTxnType            `json:"type"`
+    Deployment *AccountDeploymentData `json:"deployment,omitempty"`
+    Invoke     *ExecutableUserInvoke  `json:"invoke,omitempty"`
+}
+```
+
+#### Fields
+
+- `Type` - The type of transaction
+- `Deployment` - Deployment data (same as in UserTransaction)
+- `Invoke` - Signed invoke data with signature
+
+---
+
+### UserInvoke
+
+Defines calls to be executed by the paymaster.
+
+#### Type Definition
+
+```go
+type UserInvoke struct {
+    UserAddress *felt.Felt `json:"user_address"`
+    Calls       []Call     `json:"calls"`
+}
+```
+
+#### Fields
+
+- `UserAddress` - The address of the user account
+- `Calls` - The sequence of calls that the user wishes to perform
+
+#### Usage Example
+
+```go
+invokeData := &paymaster.UserInvoke{
+    UserAddress: accountAddress,
+    Calls: []paymaster.Call{
+        {
+            To:       contractAddress,
+            Selector: utils.GetSelectorFromNameFelt("transfer"),
+            Calldata: []*felt.Felt{recipient, amount},
+        },
+    },
+}
+```
+
+---
+
+### ExecutableUserInvoke
+
+Signed typed data of an invoke transaction ready for execution.
+
+#### Type Definition
+
+```go
+type ExecutableUserInvoke struct {
+    UserAddress *felt.Felt           `json:"user_address"`
+    TypedData   *typeddata.TypedData `json:"typed_data"`
+    Signature   []*felt.Felt         `json:"signature"`
+}
+```
+
+#### Fields
+
+- `UserAddress` - The address of the user account
+- `TypedData` - Typed data returned by BuildTransaction
+- `Signature` - Signature of the typed data
+
+---
+
+### Call
+
+Defines an invocation of a function in a contract.
+
+#### Type Definition
+
+```go
+type Call struct {
+    To       *felt.Felt   `json:"to"`
+    Selector *felt.Felt   `json:"selector"`
+    Calldata []*felt.Felt `json:"calldata"`
+}
+```
+
+#### Fields
+
+- `To` - The address of the contract to invoke
+- `Selector` - The selector of the function to invoke
+- `Calldata` - The parameters passed to the function
+
+#### Usage Example
+
+```go
+call := paymaster.Call{
+    To:       contractAddress,
+    Selector: utils.GetSelectorFromNameFelt("mint"),
+    Calldata: []*felt.Felt{recipient, amount},
+}
+```
+
+---
+
+### AccountDeploymentData
+
+Data required to deploy an account at an address.
+
+#### Type Definition
+
+```go
+type AccountDeploymentData struct {
+    Address       *felt.Felt   `json:"address"`
+    ClassHash     *felt.Felt   `json:"class_hash"`
+    Salt          *felt.Felt   `json:"salt"`
+    Calldata      []*felt.Felt `json:"calldata"`
+    SignatureData []*felt.Felt `json:"sigdata,omitempty"`
+    Version       CairoVersion `json:"version"`
+}
+```
+
+#### Fields
+
+- `Address` - The expected address to be deployed (used for verification)
+- `ClassHash` - The hash of the deployed contract's class
+- `Salt` - The salt used for the contract address calculation
+- `Calldata` - The parameters passed to the constructor
+- `SignatureData` - Optional array of felts to be added to the signature
+- `Version` - The Cairo version of the account contract (Cairo1)
+
+#### Usage Example
+
+```go
+deployData := &paymaster.AccountDeploymentData{
+    Address:       precomputedAddress,
+    ClassHash:     classHash,
+    Salt:          salt,
+    Calldata:      []*felt.Felt{publicKey},
+    SignatureData: []*felt.Felt{},
+    Version:       paymaster.Cairo1,
+}
+```
+
+---
+
+## Parameter Types
+
+### UserParameters
+
+Execution parameters for paymaster transactions.
+
+#### Type Definition
+
+```go
+type UserParameters struct {
+    Version    UserParamVersion `json:"version"`
+    FeeMode    FeeMode          `json:"fee_mode"`
+    TimeBounds *TimeBounds      `json:"time_bounds"`
+}
+```
+
+#### Fields
+
+- `Version` - Version of the execution parameters (currently only UserParamV1)
+- `FeeMode` - Fee mode to use for the execution
+- `TimeBounds` - Optional time constraint on the execution
+
+#### Usage Example
+
+```go
+params := paymaster.UserParameters{
+    Version: paymaster.UserParamV1,
+    FeeMode: paymaster.FeeMode{
+        Mode:     paymaster.FeeModeDefault,
+        GasToken: tokenAddress,
+    },
+    TimeBounds: &paymaster.TimeBounds{
+        ExecuteAfter:  "1704067200",
+        ExecuteBefore: "1704153600",
+    },
+}
+```
+
+---
+
+### FeeMode
+
+Specifies how the transaction should be paid.
+
+#### Type Definition
+
+```go
+type FeeMode struct {
+    Mode     FeeModeType  `json:"mode"`
+    GasToken *felt.Felt   `json:"gas_token,omitempty"`
+    Tip      *TipPriority `json:"tip,omitempty"`
+}
+```
+
+#### Fields
+
+- `Mode` - The fee mode type (sponsored or default)
+- `GasToken` - The gas token to use (required for default mode, omit for sponsored)
+- `Tip` - Relative tip priority or custom tip value (optional)
+
+#### Usage Example
+
+```go
+// Default mode with STRK
+defaultMode := paymaster.FeeMode{
+    Mode:     paymaster.FeeModeDefault,
+    GasToken: strkAddress,
+    Tip: &paymaster.TipPriority{
+        Priority: paymaster.TipPriorityNormal,
+    },
+}
+
+// Sponsored mode
+sponsoredMode := paymaster.FeeMode{
+    Mode: paymaster.FeeModeSponsored,
+    Tip: &paymaster.TipPriority{
+        Priority: paymaster.TipPriorityFast,
+    },
+}
+```
+
+---
+
+### TipPriority
+
+Relative tip priority or a custom tip value.
+
+#### Type Definition
+
+```go
+type TipPriority struct {
+    Priority TipPriorityEnum `json:"-"`
+    Custom   *uint64         `json:"custom,omitempty"`
+}
+```
+
+#### Fields
+
+- `Priority` - The relative tip priority (slow, normal, or fast)
+- `Custom` - A custom tip value (mutually exclusive with Priority)
+
+#### Usage Example
+
+```go
+// Using priority
+tipWithPriority := &paymaster.TipPriority{
+    Priority: paymaster.TipPriorityFast,
+}
+
+// Using custom value
+customValue := uint64(1000000)
+tipWithCustom := &paymaster.TipPriority{
+    Custom: &customValue,
+}
+```
+
+---
+
+### TimeBounds
+
+Object containing timestamps for transaction execution constraints.
+
+#### Type Definition
+
+```go
+type TimeBounds struct {
+    ExecuteAfter  string `json:"execute_after"`
+    ExecuteBefore string `json:"execute_before"`
+}
+```
+
+#### Fields
+
+- `ExecuteAfter` - Lower bound after which transaction is valid (UNIX timestamp as string)
+- `ExecuteBefore` - Upper bound before which transaction is valid (UNIX timestamp as string)
+
+#### Usage Example
+
+```go
+timeBounds := &paymaster.TimeBounds{
+    ExecuteAfter:  "1704067200",  // January 1, 2024
+    ExecuteBefore: "1704153600",  // January 2, 2024
+}
+```
+
+---
+
+## Response Types
+
+### BuildTransactionResponse
+
+Response from the BuildTransaction method.
+
+#### Type Definition
+
+```go
+type BuildTransactionResponse struct {
+    Type       UserTxnType            `json:"type"`
+    Deployment *AccountDeploymentData `json:"deployment,omitempty"`
+    Parameters *UserParameters        `json:"parameters"`
+    TypedData  *typeddata.TypedData   `json:"typed_data,omitempty"`
+    Fee        *FeeEstimate           `json:"fee"`
+}
+```
+
+#### Fields
+
+- `Type` - The type of the transaction
+- `Deployment` - Deployment data (nil for invoke transactions)
+- `Parameters` - Execution parameters used
+- `TypedData` - Typed data for signing (nil for deploy transactions)
+- `Fee` - The fee estimation for the transaction
+
+#### Usage Example
+
+```go
+response, err := pm.BuildTransaction(ctx, request)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Review fee estimate
+fmt.Printf("Estimated fee: %s STRK\n", response.Fee.EstimatedFeeInStrk.String())
+
+// Sign the typed data
+messageHash, _ := response.TypedData.GetMessageHash(accountAddress.String())
+signature, _ := acc.Sign(ctx, messageHash)
+```
+
+---
+
+### ExecuteTransactionResponse
+
+Response from the ExecuteTransaction method.
+
+#### Type Definition
+
+```go
+type ExecuteTransactionResponse struct {
+    TrackingID      *felt.Felt `json:"tracking_id"`
+    TransactionHash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+#### Fields
+
+- `TrackingID` - Unique identifier used to track the execution request
+- `TransactionHash` - Hash of the transaction broadcasted by the paymaster
+
+#### Usage Example
+
+```go
+response, err := pm.ExecuteTransaction(ctx, request)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction Hash: %s\n", response.TransactionHash.String())
+fmt.Printf("Tracking ID: %s\n", response.TrackingID.String())
+
+// Use tracking ID to monitor status
+status, _ := pm.TrackingIDToLatestHash(ctx, response.TrackingID)
+```
+
+---
+
+### TrackingIDResponse
+
+Response from the TrackingIDToLatestHash method.
+
+#### Type Definition
+
+```go
+type TrackingIDResponse struct {
+    TransactionHash *felt.Felt `json:"transaction_hash"`
+    Status          TxnStatus  `json:"status"`
+}
+```
+
+#### Fields
+
+- `TransactionHash` - Hash of the most recent transaction sent by the paymaster for this ID
+- `Status` - The status of the transaction associated with the ID
+
+#### Usage Example
+
+```go
+response, err := pm.TrackingIDToLatestHash(ctx, trackingID)
+if err != nil {
+    log.Fatal(err)
+}
+
+switch response.Status {
+case paymaster.TxnStatusAccepted:
+    fmt.Println("Transaction accepted!")
+case paymaster.TxnStatusActive:
+    fmt.Println("Transaction still pending...")
+case paymaster.TxnStatusDropped:
+    fmt.Println("Transaction was dropped")
+}
+```
+
+---
+
+### FeeEstimate
+
+Detailed fee estimation in STRK and gas token.
+
+#### Type Definition
+
+```go
+type FeeEstimate struct {
+    GasTokenPriceInStrk       *felt.Felt `json:"gas_token_price_in_strk"`
+    EstimatedFeeInStrk        *felt.Felt `json:"estimated_fee_in_strk"`
+    EstimatedFeeInGasToken    *felt.Felt `json:"estimated_fee_in_gas_token"`
+    SuggestedMaxFeeInStrk     *felt.Felt `json:"suggested_max_fee_in_strk"`
+    SuggestedMaxFeeInGasToken *felt.Felt `json:"suggested_max_fee_in_gas_token"`
+}
+```
+
+#### Fields
+
+- `GasTokenPriceInStrk` - Price of the gas token in STRK
+- `EstimatedFeeInStrk` - Estimated transaction fee in STRK
+- `EstimatedFeeInGasToken` - Estimated transaction fee in the gas token
+- `SuggestedMaxFeeInStrk` - Suggested maximum fee in STRK to ensure execution
+- `SuggestedMaxFeeInGasToken` - Suggested maximum fee in gas token to ensure execution
+
+#### Usage Example
+
+```go
+fee := response.Fee
+
+fmt.Println("Fee Estimates:")
+fmt.Printf("Gas Token Price: %s STRK\n", fee.GasTokenPriceInStrk.String())
+fmt.Printf("Estimated Fee (STRK): %s\n", fee.EstimatedFeeInStrk.String())
+fmt.Printf("Estimated Fee (Token): %s\n", fee.EstimatedFeeInGasToken.String())
+fmt.Printf("Max Fee (STRK): %s\n", fee.SuggestedMaxFeeInStrk.String())
+fmt.Printf("Max Fee (Token): %s\n", fee.SuggestedMaxFeeInGasToken.String())
+```
+
+---
+
+### TokenData
+
+Information about a supported token.
+
+#### Type Definition
+
+```go
+type TokenData struct {
+    TokenAddress *felt.Felt `json:"token_address"`
+    Decimals     uint8      `json:"decimals"`
+    PriceInStrk  string     `json:"price_in_strk"`
+}
+```
+
+#### Fields
+
+- `TokenAddress` - Token contract address
+- `Decimals` - The number of decimals of the token
+- `PriceInStrk` - Price in STRK (in FRI units, as a hex string)
+
+#### Usage Example
+
+```go
+tokens, err := pm.GetSupportedTokens(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+for _, token := range tokens {
+    fmt.Printf("Token: %s\n", token.TokenAddress.String())
+    fmt.Printf("Decimals: %d\n", token.Decimals)
+    fmt.Printf("Price: %s STRK\n", token.PriceInStrk)
+}
+```
+
+---
+
+## Enum Types
+
+### UserTxnType
+
+An enum representing the type of transaction to be executed by the paymaster.
+
+#### Constants
+
+```go
+const (
+    UserTxnDeploy          UserTxnType = iota + 1  // "deploy"
+    UserTxnInvoke                                  // "invoke"
+    UserTxnDeployAndInvoke                         // "deploy_and_invoke"
+)
+```
+
+#### Usage Example
+
+```go
+// Use in transaction
+txn := paymaster.UserTransaction{
+    Type: paymaster.UserTxnInvoke,
+    // ...
+}
+```
+
+---
+
+### UserParamVersion
+
+An enum representing the version of execution parameters.
+
+#### Constants
+
+```go
+const (
+    UserParamV1 UserParamVersion = iota + 1  // "0x1"
+)
+```
+
+#### Usage Example
+
+```go
+params := paymaster.UserParameters{
+    Version: paymaster.UserParamV1,
+    // ...
+}
+```
+
+---
+
+### FeeModeType
+
+An enum representing the fee mode to use for the transaction.
+
+#### Constants
+
+```go
+const (
+    FeeModeSponsored FeeModeType = iota + 1  // "sponsored"
+    FeeModeDefault                            // "default"
+)
+```
+
+#### Usage Example
+
+```go
+// Sponsored mode
+feeMode := paymaster.FeeMode{
+    Mode: paymaster.FeeModeSponsored,
+}
+
+// Default mode
+feeMode := paymaster.FeeMode{
+    Mode:     paymaster.FeeModeDefault,
+    GasToken: tokenAddress,
+}
+```
+
+---
+
+### TipPriorityEnum
+
+An enum representing the desired tip priority for the paymaster transaction.
+
+#### Constants
+
+```go
+const (
+    TipPrioritySlow   TipPriorityEnum = iota + 1  // "slow"
+    TipPriorityNormal                             // "normal"
+    TipPriorityFast                               // "fast"
+)
+```
+
+#### Usage Example
+
+```go
+tip := &paymaster.TipPriority{
+    Priority: paymaster.TipPriorityFast,
+}
+```
+
+---
+
+### TxnStatus
+
+An enum representing the status of a transaction associated with a tracking ID.
+
+#### Constants
+
+```go
+const (
+    TxnStatusActive   TxnStatus = iota + 1  // "active"
+    TxnStatusAccepted                       // "accepted"
+    TxnStatusDropped                        // "dropped"
+)
+```
+
+#### Description
+
+- `TxnStatusActive` - Transaction not yet in a block but still being monitored by the paymaster
+- `TxnStatusAccepted` - Transaction has been accepted on L2
+- `TxnStatusDropped` - No transaction managed to enter a block and the request was dropped
+
+#### Usage Example
+
+```go
+response, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
+
+switch response.Status {
+case paymaster.TxnStatusActive:
+    fmt.Println("Transaction is being processed")
+case paymaster.TxnStatusAccepted:
+    fmt.Println("Transaction confirmed on L2")
+case paymaster.TxnStatusDropped:
+    fmt.Println("Transaction failed to be included")
+}
+```
+
+---
+
+### CairoVersion
+
+An enum representing the Cairo version of the account contract.
+
+#### Constants
+
+```go
+const (
+    Cairo1 CairoVersion = 1
+)
+```
+
+#### Notes
+
+Cairo 0 is not supported by paymaster services. Only Cairo 1 and later versions are compatible.
+
+#### Usage Example
+
+```go
+deployData := &paymaster.AccountDeploymentData{
+    // ...
+    Version: paymaster.Cairo1,
+}
+```
+
+---
+
+## Related Documentation
+
+- [Client Methods](/docs/paymaster/client-methods) - Methods that use these types
+- [Transaction Building Guide](/docs/paymaster/transaction-building) - Practical usage examples
+- [Overview](/docs/paymaster/) - Package introduction and quick start
+
+## SNIP-29 Specification
+
+All types are defined according to the SNIP-29 specification:
+[SNIP-29 Specification](https://github.com/starknet-io/SNIPs/blob/dfd91b275ea65413f8c8aedb26677a8afff70f37/SNIPS/snip-29.md)

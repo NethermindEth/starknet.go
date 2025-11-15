@@ -28,14 +28,21 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not set in environment")
+    }
+
+    ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
@@ -81,7 +88,7 @@ func main() {
     }
 
     // Submit the transaction
-    result, err := client.AddInvokeTransaction(context.Background(), invokeTransaction)
+    result, err := client.AddInvokeTransaction(ctx, invokeTransaction)
     if err != nil {
         log.Fatal("Failed to add invoke transaction:", err)
     }
@@ -100,13 +107,6 @@ func main() {
 }
 ```
 
-## Use Cases
-
-- Execute contract functions
-- Transfer tokens (ERC-20, ERC-721)
-- Interact with DeFi protocols
-- Update contract state
-
 ## Error Handling
 
 Common errors include invalid signatures, insufficient balance, and wrong nonce values. Always verify transaction parameters before submission.
@@ -119,3 +119,10 @@ if err != nil {
 }
 // Safe to use result.TransactionHash
 ```
+
+## Related Methods
+
+- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test transactions before submitting
+- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate transaction fees
+- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Check transaction execution status
+- [Nonce](/docs/rpc/methods/get-nonce) - Get current nonce for transaction sequencing

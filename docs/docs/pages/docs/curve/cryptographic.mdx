@@ -1,0 +1,648 @@
+# Cryptographic Functions
+
+The curve package provides digital signature operations using the StarkCurve elliptic curve. These functions are fundamental for securing transactions and verifying authenticity on Starknet.
+
+## Overview
+
+Starknet uses ECDSA (Elliptic Curve Digital Signature Algorithm) on the StarkCurve for signing and verification. The package provides both `big.Int` and `felt.Felt` variants for flexibility.
+
+## Signature Algorithm
+
+Starknet signatures consist of two components:
+- **r**: First component of the signature
+- **s**: Second component of the signature
+
+These are computed using the ECDSA algorithm on the StarkCurve, a variant of the secp256k1 curve adapted for STARK proofs.
+
+## Signing Functions
+
+### Sign
+
+Signs a message hash using the StarkCurve algorithm with big.Int parameters.
+
+**Signature:**
+```go
+func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error)
+```
+
+**Parameters:**
+- `msgHash` - The message hash to be signed
+- `privKey` - The private key used for signing
+
+**Returns:**
+- `r` - The r component of the signature
+- `s` - The s component of the signature
+- `err` - Error if signing fails
+
+**When to Use:**
+- Signing transaction hashes
+- Creating authentication signatures
+- Working with big.Int types
+
+**Usage Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate keys
+	privKey, pubKeyX, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Private key: %s\n", privKey.String())
+	fmt.Printf("Public key X: %s\n", pubKeyX.String())
+
+	// Create message hash
+	msgHash := big.NewInt(123456789)
+
+	// Sign the message
+	r, s, err := curve.Sign(msgHash, privKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Signature r: %s\n", r.String())
+	fmt.Printf("Signature s: %s\n", s.String())
+
+	// Verify the signature
+	valid, err := curve.Verify(msgHash, r, s, pubKeyX)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Signature valid: %t\n", valid)
+}
+```
+
+---
+
+### SignFelts
+
+Signs a message hash using the StarkCurve algorithm with felt.Felt parameters.
+
+**Signature:**
+```go
+func SignFelts(msgHash, privKey *felt.Felt) (r, s *felt.Felt, err error)
+```
+
+**Parameters:**
+- `msgHash` - The message hash to be signed
+- `privKey` - The private key used for signing
+
+**Returns:**
+- `r` - The r component of the signature
+- `s` - The s component of the signature
+- `err` - Error if signing fails
+
+**When to Use:**
+- Working with felt.Felt types
+- Integrating with Starknet-specific code
+- When the message hash is already a felt.Felt
+
+**Usage Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate keys (as big.Int)
+	privKeyBig, pubKeyXBig, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert to felt.Felt
+	privKey := new(felt.Felt).SetBigInt(privKeyBig)
+	pubKeyX := new(felt.Felt).SetBigInt(pubKeyXBig)
+
+	// Create message hash
+	msgHash := new(felt.Felt).SetUint64(987654321)
+
+	// Sign with felt.Felt
+	r, s, err := curve.SignFelts(msgHash, privKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Signature r: %s\n", r.String())
+	fmt.Printf("Signature s: %s\n", s.String())
+
+	// Verify with felt.Felt
+	valid, err := curve.VerifyFelts(msgHash, r, s, pubKeyX)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Signature valid: %t\n", valid)
+}
+```
+
+## Verification Functions
+
+### Verify
+
+Verifies the validity of a signature for a given message hash using big.Int parameters.
+
+**Signature:**
+```go
+func Verify(msgHash, r, s, pubX *big.Int) (bool, error)
+```
+
+**Parameters:**
+- `msgHash` - The message hash to be verified
+- `r` - The r component of the signature
+- `s` - The s component of the signature
+- `pubX` - The x-coordinate of the public key (typically the account public key)
+
+**Returns:**
+- `bool` - true if the signature is valid, false otherwise
+- `error` - Error if verification process fails
+
+**When to Use:**
+- Verifying transaction signatures
+- Validating authentication tokens
+- Checking message authenticity
+
+**Usage Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Assume we have received these from a transaction
+	msgHash, _ := new(big.Int).SetString("2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336", 16)
+	r, _ := new(big.Int).SetString("13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4", 16)
+	s, _ := new(big.Int).SetString("44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879", 16)
+	pubKeyX, _ := new(big.Int).SetString("6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c", 16)
+
+	// Verify the signature
+	valid, err := curve.Verify(msgHash, r, s, pubKeyX)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if valid {
+		fmt.Println("Signature is valid - transaction authentic")
+	} else {
+		fmt.Println("Signature is invalid - transaction rejected")
+	}
+}
+```
+
+**Error Handling:**
+```go
+valid, err := curve.Verify(msgHash, r, s, pubKeyX)
+if err != nil {
+	log.Printf("Verification error: %v", err)
+	return
+}
+
+if !valid {
+	log.Println("Invalid signature - possible fraud attempt")
+	return
+}
+
+// Proceed with valid signature
+fmt.Println("Signature verified successfully")
+```
+
+---
+
+### VerifyFelts
+
+Verifies the validity of a signature for a given message hash using felt.Felt parameters.
+
+**Signature:**
+```go
+func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error)
+```
+
+**Parameters:**
+- `msgHash` - The message hash to be verified
+- `r` - The r component of the signature
+- `s` - The s component of the signature
+- `pubX` - The x-coordinate of the public key (typically the account public key)
+
+**Returns:**
+- `bool` - true if the signature is valid, false otherwise
+- `error` - Error if verification process fails
+
+**When to Use:**
+- Working with felt.Felt types
+- Integrating with Starknet-specific APIs
+- Verifying signatures in Cairo contract contexts
+
+**Usage Example:**
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Parse hex values as felt.Felt
+	msgHash, err := new(felt.Felt).SetString("0x2789daed76c8b750d5a609a706481034db9dc8b63ae01f505d21e75a8fc2336")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r, err := new(felt.Felt).SetString("0x13e4e383af407f7ccc1f13195ff31a58cad97bbc6cf1d532798b8af616999d4")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s, err := new(felt.Felt).SetString("0x44dd06cf67b2ba7ea4af346d80b0b439e02a0b5893c6e4dfda9ee204211c879")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pubKeyX, err := new(felt.Felt).SetString("0x6c7c4408e178b2999cef9a5b3fa2a3dffc876892ad6a6bd19d1451a2256906c")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Verify signature
+	valid, err := curve.VerifyFelts(msgHash, r, s, pubKeyX)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Signature verification: %t\n", valid)
+}
+```
+
+## Complete Transaction Signing Example
+
+Here's a complete example showing the typical flow for signing and verifying a Starknet transaction:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Step 1: Generate or load account keys
+	privKey, pubKeyX, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("=== Account Setup ===")
+	fmt.Printf("Private Key: %s\n", privKey.String())
+	fmt.Printf("Public Key: %s\n", pubKeyX.String())
+
+	// Step 2: Compute transaction hash
+	// In practice, this would be computed from transaction details
+	txHash := computeTransactionHash(
+		"0x123...", // contract address
+		"transfer", // function name
+		[]string{"0x456...", "1000"}, // calldata
+	)
+	fmt.Printf("\n=== Transaction Hash ===\n%s\n", txHash.String())
+
+	// Step 3: Sign the transaction
+	r, s, err := curve.Sign(txHash, privKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("\n=== Signature Generated ===")
+	fmt.Printf("r: %s\n", r.String())
+	fmt.Printf("s: %s\n", s.String())
+
+	// Step 4: Verify signature (as the network would)
+	valid, err := curve.Verify(txHash, r, s, pubKeyX)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("\n=== Signature Verification ===")
+	fmt.Printf("Valid: %t\n", valid)
+
+	if valid {
+		fmt.Println("\nTransaction ready to submit to Starknet!")
+	}
+}
+
+// Simplified transaction hash computation
+func computeTransactionHash(contractAddress, functionName string, calldata []string) *big.Int {
+	// In a real implementation, this would follow Starknet's transaction hash formula
+	// For demonstration, we'll use a simple Pedersen hash chain
+
+	// Hash the function selector
+	selector := curve.StarknetKeccak([]byte(functionName))
+
+	// Create hash chain
+	hash := new(felt.Felt).SetUint64(0)
+	hash = curve.Pedersen(hash, selector)
+
+	// Add calldata to hash
+	for _, data := range calldata {
+		dataFelt, _ := new(felt.Felt).SetString(data)
+		hash = curve.Pedersen(hash, dataFelt)
+	}
+
+	return hash.BigInt(new(big.Int))
+}
+```
+
+## Multi-Signature Example
+
+Demonstrating multiple signatures for multi-sig wallets:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+type Signer struct {
+	PrivKey *big.Int
+	PubKeyX *big.Int
+	Name    string
+}
+
+func main() {
+	// Create multiple signers
+	signers := make([]Signer, 3)
+	for i := range signers {
+		privKey, pubKeyX, _, err := curve.GetRandomKeys()
+		if err != nil {
+			log.Fatal(err)
+		}
+		signers[i] = Signer{
+			PrivKey: privKey,
+			PubKeyX: pubKeyX,
+			Name:    fmt.Sprintf("Signer-%d", i+1),
+		}
+	}
+
+	// Message to sign
+	msgHash := big.NewInt(999999)
+
+	fmt.Println("=== Multi-Signature Demonstration ===")
+	fmt.Printf("Message hash: %s\n\n", msgHash.String())
+
+	// Each signer signs the message
+	signatures := make([][2]*big.Int, len(signers))
+	for i, signer := range signers {
+		r, s, err := curve.Sign(msgHash, signer.PrivKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		signatures[i] = [2]*big.Int{r, s}
+
+		fmt.Printf("%s signed:\n", signer.Name)
+		fmt.Printf("  r: %s\n", r.String())
+		fmt.Printf("  s: %s\n", s.String())
+	}
+
+	// Verify all signatures
+	fmt.Println("\n=== Verification ===")
+	allValid := true
+	for i, signer := range signers {
+		r, s := signatures[i][0], signatures[i][1]
+		valid, err := curve.Verify(msgHash, r, s, signer.PubKeyX)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%s: %t\n", signer.Name, valid)
+		allValid = allValid && valid
+	}
+
+	fmt.Printf("\nAll signatures valid: %t\n", allValid)
+}
+```
+
+## Testing Invalid Signatures
+
+It's important to test that invalid signatures are correctly rejected:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Setup
+	privKey, pubKeyX, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	msgHash := big.NewInt(12345)
+	r, s, err := curve.Sign(msgHash, privKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("=== Signature Validation Tests ===")
+
+	// Test 1: Valid signature
+	valid, _ := curve.Verify(msgHash, r, s, pubKeyX)
+	fmt.Printf("Valid signature: %t ✓\n", valid)
+
+	// Test 2: Wrong message hash
+	wrongHash := new(big.Int).Add(msgHash, big.NewInt(1))
+	valid, _ = curve.Verify(wrongHash, r, s, pubKeyX)
+	fmt.Printf("Wrong message hash: %t (expected false)\n", valid)
+
+	// Test 3: Modified r component
+	badR := new(big.Int).Add(r, big.NewInt(1))
+	valid, _ = curve.Verify(msgHash, badR, s, pubKeyX)
+	fmt.Printf("Modified r: %t (expected false)\n", valid)
+
+	// Test 4: Modified s component
+	badS := new(big.Int).Add(s, big.NewInt(1))
+	valid, _ = curve.Verify(msgHash, r, badS, pubKeyX)
+	fmt.Printf("Modified s: %t (expected false)\n", valid)
+
+	// Test 5: Wrong public key
+	_, wrongPubKeyX, _, _ := curve.GetRandomKeys()
+	valid, _ = curve.Verify(msgHash, r, s, wrongPubKeyX)
+	fmt.Printf("Wrong public key: %t (expected false)\n", valid)
+}
+```
+
+## Security Considerations
+
+### Private Key Management
+
+**Never expose private keys:**
+```go
+// BAD - Don't do this
+fmt.Printf("Private key: %s\n", privKey.String())
+log.Printf("Key: %s", privKey.String())
+
+// GOOD - Log only public information
+fmt.Printf("Public key: %s\n", pubKeyX.String())
+log.Printf("Transaction signed by: %s", pubKeyX.String())
+```
+
+### Signature Verification
+
+**Always verify signatures before trusting data:**
+```go
+// Receive transaction
+tx := receiveTransaction()
+
+// Verify signature BEFORE processing
+valid, err := curve.Verify(tx.Hash, tx.R, tx.S, tx.SenderPubKey)
+if err != nil || !valid {
+	return errors.New("invalid signature - transaction rejected")
+}
+
+// Only now process the transaction
+processTransaction(tx)
+```
+
+### Random Number Generation
+
+The signing process uses cryptographically secure random numbers. The `GetRandomKeys()` function uses `crypto/rand.Reader` which is cryptographically secure.
+
+**Do not use:**
+- `math/rand` for key generation
+- Predictable seed values
+- Time-based seeds
+
+**Always use:**
+- `curve.GetRandomKeys()` for key generation
+- `crypto/rand.Reader` for any random values
+
+### Key Storage
+
+```go
+// BAD - Storing keys in plain text
+ioutil.WriteFile("private_key.txt", []byte(privKey.String()), 0644)
+
+// GOOD - Use encrypted storage
+encryptedKey := encryptKey(privKey, passphrase)
+storeSecurely(encryptedKey)
+```
+
+## Common Patterns
+
+### Account Authentication
+```go
+func authenticateUser(userID string, msgHash, r, s, pubKeyX *big.Int) bool {
+	valid, err := curve.Verify(msgHash, r, s, pubKeyX)
+	if err != nil {
+		log.Printf("Authentication error for user %s: %v", userID, err)
+		return false
+	}
+	return valid
+}
+```
+
+### Transaction Batch Signing
+```go
+func signTransactionBatch(txHashes []*big.Int, privKey *big.Int) ([][2]*big.Int, error) {
+	signatures := make([][2]*big.Int, len(txHashes))
+
+	for i, txHash := range txHashes {
+		r, s, err := curve.Sign(txHash, privKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to sign tx %d: %w", i, err)
+		}
+		signatures[i] = [2]*big.Int{r, s}
+	}
+
+	return signatures, nil
+}
+```
+
+### Signature Aggregation Check
+```go
+func verifyMultipleSignatures(msgHash *big.Int, signatures [][2]*big.Int, pubKeys []*big.Int) bool {
+	if len(signatures) != len(pubKeys) {
+		return false
+	}
+
+	for i := range signatures {
+		valid, err := curve.Verify(msgHash, signatures[i][0], signatures[i][1], pubKeys[i])
+		if err != nil || !valid {
+			return false
+		}
+	}
+
+	return true
+}
+```
+
+## Performance Considerations
+
+Signing and verification are computationally intensive operations. For high-throughput applications:
+
+1. **Cache public keys** - Don't derive them repeatedly from private keys
+2. **Batch verification** - Verify multiple signatures in batches when possible
+3. **Use goroutines** - Parallelize independent signature operations
+
+```go
+func verifySignaturesConcurrently(msgs []*big.Int, sigs [][2]*big.Int, pubs []*big.Int) []bool {
+	results := make([]bool, len(msgs))
+	var wg sync.WaitGroup
+
+	for i := range msgs {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			valid, _ := curve.Verify(msgs[idx], sigs[idx][0], sigs[idx][1], pubs[idx])
+			results[idx] = valid
+		}(i)
+	}
+
+	wg.Wait()
+	return results
+}
+```
+
+## Related Resources
+
+- [Key Operations](./keys) - Key generation and management
+- [Hashing Functions](./hashing) - Computing message hashes
+- [Account Package](../account/) - Higher-level account abstraction using these functions
+- [Starknet Signatures Specification](https://docs.starknet.io/documentation/architecture_and_concepts/Cryptography/signatures/)

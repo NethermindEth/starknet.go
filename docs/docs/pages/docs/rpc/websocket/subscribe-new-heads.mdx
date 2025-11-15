@@ -1,0 +1,193 @@
+# SubscribeNewHeads
+
+Subscribe to new block headers via WebSocket stream.
+
+import { Callout } from 'vocs/components'
+
+<Callout type="info">
+  **Provider Support**: WebSocket method support varies by RPC provider. This method is widely supported. Always check your provider's documentation for WebSocket availability.
+</Callout>
+
+## Method Signature
+
+```go
+func (ws *WsProvider) SubscribeNewHeads(
+    ctx context.Context,
+    headers chan<- *BlockHeader,
+    subBlockID SubscriptionBlockID,
+) (*client.ClientSubscription, error)
+```
+
+## Parameters
+
+- `ctx` - The context.Context object for controlling the function call
+- `headers` - The channel to send new block headers to
+- `subBlockID` - Optional starting block ID. Pass empty struct `SubscriptionBlockID{}` to subscribe from latest block
+
+## Returns
+
+- `*client.ClientSubscription` - The client subscription object, used to unsubscribe from the stream and to get errors
+- `error` - An error, if any
+
+## Description
+
+SubscribeNewHeads creates a WebSocket stream that fires events when new blocks are produced on Starknet. This is useful for monitoring chain progression in real-time. You can optionally specify a starting block to receive headers from (max 1024 blocks back).
+
+The subscription will continue to send block headers until unsubscribed or the connection is closed.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	// Load environment variables
+	godotenv.Load(".env")
+	wsURL := os.Getenv("STARKNET_WS_URL")
+	if wsURL == "" {
+		log.Fatal("STARKNET_WS_URL not set in .env")
+	}
+
+	ctx := context.Background()
+
+	// Connect to WebSocket endpoint
+	wsProvider, err := rpc.NewWebsocketProvider(ctx, wsURL)
+	if err != nil {
+		log.Fatal("Failed to connect:", err)
+	}
+	defer wsProvider.Close()
+
+	// Create channel to receive block headers
+	headersChan := make(chan *rpc.BlockHeader)
+
+	// Subscribe from latest block
+	sub, err := wsProvider.SubscribeNewHeads(ctx, headersChan, rpc.SubscriptionBlockID{Tag: "latest"})
+	if err != nil {
+		log.Fatal("Failed to subscribe:", err)
+	}
+	defer sub.Unsubscribe()
+
+	fmt.Println("✅ Successfully subscribed to new block headers")
+	fmt.Println("Waiting for new blocks...\n")
+
+	// Listen for new blocks
+	blockCount := 0
+	for {
+		select {
+		case header := <-headersChan:
+			blockCount++
+			fmt.Printf("Block #%d:\n", blockCount)
+			fmt.Printf("  Block Number: %d\n", header.Number)
+			fmt.Printf("  Block Hash: %s\n", header.Hash)
+			fmt.Printf("  Timestamp: %d\n", header.Timestamp)
+			fmt.Printf("  Sequencer: %s\n", header.SequencerAddress)
+			fmt.Printf("  Parent Hash: %s\n\n", header.ParentHash)
+		case err := <-sub.Err():
+			log.Fatal("Subscription error:", err)
+		case <-time.After(120 * time.Second):
+			fmt.Println("No new blocks in 120s, exiting...")
+			return
+		}
+	}
+}
+```
+
+### Example Output
+
+```
+Testing SubscribeNewHeads WebSocket method...
+✅ Successfully subscribed to new block headers
+Waiting for new blocks...
+
+Block #1:
+  Block Number: 2843643
+  Block Hash: 0x510da1c44b567cd30474f1cdc494771a1fbdf0ffded90ab2f26e5efe989d9bf
+  Timestamp: 1762805155
+  Sequencer: 0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8
+  Parent Hash: 0x5290d368175a07719c0ba9513361346f16839c68a6d8b6dc0cd5ae3ef0dcfbc
+
+Block #2:
+  Block Number: 2843644
+  Block Hash: 0x7238f9a37862b3edd9152672217fb0fb55ffc04ab3bbb2e1a006d4e48e026fc
+  Timestamp: 1762805163
+  Sequencer: 0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8
+  Parent Hash: 0x510da1c44b567cd30474f1cdc494771a1fbdf0ffded90ab2f26e5efe989d9bf
+```
+
+## Starting Block Options
+
+The `SubscriptionBlockID` struct allows you to specify a starting block:
+
+```go
+type SubscriptionBlockID struct {
+	Number *uint64    // Start from specific block number
+	Tag    string     // Start from "latest" or "pending"
+}
+```
+
+**Examples:**
+
+```go
+// Subscribe from latest block (default)
+rpc.SubscriptionBlockID{}
+
+// Subscribe from specific block number
+rpc.SubscriptionBlockID{Number: &blockNum}
+
+// Subscribe from pending block
+rpc.SubscriptionBlockID{Tag: "pending"}
+```
+
+**Note:** The starting block cannot be more than 1024 blocks in the past.
+
+## Common Use Cases
+
+1. **Chain Monitoring**: Track new blocks as they're produced
+2. **Block Explorer**: Update UI with latest block information
+3. **Transaction Confirmation**: Wait for specific block confirmations
+4. **Network Health**: Monitor block production rate and timing
+
+## Error Handling
+
+```go
+sub, err := wsProvider.SubscribeNewHeads(ctx, headersChan, rpc.SubscriptionBlockID{})
+if err != nil {
+	// Handle subscription errors
+	log.Fatal("Failed to subscribe:", err)
+}
+
+// Listen for stream errors
+go func() {
+	err := <-sub.Err()
+	if err != nil {
+		log.Printf("Stream error: %v", err)
+	}
+}()
+```
+
+## Possible Errors
+
+- `ErrTooManyBlocksBack` - Requested starting block is too far in the past (>1024 blocks)
+- `ErrBlockNotFound` - Specified starting block does not exist
+- Connection errors - WebSocket connection issues
+
+## Related Methods
+
+- [SubscribeEvents](./subscribe-events) - Subscribe to contract events
+- [SubscribeNewTransactions](./subscribe-new-transactions) - Subscribe to new transactions
+- [SubscribeTransactionStatus](./subscribe-transaction-status) - Subscribe to transaction status updates
+
+## Specification
+
+Follows the Starknet WebSocket RPC specification for `starknet_subscribeNewHeads`.

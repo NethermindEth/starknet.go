@@ -1,0 +1,140 @@
+# MessagesStatus
+
+Gets the status of messages sent from Ethereum (L1) to Starknet (L2) by a specific L1 transaction. Returns the associated L1_HANDLER transaction hashes and statuses for all L1→L2 messages sent by the L1 transaction, ordered by the L1 transaction sending order.
+
+## Method Signature
+
+```go
+func (provider *Provider) MessagesStatus(
+    ctx context.Context,
+    transactionHash NumAsHex,
+) ([]MessageStatus, error)
+```
+
+**Source:** [transaction.go:L112-L123](https://github.com/NethermindEth/starknet.go/blob/main/rpc/transaction.go#L112-L123)
+
+## Parameters
+
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `transactionHash` (NumAsHex): The Ethereum (L1) transaction hash that sent messages to Starknet
+
+## Returns
+
+- `[]MessageStatus`: Array of message status information for each L1→L2 message
+- `error`: Error if the request fails
+:::note
+This can return `ErrHashNotFound` if the L1 transaction hash doesn't exist or didn't send any messages to Starknet.
+:::
+
+## Type Definitions
+
+### MessageStatus
+
+```go
+type MessageStatus struct {
+    // The hash of the L1_HANDLER transaction in L2 that contains the message
+    Hash *felt.Felt `json:"transaction_hash"`
+    // The finality status of the L1_HANDLER transaction, including the case the txn
+    // is still in the mempool or failed validation during the block construction phase
+    FinalityStatus TxnFinalityStatus `json:"finality_status"`
+    // The execution status of the L1_HANDLER transaction
+    ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+    // The failure reason. Only appears if `execution_status` is REVERTED
+    FailureReason string `json:"failure_reason,omitempty"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L33-L44](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L33-L44)
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Example L1 transaction hash that sent messages to Starknet
+    // This should be an Ethereum transaction hash from StarkGate bridge or similar
+    l1TxHashStr := "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    l1TxHash := rpc.NumAsHex(l1TxHashStr)
+
+    // Get messages status
+    messagesStatus, err := provider.MessagesStatus(ctx, l1TxHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("L1 Transaction: %s\n", l1TxHashStr)
+    fmt.Printf("Messages Count: %d\n\n", len(messagesStatus))
+
+    for i, status := range messagesStatus {
+        fmt.Printf("Message %d:\n", i+1)
+        fmt.Printf("  L2 Transaction Hash: %s\n", status.Hash)
+        fmt.Printf("  Finality Status: %s\n", status.FinalityStatus)
+        fmt.Printf("  Execution Status: %s\n", status.ExecutionStatus)
+        if status.FailureReason != "" {
+            fmt.Printf("  Failure Reason: %s\n", status.FailureReason)
+        }
+        fmt.Println()
+    }
+}
+```
+
+## Error Handling
+
+```go
+messagesStatus, err := provider.MessagesStatus(ctx, l1TxHash)
+if err != nil {
+    if errors.Is(err, rpc.ErrHashNotFound) {
+        log.Printf("L1 transaction hash not found or didn't send messages to Starknet")
+        return
+    }
+    log.Printf("Error getting messages status: %v", err)
+    return
+}
+
+// Process each message status
+for i, status := range messagesStatus {
+    fmt.Printf("Message %d: %s (Finality: %s, Execution: %s)\n",
+        i+1, status.Hash, status.FinalityStatus, status.ExecutionStatus)
+
+    if status.ExecutionStatus == rpc.TxnExecutionStatusREVERTED {
+        fmt.Printf("  Message reverted: %s\n", status.FailureReason)
+    }
+}
+```
+
+## Common Use Cases
+
+- Monitoring L1→L2 message delivery from StarkGate bridge deposits. 
+- Verifying that messages sent from Ethereum were successfully processed on Starknet. 
+- Tracking the execution status of L1_HANDLER transactions triggered by L1 messages. 

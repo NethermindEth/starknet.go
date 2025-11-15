@@ -1,0 +1,561 @@
+# Transaction Building Guide
+
+This guide provides comprehensive instructions on building and executing transactions through a paymaster service. The paymaster enables fee abstraction, allowing transactions to be sponsored or paid with alternative tokens.
+
+## Overview
+
+Using a paymaster involves a three-step process:
+
+1. **Build Transaction** - Request typed data and fee estimates from the paymaster
+2. **Sign Transaction** - Sign the SNIP-12 typed data with your account's private key
+3. **Execute Transaction** - Submit the signed transaction to the paymaster for broadcast
+
+## Transaction Types
+
+The paymaster supports three types of transactions:
+
+- **Invoke** - Execute function calls on existing contracts
+- **Deploy** - Deploy a new account contract
+- **Deploy and Invoke** - Deploy an account and execute calls in a single transaction
+
+## Fee Modes
+
+### Default Mode
+
+In default mode, the user pays transaction fees using a supported ERC-20 token. This mode does not require an API key.
+
+```go
+FeeMode: paymaster.FeeMode{
+    Mode:     paymaster.FeeModeDefault,
+    GasToken: tokenAddress, // Address of the token to pay fees with
+    Tip: &paymaster.TipPriority{
+        Priority: paymaster.TipPriorityNormal, // or TipPrioritySlow, TipPriorityFast
+    },
+}
+```
+
+### Sponsored Mode
+
+In sponsored mode, an entity (the sponsor) covers all transaction fees. This mode requires an API key from the sponsoring entity.
+
+```go
+FeeMode: paymaster.FeeMode{
+    Mode: paymaster.FeeModeSponsored,
+    Tip: &paymaster.TipPriority{
+        Priority: paymaster.TipPriorityNormal,
+    },
+}
+```
+
+## Invoke Transaction Example
+
+This example demonstrates executing a function call through the paymaster using the default fee mode.
+
+### Step 1: Setup and Build Transaction
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "math/big"
+
+    "github.com/NethermindEth/starknet.go/account"
+    "github.com/NethermindEth/starknet.go/paymaster"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+    // Connect to RPC provider
+    provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Setup account
+    accountAddress, _ := utils.HexToFelt("0x1234...")
+    privateKey := "0x5678..."
+    publicKey := "0x9abc..."
+
+    ks := account.NewMemKeystore()
+    privKeyBI, _ := new(big.Int).SetString(privateKey, 0)
+    ks.Put(publicKey, privKeyBI)
+
+    acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Connect to paymaster
+    pm, err := paymaster.New(context.Background(), "https://sepolia.paymaster.avnu.fi")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Define the transaction
+    contractAddress, _ := utils.HexToFelt("0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
+    amount, _ := utils.HexToU256Felt("0xffffffff")
+    strkAddress, _ := utils.HexToFelt("0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D")
+
+    // Build the transaction
+    buildRequest := &paymaster.BuildTransactionRequest{
+        Transaction: paymaster.UserTransaction{
+            Type: paymaster.UserTxnInvoke,
+            Invoke: &paymaster.UserInvoke{
+                UserAddress: acc.Address,
+                Calls: []paymaster.Call{
+                    {
+                        To:       contractAddress,
+                        Selector: utils.GetSelectorFromNameFelt("mint"),
+                        Calldata: amount,
+                    },
+                },
+            },
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode:     paymaster.FeeModeDefault,
+                GasToken: strkAddress,
+                Tip: &paymaster.TipPriority{
+                    Priority: paymaster.TipPriorityNormal,
+                },
+            },
+        },
+    }
+
+    builtTxn, err := pm.BuildTransaction(context.Background(), buildRequest)
+    if err != nil {
+        log.Fatal("Error building transaction:", err)
+    }
+
+    fmt.Println("Transaction built successfully")
+    fmt.Printf("Estimated fee in STRK: %s\n", builtTxn.Fee.EstimatedFeeInStrk.String())
+    fmt.Printf("Suggested max fee in STRK: %s\n", builtTxn.Fee.SuggestedMaxFeeInStrk.String())
+}
+```
+
+### Step 2: Sign the Transaction
+
+```go
+    // Get the message hash from the typed data
+    messageHash, err := builtTxn.TypedData.GetMessageHash(acc.Address.String())
+    if err != nil {
+        log.Fatal("Error getting message hash:", err)
+    }
+
+    // Sign the message hash
+    signature, err := acc.Sign(context.Background(), messageHash)
+    if err != nil {
+        log.Fatal("Error signing transaction:", err)
+    }
+
+    fmt.Println("Transaction signed successfully")
+```
+
+### Step 3: Execute the Transaction
+
+```go
+    // Execute the transaction
+    executeRequest := &paymaster.ExecuteTransactionRequest{
+        Transaction: paymaster.ExecutableUserTransaction{
+            Type: paymaster.UserTxnInvoke,
+            Invoke: &paymaster.ExecutableUserInvoke{
+                UserAddress: acc.Address,
+                TypedData:   builtTxn.TypedData,
+                Signature:   signature,
+            },
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode:     paymaster.FeeModeDefault,
+                GasToken: strkAddress,
+            },
+        },
+    }
+
+    response, err := pm.ExecuteTransaction(context.Background(), executeRequest)
+    if err != nil {
+        log.Fatal("Error executing transaction:", err)
+    }
+
+    fmt.Println("Transaction executed successfully")
+    fmt.Printf("Tracking ID: %s\n", response.TrackingID.String())
+    fmt.Printf("Transaction Hash: %s\n", response.TransactionHash.String())
+```
+
+## Deploy Account Example
+
+This example shows how to deploy a new account using sponsored fees.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/account"
+    "github.com/NethermindEth/starknet.go/client"
+    "github.com/NethermindEth/starknet.go/paymaster"
+    "github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+    // Connect to paymaster with API key for sponsored mode
+    pm, err := paymaster.New(
+        context.Background(),
+        "https://sepolia.paymaster.avnu.fi",
+        client.WithHeader("x-paymaster-api-key", "your-api-key"),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Generate account keys
+    _, pubKey, _ := account.GetRandomKeys()
+
+    // Account deployment data
+    classHash, _ := utils.HexToFelt("0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564")
+    salt, _ := utils.HexToFelt("0xdeadbeef")
+    constructorCalldata := []*felt.Felt{pubKey}
+
+    // Precompute account address
+    accountAddress := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+
+    fmt.Printf("Deploying account at: %s\n", accountAddress.String())
+
+    // Build deploy transaction
+    deployData := &paymaster.AccountDeploymentData{
+        Address:       accountAddress,
+        ClassHash:     classHash,
+        Salt:          salt,
+        Calldata:      constructorCalldata,
+        SignatureData: []*felt.Felt{},
+        Version:       paymaster.Cairo1,
+    }
+
+    buildRequest := &paymaster.BuildTransactionRequest{
+        Transaction: paymaster.UserTransaction{
+            Type:       paymaster.UserTxnDeploy,
+            Deployment: deployData,
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode: paymaster.FeeModeSponsored,
+                Tip: &paymaster.TipPriority{
+                    Priority: paymaster.TipPriorityNormal,
+                },
+            },
+        },
+    }
+
+    builtTxn, err := pm.BuildTransaction(context.Background(), buildRequest)
+    if err != nil {
+        log.Fatal("Error building deploy transaction:", err)
+    }
+
+    fmt.Println("Deploy transaction built")
+
+    // Execute deploy (no signature needed for pure deploy)
+    executeRequest := &paymaster.ExecuteTransactionRequest{
+        Transaction: paymaster.ExecutableUserTransaction{
+            Type:       paymaster.UserTxnDeploy,
+            Deployment: builtTxn.Deployment,
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode: paymaster.FeeModeSponsored,
+                Tip: &paymaster.TipPriority{
+                    Priority: paymaster.TipPriorityNormal,
+                },
+            },
+        },
+    }
+
+    response, err := pm.ExecuteTransaction(context.Background(), executeRequest)
+    if err != nil {
+        log.Fatal("Error executing deploy:", err)
+    }
+
+    fmt.Println("Account deployed successfully")
+    fmt.Printf("Tracking ID: %s\n", response.TrackingID.String())
+    fmt.Printf("Transaction Hash: %s\n", response.TransactionHash.String())
+}
+```
+
+## Deploy and Invoke Example
+
+This example combines account deployment with an immediate function call.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/account"
+    "github.com/NethermindEth/starknet.go/client"
+    "github.com/NethermindEth/starknet.go/curve"
+    "github.com/NethermindEth/starknet.go/paymaster"
+    "github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+    // Connect with API key
+    pm, err := paymaster.New(
+        context.Background(),
+        "https://sepolia.paymaster.avnu.fi",
+        client.WithHeader("x-paymaster-api-key", "your-api-key"),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Generate account keys
+    _, pubKey, privKey := account.GetRandomKeys()
+
+    // Deployment data
+    classHash, _ := utils.HexToFelt("0x05b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564")
+    salt, _ := utils.HexToFelt("0xdeadbeef")
+    constructorCalldata := []*felt.Felt{pubKey}
+    accountAddress := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+
+    deployData := &paymaster.AccountDeploymentData{
+        Address:       accountAddress,
+        ClassHash:     classHash,
+        Salt:          salt,
+        Calldata:      constructorCalldata,
+        SignatureData: []*felt.Felt{},
+        Version:       paymaster.Cairo1,
+    }
+
+    // Invoke data
+    contractAddress, _ := utils.HexToFelt("0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
+    amount, _ := utils.HexToU256Felt("0xffffffff")
+
+    invokeData := &paymaster.UserInvoke{
+        UserAddress: accountAddress,
+        Calls: []paymaster.Call{
+            {
+                To:       contractAddress,
+                Selector: utils.GetSelectorFromNameFelt("mint"),
+                Calldata: amount,
+            },
+        },
+    }
+
+    // Build transaction
+    buildRequest := &paymaster.BuildTransactionRequest{
+        Transaction: paymaster.UserTransaction{
+            Type:       paymaster.UserTxnDeployAndInvoke,
+            Deployment: deployData,
+            Invoke:     invokeData,
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode: paymaster.FeeModeSponsored,
+                Tip: &paymaster.TipPriority{
+                    Priority: paymaster.TipPriorityNormal,
+                },
+            },
+        },
+    }
+
+    builtTxn, err := pm.BuildTransaction(context.Background(), buildRequest)
+    if err != nil {
+        log.Fatal("Error building deploy_and_invoke:", err)
+    }
+
+    // Sign the invoke portion
+    messageHash, err := builtTxn.TypedData.GetMessageHash(accountAddress.String())
+    if err != nil {
+        log.Fatal("Error getting message hash:", err)
+    }
+
+    r, s, err := curve.SignFelts(messageHash, privKey)
+    if err != nil {
+        log.Fatal("Error signing:", err)
+    }
+    signature := []*felt.Felt{r, s}
+
+    // Execute
+    executeRequest := &paymaster.ExecuteTransactionRequest{
+        Transaction: paymaster.ExecutableUserTransaction{
+            Type:       paymaster.UserTxnDeployAndInvoke,
+            Deployment: builtTxn.Deployment,
+            Invoke: &paymaster.ExecutableUserInvoke{
+                UserAddress: accountAddress,
+                TypedData:   builtTxn.TypedData,
+                Signature:   signature,
+            },
+        },
+        Parameters: paymaster.UserParameters{
+            Version: paymaster.UserParamV1,
+            FeeMode: paymaster.FeeMode{
+                Mode: paymaster.FeeModeSponsored,
+                Tip: &paymaster.TipPriority{
+                    Priority: paymaster.TipPriorityNormal,
+                },
+            },
+        },
+    }
+
+    response, err := pm.ExecuteTransaction(context.Background(), executeRequest)
+    if err != nil {
+        log.Fatal("Error executing deploy_and_invoke:", err)
+    }
+
+    fmt.Println("Deploy and invoke executed successfully")
+    fmt.Printf("Account Address: %s\n", accountAddress.String())
+    fmt.Printf("Tracking ID: %s\n", response.TrackingID.String())
+    fmt.Printf("Transaction Hash: %s\n", response.TransactionHash.String())
+}
+```
+
+## Tracking Transaction Status
+
+After executing a transaction, you can track its status using the tracking ID.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func trackTransaction(pm *paymaster.Paymaster, trackingID *felt.Felt) {
+    fmt.Println("Tracking transaction status...")
+
+    for {
+        result, err := pm.TrackingIDToLatestHash(context.Background(), trackingID)
+        if err != nil {
+            log.Fatal("Error tracking transaction:", err)
+        }
+
+        fmt.Printf("Status: %s\n", result.Status.String())
+        fmt.Printf("Latest Transaction Hash: %s\n", result.TransactionHash.String())
+
+        switch result.Status {
+        case paymaster.TxnStatusAccepted:
+            fmt.Println("Transaction accepted on L2!")
+            return
+
+        case paymaster.TxnStatusDropped:
+            fmt.Println("Transaction was dropped by the paymaster")
+            return
+
+        case paymaster.TxnStatusActive:
+            fmt.Println("Transaction is active, waiting...")
+            time.Sleep(5 * time.Second)
+        }
+    }
+}
+```
+
+## Fee Estimation
+
+Always review fee estimates before executing transactions:
+
+```go
+// After building the transaction
+fmt.Println("Fee Estimates:")
+fmt.Printf("Gas Token Price in STRK: %s\n", builtTxn.Fee.GasTokenPriceInStrk.String())
+fmt.Printf("Estimated Fee in STRK: %s\n", builtTxn.Fee.EstimatedFeeInStrk.String())
+fmt.Printf("Estimated Fee in Gas Token: %s\n", builtTxn.Fee.EstimatedFeeInGasToken.String())
+fmt.Printf("Suggested Max Fee in STRK: %s\n", builtTxn.Fee.SuggestedMaxFeeInStrk.String())
+fmt.Printf("Suggested Max Fee in Gas Token: %s\n", builtTxn.Fee.SuggestedMaxFeeInGasToken.String())
+
+// Verify the fee is acceptable before proceeding
+// if tooExpensive(builtTxn.Fee) {
+//     return fmt.Errorf("fee too high")
+// }
+```
+
+## Custom Tip Values
+
+Instead of using predefined tip priorities, you can specify a custom tip value:
+
+```go
+customTipValue := uint64(1000000)
+
+FeeMode: paymaster.FeeMode{
+    Mode:     paymaster.FeeModeDefault,
+    GasToken: tokenAddress,
+    Tip: &paymaster.TipPriority{
+        Custom: &customTipValue,
+    },
+}
+```
+
+## Time Bounds
+
+You can specify time constraints for transaction execution:
+
+```go
+Parameters: paymaster.UserParameters{
+    Version: paymaster.UserParamV1,
+    FeeMode: feeMode,
+    TimeBounds: &paymaster.TimeBounds{
+        ExecuteAfter:  "1704067200",  // UNIX timestamp
+        ExecuteBefore: "1704153600",  // UNIX timestamp
+    },
+}
+```
+
+## Important Considerations
+
+### Account Requirements
+
+Your account must implement the SNIP-9 standard for outside execution. Not all account contracts support this feature.
+
+### Fee Mode Consistency
+
+The fee mode parameters in ExecuteTransaction must match those used in BuildTransaction. Different parameters will result in different fees than estimated.
+
+### API Keys
+
+Sponsored mode requires an API key from a sponsoring entity. Without a valid API key, only default mode is available.
+
+### Transaction Monitoring
+
+During network congestion, the paymaster may send multiple transactions with fee bumps. Always use the tracking ID to get the latest transaction hash.
+
+### Error Handling
+
+Always check for errors at each step. Common errors include:
+- Invalid signatures
+- Unsupported account class hashes
+- Insufficient max fee amounts
+- Invalid deployment data
+
+## Related Documentation
+
+- [Client Methods](/docs/paymaster/client-methods) - Detailed method documentation
+- [Types Reference](/docs/paymaster/types) - Type definitions
+- [Account Package](/docs/account/) - Account management
+- [Typed Data Package](/docs/typeddata/) - SNIP-12 signing
+
+## Examples
+
+Complete working examples are available in the repository:
+- [Invoke Example](https://github.com/NethermindEth/starknet.go/blob/main/examples/paymaster/main.go)
+- [Deploy Example](https://github.com/NethermindEth/starknet.go/blob/main/examples/paymaster/deploy.go)
+- [Deploy and Invoke Example](https://github.com/NethermindEth/starknet.go/blob/main/examples/paymaster/deploy_and_invoke.go)

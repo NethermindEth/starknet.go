@@ -1,0 +1,163 @@
+# SubscribeEvents
+
+Subscribe to new contract events via WebSocket stream.
+
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers (like Alchemy) currently do not support event subscriptions. Check your provider's documentation for WebSocket method availability.
+</Callout>
+
+## Method Signature
+
+```go
+func (ws *WsProvider) SubscribeEvents(
+    ctx context.Context,
+    events chan<- *EmittedEventWithFinalityStatus,
+    options *EventSubscriptionInput,
+) (*client.ClientSubscription, error)
+```
+
+## Parameters
+
+- `ctx` - The context.Context object for controlling the function call
+- `events` - The channel to send new events to
+- `options` - Optional input struct containing event filters. Set to nil if no filters are needed
+
+## Returns
+
+- `*client.ClientSubscription` - The client subscription object, used to unsubscribe from the stream and to get errors
+- `error` - An error, if any
+
+## Description
+
+SubscribeEvents creates a WebSocket stream that fires events when new contract events are emitted on Starknet. You can optionally filter events by:
+- Contract address
+- Event keys
+- Block range
+
+The subscription will continue to send events until unsubscribed or the connection is closed.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	// Load environment variables
+	godotenv.Load(".env")
+	wsURL := os.Getenv("STARKNET_WS_URL")
+	if wsURL == "" {
+		log.Fatal("STARKNET_WS_URL not set in .env")
+	}
+
+	ctx := context.Background()
+
+	// Connect to WebSocket endpoint
+	wsProvider, err := rpc.NewWebsocketProvider(ctx, wsURL)
+	if err != nil {
+		log.Fatal("Failed to connect:", err)
+	}
+	defer wsProvider.Close()
+
+	// Create channel to receive events
+	eventsChan := make(chan *rpc.EmittedEventWithFinalityStatus)
+
+	// Subscribe to all Transfer events
+	transferKey, _ := new(felt.Felt).SetString("0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9")
+	options := &rpc.EventSubscriptionInput{
+		Keys: [][]*felt.Felt{
+			{transferKey}, // Filter for Transfer events
+		},
+	}
+
+	sub, err := wsProvider.SubscribeEvents(ctx, eventsChan, options)
+	if err != nil {
+		log.Fatal("Failed to subscribe:", err)
+	}
+	defer sub.Unsubscribe()
+
+	fmt.Println("Subscribed to Transfer events...")
+
+	// Listen for events
+	for {
+		select {
+		case event := <-eventsChan:
+			fmt.Printf("New Transfer Event:\n")
+			fmt.Printf("  From: %s\n", event.Event.ContractAddress)
+			fmt.Printf("  Keys: %v\n", event.Event.Keys)
+			fmt.Printf("  Block: %d\n", event.BlockNumber)
+		case err := <-sub.Err():
+			log.Fatal("Subscription error:", err)
+		case <-time.After(30 * time.Second):
+			fmt.Println("No events received in 30s, exiting...")
+			return
+		}
+	}
+}
+```
+
+## Filter Options
+
+The `EventSubscriptionInput` struct allows filtering:
+
+```go
+type EventSubscriptionInput struct {
+	FromAddress []*felt.Felt      // Filter by contract addresses
+	Keys        [][]*felt.Felt    // Filter by event keys (indexed parameters)
+	BlockID     *SubscriptionBlockID // Start from specific block (max 1024 blocks back)
+}
+```
+
+## Common Use Cases
+
+1. **Monitor Token Transfers**: Subscribe to Transfer events from specific tokens
+2. **Track Contract Events**: Listen to specific contract interactions
+3. **Real-time Updates**: Get immediate notifications of on-chain events
+4. **Event Aggregation**: Collect events from multiple contracts
+
+## Error Handling
+
+```go
+sub, err := wsProvider.SubscribeEvents(ctx, eventsChan, options)
+if err != nil {
+	// Handle subscription errors
+	log.Fatal("Failed to subscribe:", err)
+}
+
+// Listen for stream errors
+go func() {
+	err := <-sub.Err()
+	if err != nil {
+		log.Printf("Stream error: %v", err)
+	}
+}()
+```
+
+## Possible Errors
+
+- `ErrTooManyKeysInFilter` - Too many keys in the event filter
+- `ErrTooManyBlocksBack` - Requested block is too far in the past (>1024 blocks)
+- `ErrBlockNotFound` - Specified block does not exist
+
+## Related Methods
+
+- [SubscribeNewHeads](./subscribe-new-heads) - Subscribe to new block headers
+- [SubscribeNewTransactions](./subscribe-new-transactions) - Subscribe to new transactions
+- [Events](../methods/events) - Query historical events (non-streaming)
+
+## Specification
+
+Follows the Starknet WebSocket RPC specification for `starknet_subscribeEvents`.

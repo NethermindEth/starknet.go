@@ -1,0 +1,81 @@
+# SignFelts
+
+Signs a message hash using felt.Felt parameters.
+
+## Function Signature
+
+```go
+func SignFelts(msgHash, privKey *felt.Felt) (r, s *felt.Felt, err error)
+```
+
+## Parameters
+
+- `msgHash` (*felt.Felt): Message hash to sign
+- `privKey` (*felt.Felt): Private key
+
+## Returns
+
+- `r`, `s` (*felt.Felt): Signature components
+- `err` (error): Error if any
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+    // Create message hash (typically from transaction hash)
+    msgHash, _ := new(felt.Felt).SetString("0x1234567890abcdef")
+
+    // Private key (never hardcode in production!)
+    privKey, _ := new(felt.Felt).SetString("0x1234567890abcdef1234567890abcdef")
+
+    // Sign the message
+    r, s, err := curve.SignFelts(msgHash, privKey)
+    if err != nil {
+        log.Fatal("Signing failed:", err)
+    }
+
+    fmt.Printf("Message Hash: %s\n", msgHash)
+    fmt.Printf("Signature R:  %s\n", r)
+    fmt.Printf("Signature S:  %s\n", s)
+}
+```
+
+## Expected Output
+
+```
+Message Hash: 0x1234567890abcdef
+Signature R:  0x4d2b6e6e88e01af828b0f68237ffde7e6742ae86169a89c32185141ad1c6e7e
+Signature S:  0x4d6f5fe7927e73ffddd5bca9ea3be17e0ae62d12e34c772691fc7b829904f92
+```
+
+## Description
+
+SignFelts is the felt.Felt variant of [Sign](/docs/curve/functions/sign). It signs a message hash using ECDSA on the Stark curve and returns the signature components (r, s) as felt.Felt types.
+
+**When to use SignFelts vs Sign:**
+- Use **SignFelts** when working with Starknet types (transactions, accounts)
+- Use **Sign** when working with big.Int for interoperability with other Go libraries
+
+The signing algorithm is identical; only the input/output types differ.
+
+## Notes
+
+- Preferred when working with Starknet native types
+- Returns signature components directly as felt.Felt
+- More ergonomic for Starknet transaction signing
+- See [Sign](/docs/curve/functions/sign) for detailed cryptographic explanation
+
+## Related Functions
+
+- [Sign](/docs/curve/functions/sign)
+- [VerifyFelts](/docs/curve/functions/verify-felts)

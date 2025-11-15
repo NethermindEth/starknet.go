@@ -1,0 +1,469 @@
+# Account Functions
+
+Standalone utility functions for calldata formatting, address computation, and key management.
+
+## FmtCallDataCairo0
+
+Formats function calls into calldata for Cairo 0 contracts.
+
+### Function Signature
+
+```go
+func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt
+```
+
+### Parameters
+
+- `callArray` - Slice of function calls to format
+
+### Returns
+
+- `[]*felt.Felt` - Formatted calldata array for Cairo 0 contracts
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Define contract address and entry point
+	contractAddress, _ := utils.HexToFelt("0x1234...")
+	entryPointSelector := utils.GetSelectorFromNameFelt("transfer")
+
+	// Create function calls
+	functionCalls := []rpc.FunctionCall{
+		{
+			ContractAddress:    contractAddress,
+			EntryPointSelector: entryPointSelector,
+			Calldata: []*felt.Felt{
+				felt.Zero,                    // recipient
+				new(felt.Felt).SetUint64(100), // amount low
+				felt.Zero,                     // amount high
+			},
+		},
+	}
+
+	// Format calldata for Cairo 0
+	calldata := account.FmtCallDataCairo0(functionCalls)
+	fmt.Printf("Formatted calldata length: %d\n", len(calldata))
+}
+```
+
+### Description
+
+FmtCallDataCairo0 generates calldata in the format expected by Cairo 0 contracts. The format includes:
+1. Number of calls
+2. For each call: contract address, entry point selector, offset, and calldata length
+3. Total calldata length
+4. All calldata concatenated
+
+### Related Functions
+
+- [FmtCallDataCairo2](#fmtcalldatacairo2) - Format calldata for Cairo 2 contracts
+- [Account.FmtCalldata](./methods.mdx#fmtcalldata) - Automatically formats based on account's Cairo version
+
+---
+
+## FmtCallDataCairo2
+
+Formats function calls into calldata for Cairo 2 contracts.
+
+### Function Signature
+
+```go
+func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt
+```
+
+### Parameters
+
+- `callArray` - Slice of function calls to format
+
+### Returns
+
+- `[]*felt.Felt` - Formatted calldata array for Cairo 2 contracts
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Define contract address and entry point
+	contractAddress, _ := utils.HexToFelt("0x1234...")
+	entryPointSelector := utils.GetSelectorFromNameFelt("transfer")
+
+	// Create function calls
+	functionCalls := []rpc.FunctionCall{
+		{
+			ContractAddress:    contractAddress,
+			EntryPointSelector: entryPointSelector,
+			Calldata: []*felt.Felt{
+				felt.Zero,                     // recipient
+				new(felt.Felt).SetUint64(100), // amount
+			},
+		},
+	}
+
+	// Format calldata for Cairo 2
+	calldata := account.FmtCallDataCairo2(functionCalls)
+	fmt.Printf("Formatted calldata length: %d\n", len(calldata))
+}
+```
+
+### Description
+
+FmtCallDataCairo2 generates calldata in the simplified format used by Cairo 2 contracts. The format includes:
+1. Number of calls
+2. For each call: contract address, entry point selector, calldata length, and calldata
+
+This is simpler than Cairo 0 format as it doesn't use offsets.
+
+### Related Functions
+
+- [FmtCallDataCairo0](#fmtcalldatacairo0) - Format calldata for Cairo 0 contracts
+- [Account.FmtCalldata](./methods.mdx#fmtcalldata) - Automatically formats based on account's Cairo version
+
+---
+
+## PrecomputeAccountAddress
+
+Calculates the deterministic address for an account contract before deployment.
+
+### Function Signature
+
+```go
+func PrecomputeAccountAddress(
+	salt *felt.Felt,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+) *felt.Felt
+```
+
+### Parameters
+
+- `salt` - Random value for address generation
+- `classHash` - Class hash of the account contract
+- `constructorCalldata` - Parameters passed to the constructor
+
+### Returns
+
+- `*felt.Felt` - Precomputed account address
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Generate random salt
+	salt := new(felt.Felt).SetUint64(12345)
+
+	// Account class hash (OpenZeppelin account)
+	classHash, _ := utils.HexToFelt("0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+
+	// Constructor calldata (public key)
+	publicKey, _ := utils.HexToFelt("0x1234...")
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	// Precompute address
+	address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+	fmt.Printf("Precomputed address: %s\n", address.String())
+
+	// This address needs to be funded before deploying the account
+	fmt.Println("Fund this address with STRK tokens before deployment")
+}
+```
+
+### Description
+
+PrecomputeAccountAddress calculates the deterministic address where an account contract will be deployed. This is essential for the account deployment flow:
+
+1. Precompute the account address
+2. Fund that address with tokens (for fees)
+3. Deploy the account contract
+4. The contract deploys to the precomputed address
+
+The address is calculated using the same algorithm as Starknet's contract address computation.
+
+### Reference
+
+See [Starknet Documentation](https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-address/) for details on address computation.
+
+### Related Functions
+
+- [BuildAndEstimateDeployAccountTxn](./methods.mdx#buildandestimatedeployaccounttxn) - Uses this function internally
+- [Account.NewAccount](./methods.mdx#newaccount) - Create account instance after deployment
+
+---
+
+## GetRandomKeys
+
+Generates a random key pair for testing and development.
+
+### Function Signature
+
+```go
+func GetRandomKeys() (ks *MemKeystore, pubKey, privKey *felt.Felt)
+```
+
+### Parameters
+
+None
+
+### Returns
+
+- `ks` - MemKeystore containing the generated private key
+- `pubKey` - Generated public key
+- `privKey` - Generated private key
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Generate random keys
+	ks, pubKey, privKey := account.GetRandomKeys()
+
+	fmt.Printf("Public Key: %s\n", pubKey.String())
+	fmt.Printf("Private Key: %s\n", privKey.String())
+
+	// Create RPC provider
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Use the keys to create an account
+	accountAddress, _ := felt.SetString("0x1234...")
+	acc, err := account.NewAccount(provider, accountAddress, pubKey.String(), ks, account.CairoV2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Sign a message
+	message := new(felt.Felt).SetUint64(42)
+	signature, err := acc.Sign(context.Background(), message)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Signature: %s, %s\n", signature[0].String(), signature[1].String())
+}
+```
+
+### Description
+
+GetRandomKeys generates a cryptographically random key pair using the Starknet curve. The private key is automatically stored in a MemKeystore indexed by the public key.
+
+This function is intended for:
+- Testing and development
+- Examples and tutorials
+- Temporary accounts
+
+For production use, implement a secure Keystore that persists keys safely.
+
+### Error Handling
+
+If key generation fails, the function prints an error message and exits. This is acceptable for testing code but should be handled differently in production.
+
+### Related Functions
+
+- [NewMemKeystore](#newmemkeystore) - Create empty keystore
+- [SetNewMemKeystore](#setnewmemkeystore) - Create keystore with specific keys
+
+---
+
+## NewMemKeystore
+
+Creates a new empty in-memory keystore.
+
+### Function Signature
+
+```go
+func NewMemKeystore() *MemKeystore
+```
+
+### Parameters
+
+None
+
+### Returns
+
+- `*MemKeystore` - New empty MemKeystore instance
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Create empty keystore
+	ks := account.NewMemKeystore()
+
+	// Add keys manually
+	publicKey := "0x1234..."
+	privateKey := new(big.Int).SetUint64(12345)
+	ks.Put(publicKey, privateKey)
+
+	// Retrieve key
+	retrievedKey, err := ks.Get(publicKey)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	fmt.Printf("Retrieved private key: %s\n", retrievedKey.String())
+}
+```
+
+### Description
+
+NewMemKeystore creates an in-memory keystore with no keys. You can add keys using the Put method.
+
+MemKeystore is:
+- Thread-safe (uses mutex)
+- Intended for testing and development
+- Not persistent (keys are lost when program exits)
+
+For production, implement a custom Keystore that securely persists keys.
+
+### Related Functions
+
+- [SetNewMemKeystore](#setnewmemkeystore) - Create keystore with initial keys
+- [GetRandomKeys](#getrandomkeys) - Generate random keys with keystore
+- [Keystore Interface](./keystore.mdx#keystore-interface) - Define custom keystores
+
+---
+
+## SetNewMemKeystore
+
+Creates a new in-memory keystore with a specified key pair.
+
+### Function Signature
+
+```go
+func SetNewMemKeystore(pub string, priv *big.Int) *MemKeystore
+```
+
+### Parameters
+
+- `pub` - Public key as hex string
+- `priv` - Private key as big.Int
+
+### Returns
+
+- `*MemKeystore` - New MemKeystore with the specified key pair
+
+### Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	// Your existing keys (in production, load these securely)
+	publicKey := "0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca"
+	privateKey, _ := new(big.Int).SetString("0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912", 16)
+
+	// Create keystore with these keys
+	ks := account.SetNewMemKeystore(publicKey, privateKey)
+
+	// Create RPC provider
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create account using the keystore
+	accountAddress, _ := utils.HexToFelt("0x1234...")
+	acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Use the account
+	nonce, err := acc.Nonce(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Account nonce: %s\n", nonce.String())
+}
+```
+
+### Description
+
+SetNewMemKeystore is a convenience function that creates a MemKeystore and immediately adds a key pair to it. This is equivalent to:
+
+```go
+ks := NewMemKeystore()
+ks.Put(pub, priv)
+```
+
+### Security Warning
+
+MemKeystore stores keys in memory without encryption. For production use:
+- Implement a secure Keystore that encrypts keys
+- Store keys in secure hardware or key management systems
+- Never hardcode private keys in source code
+- Load keys from secure environment variables or configuration
+
+### Related Functions
+
+- [NewMemKeystore](#newmemkeystore) - Create empty keystore
+- [GetRandomKeys](#getrandomkeys) - Generate random keys with keystore
+- [Keystore Interface](./keystore.mdx#keystore-interface) - Implement custom keystores

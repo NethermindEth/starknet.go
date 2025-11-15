@@ -1,0 +1,104 @@
+# PrecomputeAccountAddress
+
+Calculates the deterministic address for an account contract before deployment.
+
+## Function Signature
+
+```go
+func PrecomputeAccountAddress(
+	salt *felt.Felt,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+) *felt.Felt
+```
+
+## Parameters
+
+- `salt` - Random value for address generation
+- `classHash` - Class hash of the account contract
+- `constructorCalldata` - Parameters passed to the constructor
+
+## Returns
+
+- `*felt.Felt` - Precomputed account address
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Create a salt for the account address
+	salt, _ := new(felt.Felt).SetString("0x12345678")
+
+	// Use a standard account class hash (OpenZeppelin account contract)
+	classHash, _ := new(felt.Felt).SetString("0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+
+	// Constructor calldata - typically the public key for an account
+	publicKey, _ := new(felt.Felt).SetString("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	// Precompute the account address
+	address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+	fmt.Printf("Precomputed account address: %s\n", address)
+
+	// Test with empty constructor calldata
+	fmt.Println("\nWith empty constructor calldata:")
+	addressEmpty := account.PrecomputeAccountAddress(salt, classHash, []*felt.Felt{})
+	fmt.Printf("Precomputed account address: %s\n", addressEmpty)
+
+	// Test with different salt
+	salt2, _ := new(felt.Felt).SetString("0x87654321")
+	address2 := account.PrecomputeAccountAddress(salt2, classHash, constructorCalldata)
+	fmt.Printf("\nWith different salt (0x87654321):\nPrecomputed account address: %s\n", address2)
+}
+```
+
+## Expected Output
+
+```
+Precomputed account address: 0x24704c7725da38273659643fd01b9daa6b3811bfbf9ded39f05c02b6fa68a1f
+
+With empty constructor calldata:
+Precomputed account address: 0x50486d52f752622fce6cc467812a33151c1fe19d80dbaac5997c692a8dc5ed2
+
+With different salt (0x87654321):
+Precomputed account address: 0x597c5caf6ef950f84aa0af703352969b88ba10bf0e2d63342622b7c06a33862
+```
+
+## Description
+
+PrecomputeAccountAddress calculates the deterministic address where an account contract will be deployed. This is essential for the account deployment flow:
+
+1. Precompute the account address
+2. Fund that address with tokens (for fees)
+3. Deploy the account contract
+4. The contract deploys to the precomputed address
+
+The address is calculated using the same algorithm as Starknet's contract address computation.
+
+## Error Handling
+
+This function does not return errors. It always produces a valid address from the provided parameters.
+
+```go
+// Ensure inputs are valid
+if salt == nil || classHash == nil {
+    log.Fatal("Salt and class hash must not be nil")
+}
+
+address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
+// Safe to use address
+```
+
+## Related Methods
+
+- [BuildAndEstimateDeployAccountTxn](/docs/account/methods/build-and-estimate-deploy-account-txn) - Uses this function internally
+- [NewAccount](/docs/account/methods/new-account) - Create account instance after deployment

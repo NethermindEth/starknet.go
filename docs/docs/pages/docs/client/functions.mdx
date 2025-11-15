@@ -1,0 +1,467 @@
+# Client Functions
+
+This page documents the package-level functions available in the client package for creating clients, managing context, and working with server components.
+
+## Connection Functions
+
+### DialHTTP
+
+Creates a new JSON-RPC client connected to the given URL.
+
+#### Function Signature
+
+```go
+func DialHTTP(endpoint string) (*Client, error)
+```
+
+#### Parameters
+
+- `endpoint` - The HTTP(S) URL of the JSON-RPC server
+
+#### Returns
+
+- `*Client` - A new JSON-RPC client instance
+- `error` - Error if connection fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Connect to Starknet Sepolia testnet
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to connect:", err)
+    }
+    defer c.Close()
+
+    // Use the client for RPC calls
+}
+```
+
+### DialWebsocket
+
+Creates a new JSON-RPC client connected via WebSocket to the given URL.
+
+#### Function Signature
+
+```go
+func DialWebsocket(ctx context.Context, endpoint string, origin string) (*Client, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for connection timeout and cancellation
+- `endpoint` - The WebSocket URL (ws:// or wss://)
+- `origin` - The origin header value for the WebSocket connection
+
+#### Returns
+
+- `*Client` - A new JSON-RPC client with WebSocket transport
+- `error` - Error if connection fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    ctx := context.Background()
+
+    // Connect via WebSocket
+    c, err := client.DialWebsocket(ctx, "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+    if err != nil {
+        log.Fatal("Failed to connect:", err)
+    }
+    defer c.Close()
+
+    // Use the client for RPC calls and subscriptions
+}
+```
+
+## Context Functions
+
+### NewContextWithHeaders
+
+Creates a new context with HTTP headers that will be applied by the Client when making requests.
+
+#### Function Signature
+
+```go
+func NewContextWithHeaders(ctx context.Context, h http.Header) context.Context
+```
+
+#### Parameters
+
+- `ctx` - The parent context
+- `h` - HTTP headers to attach to requests
+
+#### Returns
+
+- `context.Context` - A new context with headers attached
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "net/http"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create client
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Create context with custom headers
+    headers := http.Header{}
+    headers.Set("X-API-Key", "your-api-key")
+    headers.Set("User-Agent", "MyStarknetApp/1.0")
+
+    ctx := client.NewContextWithHeaders(context.Background(), headers)
+
+    // Make RPC call with custom headers
+    var result string
+    err = c.CallContext(ctx, &result, "starknet_specVersion")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Spec Version: %s\n", result)
+}
+```
+
+#### Use Cases
+
+- Adding authentication tokens to requests
+- Setting custom User-Agent headers
+- Adding rate limiting headers
+- Request tracking and correlation IDs
+
+### ContextRequestTimeout
+
+Retrieves the request timeout from the given context.
+
+#### Function Signature
+
+```go
+func ContextRequestTimeout(ctx context.Context) (time.Duration, bool)
+```
+
+#### Parameters
+
+- `ctx` - Context to extract timeout from
+
+#### Returns
+
+- `time.Duration` - The timeout duration
+- `bool` - True if timeout is set, false otherwise
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Create context with timeout
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+
+    // Check if timeout is set
+    timeout, hasTimeout := client.ContextRequestTimeout(ctx)
+    if hasTimeout {
+        fmt.Printf("Request timeout: %v\n", timeout)
+    } else {
+        fmt.Println("No timeout set")
+    }
+}
+```
+
+## ID Generation
+
+### NewID
+
+Generates a new random ID for use with RPC subscriptions.
+
+#### Function Signature
+
+```go
+func NewID() ID
+```
+
+#### Returns
+
+- `ID` - A new unique identifier
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "fmt"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Generate a new subscription ID
+    id := client.NewID()
+    fmt.Printf("Generated ID: %v\n", id)
+}
+```
+
+#### Notes
+
+This function is typically used internally by the client for subscription management, but can be useful when building custom RPC servers or managing subscription lifecycles manually.
+
+## Server Functions
+
+### NewServer
+
+Creates a new RPC server instance.
+
+#### Function Signature
+
+```go
+func NewServer() *Server
+```
+
+#### Returns
+
+- `*Server` - A new RPC server instance
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+// ExampleService is a sample RPC service
+type ExampleService struct{}
+
+// Echo is a simple RPC method
+func (s *ExampleService) Echo(msg string) string {
+    return msg
+}
+
+func main() {
+    // Create new RPC server
+    server := client.NewServer()
+
+    // Register service
+    err := server.RegisterName("example", new(ExampleService))
+    if err != nil {
+        log.Fatal("Failed to register service:", err)
+    }
+
+    // Serve over HTTP
+    http.Handle("/rpc", server)
+    log.Println("RPC server listening on :8080")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+## Context Extraction Functions
+
+### NotifierFromContext
+
+Extracts a Notifier from the given context. This is used on the server side to send notifications to subscribed clients.
+
+#### Function Signature
+
+```go
+func NotifierFromContext(ctx context.Context) (*Notifier, bool)
+```
+
+#### Parameters
+
+- `ctx` - Context containing the Notifier
+
+#### Returns
+
+- `*Notifier` - The Notifier instance
+- `bool` - True if Notifier was found, false otherwise
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+// SubscriptionService provides subscription functionality
+type SubscriptionService struct{}
+
+// Subscribe creates a new subscription
+func (s *SubscriptionService) Subscribe(ctx context.Context, eventType string) (*client.Subscription, error) {
+    // Get notifier from context
+    notifier, ok := client.NotifierFromContext(ctx)
+    if !ok {
+        log.Fatal("No notifier in context")
+    }
+
+    // Create subscription
+    sub := notifier.CreateSubscription()
+
+    // Send notifications in a goroutine
+    go func() {
+        for {
+            // Send notification to subscriber
+            err := notifier.Notify(sub.ID, "event data")
+            if err != nil {
+                return
+            }
+        }
+    }()
+
+    return sub, nil
+}
+```
+
+### PeerInfoFromContext
+
+Extracts peer information from the given context. This is useful for identifying the client making requests.
+
+#### Function Signature
+
+```go
+func PeerInfoFromContext(ctx context.Context) (*PeerInfo, bool)
+```
+
+#### Parameters
+
+- `ctx` - Context containing peer information
+
+#### Returns
+
+- `*PeerInfo` - Information about the peer connection
+- `bool` - True if peer info was found, false otherwise
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+// AuthService provides authentication
+type AuthService struct{}
+
+// GetClientInfo returns information about the connected client
+func (s *AuthService) GetClientInfo(ctx context.Context) (map[string]string, error) {
+    // Get peer info from context
+    peerInfo, ok := client.PeerInfoFromContext(ctx)
+    if !ok {
+        return nil, fmt.Errorf("no peer info available")
+    }
+
+    info := map[string]string{
+        "transport": peerInfo.Transport,
+        "address":   peerInfo.RemoteAddr,
+    }
+
+    return info, nil
+}
+```
+
+## Related Documentation
+
+- [Client Methods](/docs/client/methods) - Methods available on the Client type
+- [Types](/docs/client/types) - Type definitions including Server, Notifier, and PeerInfo
+- [WebSocket Example](/docs/examples/websocket) - Complete WebSocket subscription example
+- [RPC Methods](/docs/rpc/) - High-level Starknet RPC methods
+
+## Best Practices
+
+### Connection Management
+
+Always defer `Close()` when creating clients:
+
+```go
+c, err := client.DialHTTP(url)
+if err != nil {
+    return err
+}
+defer c.Close()
+```
+
+### Context Usage
+
+Use context for timeout and cancellation:
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+err := c.CallContext(ctx, &result, method, args)
+```
+
+### Header Management
+
+Set headers once in context for multiple requests:
+
+```go
+headers := http.Header{}
+headers.Set("Authorization", "Bearer "+token)
+ctx := client.NewContextWithHeaders(context.Background(), headers)
+
+// All calls with this context will include headers
+c.CallContext(ctx, &result1, method1)
+c.CallContext(ctx, &result2, method2)
+```
+
+### WebSocket vs HTTP
+
+- Use HTTP for simple request/response operations
+- Use WebSocket for subscriptions and real-time updates
+- WebSocket supports bidirectional communication
+- HTTP has lower overhead for single requests

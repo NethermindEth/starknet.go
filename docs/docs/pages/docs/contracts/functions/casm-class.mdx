@@ -1,0 +1,36 @@
+# CasmClass (Type)
+
+Represents a compiled CASM (Cairo Assembly) contract class.
+
+## Type Definition
+
+```go
+type CasmClass struct {
+    EntryPointsByType      CasmEntryPointsByType
+    ByteCode              []*felt.Felt
+    Prime                 NumAsHex
+    CompilerVersion       string
+    Hints                 []Hints
+    BytecodeSegmentLengths *NestedUints
+}
+```
+
+## Fields
+
+- `ByteCode` - Compiled Cairo bytecode instructions
+- `EntryPointsByType` - Entry points (constructor, external, L1 handler)
+- `Prime` - Field prime for arithmetic
+- `CompilerVersion` - Cairo compiler version
+- `Hints` - Execution hints for the VM
+
+## Usage
+
+```go
+casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
+compiledHash, _ := hash.CompiledClassHash(casmClass)
+```
+
+## Related Functions
+
+- [UnmarshalCasmClass](/docs/contracts/functions/unmarshal-casm-class)
+- [hash.CompiledClassHash](/docs/hash/functions/compiled-class-hash)

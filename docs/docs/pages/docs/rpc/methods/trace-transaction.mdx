@@ -28,6 +28,7 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
@@ -35,7 +36,14 @@ import (
 
 func main() {
     // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
@@ -44,7 +52,7 @@ func main() {
     txHash, _ := new(felt.Felt).SetString("0x0487bcdd78ea9f9512ba1c772114f851dc1dc057a23b27d6f2ffe2c84f97140d")
 
     // Trace the transaction
-    trace, err := client.TraceTransaction(context.Background(), txHash)
+    trace, err := client.TraceTransaction(ctx, txHash)
     if err != nil {
         log.Fatal("Failed to trace transaction:", err)
     }
@@ -179,14 +187,6 @@ Transaction Trace:
 }
 ```
 
-## Use Cases
-
-- Debug transaction failures by examining the exact execution flow
-- Analyze gas consumption patterns for transaction optimization
-- Understand nested contract calls and their interactions
-- Audit transaction execution for security analysis
-- Monitor events and messages emitted during transaction execution
-
 ## Error Handling
 
 Common errors include network timeouts and invalid transaction hashes. Always check the error before using the returned value.
@@ -199,3 +199,9 @@ if err != nil {
 }
 // Safe to use trace
 ```
+
+## Related Methods
+
+- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Simulate transactions before sending them
+- [TraceBlockTransactions](/docs/rpc/methods/trace-block-transactions) - Trace all transactions in a block
+- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Get transaction execution results

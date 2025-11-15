@@ -1,22 +1,91 @@
 # StateUpdate
 
-Gets the state changes that occurred in a specific block.
+Retrieves the complete state changes that occurred in a specific block. This includes storage updates, newly declared contract classes, deployed contract instances, replaced classes, and nonce updates. StateUpdate is essential for blockchain indexing, analytics, state verification, and understanding how the blockchain state transitions from one block to the next. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
+func (provider *Provider) StateUpdate(
+    ctx context.Context,
+    blockID BlockID,
+) (*StateUpdateOutput, error)
 ```
+
+**Source:** [block.go:L144-L154](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L144-L154)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier (number, hash, or tag)
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag like "latest" or "pending")
 
 ## Returns
 
-- `*StateUpdateOutput` - State changes in the block
-- `error` - Error if the request fails
+- `*StateUpdateOutput`: The state changes that occurred in the block
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrBlockNotFound` if the specified block doesn't exist.
+:::
+
+## Type Definitions
+
+### BlockID
+
+The `blockID` parameter specifies which block to retrieve. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
+
+
+### StateUpdateOutput
+
+```go
+type StateUpdateOutput struct {
+    BlockHash *felt.Felt `json:"block_hash"`
+    NewRoot   *felt.Felt `json:"new_root"`
+    PreConfirmedStateUpdate
+}
+```
+
+**Source:** [types.go:L84-L90](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L84-L90)
+
+The state update includes:
+- **Storage Diffs**: Changes to contract storage
+- **Declared Classes**: New contract classes declared
+- **Deployed Contracts**: New contract instances deployed
+- **Replaced Classes**: Contract class upgrades
+- **Nonces**: Account nonce updates
 
 ## Usage Example
 
@@ -25,168 +94,74 @@ package main
 
 import (
     "context"
-    "encoding/json"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
     }
 
     // Get state update for latest block
     blockID := rpc.WithBlockTag("latest")
-    stateUpdate, err := client.StateUpdate(context.Background(), blockID)
+    stateUpdate, err := provider.StateUpdate(context.Background(), blockID)
     if err != nil {
-        log.Fatal("Failed to get state update:", err)
+        log.Fatal(err)
     }
 
-    // Pretty print the state changes
-    updateJSON, _ := json.MarshalIndent(stateUpdate, "", "  ")
-    fmt.Printf("State update:\n%s\n", updateJSON)
+    fmt.Printf("Block Hash: %s\n", stateUpdate.BlockHash)
+    fmt.Printf("New Root: %s\n", stateUpdate.NewRoot)
+    fmt.Printf("Old Root: %s\n", stateUpdate.OldRoot)
+    fmt.Printf("Storage Diffs: %d contracts\n", len(stateUpdate.StateDiff.StorageDiffs))
+    fmt.Printf("Declared Classes: %d\n", len(stateUpdate.StateDiff.DeclaredClasses))
+    fmt.Printf("Deployed Contracts: %d\n", len(stateUpdate.StateDiff.DeployedContracts))
+    fmt.Printf("Nonce Updates: %d\n", len(stateUpdate.StateDiff.Nonces))
 }
 ```
 
-## Expected Output
-
-```json
-{
-  "block_hash": "0x7dafd1c3b9528780436909cc87ee0e2664ad26acd96b94694403f52d01d7ee2",
-  "new_root": "0x686b7282c926043418d05a5cf1b2d8b5e05b347c2c6982cf72fa748a95ce52a",
-  "old_root": "0x23df43b282c9e90c115d380d6a5abac2bce9b0ee810bad8c2018eefc285d0e7",
-  "state_diff": {
-    "storage_diffs": [
-      {
-        "address": "0x1",
-        "storage_entries": [
-          {
-            "key": "0x199278",
-            "value": "0xda9340ddb566caf708566bdcf88f0160f1df449d6feb4418f771f91fc70de6"
-          }
-        ]
-      }
-    ],
-    "deprecated_declared_classes": [],
-    "declared_classes": [],
-    "deployed_contracts": [],
-    "replaced_classes": [],
-    "nonces": []
-  }
-}
-```
-
-Shows the old and new state roots, plus all state changes including storage updates, contract deployments, and nonce changes.
-
-## Analyze Contract Changes Example
-
-```go
-// Analyze what changed in a specific block
-blockNumber := uint64(1500000)
-blockID := rpc.WithBlockNumber(blockNumber)
-
-stateUpdate, err := client.StateUpdate(context.Background(), blockID)
-if err != nil {
-    log.Fatal("Failed to get state update:", err)
-}
-
-fmt.Printf("State changes in block %d:\n", blockNumber)
-fmt.Printf("Old state root: %s\n", stateUpdate.OldRoot.String())
-fmt.Printf("New state root: %s\n", stateUpdate.NewRoot.String())
-
-// Check for storage changes
-if len(stateUpdate.StateDiff.StorageDiffs) > 0 {
-    fmt.Printf("Storage changes detected in %d contracts\n", len(stateUpdate.StateDiff.StorageDiffs))
-}
-
-// Check for new contracts
-if len(stateUpdate.StateDiff.DeployedContracts) > 0 {
-    fmt.Printf("New contracts deployed: %d\n", len(stateUpdate.StateDiff.DeployedContracts))
-}
-```
-
-## StateUpdateOutput Structure
-
-**Root Information:**
-- `block_hash` - Hash of the block containing these changes
-- `old_root` - State root before applying transactions
-- `new_root` - State root after applying all transactions
-
-**State Diff Components:**
-- `storage_diffs` - Storage slot changes per contract address
-- `declared_classes` - New contract classes declared
-- `deprecated_declared_classes` - Legacy declared classes
-- `deployed_contracts` - New contract instances deployed
-- `replaced_classes` - Contract class upgrades
-- `nonces` - Account nonce updates
-
-## Use Cases
-
-- **State Tracking** - Monitor how contract states change over time
-- **Contract Monitoring** - Watch for changes to specific contracts
-- **Audit Trails** - Create complete audit logs of state modifications
-- **Analytics** - Analyze network activity and contract usage patterns
-- **Debugging** - Understand what changed when debugging issues
-- **Indexing** - Build state-aware blockchain indexers
-- **Compliance** - Track state changes for regulatory purposes
-
-## Monitor Specific Contract Example
-
-```go
-// Monitor specific contract for changes
-contractAddress := "0x1" // System contract address
-
-stateUpdate, err := client.StateUpdate(context.Background(), blockID)
-if err != nil {
-    log.Fatal(err)
-}
-
-// Check if the specific contract had any storage changes
-found := false
-for _, storageDiff := range stateUpdate.StateDiff.StorageDiffs {
-    if storageDiff.Address.String() == contractAddress {
-        fmt.Printf("Contract %s had %d storage changes!\n", 
-            contractAddress, len(storageDiff.StorageEntries))
-        
-        // Show each storage change
-        for _, entry := range storageDiff.StorageEntries {
-            fmt.Printf("  Key: %s -> Value: %s\n", entry.Key, entry.Value)
-        }
-        found = true
-        break
-    }
-}
-
-if !found {
-    fmt.Printf("No storage changes for contract %s\n", contractAddress)
-}
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-stateUpdate, err := client.StateUpdate(ctx, blockID)
+stateUpdate, err := provider.StateUpdate(ctx, blockID)
 if err != nil {
-    log.Printf("Error getting state update: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrBlockNotFound):
+        log.Printf("Block not found")
+    default:
+        log.Printf("Failed to get state update: %v", err)
+    }
     return
 }
 
-if stateUpdate == nil {
-    log.Printf("No state update returned")
-    return
-}
-
-fmt.Printf("Processing state changes from %s to %s\n", 
-    stateUpdate.OldRoot.String(), stateUpdate.NewRoot.String())
+fmt.Printf("Successfully retrieved state update\n")
 ```
 
-## Performance Notes
+## Common Use Cases
 
-- Can return large amounts of data for blocks with many state changes
-- Consider filtering or processing data incrementally for busy blocks
-- State updates are essential for maintaining synchronized state
-- Empty arrays indicate no changes of that type occurred
+- Indexing all state changes for analytics and querying. See [example](/docs/rpc/examples#blockchain-indexing).
+- Tracking contract deployments, upgrades, and storage changes.
+- Verifying state root transitions and state consistency.
+- Creating complete audit logs of all state modifications in each block.

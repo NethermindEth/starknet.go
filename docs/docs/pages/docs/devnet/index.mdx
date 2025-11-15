@@ -1,27 +1,203 @@
-# Devnet Package
+# DevNet Package
 
-The Devnet package provides functionality for working with Starknet development networks. This package contains various components and utilities for managing and interacting with Starknet development networks.
+The DevNet package provides functionality for interacting with a Starknet development network for testing and development purposes. It enables developers to manage test accounts, mint tokens, and verify network connectivity during local development.
 
 ## Overview
 
-The Devnet package includes:
-- Devnet setup
-- Devnet usage
-- Devnet utilities
+The DevNet package is designed to work with [starknet-devnet](https://github.com/0xSpaceShard/starknet-devnet-rs), a local Starknet node implementation. It provides:
 
-## Available Submodules
+- Connection management to local DevNet instances
+- Pre-funded test account retrieval
+- Token minting for testing
+- Network health checks
+- Fee token information access
 
-- [Devnet Setup](/docs/devnet/setup)
-- [Devnet Usage](/docs/devnet/usage)
+## Purpose
 
-## Getting Started
+DevNet is essential for:
 
-To use the Devnet package, import it in your Go code:
+- **Local Development**: Test contracts and transactions without deploying to testnet
+- **Automated Testing**: Create reproducible test environments with pre-funded accounts
+- **Rapid Iteration**: Quickly deploy and test contracts with instant block times
+- **Cost-Free Testing**: No need for testnet tokens or gas fees
+
+## Quick Example
 
 ```go
-import "github.com/NethermindEth/starknet.go/devnet"
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/devnet"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Connect to local DevNet (default: http://localhost:5050)
+	devNet := devnet.NewDevNet()
+
+	// Check if DevNet is running
+	if !devNet.IsAlive() {
+		log.Fatal("DevNet is not running. Start it with: starknet-devnet")
+	}
+
+	// Get pre-funded test accounts
+	accounts, err := devNet.Accounts()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Found %d pre-funded accounts\n", len(accounts))
+	fmt.Printf("First account address: %s\n", accounts[0].Address)
+	fmt.Printf("First account private key: %s\n", accounts[0].PrivateKey)
+
+	// Mint tokens to a specific address
+	address, _ := utils.HexToFelt("0x1234...")
+	amount := big.NewInt(1000000000000000000) // 1 token
+
+	mintResp, err := devNet.Mint(address, amount)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Minted %s %s\n", mintResp.NewBalance, mintResp.Unit)
+	fmt.Printf("Transaction hash: %s\n", mintResp.TransactionHash)
+
+	// Get fee token information
+	feeToken, err := devNet.FeeToken()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Fee token: %s at %s\n", feeToken.Symbol, feeToken.Address.String())
+}
 ```
+
+## Testing Workflow
+
+Typical DevNet testing workflow:
+
+1. **Start DevNet**: Run `starknet-devnet` or use Docker
+2. **Connect**: Create DevNet instance with `NewDevNet()`
+3. **Verify**: Check connection with `IsAlive()`
+4. **Get Accounts**: Retrieve pre-funded accounts with `Accounts()`
+5. **Mint Tokens**: Add tokens to test addresses with `Mint()`
+6. **Test**: Deploy and interact with contracts using RPC provider
+7. **Repeat**: Reset DevNet state or restart for clean tests
+
+## DevNet Setup
+
+Before using this package, you need a running DevNet instance:
+
+### Using Binary
+
+```bash
+# Install
+cargo install starknet-devnet
+
+# Run with default settings
+starknet-devnet
+
+# Run on custom port
+starknet-devnet --port 5051
+```
+
+### Using Docker
+
+```bash
+# Pull image
+docker pull shardlabs/starknet-devnet-rs:latest
+
+# Run DevNet
+docker run -p 5050:5050 shardlabs/starknet-devnet-rs:latest
+```
+
+### Using Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  starknet-devnet:
+    image: shardlabs/starknet-devnet-rs:latest
+    ports:
+      - "5050:5050"
+    command: --seed 42
+```
+
+## Package Structure
+
+- [DevNet Methods](./methods.mdx) - Methods for interacting with DevNet
+- [Types](./types.mdx) - Type definitions used in the package
+
+## Integration with RPC
+
+DevNet is typically used alongside the RPC provider:
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/devnet"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Connect to DevNet
+	devNet := devnet.NewDevNet()
+
+	// Get a test account
+	accounts, err := devNet.Accounts()
+	if err != nil {
+		log.Fatal(err)
+	}
+	testAccount := accounts[0]
+
+	// Create RPC provider pointing to DevNet
+	provider, err := rpc.NewProvider("http://localhost:5050/rpc")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Parse keys and address
+	privateKey, _ := utils.HexToFelt(testAccount.PrivateKey)
+	publicKey, _ := utils.HexToFelt(testAccount.PublicKey)
+	address, _ := utils.HexToFelt(testAccount.Address)
+
+	// Create account for transactions
+	ks := account.NewMemKeystore()
+	ks.Put(publicKey.String(), privateKey)
+
+	acc, err := account.NewAccount(
+		provider,
+		address,
+		publicKey.String(),
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Now use acc to send transactions on DevNet
+	// ...
+}
+```
+
+## Related Packages
+
+- [RPC Provider](../rpc/) - For blockchain interactions
+- [Account](../account/) - For transaction signing and sending
+- [Utils](../utils/) - For address and felt conversions
 
 ## Version
 
-This documentation is based on version v0.8.1 of the Starknet.go library. 
+This documentation is based on the latest version of starknet.go. For DevNet compatibility, use starknet-devnet-rs v0.1.0 or later.
