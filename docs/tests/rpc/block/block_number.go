@@ -1,37 +1,39 @@
 package main
-
+ 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/joho/godotenv"
+    "context"
+    "fmt"
+    "log"
+    "os"
+ 
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	// Load environment variables
-	godotenv.Load(".env")
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
-	}
-
-	// Create context
-	ctx := context.Background()
-
-	// Create RPC client
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
-
-	// Get latest block number
-	blockNumber, err := client.BlockNumber(ctx)
-	if err != nil {
-		log.Fatal("Failed to get block number:", err)
-	}
-
-	fmt.Printf("Block Number: %d\n", blockNumber)
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+ 
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+ 
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    // Get latest block number
+    blockNumber, err := provider.BlockNumber(context.Background())
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    fmt.Printf("Latest block number: %d\n", blockNumber)
 }
