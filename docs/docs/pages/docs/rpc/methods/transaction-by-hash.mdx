@@ -1,22 +1,31 @@
 # TransactionByHash
 
-Gets the details of a transaction by its hash.
+Gets the complete details of a transaction by its hash. This method returns full transaction information including type, calldata, signatures, resource bounds, and all transaction-specific fields. This is essential for transaction verification, analysis, and displaying transaction details. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+func (provider *Provider) TransactionByHash(
+    ctx context.Context,
+    hash *felt.Felt,
+) (*BlockTransaction, error)
 ```
+
+**Source:** [transaction.go:L19-L29](https://github.com/NethermindEth/starknet.go/blob/main/rpc/transaction.go#L19-L29)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `hash` - Transaction hash as a felt.Felt
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `hash` (*felt.Felt): The transaction hash to look up
 
 ## Returns
 
-- `*BlockTransaction` - Complete transaction details
-- `error` - Error if the request fails
+- `*BlockTransaction`: Complete transaction details
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrHashNotFound` if the transaction hash doesn't exist.
+:::
 
 ## Usage Example
 
@@ -28,47 +37,43 @@ import (
     "encoding/json"
     "fmt"
     "log"
-	"os"
+    "os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
     "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
-
-	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
     }
 
-    // First, get the latest block to see recent transactions
-    latestBlock, err := client.BlockWithTxHashes(ctx, rpc.WithBlockTag("latest"))
-    if err != nil {
-        log.Fatal("Failed to get latest block:", err)
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
     }
 
-    // Print block info to see available transactions
-    blockJSON, _ := json.Marshal(latestBlock)
-    fmt.Printf("Latest block info: %s\n\n", blockJSON)
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    // Now get a specific transaction by hash
+    // Parse transaction hash
     txHashStr := "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa"
     txHash, err := new(felt.Felt).SetString(txHashStr)
     if err != nil {
-        log.Fatal("Failed to parse transaction hash:", err)
+        log.Fatal(err)
     }
 
     // Get transaction by hash
-    transaction, err := client.TransactionByHash(ctx, txHash)
+    transaction, err := provider.TransactionByHash(context.Background(), txHash)
     if err != nil {
-        log.Fatal("Failed to get transaction:", err)
+        log.Fatal(err)
     }
 
     // Pretty print the result
@@ -76,63 +81,33 @@ func main() {
     fmt.Printf("Transaction details:\n%s\n", txJSON)
 }
 ```
-:::note
-The example uses `BlockWithTxHashes` to get the latest block's transaction list first. This method returns a block with transaction hashes only (lightweight). See [BlockWithTxHashes](/docs/rpc/methods/block-with-tx-hashes) for more details.
-:::
-## Expected Output
 
-```
-Latest block info: {"block_hash":"0x1a4d50e1a2e86cf008fbaa538757d639afc50ce42a0627cc78368f99390e7f4","parent_hash":"0x11c4d30dbd225e1ae92227a1c7ebed3df4b46a977b8404b97be6e0cb07848e3","block_number":2734308,"new_root":"0x386d7e5717baf34b0bbca7daa83b8b4156e09c2a38cb5b5e9780f35d14daaf8","timestamp":1761907661,"sequencer_address":"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8","l1_gas_price":{"price_in_fri":"0x1b8c1bd4d2d6","price_in_wei":"0x3b9aca09"},"l2_gas_price":{"price_in_fri":"0xb2d05e00","price_in_wei":"0x182e7"},"l1_data_gas_price":{"price_in_fri":"0x7650","price_in_wei":"0x1"},"l1_da_mode":"BLOB","starknet_version":"0.14.0","status":"ACCEPTED_ON_L2","transactions":["0x74da930533aa6179f6efc9629d38ea01d7961ed6c003fcc487244dc52090c40","0x571b4a982d33ab19eeb044d69bc49204e875630aef4e0677110287069e1a9e3","0x39d936110635e2a1497b500e183eca4dd1b4503c9926f5ab8bc08dcbbf1794d","0xe5e865f8f88549bd44effe6cacf0a301627bc181770af16fd0a4ce098116d1","0x3efdaed8fac51217db9857fa98af60f622a2363fe43a8c9e33e303ad3c95a95","0x294c2016cb4c570d591758d4ecdc91fb98aae4b878d7961b97369f7e2d6c0b8","0x23dc196d10e148db2708dc245bdc10e1e0c2b72f92a2f690743df36bab0b7d7","0xc8c77f0e05c9234d13b39ff283e28ad43100ce5955aa3b426f51de20c64e45","0x6a2be0aaf1db5b11cc442b69c4341abb9e1c7577f8fe498379d936049ef1cef","0x7c52a73c7110676614ab76893b61d2bfd9fef4b804788c0d2eda38fa430183b","0x7c089314429e66a40c994104882e77c05e16dfb92551a007015dfcafe6f367f","0x779403cf266f89723a52580eac31d9fef30b17c9508e4e43382e31e30b814ae","0x36541b85a38d84b0f4fa5a91509ae232c7573404a61d000635495831f6f1783"]}
-
-Transaction details:
-{
-  "account_deployment_data": [],
-  "calldata": [
-    "0x16",
-    "0x36970a65c6b1e9e2d85e724a1517ee6a9a7c106fcc2c8f384ed839c1176e5c0",
-    "0x287f639b99cb45c7554126ab864326d3ccd832c1ae40ef3530b37107721c6d2",
-    ... (337 more entries)
-  ],
-  "fee_data_availability_mode": "L1",
-  "nonce": "0x15a7c",
-  "nonce_data_availability_mode": "L1",
-  "paymaster_data": [],
-  "resource_bounds": {
-    "l1_data_gas": {
-      "max_amount": "0x9600",
-      "max_price_per_unit": "0x5adca"
-    },
-    "l1_gas": {
-      "max_amount": "0x0",
-      "max_price_per_unit": "0x1566a00e5d302"
-    },
-    "l2_gas": {
-      "max_amount": "0x2540be400",
-      "max_price_per_unit": "0x6fc23ac00"
-    }
-  },
-  "sender_address": "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-  "signature": [
-    "0x237b47a4359ff52a65f86bc54d2a7ac41f5e96f5f84ee2e87931bcb079bc2fe",
-    "0x8d719bd60fefc6abc396d61a2e82cbab4656f0e25df265ba77647b3bdd6800"
-  ],
-  "tip": "0x0",
-  "transaction_hash": "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
-  "type": "INVOKE",
-  "version": "0x3"
-}
-```
 :::note
-Note: The calldata array contains 340 entries total but is truncated here for brevity. The actual response includes all entries.
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
 :::
+
+
 ## Error Handling
 
 ```go
-transaction, err := client.TransactionByHash(ctx, txHash)
+transaction, err := provider.TransactionByHash(ctx, txHash)
 if err != nil {
-    log.Printf("Error getting transaction: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrHashNotFound):
+        log.Printf("Transaction not found")
+    default:
+        log.Printf("Failed to get transaction: %v", err)
+    }
     return
 }
 
-fmt.Printf("Retrieved transaction: %s\n", transaction.Hash.String())
+fmt.Printf("Transaction type: %s\n", transaction.Type())
 ```
+
+## Common Use Cases
+
+- Verifying transaction details and status.
+- Analyzing transaction calldata, signatures, and resource usage.
+- Displaying complete transaction information to users.
+- Debuging failed transactions by examining their details.
+
