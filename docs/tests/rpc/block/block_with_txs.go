@@ -1,45 +1,43 @@
 package main
-
+ 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/joho/godotenv"
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+    "os"
+ 
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	// Load environment variables
-	godotenv.Load(".env")
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
-	}
-
-	// Create context
-	ctx := context.Background()
-
-	// Create RPC client
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
-
-	// Get block with full transactions using latest block tag
-	blockID := rpc.WithBlockTag("latest")
-	block, err := client.BlockWithTxs(ctx, blockID)
-	if err != nil {
-		log.Fatal("Failed to get block with transactions:", err)
-	}
-
-	// Convert to JSON for readable output
-	blockJSON, err := json.MarshalIndent(block, "", "  ")
-	if err != nil {
-		log.Fatal("Failed to marshal block:", err)
-	}
-
-	fmt.Printf("Block with Transactions:\n%s\n", string(blockJSON))
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+ 
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+ 
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    // Get latest block with full transaction details
+    blockID := rpc.WithBlockTag("latest")
+    block, err := provider.BlockWithTxs(context.Background(), blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    // Pretty print the result
+    blockJSON, _ := json.MarshalIndent(block, "", "  ")
+    fmt.Printf("Block with transactions:\n%s\n", blockJSON)
 }

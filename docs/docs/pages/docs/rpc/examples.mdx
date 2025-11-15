@@ -2,6 +2,150 @@
 
 Comprehensive examples for using Starknet RPC methods.
 
+## <span id="block-with-txs">BlockWithTxs Examples</span>
+
+### Transaction Analysis
+
+Analyze all transactions in a block with full details:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get latest block with full transactions
+    blockID := rpc.WithBlockTag("latest")
+    result, err := provider.BlockWithTxs(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to Block
+    block, ok := result.(*rpc.Block)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    fmt.Printf("Block #%d (%s)\n", block.Number, block.Hash)
+    fmt.Printf("Total transactions: %d\n\n", len(block.Transactions))
+
+    // Analyze transactions by type
+    txTypes := make(map[string]int)
+    for _, tx := range block.Transactions {
+        txType := tx.Type()
+        txTypes[txType]++
+    }
+
+    fmt.Println("Transaction types:")
+    for txType, count := range txTypes {
+        fmt.Printf("  %s: %d\n", txType, count)
+    }
+}
+```
+
+### Block Explorer
+
+Display complete block information including all transaction data:
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get specific block by number
+    blockID := rpc.WithBlockNumber(100000)
+    result, err := provider.BlockWithTxs(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Type assert to Block
+    block, ok := result.(*rpc.Block)
+    if !ok {
+        log.Fatal("Unexpected block type")
+    }
+
+    // Display block header information
+    fmt.Printf("=== Block #%d ===\n", block.Number)
+    fmt.Printf("Hash: %s\n", block.Hash)
+    fmt.Printf("Parent Hash: %s\n", block.ParentHash)
+    fmt.Printf("Timestamp: %d\n", block.Timestamp)
+    fmt.Printf("Sequencer: %s\n", block.SequencerAddress)
+    fmt.Printf("Status: %s\n", block.Status)
+    fmt.Printf("Starknet Version: %s\n", block.StarknetVersion)
+    fmt.Printf("\n")
+
+    // Display transactions
+    fmt.Printf("Transactions (%d):\n", len(block.Transactions))
+    for i, tx := range block.Transactions {
+        fmt.Printf("\n%d. Type: %s\n", i+1, tx.Type())
+
+        // Pretty print transaction details
+        txJSON, _ := json.MarshalIndent(tx, "   ", "  ")
+        fmt.Printf("   %s\n", txJSON)
+    }
+}
+```
+
 ## <span id="block-hash-and-number">BlockHashAndNumber Examples</span>
 
 ### Efficient Block Tracking
