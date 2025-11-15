@@ -131,7 +131,7 @@ export const sidebar: Sidebar = {
             },
             {
               text: "MessagesStatus",
-              link: "/docs/rpc/methods/get-messages-status",
+              link: "/docs/rpc/methods/messages-status",
             },
           ],
         },
