@@ -81,7 +81,6 @@ export const sidebar: Sidebar = {
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/rpc/" },
-        { text: "Helper Functions", link: "/docs/rpc/helper-functions" },
         {
           text: "Block Methods",
           collapsed: true,
