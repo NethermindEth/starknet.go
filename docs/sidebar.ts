@@ -123,11 +123,11 @@ export const sidebar: Sidebar = {
             },
             {
               text: "TransactionStatus",
-              link: "/docs/rpc/methods/get-transaction-status",
+              link: "/docs/rpc/methods/transaction-status",
             },
             {
               text: "TransactionByBlockIdAndIndex",
-              link: "/docs/rpc/methods/get-transaction-by-block-id-and-index",
+              link: "/docs/rpc/methods/transaction-by-block-id-and-index",
             },
             {
               text: "MessagesStatus",
