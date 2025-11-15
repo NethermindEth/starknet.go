@@ -20,9 +20,8 @@ func (pm *Paymaster) ExecuteTransaction(
 
 ```go
 type ExecuteTransactionRequest struct {
-    Calls         []rpc.FunctionCall
-    PaymasterData []*felt.Felt
-    TrackingID    *felt.Felt
+    Transaction ExecutableUserTransaction `json:"transaction"`
+    Parameters  UserParameters             `json:"parameters"`
 }
 ```
 
@@ -30,7 +29,8 @@ type ExecuteTransactionRequest struct {
 
 ```go
 type ExecuteTransactionResponse struct {
-    TransactionHash *felt.Felt
+    TrackingID      *felt.Felt `json:"tracking_id"`
+    TransactionHash *felt.Felt `json:"transaction_hash"`
 }
 ```
 

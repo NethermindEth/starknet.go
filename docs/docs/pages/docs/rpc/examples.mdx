@@ -1,142 +1,658 @@
 # RPC Examples
 
-The RPC examples submodule provides examples of how to use the Starknet RPC.
+Comprehensive examples for using Starknet RPC methods.
 
-## Basic Examples
+## <span id="block-hash-and-number">BlockHashAndNumber Examples</span>
 
-### Getting a Block
+### Efficient Block Tracking
+
+Get both hash and number in one call instead of making two separate requests:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
+    "time"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Get a block by number
-    block, err := rpc.GetBlockByNumber(1)
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Block hash: %s\n", block.Hash)
-    fmt.Printf("Block number: %d\n", block.Number)
-    fmt.Printf("Block timestamp: %d\n", block.Timestamp)
+    ctx := context.Background()
+
+    // Track block changes efficiently
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    var lastBlockHash string
+    fmt.Println("Tracking blocks...")
+
+    for range ticker.C {
+        result, err := provider.BlockHashAndNumber(ctx)
+        if err != nil {
+            log.Printf("Error: %v", err)
+            continue
+        }
+
+        currentHash := result.Hash.String()
+
+        // Detect new block
+        if currentHash != lastBlockHash {
+            fmt.Printf("New block detected!\n")
+            fmt.Printf("  Number: %d\n", result.Number)
+            fmt.Printf("  Hash: %s\n", currentHash)
+            lastBlockHash = currentHash
+        } else {
+            fmt.Printf("Still on block %d\n", result.Number)
+        }
+    }
 }
 ```
 
-### Getting a Transaction
+### Block Verification
+
+Verify you have the correct block by checking both its number and hash:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
 
+    "github.com/NethermindEth/juno/core/felt"
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
+func verifyBlock(ctx context.Context, provider *rpc.Provider, expectedNumber uint64, expectedHash string) error {
+    result, err := provider.BlockHashAndNumber(ctx)
+    if err != nil {
+        return fmt.Errorf("failed to get block info: %w", err)
+    }
+
+    // Verify block number
+    if result.Number != expectedNumber {
+        return fmt.Errorf("block number mismatch: expected %d, got %d", expectedNumber, result.Number)
+    }
+
+    // Verify block hash
+    if result.Hash.String() != expectedHash {
+        return fmt.Errorf("block hash mismatch: expected %s, got %s", expectedHash, result.Hash.String())
+    }
+
+    fmt.Printf("✓ Block verified: #%d with hash %s\n", result.Number, result.Hash.String())
+    return nil
+}
+
 func main() {
-    // Get a transaction by hash
-    tx, err := rpc.GetTransactionByHash("0x123...")
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Transaction type: %s\n", tx.Type)
-    fmt.Printf("Transaction status: %s\n", tx.Status)
-    fmt.Printf("Transaction hash: %s\n", tx.Hash)
+    ctx := context.Background()
+
+    // Get current block to use as reference
+    current, err := provider.BlockHashAndNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Current block: #%d, hash: %s\n", current.Number, current.Hash.String())
+
+    // Verify the block
+    err = verifyBlock(ctx, provider, current.Number, current.Hash.String())
+    if err != nil {
+        log.Fatalf("Verification failed: %v", err)
+    }
 }
 ```
 
-## Advanced Examples
+## <span id="block-number">BlockNumber Examples</span>
 
-### Sending a Transaction
+### Monitor Network Height
+
+Poll for new blocks at regular intervals:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
+    "time"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create a transaction
-    tx := rpc.NewTransaction(
-        "0x456...", // contract address
-        "0x789...", // entry point selector
-        []string{"0xabc..."}, // calldata
-        "1000000000000000", // max fee
-        "0x1", // version
-        "0x1", // nonce
-    )
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-    // Send the transaction
-    txHash, err := rpc.SendTransaction(tx)
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Transaction sent with hash: %s\n", txHash)
+    ctx := context.Background()
+
+    // Poll for new blocks every 10 seconds
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    fmt.Println("Monitoring network height...")
+    for range ticker.C {
+        blockNum, err := provider.BlockNumber(ctx)
+        if err != nil {
+            log.Printf("Error: %v", err)
+            continue
+        }
+        fmt.Printf("Current block: %d\n", blockNum)
+    }
 }
 ```
 
-### Calling a Contract
+### Wait for Specific Block Height
+
+Wait until the network reaches a specific block number:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
+    "os"
+    "time"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
+func waitForBlock(ctx context.Context, provider *rpc.Provider, targetBlock uint64) error {
+    fmt.Printf("Waiting for block %d...\n", targetBlock)
+    for {
+        currentBlock, err := provider.BlockNumber(ctx)
+        if err != nil {
+            return err
+        }
+
+        if currentBlock >= targetBlock {
+            fmt.Printf("Reached block %d\n", currentBlock)
+            return nil
+        }
+
+        fmt.Printf("Current block: %d, waiting...\n", currentBlock)
+        time.Sleep(2 * time.Second)
+    }
+}
+
 func main() {
-    // Call a contract
-    result, err := rpc.CallContract(
-        "0x456...", // contract address
-        "0x789...", // entry point selector
-        []string{"0xabc..."}, // calldata
-    )
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Call result: %s\n", result)
+    ctx := context.Background()
+
+    // Get current block
+    currentBlock, err := provider.BlockNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Wait for 5 blocks ahead
+    targetBlock := currentBlock + 5
+    err = waitForBlock(ctx, provider, targetBlock)
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
-### Getting Contract Storage
+## <span id="storage-proof">StorageProof Examples</span>
+
+### Proving Class Membership
+
+Prove that specific classes exist in the classes trie:
 
 ```go
 package main
 
 import (
+    "context"
     "fmt"
     "log"
 
+    "github.com/NethermindEth/juno/core/felt"
     "github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
-    // Get contract storage
-    storage, err := rpc.GetContractStorage(
-        "0x456...", // contract address
-        "0x789...", // key
-    )
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
     if err != nil {
         log.Fatal(err)
     }
 
-    fmt.Printf("Storage value: %s\n", storage)
-} 
+    // Class hashes to prove membership for
+    classHash1, _ := new(felt.Felt).SetString("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
+    classHash2, _ := new(felt.Felt).SetString("0x025ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918")
+
+    input := rpc.StorageProofInput{
+        BlockID:     rpc.BlockID{Tag: "latest"},
+        ClassHashes: []*felt.Felt{classHash1, classHash2},
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Classes proof nodes: %d\n", len(proof.ClassesProof))
+
+    // Iterate through class proofs
+    for i, nodeMapping := range proof.ClassesProof {
+        fmt.Printf("Class proof node %d:\n", i)
+        fmt.Printf("  Node Hash: %s\n", nodeMapping.NodeHash)
+        fmt.Printf("  Node Type: %s\n", nodeMapping.Node.Type)
+    }
+}
+```
+
+### Proving Contract Existence
+
+Prove that specific contracts exist in the global state trie:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Contract addresses to prove membership for
+    contract1, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    contract2, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+    input := rpc.StorageProofInput{
+        BlockID:           rpc.BlockID{Tag: "latest"},
+        ContractAddresses: []*felt.Felt{contract1, contract2},
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Access contract leaves data
+    for i, leafData := range proof.ContractsProof.ContractLeavesData {
+        fmt.Printf("Contract %d:\n", i)
+        fmt.Printf("  Nonce: %s\n", leafData.Nonce)
+        fmt.Printf("  Class Hash: %s\n", leafData.ClassHash)
+        if leafData.StorageRoot != nil {
+            fmt.Printf("  Storage Root: %s\n", leafData.StorageRoot)
+        }
+    }
+}
+```
+
+### Mixed Proof Request
+
+Request all three types of proofs (classes, contracts, and storage) in a single call:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    classHash, _ := new(felt.Felt).SetString("0x01a736d6ed154502257f02b1ccdf4d9d1089f80811cd6acad48e6b6a9d1f2003")
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    storageKey, _ := new(felt.Felt).SetString("0x1")
+
+    input := rpc.StorageProofInput{
+        BlockID:           rpc.BlockID{Number: 100000},
+        ClassHashes:       []*felt.Felt{classHash},
+        ContractAddresses: []*felt.Felt{contractAddr},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: contractAddr,
+                StorageKeys:     []*felt.Felt{storageKey},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // You now have proofs for all three: classes, contracts, and storage
+    fmt.Printf("Classes proof nodes: %d\n", len(proof.ClassesProof))
+    fmt.Printf("Contracts proof nodes: %d\n", len(proof.ContractsProof.Nodes))
+    fmt.Printf("Storage proofs: %d\n", len(proof.ContractsStorageProofs))
+
+    // Access global roots
+    fmt.Printf("\nGlobal Roots:\n")
+    fmt.Printf("  Contracts Tree Root: %s\n", proof.GlobalRoots.ContractsTreeRoot)
+    fmt.Printf("  Classes Tree Root: %s\n", proof.GlobalRoots.ClassesTreeRoot)
+    fmt.Printf("  Block Hash: %s\n", proof.GlobalRoots.BlockHash)
+}
+```
+
+### Processing Merkle Nodes
+
+Handle different Merkle node types (EdgeNode and BinaryNode):
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+
+    input := rpc.StorageProofInput{
+        BlockID:           rpc.BlockID{Tag: "latest"},
+        ContractAddresses: []*felt.Felt{contractAddr},
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Iterate through contract proof nodes
+    for i, nodeMapping := range proof.ContractsProof.Nodes {
+        fmt.Printf("Node %d hash: %s\n", i, nodeMapping.NodeHash)
+
+        // Check the type of merkle node
+        switch nodeMapping.Node.Type {
+        case "BinaryNode":
+            binaryNode := nodeMapping.Node.Data.(rpc.BinaryNode)
+            fmt.Printf("  Binary node - Left: %s, Right: %s\n", binaryNode.Left, binaryNode.Right)
+        case "EdgeNode":
+            edgeNode := nodeMapping.Node.Data.(rpc.EdgeNode)
+            fmt.Printf("  Edge node - Path: %s, Length: %d, Child: %s\n",
+                edgeNode.Path, edgeNode.Length, edgeNode.Child)
+        }
+    }
+}
+```
+
+### Historical State Proofs
+
+Get proofs for a specific block in the past:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    storageKey1, _ := new(felt.Felt).SetString("0x1")
+    storageKey2, _ := new(felt.Felt).SetString("0x2")
+
+    // Get proof at block height 100000
+    input := rpc.StorageProofInput{
+        BlockID: rpc.BlockID{Number: 100000},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: contractAddr,
+                StorageKeys:     []*felt.Felt{storageKey1, storageKey2},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // The proof is valid for the state at block 100000
+    fmt.Printf("Proof for block: %s\n", proof.GlobalRoots.BlockHash)
+    fmt.Printf("Storage proofs count: %d\n", len(proof.ContractsStorageProofs))
+
+    // Each storage proof corresponds to a contract's storage
+    for i, storageProof := range proof.ContractsStorageProofs {
+        fmt.Printf("Storage proof %d has %d nodes\n", i, len(storageProof))
+    }
+}
+```
+
+### Multiple Contracts with Multiple Storage Keys
+
+Prove storage for multiple contracts with multiple keys each:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // ETH token contract
+    ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    // STRK token contract
+    strkContract, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+    // Storage keys for ETH contract
+    ethKey1, _ := new(felt.Felt).SetString("0x1")
+    ethKey2, _ := new(felt.Felt).SetString("0x2")
+
+    // Storage keys for STRK contract
+    strkKey1, _ := new(felt.Felt).SetString("0x1")
+    strkKey2, _ := new(felt.Felt).SetString("0x2")
+
+    input := rpc.StorageProofInput{
+        BlockID: rpc.BlockID{Tag: "latest"},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: ethContract,
+                StorageKeys:     []*felt.Felt{ethKey1, ethKey2},
+            },
+            {
+                ContractAddress: strkContract,
+                StorageKeys:     []*felt.Felt{strkKey1, strkKey2},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Total storage proofs: %d\n", len(proof.ContractsStorageProofs))
+
+    // First proof is for ETH contract
+    fmt.Printf("ETH contract storage proof nodes: %d\n", len(proof.ContractsStorageProofs[0]))
+
+    // Second proof is for STRK contract
+    if len(proof.ContractsStorageProofs) > 1 {
+        fmt.Printf("STRK contract storage proof nodes: %d\n", len(proof.ContractsStorageProofs[1]))
+    }
+}
+```
+
+### Light Client Verification Pattern
+
+Example pattern for light client to verify storage without full state:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    provider, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Light client scenario: verify a storage value
+    contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    storageKey, _ := new(felt.Felt).SetString("0x1")
+
+    input := rpc.StorageProofInput{
+        BlockID: rpc.BlockID{Tag: "latest"},
+        ContractsStorageKeys: []rpc.ContractStorageKeys{
+            {
+                ContractAddress: contractAddr,
+                StorageKeys:     []*felt.Felt{storageKey},
+            },
+        },
+    }
+
+    proof, err := provider.StorageProof(context.Background(), input)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Light client now has:
+    // 1. Global roots (contracts tree root, classes tree root, block hash)
+    // 2. Contract proof nodes
+    // 3. Storage proof nodes
+
+    fmt.Printf("Verification data:\n")
+    fmt.Printf("  Block Hash: %s\n", proof.GlobalRoots.BlockHash)
+    fmt.Printf("  Contracts Tree Root: %s\n", proof.GlobalRoots.ContractsTreeRoot)
+    fmt.Printf("  Contract Proof Nodes: %d\n", len(proof.ContractsProof.Nodes))
+    fmt.Printf("  Storage Proof Nodes: %d\n", len(proof.ContractsStorageProofs[0]))
+
+    // Light client can now verify the storage value against the trusted block hash
+    // without downloading the entire state
+}
+```

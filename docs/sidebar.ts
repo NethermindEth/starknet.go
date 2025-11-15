@@ -239,6 +239,7 @@ export const sidebar: Sidebar = {
             },
           ],
         },
+        { text: "Examples", link: "/docs/rpc/examples" },
       ],
     },
     {

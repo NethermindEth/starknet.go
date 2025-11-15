@@ -1,6 +1,6 @@
 # BlockNumber
 
-Gets the number (height) of the most recent block.
+Gets the number (height) of the most recently accepted block on Starknet. The block number (also called block height) starts from 0 (genesis block) and increments with each new block. In rare cases, this method can return `ErrNoBlocks` if the chain has no blocks yet.
 
 ## Method Signature
 
@@ -8,14 +8,16 @@ Gets the number (height) of the most recent block.
 func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error)
 ```
 
+**Source:** [block.go:L20-L31](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L20-L31)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
+- `ctx` (context.Context): Context for request cancellation and timeout
 
 ## Returns
 
-- `uint64` - The latest block number
-- `error` - Error if the request fails
+- `uint64`: The latest block number (height)
+- `error`: Error if the request fails
 
 ## Usage Example
 
@@ -29,46 +31,62 @@ import (
     "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
     // Get RPC URL from environment variable
     rpcURL := os.Getenv("STARKNET_RPC_URL")
     if rpcURL == "" {
-        log.Fatal("STARKNET_RPC_URL not set in environment")
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
     }
 
-    ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal(err)
     }
 
     // Get latest block number
-    blockNumber, err := client.BlockNumber(ctx)
+    blockNumber, err := provider.BlockNumber(context.Background())
     if err != nil {
-        log.Fatal("Failed to get block number:", err)
+        log.Fatal(err)
     }
 
-    fmt.Printf("Block Number: %d\n", blockNumber)
+    fmt.Printf("Latest block number: %d\n", blockNumber)
 }
 ```
-
-## Expected Output
-
-```
-Block Number: 2839094
-```
-
+:::note
+Create a `.env` file in your project root and install the godotenv package to tun the code snippet.
+:::
 ## Error Handling
 
-Common errors include network timeouts and RPC endpoint unavailability. Always check the error before using the returned value.
-
 ```go
-blockNumber, err := client.BlockNumber(ctx)
+blockNumber, err := provider.BlockNumber(ctx)
 if err != nil {
-    log.Printf("Error getting block number: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrNoBlocks):
+        log.Println("There are no blocks")
+    default:
+        log.Printf("RPC error: %v", err)
+    }
     return
 }
-// Safe to use blockNumber
+
+fmt.Printf("Block number: %d\n", blockNumber)
 ```
+
+## Common Use Cases
+
+This method is commonly used for:
+
+- **Monitoring Network Height**: Poll the network at regular intervals to track new blocks. See [example](/docs/rpc/examples#monitor-network-height).
+- **Waiting for Confirmations**: Wait until the network reaches a specific block height before proceeding. See [example](/docs/rpc/examples#wait-for-specific-block-height).
+- **Syncing Applications**: Keep your application in sync with the latest blockchain state.
+- **Transaction Timing**: Determine when to submit transactions based on network activity.

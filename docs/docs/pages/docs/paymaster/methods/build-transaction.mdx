@@ -20,9 +20,8 @@ func (pm *Paymaster) BuildTransaction(
 
 ```go
 type BuildTransactionRequest struct {
-    Calldata  []*felt.Felt
-    Calls     []rpc.FunctionCall
-    FeeToken  *felt.Felt
+    Transaction UserTransaction `json:"transaction"`
+    Parameters  UserParameters  `json:"parameters"`
 }
 ```
 
@@ -30,9 +29,11 @@ type BuildTransactionRequest struct {
 
 ```go
 type BuildTransactionResponse struct {
-    CallsWithPaymaster []rpc.FunctionCall
-    PaymasterData      []*felt.Felt
-    TrackingID         *felt.Felt
+    Type       UserTxnType            `json:"type"`
+    Deployment *AccountDeploymentData `json:"deployment,omitempty"`
+    Parameters *UserParameters        `json:"parameters"`
+    TypedData  *typeddata.TypedData   `json:"typed_data,omitempty"`
+    Fee        *FeeEstimate           `json:"fee"`
 }
 ```
 
