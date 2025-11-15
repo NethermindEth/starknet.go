@@ -2,6 +2,174 @@
 
 Comprehensive examples for using Starknet RPC methods.
 
+## <span id="block-transaction-count">BlockTransactionCount Examples</span>
+
+### Transaction Volume Monitoring
+
+Track network activity by monitoring transaction counts over time:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Monitor transaction volume every 10 seconds
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
+
+    fmt.Println("Monitoring transaction volume...")
+    var txCounts []uint64
+    var blockNumbers []uint64
+
+    for range ticker.C {
+        // Get latest block number
+        blockNum, err := provider.BlockNumber(ctx)
+        if err != nil {
+            log.Printf("Error getting block number: %v", err)
+            continue
+        }
+
+        // Get transaction count
+        blockID := rpc.WithBlockNumber(blockNum)
+        txCount, err := provider.BlockTransactionCount(ctx, blockID)
+        if err != nil {
+            log.Printf("Error getting tx count: %v", err)
+            continue
+        }
+
+        blockNumbers = append(blockNumbers, blockNum)
+        txCounts = append(txCounts, txCount)
+
+        fmt.Printf("Block #%d: %d transactions\n", blockNum, txCount)
+
+        // Calculate average over last 10 blocks
+        if len(txCounts) >= 10 {
+            var sum uint64
+            for i := len(txCounts) - 10; i < len(txCounts); i++ {
+                sum += txCounts[i]
+            }
+            avg := float64(sum) / 10.0
+            fmt.Printf("Average tx/block (last 10): %.2f\n\n", avg)
+        }
+    }
+}
+```
+
+### Block Analysis
+
+Quickly identify busy blocks without fetching full transaction data:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Analyze last 100 blocks
+    latestBlock, err := provider.BlockNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Analyzing blocks %d to %d...\n\n", latestBlock-99, latestBlock)
+
+    var maxCount uint64
+    var maxBlockNum uint64
+    var emptyBlocks int
+    var totalTxs uint64
+
+    for i := latestBlock - 99; i <= latestBlock; i++ {
+        blockID := rpc.WithBlockNumber(i)
+        txCount, err := provider.BlockTransactionCount(ctx, blockID)
+        if err != nil {
+            log.Printf("Error at block %d: %v", i, err)
+            continue
+        }
+
+        totalTxs += txCount
+
+        // Track busiest block
+        if txCount > maxCount {
+            maxCount = txCount
+            maxBlockNum = i
+        }
+
+        // Track empty blocks
+        if txCount == 0 {
+            emptyBlocks++
+        }
+    }
+
+    // Statistics
+    fmt.Printf("=== Block Analysis Summary ===\n")
+    fmt.Printf("Blocks analyzed: 100\n")
+    fmt.Printf("Total transactions: %d\n", totalTxs)
+    fmt.Printf("Average tx/block: %.2f\n", float64(totalTxs)/100.0)
+    fmt.Printf("Busiest block: #%d with %d transactions\n", maxBlockNum, maxCount)
+    fmt.Printf("Empty blocks: %d\n", emptyBlocks)
+}
+```
+
+## <span id="block-with-receipts">BlockWithReceipts Examples</span>
+
 ### Transaction Outcome Analysis
 
 Analyze complete transaction execution including gas costs and events:

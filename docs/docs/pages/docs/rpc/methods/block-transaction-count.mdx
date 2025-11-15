@@ -1,40 +1,68 @@
 # BlockTransactionCount
 
-Gets the number of transactions in a specific block.
+Gets the number of transactions in a specific block without fetching the full transaction data. This is a lightweight method ideal for quickly checking block activity or monitoring transaction volume over time. The method returns a simple count, making it much more efficient than fetching full block data when you only need to know how many transactions are present. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
+func (provider *Provider) BlockTransactionCount(
+    ctx context.Context,
+    blockID BlockID,
+) (uint64, error)
 ```
+
+**Source:** [block.go:L165-L175](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L165-L175)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier (number, hash, or tag)
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag like "latest" or "pending")
 
 ## Returns
 
-- `uint64` - Number of transactions in the block
-- `error` - Error if the request fails
+- `uint64`: The number of transactions in the block
+- `error`: Error if the request fails
+:::note
+This can return `ErrBlockNotFound` if the specified block doesn't exist.
+:::
+## Type Definitions
 
-## BlockID Parameter
+### BlockID
 
-This method requires a `BlockID` parameter. The RPC package provides helper functions to create BlockID:
+The `blockID` parameter specifies which block to retrieve. You can identify a block in three ways:
 
 ```go
-// Using block number
-blockID := rpc.WithBlockNumber(123456)
-
-// Using block hash
-hash, _ := new(felt.Felt).SetString("0x1234...")
-blockID := rpc.WithBlockHash(hash)
-
-// Using block tag
-blockID := rpc.WithBlockTag("latest")
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
 ```
 
-**See [RPC Helper Functions](/docs/rpc/helper-functions) for detailed documentation of these helper functions.**
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -45,52 +73,56 @@ import (
     "context"
     "fmt"
     "log"
-	"os"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
-
-	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
     }
 
     // Get transaction count for latest block
     blockID := rpc.WithBlockTag("latest")
-    txCount, err := client.BlockTransactionCount(ctx, blockID)
+    txCount, err := provider.BlockTransactionCount(context.Background(), blockID)
     if err != nil {
-        log.Fatal("Failed to get transaction count:", err)
+        log.Fatal(err)
     }
 
     fmt.Printf("Latest block contains %d transactions\n", txCount)
 }
 ```
 
-## Expected Output
-
-```
-Latest block contains 11 transactions
-```
-
-## Advanced Examples
-
-For more comprehensive examples including transaction volume analysis and block monitoring, see [Block Analysis Examples](/docs/examples/block-analysis).
-
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 ## Error Handling
 
 ```go
-txCount, err := client.BlockTransactionCount(ctx, blockID)
+txCount, err := provider.BlockTransactionCount(ctx, blockID)
 if err != nil {
-    log.Printf("Error getting transaction count: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrBlockNotFound):
+        log.Printf("Block not found")
+    default:
+        log.Printf("Failed to get transaction count: %v", err)
+    }
     return
 }
 
@@ -100,4 +132,11 @@ if txCount == 0 {
     fmt.Printf("Block contains %d transactions\n", txCount)
 }
 ```
+
+## Common Use Cases
+- Tracking network activity by monitoring transaction counts over time. See [example](/docs/rpc/examples#transaction-volume-monitoring).
+- Quickly identifying busy blocks without fetching full transaction data. See [example](/docs/rpc/examples#block-analysis).
+- Collecting data for analyzing network usage patterns and trends.
+- Identifying blocks with no transactions for network analysis.
+
 
