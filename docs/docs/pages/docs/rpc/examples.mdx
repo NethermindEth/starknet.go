@@ -2,7 +2,107 @@
 
 Comprehensive examples for using Starknet RPC methods.
 
-## <span id="block-transaction-count">BlockTransactionCount Examples</span>
+
+### Blockchain Indexing
+
+Index all state changes for analytics and querying:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Get state update for specific block
+    blockID := rpc.WithBlockNumber(100000)
+    stateUpdate, err := provider.StateUpdate(ctx, blockID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("=== State Update for Block #100000 ===\n")
+    fmt.Printf("Block Hash: %s\n", stateUpdate.BlockHash)
+    fmt.Printf("Old Root: %s\n", stateUpdate.OldRoot)
+    fmt.Printf("New Root: %s\n", stateUpdate.NewRoot)
+    fmt.Printf("\n")
+
+    // Index storage changes
+    fmt.Printf("=== Storage Changes ===\n")
+    for i, storageDiff := range stateUpdate.StateDiff.StorageDiffs {
+        fmt.Printf("%d. Contract: %s\n", i+1, storageDiff.Address)
+        fmt.Printf("   Storage entries modified: %d\n", len(storageDiff.StorageEntries))
+
+        // Show first few storage entries
+        for j, entry := range storageDiff.StorageEntries {
+            if j >= 3 {
+                fmt.Printf("   ... and %d more entries\n", len(storageDiff.StorageEntries)-3)
+                break
+            }
+            fmt.Printf("   Key: %s -> Value: %s\n", entry.Key, entry.Value)
+        }
+    }
+    fmt.Printf("\n")
+
+    // Index declared classes
+    fmt.Printf("=== Declared Classes ===\n")
+    for i, declaredClass := range stateUpdate.StateDiff.DeclaredClasses {
+        fmt.Printf("%d. Class Hash: %s\n", i+1, declaredClass.ClassHash)
+        fmt.Printf("   Compiled Class Hash: %s\n", declaredClass.CompiledClassHash)
+    }
+    fmt.Printf("\n")
+
+    // Index deployed contracts
+    fmt.Printf("=== Deployed Contracts ===\n")
+    for i, deployed := range stateUpdate.StateDiff.DeployedContracts {
+        fmt.Printf("%d. Address: %s\n", i+1, deployed.Address)
+        fmt.Printf("   Class Hash: %s\n", deployed.ClassHash)
+    }
+    fmt.Printf("\n")
+
+    // Index nonce updates
+    fmt.Printf("=== Nonce Updates ===\n")
+    for i, nonceUpdate := range stateUpdate.StateDiff.Nonces {
+        fmt.Printf("%d. Contract: %s\n", i+1, nonceUpdate.ContractAddress)
+        fmt.Printf("   New Nonce: %s\n", nonceUpdate.Nonce)
+    }
+    fmt.Printf("\n")
+
+    // Summary
+    fmt.Printf("=== Summary ===\n")
+    fmt.Printf("Total contracts with storage changes: %d\n", len(stateUpdate.StateDiff.StorageDiffs))
+    fmt.Printf("Total declared classes: %d\n", len(stateUpdate.StateDiff.DeclaredClasses))
+    fmt.Printf("Total deployed contracts: %d\n", len(stateUpdate.StateDiff.DeployedContracts))
+    fmt.Printf("Total nonce updates: %d\n", len(stateUpdate.StateDiff.Nonces))
+}
+```
 
 ### Transaction Volume Monitoring
 
@@ -168,8 +268,6 @@ func main() {
 }
 ```
 
-## <span id="block-with-receipts">BlockWithReceipts Examples</span>
-
 ### Transaction Outcome Analysis
 
 Analyze complete transaction execution including gas costs and events:
@@ -269,9 +367,6 @@ func main() {
     fmt.Printf("Total L2 Gas Used: %d\n", totalGasUsed)
 }
 ```
-
-
-## <span id="block-with-tx-hashes">BlockWithTxHashes Examples</span>
 
 ### Lightweight Block Monitoring
 
@@ -419,7 +514,6 @@ func main() {
 }
 ```
 
-## <span id="block-with-txs">BlockWithTxs Examples</span>
 
 ### Transaction Analysis
 
@@ -562,8 +656,6 @@ func main() {
     }
 }
 ```
-
-## <span id="block-hash-and-number">BlockHashAndNumber Examples</span>
 
 ### Efficient Block Tracking
 
@@ -708,8 +800,6 @@ func main() {
 }
 ```
 
-## <span id="block-number">BlockNumber Examples</span>
-
 ### Monitor Network Height
 
 Poll for new blocks at regular intervals:
@@ -836,8 +926,6 @@ func main() {
     }
 }
 ```
-
-## <span id="storage-proof">StorageProof Examples</span>
 
 ### Proving Class Membership
 
