@@ -1,0 +1,52 @@
+# BigToHex
+
+Converts a BigInt to a hexadecimal string.
+
+## Function Signature
+
+```go
+func BigToHex(in *big.Int) string
+```
+
+## Parameters
+
+- `in` (*big.Int): BigInt value to convert
+
+## Returns
+
+- `string`: Hexadecimal string with "0x" prefix
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Convert small BigInt
+	hex := utils.BigToHex(big.NewInt(123))
+	fmt.Printf("123 = %s\n", hex)
+	// Output: 0x7b
+
+	// Convert larger BigInt
+	hex2 := utils.BigToHex(big.NewInt(11259375))
+	fmt.Printf("11259375 = %s\n", hex2)
+	// Output: 0xabcdef
+
+	// Convert large BigInt
+	hex3 := utils.BigToHex(new(big.Int).SetUint64(1234567890))
+	fmt.Printf("1234567890 = %s\n", hex3)
+	// Output: 0x499602d2
+}
+```
+
+## Related Functions
+
+- [HexToBN](/docs/utils/functions/hex-to-bn)
+- [BigIntToFelt](/docs/utils/functions/big-int-to-felt)

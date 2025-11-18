@@ -1,0 +1,33 @@
+# TipAndResourcesHash
+
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This is a low-level utility used internally by V3 transaction hash functions. Most developers should use [TransactionHashInvokeV3](./transaction-hash-invoke-v3), [TransactionHashDeclareV3](./transaction-hash-declare-v3), or [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) instead.
+</Callout>
+
+Calculates the tip and resource bounds hash component for V3 transactions.
+
+## Function Signature
+
+```go
+func TipAndResourcesHash(
+    tip uint64,
+    resourceBounds *rpc.ResourceBoundsMapping,
+) (*felt.Felt, error)
+```
+
+## Description
+
+This internal helper function computes the hash of tip and resource bounds for V3 transaction hash calculations. It is automatically called by:
+- [TransactionHashInvokeV3](./transaction-hash-invoke-v3)
+- [TransactionHashDeclareV3](./transaction-hash-declare-v3)
+- [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3)
+- [TransactionHashBroadcastDeclareV3](./transaction-hash-broadcast-declare-v3)
+
+V3 transactions use resource bounds (L1 gas, L2 gas, L1 data gas) instead of the simple `max_fee` used in earlier versions.
+
+## Related Functions
+
+- [ClassHash](/docs/hash/functions/class-hash)
+- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)

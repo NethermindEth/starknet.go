@@ -23,56 +23,65 @@ func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error)
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
 
-    // Get sync status
-    syncStatus, err := client.Syncing(context.Background())
-    if err != nil {
-        log.Fatal("Failed to get sync status:", err)
-    }
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create client:", err)
+	}
 
-    // Pretty print the sync status
-    statusJSON, _ := json.MarshalIndent(syncStatus, "", "  ")
-    fmt.Printf("Sync Status:\n%s\n", statusJSON)
+	// Get sync status
+	syncStatus, err := client.Syncing(ctx)
+	if err != nil {
+		log.Fatal("Failed to get sync status:", err)
+	}
+
+	// Check if node is syncing
+	if syncStatus.IsSyncing {
+		fmt.Printf("Node is syncing:\n")
+		fmt.Printf("  Starting Block Hash: %s\n", syncStatus.StartingBlockHash)
+		fmt.Printf("  Starting Block Num: %d\n", syncStatus.StartingBlockNum)
+		fmt.Printf("  Current Block Hash: %s\n", syncStatus.CurrentBlockHash)
+		fmt.Printf("  Current Block Num: %d\n", syncStatus.CurrentBlockNum)
+		fmt.Printf("  Highest Block Hash: %s\n", syncStatus.HighestBlockHash)
+		fmt.Printf("  Highest Block Num: %d\n", syncStatus.HighestBlockNum)
+	} else {
+		fmt.Println("Node is not syncing (fully synchronized)")
+	}
 }
 ```
 
 ## Expected Output
 
 ```
-Sync Status:
-false
+Node is not syncing (fully synchronized)
 ```
 
-## Use Cases
-
-- Check if node is fully synchronized before making operations
-- Monitor sync progress for long-running applications
-- Implement application health checks
-- Wait for sync completion when starting applications
-
 ## Error Handling
-
-Common errors include network timeouts and RPC endpoint unavailability. Always check the error before using the returned value.
 
 ```go
 syncStatus, err := client.Syncing(ctx)
 if err != nil {
-    log.Printf("Error getting sync status: %v", err)
-    return
+	// Handle error
+	return err
 }
-// Safe to use syncStatus
 ```
+
+## Related Methods
+
+- [ChainID](./chain-ID.mdx) - Get chain ID
+- [SpecVersion](./spec-version.mdx) - Get RPC specification version

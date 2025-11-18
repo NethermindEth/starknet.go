@@ -1,0 +1,396 @@
+# Types
+
+Type definitions and structures used throughout the utils package.
+
+## Transaction Options
+
+### TxnOptions
+
+Optional settings when building a transaction.
+
+```go
+type TxnOptions struct {
+	// Tip amount in FRI for the transaction. Default: "0x0".
+	// Note: only ready to be used after Starknet v0.14.0 upgrade.
+	Tip rpc.U64
+
+	// A boolean flag indicating whether the transaction version should have
+	// the query bit when estimating fees. If true, the transaction version
+	// will be rpc.TransactionV3WithQueryBit (0x100000000000000000000000000000003).
+	// If false, the transaction version will be rpc.TransactionV3 (0x3).
+	// In case of doubt, set to false. Default: false.
+	UseQueryBit bool
+}
+```
+
+**Fields:**
+
+- `Tip` - Tip amount in FRI for the transaction (default: "0x0"). Note: only ready to be used after Starknet v0.14.0 upgrade
+- `UseQueryBit` - Whether the transaction version should have the query bit when estimating fees. If true, uses `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003), if false uses `rpc.TransactionV3` (0x3). Default: false
+
+**Methods:**
+
+#### TxnVersion
+
+Returns the appropriate transaction version based on the UseQueryBit flag.
+
+```go
+func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion
+```
+
+**Returns:**
+- `rpc.TransactionVersion` - Returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and `rpc.TransactionV3` if false
+
+#### SafeTip
+
+Returns the tip amount in FRI for the transaction. If the tip is not set or invalid, returns "0x0".
+
+```go
+func (opts *TxnOptions) SafeTip() rpc.U64
+```
+
+**Returns:**
+- `rpc.U64` - The tip amount, or "0x0" if not set or invalid
+
+**Usage Example:**
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Example 1: Default options (no tip, no query bit)
+	defaultOpts := &utils.TxnOptions{}
+	fmt.Printf("Default version: %s\n", defaultOpts.TxnVersion())
+	fmt.Printf("Default tip: %s\n", defaultOpts.SafeTip())
+
+	// Example 2: With query bit enabled (for fee estimation)
+	queryOpts := &utils.TxnOptions{
+		UseQueryBit: true,
+	}
+	fmt.Printf("Query version: %s\n", queryOpts.TxnVersion())
+
+	// Example 3: With tip
+	tipOpts := &utils.TxnOptions{
+		Tip: rpc.U64("0x5f5e100"), // 100000000 FRI
+	}
+	fmt.Printf("Tip: %s\n", tipOpts.SafeTip())
+
+	// Example 4: Using with BuildInvokeTxn
+	accountAddress, _ := utils.HexToFelt("0x...")
+	nonce := new(felt.Felt).SetUint64(1)
+	calldata := []*felt.Felt{/* ... */}
+	resourceBounds := &rpc.ResourceBoundsMapping{/* ... */}
+
+	// Build transaction with custom options
+	opts := &utils.TxnOptions{
+		Tip:         rpc.U64("0x0"),
+		UseQueryBit: false,
+	}
+
+	tx := utils.BuildInvokeTxn(accountAddress, nonce, calldata, resourceBounds, opts)
+	fmt.Printf("Transaction version: %s\n", tx.Version)
+	fmt.Printf("Transaction tip: %s\n", tx.Tip)
+}
+```
+
+**Expected Output:**
+
+```
+Default version: 0x3
+Default tip: 0x0
+Query version: 0x100000000000000000000000000000003
+Tip: 0x5f5e100
+Transaction version: 0x3
+Transaction tip: 0x0
+```
+
+## Universal Deployer Contract Options
+
+### UDCOptions
+
+Options for building the Universal Deployer Contract (UDC) calldata.
+
+```go
+type UDCOptions struct {
+	// The salt to be used for the UDC deployment. If not provided, a random value will be used.
+	Salt *felt.Felt
+
+	// This parameter is used to determine if the deployer's address will be included in
+	// the contract address calculation.
+	// By making deployments dependent upon the origin address, users can reserve a whole address
+	// space to prevent someone else from taking ownership of the address. Keep it false to include
+	// the deployer's address, and true to make it origin independent.
+	//
+	// This parameter is agnostic to the UDC version. That means that,
+	// with OriginIndependent set to true:
+	//   - UDCCairoV0: unique will be set to false.
+	//   - UDCCairoV2: from_zero will be set to true.
+	OriginIndependent bool
+
+	// The UDC version to be used. If not provided, UDCCairoV0 will be used.
+	UDCVersion UDCVersion
+}
+```
+
+**Fields:**
+
+- `Salt` - The salt to be used for the UDC deployment. If not provided, a random value will be generated
+- `OriginIndependent` - Determines if the deployer's address will be included in the contract address calculation:
+  - `false` (default): Deployment is origin-dependent, includes deployer's address
+  - `true`: Deployment is origin-independent, excludes deployer's address
+  - For UDCCairoV0: sets `unique` parameter
+  - For UDCCairoV2: sets `from_zero` parameter
+- `UDCVersion` - The UDC version to be used (default: UDCCairoV0)
+
+**Related Constants:**
+
+```go
+const (
+	// UDC version with Cairo v0 code
+	// Address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf
+	UDCCairoV0 UDCVersion = iota
+
+	// UDC version with Cairo v2 code
+	// Address: 0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221
+	UDCCairoV2
+)
+```
+
+**Usage Example:**
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	classHash, _ := utils.HexToFelt("0x...")
+	constructorCalldata := []*felt.Felt{
+		utils.Uint64ToFelt(100),
+	}
+
+	// Example 1: Default options (random salt, origin-dependent, Cairo v0)
+	defaultOpts := &utils.UDCOptions{}
+	call1, salt1, err := utils.BuildUDCCalldata(classHash, constructorCalldata, defaultOpts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Default UDC: %s\n", call1.ContractAddress)
+	fmt.Printf("Random salt: %s\n", salt1)
+
+	// Example 2: Cairo v2 with origin-independent deployment
+	v2Opts := &utils.UDCOptions{
+		UDCVersion:        utils.UDCCairoV2,
+		OriginIndependent: true,
+	}
+	call2, salt2, err := utils.BuildUDCCalldata(classHash, constructorCalldata, v2Opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Cairo v2 UDC: %s\n", call2.ContractAddress)
+	fmt.Printf("Function: %s\n", call2.FunctionName)
+	fmt.Printf("Salt: %s\n", salt2)
+
+	// Example 3: Custom salt with origin-dependent deployment
+	customSalt, _ := utils.HexToFelt("0x123")
+	customOpts := &utils.UDCOptions{
+		Salt:              customSalt,
+		OriginIndependent: false,
+		UDCVersion:        utils.UDCCairoV2,
+	}
+	call3, salt3, err := utils.BuildUDCCalldata(classHash, constructorCalldata, customOpts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Custom salt: %s\n", salt3)
+
+	// Example 4: Precompute address for origin-independent deployment
+	address := utils.PrecomputeAddressForUDC(
+		classHash,
+		salt2,
+		constructorCalldata,
+		utils.UDCCairoV2,
+		nil, // nil for origin-independent
+	)
+	fmt.Printf("Precomputed address: %s\n", address)
+
+	// Example 5: Precompute address for origin-dependent deployment
+	originAddress, _ := utils.HexToFelt("0x...")
+	addressDependent := utils.PrecomputeAddressForUDC(
+		classHash,
+		customSalt,
+		constructorCalldata,
+		utils.UDCCairoV2,
+		originAddress,
+	)
+	fmt.Printf("Precomputed address (origin-dependent): %s\n", addressDependent)
+}
+```
+
+### UDCVersion
+
+Enum representing the UDC version to be used.
+
+```go
+type UDCVersion int
+
+const (
+	// Represents the UDC version with Cairo v0 code, with the
+	// address 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf
+	UDCCairoV0 UDCVersion = iota
+
+	// Represents the UDC version with Cairo v2 code, with the
+	// address 0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221
+	UDCCairoV2
+)
+```
+
+**Values:**
+
+- `UDCCairoV0` - UDC with Cairo v0 code
+  - Address: `0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf`
+  - Method: `deployContract`
+  - See: [Voyager contract](https://voyager.online/contract/0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf)
+
+- `UDCCairoV2` - UDC with Cairo v2 code
+  - Address: `0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221`
+  - Method: `deploy_contract`
+  - See: [OpenZeppelin docs](https://docs.openzeppelin.com/contracts-cairo/1.0.0/udc#udc_contract_address)
+
+**Usage Example:**
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Check which UDC version to use
+	version := utils.UDCCairoV2
+
+	switch version {
+	case utils.UDCCairoV0:
+		fmt.Println("Using Cairo v0 UDC")
+		fmt.Println("Address: 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf")
+	case utils.UDCCairoV2:
+		fmt.Println("Using Cairo v2 UDC")
+		fmt.Println("Address: 0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221")
+	}
+}
+```
+
+## Keccak State
+
+### KeccakState
+
+KeccakState wraps sha3.state. In addition to the usual hash methods, it also supports Read to get a variable amount of data from the hash state. Read is faster than Sum because it doesn't copy the internal state, but also modifies the internal state.
+
+```go
+type KeccakState interface {
+	hash.Hash
+	Read([]byte) (int, error)
+}
+```
+
+**Methods:**
+
+The KeccakState interface includes all methods from `hash.Hash`:
+- `Write(p []byte) (n int, err error)` - Write data to the hash
+- `Sum(b []byte) []byte` - Append the current hash to b and return the resulting slice
+- `Reset()` - Reset the hash to its initial state
+- `Size() int` - Return the number of bytes Sum will return
+- `BlockSize() int` - Return the hash's underlying block size
+
+Plus the additional method:
+- `Read([]byte) (int, error)` - Read a variable amount of data from the hash state (faster than Sum but modifies internal state)
+
+**Usage Example:**
+
+```go
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Create new Keccak state
+	state := utils.NewKeccakState()
+
+	// Write data incrementally
+	state.Write([]byte("Hello, "))
+	state.Write([]byte("Starknet!"))
+
+	// Get hash using Sum (doesn't modify state)
+	hash1 := state.Sum(nil)
+	fmt.Printf("Hash 1: 0x%s\n", hex.EncodeToString(hash1))
+
+	// Can get same hash again
+	hash2 := state.Sum(nil)
+	fmt.Printf("Hash 2: 0x%s\n", hex.EncodeToString(hash2))
+
+	// Reset and hash something else
+	state.Reset()
+	state.Write([]byte("New data"))
+	newHash := state.Sum(nil)
+	fmt.Printf("New hash: 0x%s\n", hex.EncodeToString(newHash))
+
+	// Using Read (faster but modifies state)
+	state.Reset()
+	state.Write([]byte("Test"))
+	buf := make([]byte, 32)
+	state.Read(buf)
+	fmt.Printf("Read hash: 0x%s\n", hex.EncodeToString(buf))
+
+	// Check size and block size
+	fmt.Printf("Hash size: %d bytes\n", state.Size())
+	fmt.Printf("Block size: %d bytes\n", state.BlockSize())
+}
+```
+
+**Expected Output:**
+
+```
+Hash 1: 0x... (32-byte hash)
+Hash 2: 0x... (same 32-byte hash)
+New hash: 0x... (different 32-byte hash)
+Read hash: 0x... (32-byte hash)
+Hash size: 32 bytes
+Block size: 136 bytes
+```
+
+**Creating a KeccakState:**
+
+```go
+// Create new Keccak state
+state := utils.NewKeccakState()
+```
+
+See [NewKeccakState](./cryptographic.mdx#newkeccakstate) in Cryptographic Utilities for more details.
+
+## Related
+
+- [Transaction Builders](./transaction-builders.mdx) - Functions that use TxnOptions and UDCOptions
+- [Cryptographic Utilities](./cryptographic.mdx) - Functions that use KeccakState
+- [Conversion Functions](./conversions.mdx) - General data type conversions

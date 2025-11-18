@@ -1,0 +1,55 @@
+# Keccak256
+
+Computes the Keccak256 hash of the input data.
+
+## Function Signature
+
+```go
+func Keccak256(data ...[]byte) []byte
+```
+
+## Parameters
+
+- `data` (...[]byte): Variable number of byte slices to hash
+
+## Returns
+
+- `[]byte`: 32-byte Keccak256 hash
+
+## Description
+
+Computes the Keccak256 hash used in Starknet for various cryptographic operations. This is different from SHA3-256.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Hash simple string
+	hash := utils.Keccak256([]byte("hello"))
+	fmt.Printf("keccak256('hello') = %x\n", hash)
+	// Output: 1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
+
+	// Hash function name (used for selectors)
+	hash2 := utils.Keccak256([]byte("transfer"))
+	fmt.Printf("keccak256('transfer') = %x\n", hash2)
+	// Output: b483afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
+}
+```
+
+## Use Cases
+
+- Function selector calculation
+- Event signature hashing
+- Data integrity verification
+
+## Related Functions
+
+- [GetSelectorFromNameFelt](/docs/utils/functions/get-selector-from-name-felt)

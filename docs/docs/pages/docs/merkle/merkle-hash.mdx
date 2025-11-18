@@ -1,0 +1,159 @@
+# MerkleHash
+
+Calculates the Merkle hash of two big integers using the Pedersen hash function. This function ensures deterministic ordering by always hashing the smaller value first.
+
+## Function Signature
+
+```go
+func MerkleHash(x, y *big.Int) *big.Int
+```
+
+## Parameters
+
+- `x` - The first big integer value
+- `y` - The second big integer value
+
+## Returns
+
+- `*big.Int` - The Merkle hash result as a big integer
+
+## How It Works
+
+The `MerkleHash` function implements a deterministic hashing scheme:
+
+1. Compares the two input values `x` and `y`
+2. Orders them so the smaller value is always first
+3. Computes the Pedersen hash using `curve.HashPedersenElements`
+4. Returns the resulting hash
+
+This ordering ensures that `MerkleHash(a, b)` always equals `MerkleHash(b, a)`, which is important for Merkle tree construction and proof verification.
+
+## Implementation Details
+
+```go
+func MerkleHash(x, y *big.Int) *big.Int {
+	if x.Cmp(y) <= 0 {
+		return curve.HashPedersenElements([]*big.Int{x, y})
+	}
+	return curve.HashPedersenElements([]*big.Int{y, x})
+}
+```
+
+The function uses:
+- `x.Cmp(y)` to compare the values
+- `curve.HashPedersenElements` for the actual hash computation
+- Deterministic ordering for consistent results
+
+## Usage Example
+
+### Basic Hash Calculation
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create two values to hash
+	value1 := big.NewInt(100)
+	value2 := big.NewInt(200)
+
+	// Calculate the Merkle hash
+	hash := merkle.MerkleHash(value1, value2)
+
+	fmt.Printf("Hash of %d and %d: 0x%s\n",
+		value1.Int64(),
+		value2.Int64(),
+		hash.Text(16))
+}
+```
+
+### Demonstrating Deterministic Ordering
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	a := big.NewInt(5)
+	b := big.NewInt(10)
+
+	// Hash in both orders
+	hash1 := merkle.MerkleHash(a, b)
+	hash2 := merkle.MerkleHash(b, a)
+
+	// Both results are identical
+	fmt.Printf("Hash(5, 10): 0x%s\n", hash1.Text(16))
+	fmt.Printf("Hash(10, 5): 0x%s\n", hash2.Text(16))
+	fmt.Printf("Hashes equal: %v\n", hash1.Cmp(hash2) == 0)
+}
+```
+
+### Building a Simple Tree Manually
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Four leaf values
+	leaf1 := big.NewInt(1)
+	leaf2 := big.NewInt(2)
+	leaf3 := big.NewInt(3)
+	leaf4 := big.NewInt(4)
+
+	// First level of hashing
+	hash1_2 := merkle.MerkleHash(leaf1, leaf2)
+	hash3_4 := merkle.MerkleHash(leaf3, leaf4)
+
+	// Root hash
+	root := merkle.MerkleHash(hash1_2, hash3_4)
+
+	fmt.Printf("Leaf 1-2 hash: 0x%s\n", hash1_2.Text(16))
+	fmt.Printf("Leaf 3-4 hash: 0x%s\n", hash3_4.Text(16))
+	fmt.Printf("Root hash: 0x%s\n", root.Text(16))
+}
+```
+
+## Common Use Cases
+
+### Merkle Tree Construction
+
+`MerkleHash` is the fundamental building block for constructing Merkle trees. It's used to hash pairs of nodes at each level of the tree until reaching the root.
+
+### Proof Verification
+
+When verifying a Merkle proof, you use `MerkleHash` to recompute intermediate hashes along the path from a leaf to the root.
+
+### State Commitments
+
+In Starknet, `MerkleHash` is used to create compact commitments to larger data structures, allowing efficient verification of state changes.
+
+## Important Notes
+
+- The function uses Pedersen hash, which is the standard hash function in Starknet
+- Values are always ordered before hashing, ensuring consistency
+- The result is deterministic - same inputs always produce the same output
+- This function is used internally by `FixedSizeMerkleTree` for tree construction
+
+## Related Functions
+
+- [ProofMerklePath](./proof-merkle-path) - Verify Merkle proofs using this hash function
+- [FixedSizeMerkleTree](./fixed-size-merkle-tree) - Uses MerkleHash for tree construction

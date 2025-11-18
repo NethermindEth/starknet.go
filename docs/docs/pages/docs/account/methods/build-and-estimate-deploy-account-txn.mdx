@@ -1,0 +1,110 @@
+# BuildAndEstimateDeployAccountTxn
+
+Builds and estimates a deploy account transaction without sending it.
+
+## Method Signature
+
+```go
+func (account *Account) BuildAndEstimateDeployAccountTxn(
+	ctx context.Context,
+	salt *felt.Felt,
+	classHash *felt.Felt,
+	constructorCalldata []*felt.Felt,
+	opts *TxnOptions,
+) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+```
+
+## Parameters
+
+- `ctx` - Context for request cancellation
+- `salt` - Random value for address generation
+- `classHash` - Class hash of account contract
+- `constructorCalldata` - Constructor parameters
+- `opts` - Transaction options. Pass `nil` for defaults
+
+## Returns
+
+- `*rpc.BroadcastDeployAccountTxnV3` - Signed transaction ready to send
+- `*felt.Felt` - Precomputed account address (needs funding)
+- `error` - Error if estimation fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Assume acc is already created with temporary keys
+	var acc *account.Account
+
+	// Generate deployment parameters
+	salt := new(felt.Felt).SetUint64(12345)
+	classHash, _ := utils.HexToFelt("0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+
+	// Constructor calldata (public key)
+	ks, pubKey, _ := account.GetRandomKeys()
+	constructorCalldata := []*felt.Felt{pubKey}
+
+	// Build and estimate
+	tx, precomputedAddress, err := acc.BuildAndEstimateDeployAccountTxn(
+		context.Background(),
+		salt,
+		classHash,
+		constructorCalldata,
+		nil,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Precomputed address: %s\n", precomputedAddress.String())
+	fmt.Printf("Required fee: %v\n", tx.ResourceBounds)
+	fmt.Println("Fund this address before deploying!")
+
+	// After funding, send the transaction:
+	// response, err := acc.SendTransaction(context.Background(), tx)
+}
+```
+
+## Description
+
+This method prepares a deploy account transaction but doesn't send it. The workflow is:
+
+1. Precompute the account address
+2. Build transaction with zero fees
+3. Sign transaction
+4. Estimate fees
+5. Update transaction with estimated fees
+6. Sign again
+7. Return transaction and address
+
+You must fund the precomputed address with tokens before sending the transaction.
+
+## Error Handling
+
+```go
+tx, addr, err := acc.BuildAndEstimateDeployAccountTxn(ctx, salt, classHash, calldata, opts)
+if err != nil {
+	// Handle errors like:
+	// - Invalid class hash
+	// - Network errors
+	// - Fee estimation failure
+	return err
+}
+```
+
+## Related Methods
+
+- [PrecomputeAccountAddress](../functions/precompute-account-address.mdx) - Calculate address
+- [SendTransaction](./send-transaction.mdx) - Send the prepared transaction
+- [NewAccount](./new-account.mdx) - Create account instance after deployment

@@ -1,0 +1,35 @@
+# CompiledClassHash
+
+Calculates the hash of a compiled class in CASM format.
+
+## Function Signature
+
+```go
+func CompiledClassHash(casmClass *contracts.CasmClass) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `casmClass` (*contracts.CasmClass): The CASM compiled class
+
+## Returns
+
+- `*felt.Felt`: The calculated compiled class hash
+- `error`: Error if calculation fails
+
+## Usage Example
+
+```go
+var casmClass contracts.CasmClass
+json.Unmarshal(data, &casmClass)
+
+compiledHash, err := hash.CompiledClassHash(&casmClass)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Printf("Compiled Class Hash: %s\n", compiledHash.String())
+```
+
+## Related Functions
+
+- [ClassHash](/docs/hash/functions/class-hash)

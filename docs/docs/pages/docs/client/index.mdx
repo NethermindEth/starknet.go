@@ -1,19 +1,80 @@
 # Client Package
 
-The client package provides functionality for interacting with Starknet nodes. This package contains various components and utilities for managing and interacting with Starknet nodes.
+The client package provides JSON-RPC client and server functionality for interacting with Starknet nodes and building RPC services. This package implements the core RPC protocol handling, including request/response management, subscriptions, batch operations, and WebSocket support.
 
 ## Overview
 
 The client package includes:
-- Client configuration
-- Client methods
-- Client examples
+- JSON-RPC client for making remote procedure calls
+- Subscription support for real-time event streaming
+- Batch request capabilities for efficient multiple operations
+- Server implementation for building RPC services
+- Context management for request headers and timeouts
+- WebSocket and HTTP transport support
 
-## Available Submodules
+## Main Components
 
-- [Client Configuration](/docs/client/configuration)
-- [Client Methods](/docs/client/methods)
-- [Client Examples](/docs/client/examples)
+### Client
+
+The `Client` type is the primary interface for making JSON-RPC calls to Starknet nodes. It supports:
+- Synchronous and context-aware RPC calls
+- Real-time subscriptions via WebSocket
+- Batch requests for multiple operations
+- Automatic connection management
+
+### Server
+
+The `Server` type enables building JSON-RPC services with:
+- HTTP and WebSocket handlers
+- Service registration and method routing
+- Subscription management via Notifier
+- Custom codec support
+
+### Subscriptions
+
+The package provides robust subscription handling:
+- `ClientSubscription` for client-side subscriptions
+- `Notifier` for server-side subscription notifications
+- Automatic reorg event handling
+- Channel-based event delivery
+
+## Quick Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Connect to Starknet node
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Make an RPC call
+    var result string
+    err = c.CallContext(context.Background(), &result, "starknet_specVersion")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Starknet Spec Version: %s\n", result)
+}
+```
+
+## Available Documentation
+
+- [Client Functions](/docs/client/functions) - Package-level functions for creating clients and managing context
+- [Client Methods](/docs/client/methods) - Client methods for RPC calls, subscriptions, and batch operations
+- [Types](/docs/client/types) - Type definitions for Client, Server, Subscriptions, and options
 
 ## Getting Started
 
@@ -23,6 +84,34 @@ To use the client package, import it in your Go code:
 import "github.com/NethermindEth/starknet.go/client"
 ```
 
+## Key Features
+
+### Connection Management
+- HTTP and WebSocket transport support
+- Automatic reconnection handling
+- Connection pooling and reuse
+
+### Request Handling
+- Synchronous and asynchronous calls
+- Context-based cancellation and timeouts
+- Custom HTTP headers via context
+
+### Batch Operations
+- Send multiple requests in a single batch
+- Reduces network overhead
+- Parallel request processing
+
+### Subscriptions
+- Real-time event streaming
+- Automatic reorg handling
+- Type-safe channel delivery
+
+## Related Packages
+
+- [RPC Package](/docs/rpc/) - High-level Starknet RPC methods
+- [Account Package](/docs/account/) - Account management and transactions
+- [Examples](/docs/examples/websocket) - WebSocket subscription examples
+
 ## Version
 
-This documentation is based on version v0.8.1 of the Starknet.go library. 
+This documentation is based on the latest version of the Starknet.go library. 

@@ -1,6 +1,6 @@
 # BlockWithTxs
 
-Gets a block with all its transactions included as full transaction objects.
+Gets a block with all its transactions included as full transaction objects. Unlike BlockWithTxHashes which only returns transaction hashes, this method returns complete transaction details including calldata, signatures, resource bounds, and all transaction-specific fields. The method can return either a confirmed block (`Block`) or a pre-confirmed block (`PreConfirmedBlock`) depending on the block status. This can return `ErrBlockNotFound` if the specified block doesn't exist.
 
 ## Method Signature
 
@@ -8,29 +8,69 @@ Gets a block with all its transactions included as full transaction objects.
 func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
 ```
 
+**Source:** [block.go:L188-L211](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L188-L211)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier (number, hash, or tag)
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag like "latest" or "pending")
 
 ## Returns
 
-- `interface{}` - Block with full transaction details
-- `error` - Error if the request fails
+- `interface{}`: The retrieved block (either `*Block` or `*PreConfirmedBlock`)
+- `error`: Error if the request fails
 
-## BlockID Options
+## Type Definitions
+
+### BlockID
+
+The `blockID` parameter specifies which block to retrieve. You can identify a block in three ways:
 
 ```go
-// By block number
-blockID := rpc.WithBlockNumber(123456)
-
-// By block hash
-hash := new(felt.Felt).SetBytes([]byte("your_hash_here"))
-blockID := rpc.WithBlockHash(hash)
-
-// By block tag
-blockID := rpc.WithBlockTag("latest")
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
 ```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
+
+### Block
+
+```go
+type Block struct {
+    BlockHeader
+    Status BlockStatus `json:"status"`
+    Transactions []BlockTransaction `json:"transactions"`
+}
+```
+
+**Source:** [types_block.go:L16-L21](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L16-L21)
 
 ## Usage Example
 
@@ -42,22 +82,36 @@ import (
     "encoding/json"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
     }
 
-    // Get latest block with transactions
-    blockID := rpc.WithBlockTag("latest")
-    block, err := client.BlockWithTxs(context.Background(), blockID)
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
     if err != nil {
-        log.Fatal("Failed to get block:", err)
+        log.Fatal(err)
+    }
+
+    // Get latest block with full transaction details
+    blockID := rpc.WithBlockTag("latest")
+    block, err := provider.BlockWithTxs(context.Background(), blockID)
+    if err != nil {
+        log.Fatal(err)
     }
 
     // Pretty print the result
@@ -65,91 +119,30 @@ func main() {
     fmt.Printf("Block with transactions:\n%s\n", blockJSON)
 }
 ```
-
-## Expected Output
-
-```json
-{
-  "block_hash": "0x2e0ff7ce49b46b7b8751a08afa1f7f28ea5f0afc352542828372b7be0129bf5",
-  "parent_hash": "0x488d715367d94a233e612dfd6e4ff2a6346163a8aea6dcd0371ca6f675bad6f",
-  "block_number": 1672824,
-  "new_root": "0x178b2898ccffb80f6c443d3eded6b1a6dde475d73764e3f6e4327d93838d4e4",
-  "timestamp": 1755946479,
-  "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-  "l1_gas_price": {
-    "price_in_fri": "0x21de93bcdd19",
-    "price_in_wei": "0x3bc1ac63"
-  },
-  "l2_gas_price": {
-    "price_in_fri": "0xb2d05e00",
-    "price_in_wei": "0x13b7c"
-  },
-  "l1_data_gas_price": {
-    "price_in_fri": "0x9119",
-    "price_in_wei": "0x1"
-  },
-  "l1_da_mode": "BLOB",
-  "starknet_version": "0.14.0",
-  "status": "ACCEPTED_ON_L2",
-  "transactions": [
-    {
-      "transaction_hash": "0x1ccd86546cfb08633327f61cb355e0f3682e656187bfdcf744afdb8b694fff9",
-      "type": "INVOKE",
-      "version": "0x3",
-      "nonce": "0x94e4e",
-      "sender_address": "0x395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
-      "calldata": ["0x1", "0x7a6f440b8632053d221c4bfa7fe9d7896a51f9752981934d8e1fe7c106e910b"],
-      "signature": ["0x7bb77924d0615e3e182fc82ec82b3b52645766096577e1e67a041e02c627e55"],
-      "resource_bounds": {
-        "l1_gas": {"max_amount": "0xc350", "max_price_per_unit": "0x8d79883d20000"},
-        "l2_gas": {"max_amount": "0x5f5e100", "max_price_per_unit": "0xba43b7400"}
-      }
-    }
-  ]
-}
-```
-
-The block contains 8 complete transactions with full details including calldata, signatures, and resource bounds.
-
-## Get Specific Block Example
-
-```go
-// Get block by number
-blockNumber := uint64(1500000)
-blockID := rpc.WithBlockNumber(blockNumber)
-block, err := client.BlockWithTxs(context.Background(), blockID)
-if err != nil {
-    log.Fatal("Failed to get block:", err)
-}
-
-fmt.Printf("Retrieved block %d with transactions\n", blockNumber)
-```
-
-## Use Cases
-
-- **Block Analysis** - Examine complete block structure and all transactions
-- **Transaction Verification** - Verify transaction inclusion and details
-- **Block Explorer Development** - Build comprehensive block viewing interfaces  
-- **Historical Data Processing** - Process complete blockchain data
-- **Smart Contract Monitoring** - Track contract interactions within blocks
-- **Fee Analysis** - Study gas usage patterns and resource consumption
-- **Protocol Research** - Analyze Starknet protocol features and usage
-
-## Performance Notes
-
-- Returns large amounts of data for blocks with many transactions
-- Consider using `BlockWithTxHashes()` if you only need transaction hashes
-- Use pagination for processing multiple blocks
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-block, err := client.BlockWithTxs(ctx, blockID)
+block, err := provider.BlockWithTxs(ctx, blockID)
 if err != nil {
-    log.Printf("Error getting block: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrBlockNotFound):
+        log.Printf("Block not found")
+    default:
+        log.Printf("Failed to get block: %v", err)
+    }
     return
 }
 
-// Block data is ready to use
-fmt.Printf("Successfully retrieved block data\n")
+fmt.Printf("Successfully retrieved block with transactions\n")
 ```
+
+## Common Use Cases
+- Analyzing all transactions in a block with full details. See [example](/docs/rpc/examples#transaction-analysis).
+- Displaying complete block information including all transaction data. See [example](/docs/rpc/examples#block-explorer).
+- Fetching historical blocks with all transaction details for analysis or archival purposes.
+- Verifying transaction inclusion and details within a specific block.
+

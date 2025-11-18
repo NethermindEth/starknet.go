@@ -1,0 +1,361 @@
+# Transaction Hashing Concepts
+
+Transaction hashes are unique identifiers for Starknet transactions. Understanding how they're calculated is essential for transaction signing, verification, and debugging.
+
+## Overview
+
+Every Starknet transaction has a unique hash that:
+1. **Uniquely identifies** the transaction across the network
+2. **Binds the transaction** to a specific account, chain, and nonce
+3. **Enables verification** that transaction data hasn't been tampered with
+4. **Is used for signing** - the hash is what gets signed, not the raw transaction data
+
+## How Transaction Hashing Works
+
+### The Hashing Process
+
+```
+Transaction Data → Hash Function → Transaction Hash → Signature
+```
+
+1. **Transaction Data**: All transaction parameters (type, sender, calldata, nonce, fee, etc.)
+2. **Hash Function**: Either Pedersen (V0/V1/V2) or Poseidon (V3)
+3. **Transaction Hash**: A unique `felt.Felt` identifier
+4. **Signature**: The hash is signed with the account's private key
+
+### What Gets Hashed
+
+Different transaction types include different data in the hash:
+
+**Invoke Transaction:**
+- Transaction type ("invoke")
+- Sender address
+- Calldata (contract calls)
+- Max fee or resource bounds
+- Nonce
+- Chain ID
+- Version
+
+**Declare Transaction:**
+- Transaction type ("declare")
+- Sender address
+- Class hash (contract class being declared)
+- Compiled class hash (CASM)
+- Max fee or resource bounds
+- Nonce
+- Chain ID
+- Version
+
+**Deploy Account Transaction:**
+- Transaction type ("deploy_account")
+- Contract address salt
+- Class hash
+- Constructor calldata
+- Max fee or resource bounds
+- Nonce
+- Chain ID
+- Version
+
+## Version Differences
+
+### V0/V1/V2 Transactions (Legacy)
+
+**Hash Function:** Pedersen hash
+**Fee Model:** `max_fee` (single field element)
+**Status:** Legacy, but still supported
+
+```go
+// V1 example
+hash := hash.TransactionHashInvokeV1(
+    senderAddress,
+    calldata,
+    maxFee,
+    chainID,
+    nonce,
+)
+```
+
+### V3 Transactions (Current Standard)
+
+**Hash Function:** Poseidon hash
+**Fee Model:** `resource_bounds` (separate L1 gas, L2 gas, L1 data)
+**Features:**
+- Data Availability modes (L1/L2)
+- Tip for priority
+- Paymaster support
+- More efficient hashing
+
+```go
+// V3 example
+hash := hash.TransactionHashInvokeV3(
+    senderAddress,
+    calldata,
+    resourceBounds,
+    tip,
+    paymasterData,
+    chainID,
+    nonce,
+    nonceDataAvailabilityMode,
+    feeDataAvailabilityMode,
+    accountDeploymentData,
+)
+```
+
+**Why V3?**
+- **Better fee market**: Separate L1/L2 gas pricing
+- **Data availability options**: Choose where transaction data is stored
+- **More efficient**: Poseidon hash is faster than Pedersen
+- **Future-proof**: Designed for upcoming Starknet features
+
+## Hash Functions Explained
+
+### Pedersen Hash (V0/V1/V2)
+
+Based on elliptic curve cryptography:
+- More expensive computationally
+- Well-tested and secure
+- Used in legacy transactions
+
+```go
+import "github.com/NethermindEth/starknet.go/curve"
+
+// Pedersen hash of two elements
+hash := curve.Pedersen(element1, element2)
+
+// Pedersen hash of array
+hash := curve.PedersenArray(elements...)
+```
+
+### Poseidon Hash (V3)
+
+Optimized for zero-knowledge proofs:
+- More efficient for STARK proofs
+- Faster computation
+- Native to Starknet architecture
+
+```go
+// Poseidon hash of elements
+hash := curve.Poseidon(elements...)
+```
+
+## Chain ID in Hashing
+
+The chain ID prevents replay attacks across networks:
+
+```go
+// Different chains have different IDs
+const (
+    ChainIDMainnet = "SN_MAIN"
+    ChainIDSepolia = "SN_SEPOLIA"
+)
+
+// Always use the correct chain ID
+chainID, err := client.ChainID(ctx)
+hash := hash.TransactionHashInvokeV3(
+    // ... other params
+    chainID,  // Must match the target network
+    // ... other params
+)
+```
+
+**Why this matters:**
+- A transaction signed for Sepolia cannot be replayed on Mainnet
+- Each network has a unique chain ID
+- Hash calculation includes the chain ID
+
+## Common Hashing Patterns
+
+### Pattern 1: Hash Before Signing
+
+```go
+// 1. Calculate hash
+txHash, err := hash.TransactionHashInvokeV3(
+    tx.SenderAddress,
+    tx.Calldata,
+    tx.ResourceBounds,
+    tx.Tip,
+    tx.PaymasterData,
+    chainID,
+    tx.Nonce,
+    tx.NonceDataAvailabilityMode,
+    tx.FeeDataAvailabilityMode,
+    tx.AccountDeploymentData,
+)
+
+// 2. Sign the hash
+signature, err := account.Sign(ctx, txHash)
+
+// 3. Attach signature to transaction
+tx.Signature = signature
+```
+
+### Pattern 2: Verify Hash Calculation
+
+```go
+// Calculate hash manually
+calculatedHash, err := hash.TransactionHashInvokeV1(...)
+
+// Get hash from transaction receipt
+receipt, err := client.TransactionReceipt(ctx, txHash)
+
+// Verify they match
+if calculatedHash.Cmp(receipt.TransactionHash) != 0 {
+    log.Fatal("Hash mismatch - transaction data may be corrupted")
+}
+```
+
+### Pattern 3: Debug Transaction Issues
+
+```go
+// When a transaction fails, recalculate the hash to verify
+expectedHash, err := hash.TransactionHashInvokeV3(
+    tx.SenderAddress,
+    tx.Calldata,
+    // ... all parameters
+)
+
+fmt.Printf("Expected hash: %s\n", expectedHash)
+fmt.Printf("Actual hash:   %s\n", submittedTxHash)
+
+// If they don't match, one of the parameters is wrong
+```
+
+## Hash Calculation Examples
+
+### Invoke V1 (Legacy)
+
+```go
+import (
+    "github.com/NethermindEth/starknet.go/hash"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+senderAddress, _ := new(felt.Felt).SetString("0x123...")
+calldata := []*felt.Felt{...}
+maxFee := new(felt.Felt).SetUint64(1000000)
+chainID := "SN_SEPOLIA"
+nonce := new(felt.Felt).SetUint64(5)
+
+txHash, err := hash.TransactionHashInvokeV1(
+    senderAddress,
+    calldata,
+    maxFee,
+    chainID,
+    nonce,
+    []*felt.Felt{}, // additional data
+)
+```
+
+### Invoke V3 (Current)
+
+```go
+txHash, err := hash.TransactionHashInvokeV3(
+    senderAddress,
+    calldata,
+    resourceBounds,  // L1 gas, L2 gas, L1 data limits
+    tip,             // Priority fee
+    paymasterData,   // Paymaster details
+    chainID,
+    nonce,
+    rpc.DAModeL1,    // Nonce DA mode
+    rpc.DAModeL1,    // Fee DA mode
+    accountDeploymentData,
+)
+```
+
+## Transaction Hash vs Block Hash
+
+Don't confuse these different hash types:
+
+| Hash Type | Purpose | When Available |
+|-----------|---------|----------------|
+| **Transaction Hash** | Identifies a transaction | Before submission (you calculate it) |
+| **Block Hash** | Identifies a block | After block is created |
+| **Class Hash** | Identifies a contract class | When class is compiled |
+| **Compiled Class Hash** | Identifies compiled CASM | After Sierra → CASM compilation |
+
+## Troubleshooting Hash Issues
+
+### Issue: Hash Doesn't Match Expected Value
+
+**Possible causes:**
+1. Wrong transaction version used
+2. Incorrect chain ID
+3. Missing or extra parameters
+4. Wrong parameter order
+5. Incorrect fee structure (max_fee vs resource_bounds)
+
+**Debug steps:**
+```go
+// Print all parameters before hashing
+fmt.Printf("Sender: %s\n", senderAddress)
+fmt.Printf("Nonce: %s\n", nonce)
+fmt.Printf("Chain ID: %s\n", chainID)
+// ... print all params
+
+// Calculate hash
+hash, err := hash.TransactionHashInvokeV3(...)
+if err != nil {
+    fmt.Printf("Hash calculation error: %v\n", err)
+}
+```
+
+### Issue: Transaction Rejected with "Invalid Signature"
+
+**Likely cause:** Hash mismatch between client and server
+
+**Solution:**
+1. Ensure you're using the correct transaction version
+2. Verify all transaction fields are set correctly
+3. Confirm chain ID matches the network
+4. Check nonce is current
+
+## Specifications
+
+Transaction hashing follows the [Starknet RPC specification](https://github.com/starkware-libs/starknet-specs):
+
+- **V0**: Initial format (deprecated)
+- **V1**: Standard format with Pedersen hash
+- **V2**: Declare V2 with compiled class hash
+- **V3**: Current standard with Poseidon hash and resource bounds
+
+## Related Documentation
+
+### Transaction Hash Functions
+
+**Invoke:**
+- [TransactionHashInvokeV0](/docs/hash/functions/transaction-hash-invoke-v0)
+- [TransactionHashInvokeV1](/docs/hash/functions/transaction-hash-invoke-v1)
+- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+
+**Declare:**
+- [TransactionHashDeclareV1](/docs/hash/functions/transaction-hash-declare-v1)
+- [TransactionHashDeclareV2](/docs/hash/functions/transaction-hash-declare-v2)
+- [TransactionHashDeclareV3](/docs/hash/functions/transaction-hash-declare-v3)
+
+**Deploy Account:**
+- [TransactionHashDeployAccountV1](/docs/hash/functions/transaction-hash-deploy-account-v1)
+- [TransactionHashDeployAccountV3](/docs/hash/functions/transaction-hash-deploy-account-v3)
+
+### Hash Functions
+- [Pedersen](/docs/curve/functions/pedersen) - Pedersen hash function
+- [Poseidon](/docs/curve/functions/poseidon) - Poseidon hash function
+- [ClassHash](/docs/hash/functions/class-hash) - Contract class hashing
+- [CompiledClassHash](/docs/hash/functions/compiled-class-hash) - CASM hashing
+
+### Transaction Signing
+- [Transaction Signing Concepts](/docs/account/concepts/transaction-signing) - How signing works
+- [Sign](/docs/account/methods/sign) - Sign a hash
+- [SignInvokeTransaction](/docs/account/methods/sign-invoke-transaction) - Sign invoke transactions
+
+## Summary
+
+Transaction hashing in Starknet:
+1. Creates unique identifiers for transactions
+2. Uses Pedersen (V0/V1/V2) or Poseidon (V3) hash functions
+3. Includes all transaction data plus chain ID and nonce
+4. Must be calculated before signing
+5. Different for each transaction type and version
+6. Critical for transaction security and verification
+
+Understanding transaction hashing helps you debug signing issues, verify transactions, and build secure Starknet applications.

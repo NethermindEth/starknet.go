@@ -1,0 +1,168 @@
+# Accounts
+
+Retrieves a list of pre-funded test accounts from the DevNet server.
+
+## Method Signature
+
+```go
+func (devnet *DevNet) Accounts() ([]TestAccount, error)
+```
+
+## Parameters
+
+None
+
+## Returns
+
+- `[]TestAccount` - Slice of test accounts with private keys, public keys, and addresses
+- `error` - Error if the request fails
+
+## TestAccount Structure
+
+```go
+type TestAccount struct {
+    PrivateKey string `json:"private_key"`
+    PublicKey  string `json:"public_key"`
+    Address    string `json:"address"`
+}
+```
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/devnet"
+)
+
+func main() {
+	// Get DevNet URL from environment variable
+	devnetURL := os.Getenv("DEVNET_URL")
+	if devnetURL == "" {
+		devnetURL = "http://localhost:5050"
+	}
+
+	devNet := devnet.NewDevNet(devnetURL)
+
+	// Get pre-funded accounts
+	accounts, err := devNet.Accounts()
+	if err != nil {
+		log.Fatal("Failed to get accounts:", err)
+	}
+
+	fmt.Printf("Found %d pre-funded accounts\n\n", len(accounts))
+
+	// Display first account
+	if len(accounts) > 0 {
+		fmt.Println("First Account:")
+		fmt.Printf("  Address:     %s\n", accounts[0].Address)
+		fmt.Printf("  Public Key:  %s\n", accounts[0].PublicKey)
+		fmt.Printf("  Private Key: %s\n", accounts[0].PrivateKey)
+	}
+}
+```
+
+## Expected Output
+
+```
+Found 10 pre-funded accounts
+
+First Account:
+  Address:     0x...
+  Public Key:  0x...
+  Private Key: 0x...
+```
+
+## Use Cases
+
+### Get Account for Testing
+
+```go
+accounts, err := devNet.Accounts()
+if err != nil {
+	log.Fatal(err)
+}
+
+// Use first account for testing
+testAccount := accounts[0]
+
+// Convert to felt for RPC operations
+address, _ := utils.HexToFelt(testAccount.Address)
+privateKey, _ := utils.HexToFelt(testAccount.PrivateKey)
+```
+
+### Create Account Instance
+
+```go
+accounts, err := devNet.Accounts()
+if err != nil {
+	log.Fatal(err)
+}
+
+testAcc := accounts[0]
+
+// Create keystore
+ks := account.NewMemKeystore()
+privKey, _ := new(big.Int).SetString(testAcc.PrivateKey, 0)
+ks.Put(testAcc.Address, privKey)
+
+// Create account for transactions
+addr, _ := utils.HexToFelt(testAcc.Address)
+acc, err := account.NewAccount(provider, addr, addr, ks, 2)
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+### Distribute Accounts in Tests
+
+```go
+func TestMultipleAccounts(t *testing.T) {
+	devNet := devnet.NewDevNet()
+	accounts, err := devNet.Accounts()
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(accounts), 3)
+
+	sender := accounts[0]
+	receiver := accounts[1]
+	feeAccount := accounts[2]
+
+	// Run tests with different accounts...
+}
+```
+
+## Default Configuration
+
+By default, DevNet creates 10 pre-funded accounts, each with:
+- Initial balance of 1,000,000,000,000,000,000,000 (1e21) tokens
+- Unique private/public key pair
+- Deterministic addresses (same seed = same accounts)
+
+## Error Handling
+
+```go
+accounts, err := devNet.Accounts()
+if err != nil {
+	if strings.Contains(err.Error(), "connection refused") {
+		log.Fatal("DevNet is not running. Start it with: starknet-devnet")
+	} else {
+		log.Fatal("Failed to get accounts:", err)
+	}
+}
+
+if len(accounts) == 0 {
+	log.Fatal("No accounts available")
+}
+```
+
+## Related Methods
+
+- [NewDevNet](./new-devnet.mdx) - Create DevNet instance
+- [IsAlive](./is-alive.mdx) - Verify DevNet is running before getting accounts
+- [Mint](./mint.mdx) - Add more tokens to accounts
+- [FeeToken](./fee-token.mdx) - Get fee token information

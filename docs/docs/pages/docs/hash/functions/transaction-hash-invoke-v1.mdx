@@ -1,0 +1,37 @@
+# TransactionHashInvokeV1
+
+Calculates the transaction hash for an invoke V1 transaction.
+
+## Function Signature
+
+```go
+func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainID *felt.Felt) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `txn` (*rpc.InvokeTxnV1): The invoke V1 transaction
+- `chainID` (*felt.Felt): The chain ID
+
+## Returns
+
+- `*felt.Felt`: The calculated transaction hash
+- `error`: Error if calculation fails
+
+## Usage Example
+
+```go
+txn := &rpc.InvokeTxnV1{
+    SenderAddress: senderAddr,
+    Calldata: calldata,
+    MaxFee: maxFee,
+    // ... other fields
+}
+
+txHash, err := hash.TransactionHashInvokeV1(txn, chainID)
+```
+
+## Related Functions
+
+- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+- [TransactionHashInvokeV0](/docs/hash/functions/transaction-hash-invoke-v0)

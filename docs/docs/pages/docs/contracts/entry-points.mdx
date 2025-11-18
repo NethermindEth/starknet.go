@@ -1,0 +1,501 @@
+# Entry Points
+
+Entry points define the callable functions and message handlers in a Starknet contract. They serve as the interface between external calls and the contract's internal logic. The contracts package provides different entry point types for different contract class formats.
+
+## Overview
+
+Entry points are organized by type and contain information needed to invoke specific contract functions:
+- **Constructor** - Called once during contract deployment
+- **External** - Regular callable functions
+- **L1 Handler** - Functions that can be called from L1 (Ethereum)
+
+Different contract formats use different entry point structures:
+- Sierra contracts use **SierraEntryPoint**
+- CASM (compiled) contracts use **CasmEntryPoint**
+- Cairo 0 contracts use **DeprecatedCairoEntryPoint**
+
+## SierraEntryPoint
+
+Entry points for Sierra (Cairo 1.0+) contract classes.
+
+### Structure
+
+```go
+type SierraEntryPoint struct {
+	FunctionIdx uint       `json:"function_idx"`
+	Selector    *felt.Felt `json:"selector"`
+}
+
+type SierraEntryPointsByType struct {
+	Constructor []SierraEntryPoint `json:"CONSTRUCTOR"`
+	External    []SierraEntryPoint `json:"EXTERNAL"`
+	L1Handler   []SierraEntryPoint `json:"L1_HANDLER"`
+}
+```
+
+### Fields
+
+- `FunctionIdx` - The index of the function in the Sierra program
+- `Selector` - A unique identifier (hash) of the entry point function
+
+### Working with Sierra Entry Points
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Load a Sierra contract class
+	data, err := os.ReadFile("contract.sierra.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(data, &contractClass); err != nil {
+		log.Fatal(err)
+	}
+
+	// List all external entry points
+	fmt.Println("External Entry Points:")
+	for i, ep := range contractClass.EntryPointsByType.External {
+		fmt.Printf("  %d. Function Index: %d, Selector: %s\n",
+			i+1, ep.FunctionIdx, ep.Selector.String())
+	}
+
+	// List constructor entry points
+	fmt.Println("\nConstructor Entry Points:")
+	for i, ep := range contractClass.EntryPointsByType.Constructor {
+		fmt.Printf("  %d. Function Index: %d, Selector: %s\n",
+			i+1, ep.FunctionIdx, ep.Selector.String())
+	}
+
+	// Find an entry point by selector
+	targetSelector := utils.GetSelectorFromNameFelt("transfer")
+	for _, ep := range contractClass.EntryPointsByType.External {
+		if ep.Selector.Cmp(targetSelector) == 0 {
+			fmt.Printf("\nFound 'transfer' function at index: %d\n", ep.FunctionIdx)
+			break
+		}
+	}
+}
+```
+
+## CasmEntryPoint
+
+Entry points for CASM (Cairo Assembly) compiled contracts.
+
+### Structure
+
+```go
+type CasmEntryPoint struct {
+	Selector *felt.Felt `json:"selector"`
+	Offset   uint       `json:"offset"`
+	Builtins []string   `json:"builtins"`
+}
+
+type CasmEntryPointsByType struct {
+	Constructor []CasmEntryPoint `json:"CONSTRUCTOR"`
+	External    []CasmEntryPoint `json:"EXTERNAL"`
+	L1Handler   []CasmEntryPoint `json:"L1_HANDLER"`
+}
+```
+
+### Fields
+
+- `Selector` - A unique identifier (hash) of the entry point function
+- `Offset` - The offset in the bytecode where the function begins
+- `Builtins` - List of Cairo builtins required by this function (e.g., "range_check", "pedersen", "bitwise")
+
+### Working with CASM Entry Points
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Load CASM class
+	casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Analyze external entry points
+	fmt.Println("External Entry Points:")
+	for i, ep := range casmClass.EntryPointsByType.External {
+		fmt.Printf("\n%d. Selector: %s\n", i+1, ep.Selector.String())
+		fmt.Printf("   Offset: %d\n", ep.Offset)
+		fmt.Printf("   Builtins: %v\n", ep.Builtins)
+	}
+
+	// Find entry points using specific builtins
+	fmt.Println("\nFunctions using 'pedersen' builtin:")
+	for _, ep := range casmClass.EntryPointsByType.External {
+		for _, builtin := range ep.Builtins {
+			if builtin == "pedersen" {
+				fmt.Printf("  Selector: %s (offset: %d)\n",
+					ep.Selector.String(), ep.Offset)
+				break
+			}
+		}
+	}
+
+	// Check constructor entry points
+	if len(casmClass.EntryPointsByType.Constructor) > 0 {
+		fmt.Println("\nConstructor Entry Points:")
+		for _, ep := range casmClass.EntryPointsByType.Constructor {
+			fmt.Printf("  Offset: %d, Builtins: %v\n", ep.Offset, ep.Builtins)
+		}
+	} else {
+		fmt.Println("\nNo constructor defined")
+	}
+}
+```
+
+### Common Cairo Builtins
+
+Builtins are optimized operations provided by the Cairo VM:
+
+- `output` - General output
+- `pedersen` - Pedersen hash function
+- `range_check` - Range checking operations
+- `ecdsa` - Elliptic curve digital signature operations
+- `bitwise` - Bitwise operations (AND, OR, XOR)
+- `ec_op` - Elliptic curve operations
+- `poseidon` - Poseidon hash function
+- `segment_arena` - Memory segment operations
+
+## DeprecatedCairoEntryPoint
+
+Entry points for legacy Cairo 0 contracts.
+
+### Structure
+
+```go
+type DeprecatedCairoEntryPoint struct {
+	Offset   NumAsHex   `json:"offset"`
+	Selector *felt.Felt `json:"selector"`
+}
+
+type DeprecatedEntryPointsByType struct {
+	Constructor []DeprecatedCairoEntryPoint `json:"CONSTRUCTOR"`
+	External    []DeprecatedCairoEntryPoint `json:"EXTERNAL"`
+	L1Handler   []DeprecatedCairoEntryPoint `json:"L1_HANDLER"`
+}
+```
+
+### Fields
+
+- `Offset` - The offset in the program where the function begins (hex format)
+- `Selector` - A unique identifier (hash) of the entry point function
+
+### Working with Deprecated Entry Points
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+)
+
+func main() {
+	// Load a Cairo 0 contract class
+	data, err := os.ReadFile("cairo0_contract.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var deprecatedClass contracts.DeprecatedContractClass
+	if err := json.Unmarshal(data, &deprecatedClass); err != nil {
+		log.Fatal(err)
+	}
+
+	// List external entry points
+	fmt.Println("External Entry Points:")
+	for i, ep := range deprecatedClass.DeprecatedEntryPointsByType.External {
+		fmt.Printf("  %d. Offset: %s, Selector: %s\n",
+			i+1, ep.Offset, ep.Selector.String())
+	}
+
+	// Check for L1 handlers
+	if len(deprecatedClass.DeprecatedEntryPointsByType.L1Handler) > 0 {
+		fmt.Println("\nL1 Handler Entry Points:")
+		for i, ep := range deprecatedClass.DeprecatedEntryPointsByType.L1Handler {
+			fmt.Printf("  %d. Offset: %s, Selector: %s\n",
+				i+1, ep.Offset, ep.Selector.String())
+		}
+	}
+}
+```
+
+## Entry Point Types
+
+### Constructor Entry Points
+
+Constructor entry points are called once during contract deployment to initialize the contract state.
+
+```go
+// Check if a contract has a constructor
+func hasConstructor(cc *contracts.ContractClass) bool {
+	return len(cc.EntryPointsByType.Constructor) > 0
+}
+
+// Get constructor function index
+func getConstructorIndex(cc *contracts.ContractClass) (uint, error) {
+	if len(cc.EntryPointsByType.Constructor) == 0 {
+		return 0, fmt.Errorf("no constructor defined")
+	}
+	return cc.EntryPointsByType.Constructor[0].FunctionIdx, nil
+}
+```
+
+**Characteristics:**
+- Usually only one constructor per contract
+- Called automatically during deployment
+- Cannot be called after deployment
+- Used for initialization (setting owner, initial values, etc.)
+
+### External Entry Points
+
+External entry points are regular functions that can be called by other contracts or accounts.
+
+```go
+// Find an external entry point by name
+func findExternalEntryPoint(cc *contracts.ContractClass, functionName string) *contracts.SierraEntryPoint {
+	targetSelector := utils.GetSelectorFromNameFelt(functionName)
+	for _, ep := range cc.EntryPointsByType.External {
+		if ep.Selector.Cmp(targetSelector) == 0 {
+			return &ep
+		}
+	}
+	return nil
+}
+
+// List all external function selectors
+func listExternalSelectors(cc *contracts.ContractClass) []*felt.Felt {
+	var selectors []*felt.Felt
+	for _, ep := range cc.EntryPointsByType.External {
+		selectors = append(selectors, ep.Selector)
+	}
+	return selectors
+}
+```
+
+**Characteristics:**
+- Can be called at any time after deployment
+- Can modify contract state (unless marked as view)
+- Form the main API of the contract
+- Can be view functions (read-only) or state-changing functions
+
+### L1 Handler Entry Points
+
+L1 handler entry points handle messages sent from Ethereum (L1) to Starknet (L2).
+
+```go
+// Check if a contract can receive L1 messages
+func hasL1Handlers(cc *contracts.ContractClass) bool {
+	return len(cc.EntryPointsByType.L1Handler) > 0
+}
+
+// Get all L1 handler selectors
+func getL1HandlerSelectors(cc *contracts.ContractClass) []*felt.Felt {
+	var selectors []*felt.Felt
+	for _, ep := range cc.EntryPointsByType.L1Handler {
+		selectors = append(selectors, ep.Selector)
+	}
+	return selectors
+}
+```
+
+**Characteristics:**
+- Can only be invoked via L1-to-L2 messages
+- Used for bridging and cross-layer communication
+- Consume messages from the L1 message queue
+- Not directly callable from L2
+
+## Function Selectors
+
+Selectors are computed from function names using the Starknet keccak hash function:
+
+```go
+import "github.com/NethermindEth/starknet.go/utils"
+
+// Compute selector from function name
+selector := utils.GetSelectorFromNameFelt("transfer")
+
+// Use selector to find entry point
+for _, ep := range contractClass.EntryPointsByType.External {
+	if ep.Selector.Cmp(selector) == 0 {
+		fmt.Println("Found transfer function!")
+		break
+	}
+}
+```
+
+## Practical Examples
+
+### Finding and Calling an Entry Point
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Load contract class to understand its interface
+	data, err := os.ReadFile("contract.sierra.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(data, &contractClass); err != nil {
+		log.Fatal(err)
+	}
+
+	// Find the "get_balance" entry point
+	balanceSelector := utils.GetSelectorFromNameFelt("get_balance")
+	found := false
+	for _, ep := range contractClass.EntryPointsByType.External {
+		if ep.Selector.Cmp(balanceSelector) == 0 {
+			fmt.Printf("Found get_balance at function index: %d\n", ep.FunctionIdx)
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		log.Fatal("get_balance function not found in contract")
+	}
+
+	// Now call the function using RPC
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	contractAddress, _ := utils.HexToFelt("0x...")
+	callData := []*felt.Felt{} // No parameters
+
+	result, err := provider.Call(
+		context.Background(),
+		rpc.FunctionCall{
+			ContractAddress:    contractAddress,
+			EntryPointSelector: balanceSelector,
+			Calldata:          callData,
+		},
+		rpc.WithBlockTag("latest"),
+	)
+	if err != nil {
+		log.Fatal("Call failed:", err)
+	}
+
+	fmt.Printf("Balance: %s\n", result[0].String())
+}
+```
+
+### Analyzing Contract Capabilities
+
+```go
+// Analyze what a contract can do based on its entry points
+func analyzeContract(cc *contracts.CasmClass) {
+	fmt.Println("Contract Analysis:")
+	fmt.Printf("  External functions: %d\n", len(cc.EntryPointsByType.External))
+	fmt.Printf("  L1 handlers: %d\n", len(cc.EntryPointsByType.L1Handler))
+	fmt.Printf("  Has constructor: %v\n", len(cc.EntryPointsByType.Constructor) > 0)
+
+	// Check builtin usage
+	builtinUsage := make(map[string]int)
+	for _, ep := range cc.EntryPointsByType.External {
+		for _, builtin := range ep.Builtins {
+			builtinUsage[builtin]++
+		}
+	}
+
+	fmt.Println("\n  Builtin Usage:")
+	for builtin, count := range builtinUsage {
+		fmt.Printf("    %s: used by %d functions\n", builtin, count)
+	}
+}
+```
+
+### Comparing Sierra and CASM Entry Points
+
+```go
+// Verify Sierra and CASM entry points match
+func verifyEntryPointsMatch(sierra *contracts.ContractClass, casm *contracts.CasmClass) error {
+	if len(sierra.EntryPointsByType.External) != len(casm.EntryPointsByType.External) {
+		return fmt.Errorf("external entry point count mismatch")
+	}
+
+	if len(sierra.EntryPointsByType.Constructor) != len(casm.EntryPointsByType.Constructor) {
+		return fmt.Errorf("constructor entry point count mismatch")
+	}
+
+	if len(sierra.EntryPointsByType.L1Handler) != len(casm.EntryPointsByType.L1Handler) {
+		return fmt.Errorf("L1 handler entry point count mismatch")
+	}
+
+	// Check that selectors match (order might differ)
+	sierraSelectors := make(map[string]bool)
+	for _, ep := range sierra.EntryPointsByType.External {
+		sierraSelectors[ep.Selector.String()] = true
+	}
+
+	for _, ep := range casm.EntryPointsByType.External {
+		if !sierraSelectors[ep.Selector.String()] {
+			return fmt.Errorf("CASM selector not found in Sierra: %s", ep.Selector.String())
+		}
+	}
+
+	return nil
+}
+```
+
+## Comparison of Entry Point Types
+
+| Feature | SierraEntryPoint | CasmEntryPoint | DeprecatedCairoEntryPoint |
+|---------|------------------|----------------|---------------------------|
+| Contract Type | Sierra (Cairo 1.0+) | CASM (Cairo 1.0+) | Cairo 0 |
+| Position Reference | Function index | Bytecode offset | Program offset |
+| Builtins Info | No | Yes | No |
+| Offset Type | uint | uint | NumAsHex (string) |
+| Use Case | High-level reference | Low-level execution | Legacy support |
+
+## Related
+
+- [Contract Classes](./contract-classes) - Contract class structures containing entry points
+- [ABI Types](./abi-types) - Function definitions in ABIs correspond to entry points
+- [Call Method](/docs/rpc/methods/call) - Calling contract functions via entry points
+- [Simple Call Example](/docs/examples/simple-call) - Full example of calling contract functions

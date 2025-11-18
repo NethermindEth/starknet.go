@@ -1,0 +1,381 @@
+# Invoke Contract
+
+This guide demonstrates how to send invoke transactions to call smart contract functions on Starknet.
+
+## Prerequisites
+
+- Go 1.18 or higher
+- Starknet.go installed
+- A Starknet node URL
+- An account with sufficient ETH/STRK for transaction fees
+- A deployed contract to interact with
+
+## Overview
+
+This example sends an invoke transaction with calldata. It uses an ERC20 token, but it can be any smart contract. It demonstrates two approaches:
+
+1. **simpleInvoke.go**: A simplified approach to sending invoke transactions using the starknet.go library. It provides a straightforward function that handles building the transaction, estimating fees, signing, and waiting for the transaction receipt in a few lines of code.
+
+2. **verboseInvoke.go**: A more detailed, step-by-step approach to the same process, exposing each individual operation (getting the nonce, building the function call, formatting calldata, estimating fees, signing, and sending the transaction). This verbose approach gives you more control over each step of the transaction process.
+
+Both examples demonstrate how to interact with a smart contract on Starknet by calling its functions with the appropriate parameters.
+
+## Steps
+
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+2. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+3. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
+4. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
+5. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
+6. Make sure you are in the "invoke" directory
+7. Execute `go run main.go simpleInvoke.go verboseInvoke.go`
+
+The transaction hashes and status will be returned at the end of the execution.
+
+## Code Examples
+
+### Main Entry Point
+
+```go [main.go]
+package main
+
+import (
+	"context"
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/account"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+// NOTE : Please add in your keys only for testing purposes, in case of a leak you would potentially lose your funds.
+var (
+	someContract   string = "0x0669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54" // Replace it with the contract that you want to invoke. In this case, an ERC20
+	contractMethod string = "mint"                                                               // Replace it with the function name that you want to invoke
+)
+
+// main is the main function that will be executed when the program is run.
+// It will load the variables from the '.env' file, initialise the connection to the RPC provider,
+// initialise the account, and then call the simpleInvoke and verboseInvoke functions passing the account,
+// the contract address, the contract method and the amount to be sent.
+func main() {
+	// Load variables from '.env' file
+	rpcProviderURL := setup.GetRPCProviderURL()
+	accountAddress := setup.GetAccountAddress()
+	accountCairoVersion := setup.GetAccountCairoVersion()
+	privateKey := setup.GetPrivateKey()
+	publicKey := setup.GetPublicKey()
+
+	// Initialise connection to RPC provider
+	client, err := rpc.NewProvider(context.Background(), rpcProviderURL)
+	if err != nil {
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
+	}
+
+	// Initialise the account memkeyStore (set public and private keys)
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		panic("Failed to convert privKey to bigInt")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	// Here we are converting the account address to felt
+	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		fmt.Println("Failed to transform the account address, did you give the hex address?")
+		panic(err)
+	}
+	// Initialise the account
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Established connection with the client")
+
+	// Converting the contractAddress from hex to felt
+	contractAddress, err := utils.HexToFelt(someContract)
+	if err != nil {
+		panic(err)
+	}
+
+	amount, err := utils.HexToFelt("0xffffffff")
+	if err != nil {
+		panic(err)
+	}
+
+	// Here we have two examples of how to send an invoke transaction, one is simple and the other one is verbose.
+	// The simple example is more user-friendly and easier to use, while the verbose example is more detailed and informative.
+	// You can choose one of them to run, or both! Each one will send a different transaction, but with almost the same parameters.
+	simpleInvoke(accnt, contractAddress, contractMethod, amount)
+	fmt.Println("--------------------------------")
+	verboseInvoke(accnt, contractAddress, contractMethod, amount)
+}
+```
+
+### Simple Invoke
+
+The simple approach uses the high-level `BuildAndSendInvokeTxn` method that handles all the complexity for you.
+
+```go [simpleInvoke.go]
+package main
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+// simpleInvoke is a function that shows how to easily send an invoke transaction.
+func simpleInvoke(
+	accnt *account.Account,
+	contractAddress *felt.Felt,
+	contractMethod string,
+	amount *felt.Felt,
+) {
+	u256Amount, err := utils.HexToU256Felt(amount.String())
+	if err != nil {
+		panic(err)
+	}
+	// Building the functionCall struct, where :
+	FnCall := rpc.InvokeFunctionCall{
+		ContractAddress: contractAddress, // contractAddress is the contract that we want to call
+		FunctionName:    contractMethod,  // this is the function that we want to call
+		CallData:        u256Amount,      // the calldata necessary to call the function. Here we are passing the
+		// "amount" value (a u256 cairo variable) for the "mint" function
+	}
+
+	// Building and sending the Broadcast Invoke Txn.
+	//
+	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
+	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
+	resp, err := accnt.BuildAndSendInvokeTxn(
+		context.Background(),
+		[]rpc.InvokeFunctionCall{FnCall},
+		nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Simple Invoke : Waiting for the transaction receipt...")
+
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
+	if err != nil {
+		panic(err)
+	}
+
+	// This returns us with the transaction hash and status
+	fmt.Printf("Simple Invoke : Transaction hash response: %v\n", resp.Hash)
+	fmt.Printf("Simple Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Simple Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Simple Invoke : Block number: %d\n", txReceipt.BlockNumber)
+}
+```
+
+### Verbose Invoke
+
+The verbose approach shows each step of the transaction process, giving you more control and understanding.
+
+```go [verboseInvoke.go]
+package main
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+// verboseInvoke is a function that shows how to send an invoke transaction step by step, using only
+// a few helper functions.
+func verboseInvoke(
+	accnt *account.Account,
+	contractAddress *felt.Felt,
+	contractMethod string,
+	amount *felt.Felt,
+) {
+	// Getting the nonce from the account
+	nonce, err := accnt.Nonce(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	u256Amount, err := utils.HexToU256Felt(amount.String())
+	if err != nil {
+		panic(err)
+	}
+	// Building the functionCall struct, where :
+	FnCall := rpc.FunctionCall{
+		ContractAddress: contractAddress, // contractAddress is the contract that we want to call
+		EntryPointSelector: utils.GetSelectorFromNameFelt(
+			contractMethod,
+		), // this is the function that we want to call
+		Calldata: u256Amount, // the calldata necessary to call the function. Here
+		// we are passing the "amount" value (a u256 cairo variable) for the "mint" function
+	}
+
+	// Building the Calldata with the help of FmtCalldata where we pass in the FnCall struct along with the Cairo version
+	//
+	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
+	// To do this in Starknet.go, just group all the function calls in the same slice and pass it to FmtCalldata
+	// e.g. : InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{funcCall, anotherFuncCall, yetAnotherFuncCallFromDifferentContract})
+	calldata, err := accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
+	if err != nil {
+		panic(err)
+	}
+
+	// Using the BuildInvokeTxn helper to build the BroadInvokeTx
+	InvokeTx := utils.BuildInvokeTxn(
+		accnt.Address,
+		nonce,
+		calldata,
+		&rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+		},
+		nil,
+	)
+
+	// We need to sign the transaction to be able to estimate the fee
+	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Estimate the transaction fee
+	feeRes, err := accnt.Provider.EstimateFee(
+		context.Background(),
+		[]rpc.BroadcastTxn{InvokeTx},
+		[]rpc.SimulationFlag{},
+		rpc.WithBlockTag("pre_confirmed"),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
+	InvokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
+
+	// As we changed the resource bounds, we need to sign the transaction again, since the resource bounds are part of the signature
+	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)
+	if err != nil {
+		panic(err)
+	}
+
+	// After signing, we finally send the transaction in order to invoke the contract function
+	resp, err := accnt.SendTransaction(context.Background(), InvokeTx)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Verbose Invoke : Waiting for the transaction receipt...")
+
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
+	if err != nil {
+		panic(err)
+	}
+
+	// This returns us with the transaction hash and status
+	fmt.Printf("Verbose Invoke : Transaction hash response: %v\n", resp.Hash)
+	fmt.Printf("Verbose Invoke : Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Verbose Invoke : Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Verbose Invoke : Block number: %d\n", txReceipt.BlockNumber)
+}
+```
+
+## Explanation
+
+### Simple Invoke Flow
+
+1. **Create Function Call**: Build `InvokeFunctionCall` with contract address, function name, and calldata
+2. **Build and Send**: Use `BuildAndSendInvokeTxn` to handle everything automatically
+3. **Wait for Receipt**: Wait for transaction confirmation with `WaitForTransactionReceipt`
+4. **Display Results**: Show transaction hash, execution status, and block number
+
+### Verbose Invoke Flow
+
+1. **Get Nonce**: Retrieve the current account nonce
+2. **Build Function Call**: Create `FunctionCall` with contract address, entry point selector, and calldata
+3. **Format Calldata**: Use `FmtCalldata` to properly format the transaction calldata
+4. **Build Transaction**: Create the invoke transaction structure with `BuildInvokeTxn`
+5. **Initial Signing**: Sign the transaction for fee estimation
+6. **Estimate Fees**: Call `EstimateFee` to get gas estimates
+7. **Update Resource Bounds**: Apply estimated fees with a 1.5x multiplier
+8. **Re-sign**: Sign the transaction again with updated resource bounds
+9. **Send Transaction**: Submit the transaction to the network
+10. **Wait for Receipt**: Wait for confirmation and display results
+
+## Multi-Call Transactions
+
+Starknet supports executing multiple function calls in a single transaction, even from different contracts. To do this:
+
+```go
+calls := []rpc.InvokeFunctionCall{
+	{
+		ContractAddress: contractAddress1,
+		FunctionName:    "transfer",
+		CallData:        transferCalldata,
+	},
+	{
+		ContractAddress: contractAddress2,
+		FunctionName:    "mint",
+		CallData:        mintCalldata,
+	},
+}
+
+resp, err := accnt.BuildAndSendInvokeTxn(context.Background(), calls, nil)
+```
+
+## Best Practices
+
+- **Use Simple Invoke for Most Cases**: The simple approach handles complexity for you
+- **Use Verbose Invoke for Custom Control**: When you need fine-grained control over fees, nonces, or signing
+- **Apply Fee Multipliers**: Multiply estimated fees by 1.5x or higher for better transaction acceptance rates
+- **Multi-call Atomicity**: Group related operations in one transaction for atomic execution
+- **Handle Errors Gracefully**: Check for and handle errors at each step
+- **Environment Variables**: Never hardcode private keys; use environment variables
+- **Test on Testnet**: Always test invoke transactions on Sepolia before using mainnet
+
+## Common Issues
+
+- **Insufficient Funds**: Ensure your account has enough tokens to cover fees
+- **Invalid Calldata**: Verify calldata matches the contract function's expected parameters
+- **Nonce Mismatch**: If transactions fail, the nonce might be out of sync
+- **Transaction Timeout**: Increase timeout duration for slower networks
+- **Fee Estimation Failure**: Ensure the transaction can be simulated successfully
+- **Signature Errors**: Re-sign after modifying any transaction fields (like resource bounds)
+
+## Related Examples
+
+- [Simple Call](/docs/examples/simple-call) - Learn how to read contract state
+- [Deploy Contract](/docs/examples/deploy-contract) - Learn how to deploy contracts
+- [Paymaster](/docs/examples/paymaster) - Learn how to use paymasters for gas-free transactions

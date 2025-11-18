@@ -1,124 +1,654 @@
 # Client Methods
 
-The client methods submodule provides functionality for interacting with Starknet nodes.
+This page documents the methods available on the Client type for making RPC calls, managing subscriptions, and handling batch operations.
 
-## Block Methods
+## Core RPC Methods
 
-### Get Block by Number
+### Call
+
+Performs a JSON-RPC call with the given arguments and unmarshals the result into the provided interface.
+
+#### Method Signature
 
 ```go
-block, err := client.GetBlockByNumber(blockNumber) // [!code focus]
-if err != nil { 
-    // Handle error
-}
+func (c *Client) Call(result interface{}, method string, args ...interface{}) error
 ```
 
-### Get Block by Hash
+#### Parameters
+
+- `result` - Pointer to variable where the result will be unmarshaled
+- `method` - The JSON-RPC method name to call
+- `args` - Variable number of arguments to pass to the method
+
+#### Returns
+
+- `error` - Error if the call fails or result unmarshaling fails
+
+#### Usage Example
 
 ```go
-block, err := client.GetBlockByHash(blockHash) // [!code focus]
-if err != nil {
-    // Handle error
-}
-```
+package main
 
-### Get Latest Block
+import (
+    "fmt"
+    "log"
 
-```go
-block, err := client.GetLatestBlock() // [!code focus]
-if err != nil {
-    // Handle error
-}
-```
-
-## Transaction Methods
-
-### Get Transaction by Hash
-
-```go
-tx, err := client.GetTransactionByHash(txHash) // [!code focus]
-if err != nil {
-    // Handle error
-}
-```
-
-### Get Transaction Receipt
-
-```go
-receipt, err := client.GetTransactionReceipt(txHash) // [!code focus]
-if err != nil {
-    // Handle error
-}
-```
-
-### Send Transaction
-
-```go
-txHash, err := client.SendTransaction(tx) // [!code focus]
-if err != nil {
-    // Handle error
-}
-```
-
-## Contract Methods
-
-### Get Contract Code
-
-```go
-code, err := client.GetContractCode(contractAddress)
-if err != nil {
-    // Handle error
-}
-```
-
-### Get Contract Storage
-
-```go
-storage, err := client.GetContractStorage(contractAddress, key)
-if err != nil {
-    // Handle error
-}
-```
-
-### Call Contract
-
-```go
-result, err := client.CallContract(contractAddress, entryPointSelector, calldata)
-if err != nil {
-    // Handle error
-}
-```
-
-## Example Usage
-
-```go
-// Get the latest block // [!code focus]
-block, err := client.GetLatestBlock() // [!code focus]
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Latest block number: %d\n", block.Number) // [!code focus]
-fmt.Printf("Latest block hash: %s\n", block.Hash) // [!code focus]
-
-// Get a transaction // [!code focus]
-tx, err := client.GetTransactionByHash("0x123...") // [!code focus]
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Transaction type: %s\n", tx.Type) // [!code focus]
-fmt.Printf("Transaction status: %s\n", tx.Status) // [!code focus]
-
-// Call a contract // [!code focus]     
-result, err := client.CallContract( // [!code focus]
-    "0x456...", // contract address // [!code focus]
-    "0x789...", // entry point selector // [!code focus]
-    []string{"0xabc..."}, // calldata // [!code focus]
+    "github.com/NethermindEth/starknet.go/client"
 )
+
+func main() {
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Call starknet_specVersion method
+    var version string
+    err = c.Call(&version, "starknet_specVersion")
+    if err != nil {
+        log.Fatal("RPC call failed:", err)
+    }
+
+    fmt.Printf("Starknet Spec Version: %s\n", version)
+}
+```
+
+#### Notes
+
+This is a synchronous call without context support. For context-aware calls with timeout and cancellation, use `CallContext`.
+
+### CallContext
+
+Performs a JSON-RPC call with context support for cancellation and timeout.
+
+#### Method Signature
+
+```go
+func (c *Client) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
+```
+
+#### Parameters
+
+- `ctx` - Context for request cancellation and timeout
+- `result` - Pointer to variable where the result will be unmarshaled
+- `method` - The JSON-RPC method name to call
+- `args` - Variable number of arguments to pass to the method
+
+#### Returns
+
+- `error` - Error if the call fails, times out, or result unmarshaling fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Create context with 30 second timeout
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+
+    // Call with context
+    var blockNumber uint64
+    err = c.CallContext(ctx, &blockNumber, "starknet_blockNumber")
+    if err != nil {
+        log.Fatal("RPC call failed:", err)
+    }
+
+    fmt.Printf("Current Block Number: %d\n", blockNumber)
+}
+```
+
+#### Context with Headers
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "net/http"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Add custom headers
+    headers := http.Header{}
+    headers.Set("X-API-Key", "your-api-key")
+    ctx := client.NewContextWithHeaders(context.Background(), headers)
+
+    // Call with headers
+    var chainID string
+    err = c.CallContext(ctx, &chainID, "starknet_chainId")
+    if err != nil {
+        log.Fatal("RPC call failed:", err)
+    }
+
+    fmt.Printf("Chain ID: %s\n", chainID)
+}
+```
+
+## Batch Operations
+
+### BatchCall
+
+Sends multiple RPC requests in a single batch and waits for the server response. This is more efficient than making individual calls when you need results from multiple methods.
+
+#### Method Signature
+
+```go
+func (c *Client) BatchCall(b []BatchElem) error
+```
+
+#### Parameters
+
+- `b` - Slice of BatchElem containing the requests and results
+
+#### Returns
+
+- `error` - Error if the batch call fails
+
+#### BatchElem Structure
+
+```go
+type BatchElem struct {
+    Method string          // The JSON-RPC method name
+    Args   []interface{}   // Arguments for the method
+    Result interface{}     // Pointer to store the result
+    Error  error          // Error for this specific call
+}
+```
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Prepare batch requests
+    var (
+        specVersion string
+        chainID     string
+        blockNumber uint64
+    )
+
+    batch := []client.BatchElem{
+        {
+            Method: "starknet_specVersion",
+            Args:   []interface{}{},
+            Result: &specVersion,
+        },
+        {
+            Method: "starknet_chainId",
+            Args:   []interface{}{},
+            Result: &chainID,
+        },
+        {
+            Method: "starknet_blockNumber",
+            Args:   []interface{}{},
+            Result: &blockNumber,
+        },
+    }
+
+    // Execute batch call
+    err = c.BatchCall(batch)
+    if err != nil {
+        log.Fatal("Batch call failed:", err)
+    }
+
+    // Check individual results
+    for i, elem := range batch {
+        if elem.Error != nil {
+            fmt.Printf("Request %d failed: %v\n", i, elem.Error)
+            continue
+        }
+    }
+
+    fmt.Printf("Spec Version: %s\n", specVersion)
+    fmt.Printf("Chain ID: %s\n", chainID)
+    fmt.Printf("Block Number: %d\n", blockNumber)
+}
+```
+
+#### Error Handling
+
+Each element in the batch can fail independently:
+
+```go
+err = c.BatchCall(batch)
+if err != nil {
+    // This error means the entire batch failed
+    log.Fatal("Batch call failed:", err)
+}
+
+// Check individual element errors
+for i, elem := range batch {
+    if elem.Error != nil {
+        log.Printf("Element %d (%s) failed: %v", i, elem.Method, elem.Error)
+    }
+}
+```
+
+#### Performance Benefits
+
+Batch calls reduce:
+- Network round trips
+- Connection overhead
+- Total request time
+
+Example comparison:
+
+```go
+// Sequential calls: 3 network round trips
+c.CallContext(ctx, &result1, "method1")  // ~100ms
+c.CallContext(ctx, &result2, "method2")  // ~100ms
+c.CallContext(ctx, &result3, "method3")  // ~100ms
+// Total: ~300ms
+
+// Batch call: 1 network round trip
+c.BatchCall(batch)  // ~100ms
+// Total: ~100ms
+```
+
+## Subscription Methods
+
+### Subscribe
+
+Creates a subscription to receive notifications for specific events. Requires a WebSocket connection.
+
+#### Method Signature
+
+```go
+func (c *Client) Subscribe(
+    ctx context.Context,
+    namespace string,
+    methodSuffix string,
+    channel interface{},
+    args ...interface{},
+) (*ClientSubscription, error)
+```
+
+#### Parameters
+
+- `ctx` - Context for subscription lifecycle management
+- `namespace` - The RPC namespace (e.g., "starknet")
+- `methodSuffix` - The subscription method suffix (e.g., "subscribeNewHeads")
+- `channel` - Channel to receive notifications (must be a channel type)
+- `args` - Additional arguments for the subscription
+
+#### Returns
+
+- `*ClientSubscription` - Subscription handle for managing the subscription
+- `error` - Error if subscription fails
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    // Connect via WebSocket
+    c, err := client.DialWebsocket(context.Background(), "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Create channel for block headers
+    headers := make(chan map[string]interface{})
+
+    // Subscribe to new block headers
+    sub, err := c.Subscribe(
+        context.Background(),
+        "starknet",
+        "subscribeNewHeads",
+        headers,
+    )
+    if err != nil {
+        log.Fatal("Subscription failed:", err)
+    }
+    defer sub.Unsubscribe()
+
+    // Process incoming headers
+    for {
+        select {
+        case header := <-headers:
+            fmt.Printf("New block: %v\n", header)
+        case err := <-sub.Err():
+            log.Fatal("Subscription error:", err)
+        }
+    }
+}
+```
+
+#### Subscription with Context Cancellation
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialWebsocket(context.Background(), "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Create context with 5 minute timeout
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+    defer cancel()
+
+    headers := make(chan map[string]interface{})
+
+    sub, err := c.Subscribe(ctx, "starknet", "subscribeNewHeads", headers)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer sub.Unsubscribe()
+
+    for {
+        select {
+        case header := <-headers:
+            fmt.Printf("Block: %v\n", header)
+        case <-ctx.Done():
+            fmt.Println("Subscription cancelled")
+            return
+        case err := <-sub.Err():
+            log.Fatal("Error:", err)
+        }
+    }
+}
+```
+
+#### Handling Reorg Events
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialWebsocket(context.Background(), "wss://starknet-sepolia.public.blastapi.io/rpc/v0_8/ws", "")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    // Channel receives both headers and reorg events
+    events := make(chan interface{})
+
+    sub, err := c.Subscribe(context.Background(), "starknet", "subscribeNewHeads", events)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer sub.Unsubscribe()
+
+    for event := range events {
+        switch v := event.(type) {
+        case map[string]interface{}:
+            // Normal block header
+            fmt.Printf("New block: %v\n", v)
+        case *client.ReorgEvent:
+            // Chain reorganization detected
+            fmt.Printf("Reorg detected: old=%v new=%v\n", v.OldChain, v.NewChain)
+        }
+    }
+}
+```
+
+## Connection Management
+
+### Close
+
+Closes the client connection and aborts any in-flight requests.
+
+#### Method Signature
+
+```go
+func (c *Client) Close()
+```
+
+#### Usage Example
+
+```go
+package main
+
+import (
+    "log"
+
+    "github.com/NethermindEth/starknet.go/client"
+)
+
+func main() {
+    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Always close the client when done
+    defer c.Close()
+
+    // Make RPC calls...
+}
+```
+
+#### Manual Close with Error Handling
+
+```go
+func doWork() error {
+    c, err := client.DialHTTP(url)
+    if err != nil {
+        return err
+    }
+    defer c.Close()
+
+    // If an error occurs, Close() will still be called
+    if err := c.CallContext(ctx, &result, method); err != nil {
+        return err
+    }
+
+    return nil
+}
+```
+
+## ClientSubscription Methods
+
+The `ClientSubscription` type provides methods for managing active subscriptions.
+
+### Unsubscribe
+
+Cancels the subscription and closes the notification channel.
+
+#### Method Signature
+
+```go
+func (sub *ClientSubscription) Unsubscribe()
+```
+
+#### Usage Example
+
+```go
+sub, err := c.Subscribe(ctx, namespace, method, channel)
 if err != nil {
     log.Fatal(err)
 }
 
-fmt.Printf("Call result: %s\n", result) // [!code focus]
-``` 
+// Always unsubscribe when done
+defer sub.Unsubscribe()
+
+// Process events...
+```
+
+### Err
+
+Returns a channel that receives the subscription error.
+
+#### Method Signature
+
+```go
+func (sub *ClientSubscription) Err() <-chan error
+```
+
+#### Returns
+
+- `<-chan error` - Read-only channel that receives errors
+
+#### Usage Example
+
+```go
+sub, err := c.Subscribe(ctx, namespace, method, channel)
+if err != nil {
+    log.Fatal(err)
+}
+defer sub.Unsubscribe()
+
+for {
+    select {
+    case data := <-channel:
+        // Process data
+    case err := <-sub.Err():
+        if err != nil {
+            log.Fatal("Subscription error:", err)
+        }
+        return
+    }
+}
+```
+
+## Best Practices
+
+### Always Use Context
+
+Prefer `CallContext` over `Call` for better control:
+
+```go
+// Good: Can be cancelled and has timeout
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+err := c.CallContext(ctx, &result, method)
+
+// Less ideal: No timeout or cancellation
+err := c.Call(&result, method)
+```
+
+### Batch Related Calls
+
+When making multiple independent calls, use `BatchCall`:
+
+```go
+// Good: Single network round trip
+batch := []client.BatchElem{
+    {Method: "method1", Result: &result1},
+    {Method: "method2", Result: &result2},
+    {Method: "method3", Result: &result3},
+}
+c.BatchCall(batch)
+
+// Less efficient: Three network round trips
+c.CallContext(ctx, &result1, "method1")
+c.CallContext(ctx, &result2, "method2")
+c.CallContext(ctx, &result3, "method3")
+```
+
+### Handle Subscription Errors
+
+Always monitor the error channel:
+
+```go
+for {
+    select {
+    case data := <-channel:
+        // Process data
+    case err := <-sub.Err():
+        // Handle error, possibly reconnect
+        if err != nil {
+            log.Printf("Subscription error: %v", err)
+            return
+        }
+    }
+}
+```
+
+### Clean Up Resources
+
+Always close clients and unsubscribe:
+
+```go
+c, err := client.DialHTTP(url)
+if err != nil {
+    return err
+}
+defer c.Close()  // Ensures cleanup
+
+sub, err := c.Subscribe(ctx, ns, method, ch)
+if err != nil {
+    return err
+}
+defer sub.Unsubscribe()  // Ensures cleanup
+```
+
+## Related Documentation
+
+- [Client Functions](/docs/client/functions) - Package-level functions for creating clients
+- [Types](/docs/client/types) - Type definitions for Client and related types
+- [WebSocket Example](/docs/examples/websocket) - Complete subscription example
+- [RPC Methods](/docs/rpc/) - High-level Starknet RPC method wrappers

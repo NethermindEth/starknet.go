@@ -28,13 +28,21 @@ import (
     "encoding/json"
     "fmt"
     "log"
+	"os"
 
     "github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
     // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
+	}
+
+	ctx := context.Background()
+    client, err := rpc.NewProvider(ctx, rpcURL)
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
@@ -43,7 +51,7 @@ func main() {
     blockID := rpc.WithBlockNumber(1676503) // Block that had our transactions
 
     // Trace all transactions in the block
-    traces, err := client.TraceBlockTransactions(context.Background(), blockID)
+    traces, err := client.TraceBlockTransactions(ctx, blockID)
     if err != nil {
         log.Fatal("Failed to trace block transactions:", err)
     }
@@ -241,14 +249,6 @@ First transaction trace:
 }
 ```
 
-## Use Cases
-
-- Debug all transactions in a block to identify issues or patterns
-- Analyze block-level gas consumption and resource usage
-- Monitor state changes across all transactions in a block
-- Audit entire blocks for security analysis
-- Understand the complete execution flow of complex multi-transaction blocks
-
 ## Error Handling
 
 Common errors include network timeouts and invalid block identifiers. Always check the error before using the returned value.
@@ -261,3 +261,10 @@ if err != nil {
 }
 // Safe to use traces
 ```
+
+## Related Methods
+
+- [TraceTransaction](/docs/rpc/methods/trace-transaction) - Trace a single transaction
+- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Simulate transactions before sending
+- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get block with full transaction details
+- [StateUpdate](/docs/rpc/methods/state-update) - Get state changes for a block

@@ -1,0 +1,145 @@
+# BuildDeployAccountTxn
+
+Builds a deploy account transaction for creating new account contracts on Starknet.
+
+## Function Signature
+
+```go
+func BuildDeployAccountTxn(
+    classHash *felt.Felt,
+    constructorCalldata []*felt.Felt,
+    opts *BuildOptions,
+) (*rpc.DeployAccountTxn, error)
+```
+
+## Parameters
+
+- `classHash` (*felt.Felt): Class hash of the account contract to deploy
+- `constructorCalldata` ([]*felt.Felt): Constructor parameters (typically public key)
+- `opts` (*BuildOptions): Transaction build options including salt
+
+## Returns
+
+- `*rpc.DeployAccountTxn`: Fully constructed deploy account transaction
+- `error`: Error if build fails
+
+## Description
+
+BuildDeployAccountTxn creates a transaction that deploys a new account contract instance. This is used for account abstraction, allowing users to create smart contract accounts with custom logic.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Account contract class hash (OpenZeppelin account, Argent, etc.)
+	accountClassHash, _ := new(felt.Felt).SetString("0x...")
+	
+	// Public key for the account
+	publicKey, _ := new(felt.Felt).SetString("0x...")
+	
+	// Generate salt for unique address
+	salt := new(felt.Felt).SetUint64(12345)
+	
+	// Build deploy account transaction
+	txn, err := utils.BuildDeployAccountTxn(
+		accountClassHash,
+		[]*felt.Felt{publicKey},
+		&utils.BuildOptions{
+			Salt:   salt,
+			MaxFee: maxFee,
+		},
+	)
+	
+	if err != nil {
+		panic(err)
+	}
+	
+	// Precompute the account address
+	accountAddress := contracts.PrecomputeAddress(
+		deployerAddress,  // Usually UDC or zero address
+		salt,
+		accountClassHash,
+		[]*felt.Felt{publicKey},
+	)
+	
+	// txn is ready to be signed and sent
+}
+```
+
+## Use Cases
+
+### 1. Deploy Standard Account
+```go
+// OpenZeppelin account with single signer
+txn, _ := utils.BuildDeployAccountTxn(
+    ozAccountClassHash,
+    []*felt.Felt{publicKey},
+    &utils.BuildOptions{
+        Salt:   salt,
+        MaxFee: deployFee,
+    },
+)
+```
+
+### 2. Deploy Multi-Sig Account
+```go
+// Argent multi-sig with guardian
+txn, _ := utils.BuildDeployAccountTxn(
+    argentClassHash,
+    []*felt.Felt{ownerPublicKey, guardianPublicKey},
+    &utils.BuildOptions{
+        Salt:   salt,
+        MaxFee: deployFee,
+    },
+)
+```
+
+### 3. Deploy Custom Account
+```go
+// Custom account with complex constructor
+customCalldata := []*felt.Felt{
+    publicKey,
+    threshold,
+    numSigners,
+}
+
+txn, _ := utils.BuildDeployAccountTxn(
+    customAccountClassHash,
+    customCalldata,
+    opts,
+)
+```
+
+## Notes
+
+- Salt ensures unique account addresses even with same class hash
+- Constructor calldata format depends on the account contract implementation
+- Account address can be precomputed before deployment
+- The transaction must be signed by the account's private key
+- Requires funding the account address before deployment (for fees)
+
+## Account Deployment Flow
+
+```
+1. Choose account contract class (OpenZeppelin, Argent, custom)
+2. Generate or provide public key
+3. Choose unique salt
+4. Precompute account address
+5. Fund the account address with ETH/STRK for deployment fees
+6. Build deploy account transaction
+7. Sign with corresponding private key
+8. Submit transaction
+```
+
+## Related Functions
+
+- [contracts.PrecomputeAddress](/docs/contracts/functions/precompute-address) - Calculate account address before deployment
+- [BuildInvokeTxn](/docs/utils/functions/build-invoke-txn) - Build invoke transactions
+- Account.DeployAccount - Higher-level deploy with automatic signing

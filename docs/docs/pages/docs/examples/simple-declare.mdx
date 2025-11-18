@@ -1,0 +1,271 @@
+# Declare Contract
+
+This guide demonstrates how to declare a contract on Starknet using Starknet.go.
+
+## Prerequisites
+
+- Go 1.18 or higher
+- Starknet.go installed
+- A Starknet node URL
+- An account with sufficient ETH/STRK for transaction fees
+- Compiled contract files (`.sierra.json` and `.casm.json`)
+
+## Overview
+
+This example demonstrates how to declare a contract on Starknet. It uses a simple Hello Starknet contract, but it can be any smart contract.
+
+Declaring a contract on Starknet is the process of registering the contract class on the network. After declaration, you can deploy instances of that contract class using the class hash.
+
+**Important Note**: Each contract class can only be declared once on Starknet. If you try to declare a contract class that has already been declared, you will receive an error. This is expected behavior as there can be only one contract class per class hash on the network.
+
+Reference: [Starknet Contract Classes](https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-classes/#contract_classes_2)
+
+## Steps
+
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+2. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+3. Uncomment, and assign your account address to the `ACCOUNT_ADDRESS` variable in the ".env" file (make sure to have a few ETH in it)
+4. Uncomment, and assign your starknet public key to the `PUBLIC_KEY` variable in the ".env" file
+5. Uncomment, and assign your private key to the `PRIVATE_KEY` variable in the ".env" file
+6. Make sure you are in the "simpleDeclare" directory
+7. **Important**: Ensure you have the contract files (`contract.casm.json` and `contract.sierra.json`) in the directory. **You need to replace these with your own contract files**, otherwise the example will return an error since the included contract has already been declared
+8. Execute `go run main.go`
+
+After successful declaration, the transaction hash, status, and the class hash will be returned at the end of the execution.
+
+## Code Example
+
+```go [main.go]
+package main
+
+import (
+	"context"
+	"fmt"
+	"math/big"
+	"strings"
+	"time"
+
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+const (
+	sierraContractFilePath = "./contract.sierra.json"
+	casmContractFilePath   = "./contract.casm.json"
+)
+
+// This example demonstrates how to declare a contract on Starknet.
+func main() {
+	// Load variables from '.env' file
+	rpcProviderURL := setup.GetRPCProviderURL()
+	accountAddress := setup.GetAccountAddress()
+	accountCairoVersion := setup.GetAccountCairoVersion()
+	privateKey := setup.GetPrivateKey()
+	publicKey := setup.GetPublicKey()
+
+	// Initialise connection to RPC provider
+	client, err := rpc.NewProvider(context.Background(), rpcProviderURL)
+	if err != nil {
+		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
+	}
+
+	// Initialise the account memkeyStore (set public and private keys)
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		panic("Failed to convert privKey to bigInt")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	// Here we are converting the account address to felt
+	accountAddressInFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		fmt.Println("Failed to transform the account address, did you give the hex address?")
+		panic(err)
+	}
+	// Initialise the account
+	accnt, err := account.NewAccount(
+		client,
+		accountAddressInFelt,
+		publicKey,
+		ks,
+		accountCairoVersion,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Established connection with the client")
+
+	// Unmarshalling the casm contract class from a JSON file.
+	casmClass, err := utils.UnmarshalJSONFileToType[contracts.CasmClass](casmContractFilePath, "")
+	if err != nil {
+		panic(err)
+	}
+
+	// Unmarshalling the sierra contract class from a JSON file.
+	contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](
+		sierraContractFilePath,
+		"",
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	// Building and sending the declare transaction.
+	resp, err := accnt.BuildAndSendDeclareTxn(
+		context.Background(),
+		casmClass,
+		contractClass,
+		nil,
+	)
+	if err != nil {
+		if strings.Contains(err.Error(), "is already declared") {
+			fmt.Println("")
+			fmt.Println("Error: ooops, this contract class was already declared.")
+			fmt.Println("You need to: ")
+			fmt.Println("- create a different Cairo contract,")
+			fmt.Println("- compile it,")
+			fmt.Println(
+				"- paste the new casm and sierra json files in this 'examples/simpleDeclare' folder,",
+			)
+			fmt.Println(
+				"- change the 'casmContractFilePath' and 'sierraContractFilePath' variables to the new files names,",
+			)
+			fmt.Println(
+				"and then, run the example again. You can use Scarb for it: https://docs.swmansion.com/scarb/",
+			)
+
+			return
+		}
+		panic(err)
+	}
+
+	fmt.Println("Waiting for the transaction status...")
+
+	txReceipt, err := accnt.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
+	if err != nil {
+		panic(err)
+	}
+
+	// This returns us with the transaction hash and status
+	fmt.Printf("Transaction hash response: %v\n", resp.Hash)
+	fmt.Printf("Transaction execution status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Transaction status: %s\n", txReceipt.FinalityStatus)
+	fmt.Printf("Class hash: %s\n", resp.ClassHash)
+}
+```
+
+## Explanation
+
+### Declare Transaction Flow
+
+1. **Load Environment**: Load RPC endpoint and account credentials from environment variables
+2. **Initialize RPC Client**: Connect to the Starknet RPC provider
+3. **Setup Account**: Initialize account with keystore and credentials
+4. **Unmarshal Contracts**: Load both CASM and Sierra contract classes from JSON files
+5. **Build and Send**: Use `BuildAndSendDeclareTxn` to declare the contract
+6. **Wait for Receipt**: Wait for the transaction to be confirmed on-chain
+7. **Display Results**: Show transaction hash, execution status, and class hash
+
+### Contract Files
+
+You need two files to declare a Sierra (Cairo 1+) contract:
+
+1. **contract.sierra.json**: The Sierra representation of your contract
+2. **contract.casm.json**: The Cairo Assembly (CASM) compiled version
+
+These files are generated when you compile your Cairo contract using Scarb or the Cairo compiler.
+
+### Class Hash
+
+The class hash is a unique identifier for your contract class. After successful declaration:
+- Use this class hash to deploy contract instances
+- The class hash is deterministically computed from the contract code
+- The same contract code will always produce the same class hash
+
+## Compiling Contracts
+
+To compile your own Cairo contract and generate the required files, you can use [Scarb](https://docs.swmansion.com/scarb/):
+
+```bash
+# Install Scarb
+curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh
+
+# Compile your contract
+scarb build
+
+# The compiled files will be in the target/dev directory
+```
+
+## Best Practices
+
+- **Unique Contracts**: Always use a new, undeclared contract for testing declare transactions
+- **Version Control**: Keep track of declared class hashes for deployment
+- **Fee Estimation**: Ensure sufficient funds for declaration fees (can be significant for large contracts)
+- **Environment Variables**: Store sensitive credentials in environment variables
+- **Error Handling**: Handle the "already declared" error gracefully
+- **Test on Testnet**: Always test contract declaration on Sepolia before mainnet
+- **Contract Verification**: Verify your contract files are valid before attempting declaration
+
+## Common Issues
+
+### Already Declared Error
+
+```
+Error: ooops, this contract class was already declared.
+```
+
+**Solution**: Each contract class can only be declared once. You need to:
+1. Create a different Cairo contract
+2. Compile it to generate new `.sierra.json` and `.casm.json` files
+3. Update the file paths in the code
+4. Run the example again
+
+### Invalid Contract Files
+
+```
+Error unmarshalling contract class
+```
+
+**Solution**: Ensure your contract files are:
+- Valid JSON format
+- Generated from a compatible Cairo compiler version
+- Both Sierra and CASM files are from the same contract
+
+### Insufficient Funds
+
+```
+Error: insufficient funds for declaration
+```
+
+**Solution**: Ensure your account has enough STRK/ETH to cover:
+- Declaration transaction fees
+- Gas costs for large contracts can be significant
+
+### Invalid Account Configuration
+
+```
+Failed to transform the account address
+```
+
+**Solution**: Verify your `.env` file has:
+- Valid hex format account address (starting with 0x)
+- Correct private and public keys
+- Matching key pairs
+
+## Related Examples
+
+- [Deploy Contract](/docs/examples/deploy-contract) - Learn how to deploy declared contracts
+- [Deploy with UDC](/docs/examples/deploy-contract-udc) - Deploy using Universal Deployer Contract
+- [Invoke Contract](/docs/examples/invoke-contract) - Interact with deployed contracts
+
+## Additional Resources
+
+- [Starknet Contract Classes](https://docs.starknet.io/architecture-and-concepts/smart-contracts/contract-classes/)
+- [Cairo Book](https://book.cairo-lang.org/)
+- [Scarb Documentation](https://docs.swmansion.com/scarb/)
+- [Cairo Compiler](https://github.com/starkware-libs/cairo)

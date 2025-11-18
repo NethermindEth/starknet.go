@@ -1,0 +1,110 @@
+# ExecuteTransaction
+
+Executes a sponsored transaction through the paymaster service.
+
+## Method Signature
+
+```go
+func (pm *Paymaster) ExecuteTransaction(
+    ctx context.Context,
+    request *ExecuteTransactionRequest,
+) (ExecuteTransactionResponse, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for the operation
+- `request` (*ExecuteTransactionRequest): Transaction execution request
+
+## ExecuteTransactionRequest Structure
+
+```go
+type ExecuteTransactionRequest struct {
+    Transaction ExecutableUserTransaction `json:"transaction"`
+    Parameters  UserParameters             `json:"parameters"`
+}
+```
+
+## ExecuteTransactionResponse Structure
+
+```go
+type ExecuteTransactionResponse struct {
+    TrackingID      *felt.Felt `json:"tracking_id"`
+    TransactionHash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+## Description
+
+ExecuteTransaction submits the sponsored transaction to the Starknet network through the paymaster. The transaction fees are paid by the paymaster service according to the terms established in BuildTransaction.
+
+## Usage Example
+
+```go
+// First, build the transaction
+buildResp, _ := pm.BuildTransaction(ctx, buildRequest)
+
+// Then execute it
+execRequest := &paymaster.ExecuteTransactionRequest{
+    Calls: buildResp.CallsWithPaymaster,
+    PaymasterData: buildResp.PaymasterData,
+    TrackingID: buildResp.TrackingID,
+}
+
+execResp, err := pm.ExecuteTransaction(ctx, execRequest)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Transaction submitted: %s\n", execResp.TransactionHash)
+```
+
+## Complete Flow Example
+
+```go
+// 1. Build transaction
+buildResp, err := pm.BuildTransaction(ctx, &paymaster.BuildTransactionRequest{
+    Calls: calls,
+    FeeToken: feeToken,
+})
+
+// 2. Execute transaction
+execResp, err := pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
+    Calls: buildResp.CallsWithPaymaster,
+    PaymasterData: buildResp.PaymasterData,
+    TrackingID: buildResp.TrackingID,
+})
+
+// 3. Monitor transaction
+fmt.Printf("Transaction: %s\n", execResp.TransactionHash)
+```
+
+## Use Cases
+
+### 1. Complete Sponsored Flow
+```go
+buildResp, _ := pm.BuildTransaction(ctx, buildReq)
+execResp, _ := pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
+    Calls: buildResp.CallsWithPaymaster,
+    PaymasterData: buildResp.PaymasterData,
+    TrackingID: buildResp.TrackingID,
+})
+```
+
+### 2. Transaction Monitoring
+```go
+execResp, _ := pm.ExecuteTransaction(ctx, execReq)
+receipt, _ := rpcProvider.WaitForTransaction(ctx, execResp.TransactionHash)
+```
+
+## Notes
+
+- Must call BuildTransaction first
+- Uses calls and data from BuildTransactionResponse
+- Returns immediately after submission (use WaitForTransaction to wait)
+- TrackingID links the build and execute operations
+
+## Related Methods
+
+- [BuildTransaction](/docs/paymaster/methods/build-transaction)
+- [TrackingIDToLatestHash](/docs/paymaster/methods/tracking-id-to-latest-hash)

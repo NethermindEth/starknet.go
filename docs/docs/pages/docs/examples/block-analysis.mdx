@@ -1,0 +1,265 @@
+# Block Analysis
+
+## Transaction Volume Analysis
+
+Count transactions across multiple blocks.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // Create RPC client
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Analyze transaction volume over multiple blocks
+    blockNumbers := []uint64{1500000, 1500001, 1500002, 1500003, 1500004}
+    totalTxs := uint64(0)
+
+    for _, blockNum := range blockNumbers {
+        blockID := rpc.WithBlockNumber(blockNum)
+        txCount, err := client.BlockTransactionCount(context.Background(), blockID)
+        if err != nil {
+            log.Printf("Failed to get tx count for block %d: %v", blockNum, err)
+            continue
+        }
+
+        fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
+        totalTxs += txCount
+    }
+
+    fmt.Printf("\nTotal transactions across %d blocks: %d\n", len(blockNumbers), totalTxs)
+    fmt.Printf("Average transactions per block: %.2f\n", float64(totalTxs)/float64(len(blockNumbers)))
+}
+```
+
+## Block Monitoring
+
+Watch for new blocks and report their transaction counts.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    lastBlock := uint64(0)
+
+    for {
+        // Get current block number
+        currentBlock, err := client.BlockNumber(context.Background())
+        if err != nil {
+            log.Printf("Error getting block number: %v", err)
+            time.Sleep(5 * time.Second)
+            continue
+        }
+
+        // Check if new block appeared
+        if currentBlock > lastBlock {
+            fmt.Printf("New block detected: %d\n", currentBlock)
+
+            // Get block details
+            blockID := rpc.WithBlockNumber(currentBlock)
+            txCount, _ := client.BlockTransactionCount(context.Background(), blockID)
+
+            fmt.Printf("  Transactions: %d\n", txCount)
+            fmt.Printf("  Timestamp: %s\n\n", time.Now().Format(time.RFC3339))
+
+            lastBlock = currentBlock
+        }
+
+        // Wait before next check
+        time.Sleep(5 * time.Second)
+    }
+}
+```
+
+## State Changes Analysis
+
+Check what state changes occurred in a block.
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get state update for a specific block
+    blockID := rpc.WithBlockTag("latest")
+    stateUpdate, err := client.StateUpdate(context.Background(), blockID)
+    if err != nil {
+        log.Fatal("Failed to get state update:", err)
+    }
+
+    // Analyze state differences
+    fmt.Println("State Update Analysis:")
+    fmt.Printf("Block Hash: %s\n", stateUpdate.BlockHash)
+    fmt.Printf("New Root: %s\n", stateUpdate.NewRoot)
+
+    if stateUpdate.StateDiff != nil {
+        fmt.Printf("\nStorage Updates: %d\n", len(stateUpdate.StateDiff.StorageDiffs))
+        fmt.Printf("Deployed Contracts: %d\n", len(stateUpdate.StateDiff.DeployedContracts))
+        fmt.Printf("Declared Classes: %d\n", len(stateUpdate.StateDiff.DeclaredClasses))
+        fmt.Printf("Nonce Updates: %d\n", len(stateUpdate.StateDiff.Nonces))
+
+        // Show first few storage updates
+        for i, storage := range stateUpdate.StateDiff.StorageDiffs {
+            if i >= 3 {
+                break
+            }
+            fmt.Printf("\nContract %s updated %d storage entries\n",
+                storage.Address, len(storage.StorageEntries))
+        }
+    }
+}
+```
+
+## Block Comparison
+
+Compare transaction counts between consecutive blocks.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get current and previous block
+    currentBlockNum, _ := client.BlockNumber(context.Background())
+    previousBlockNum := currentBlockNum - 1
+
+    currentID := rpc.WithBlockNumber(currentBlockNum)
+    previousID := rpc.WithBlockNumber(previousBlockNum)
+
+    // Get transaction counts
+    currentTxCount, _ := client.BlockTransactionCount(context.Background(), currentID)
+    previousTxCount, _ := client.BlockTransactionCount(context.Background(), previousID)
+
+    // Get block details
+    currentBlock, _ := client.BlockWithTxHashes(context.Background(), currentID)
+    previousBlock, _ := client.BlockWithTxHashes(context.Background(), previousID)
+
+    // Compare blocks
+    fmt.Println("Block Comparison:")
+    fmt.Printf("Previous Block: %d (Txs: %d)\n", previousBlockNum, previousTxCount)
+    fmt.Printf("Current Block:  %d (Txs: %d)\n", currentBlockNum, currentTxCount)
+
+    txDiff := int(currentTxCount) - int(previousTxCount)
+    if txDiff > 0 {
+        fmt.Printf("Transaction increase: +%d\n", txDiff)
+    } else if txDiff < 0 {
+        fmt.Printf("Transaction decrease: %d\n", txDiff)
+    } else {
+        fmt.Println("Transaction count unchanged")
+    }
+}
+```
+
+## Historical Block Retrieval
+
+Retrieve and analyze blocks from specific points in the blockchain history.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/juno/core/felt"
+)
+
+func main() {
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    if err != nil {
+        log.Fatal("Failed to create client:", err)
+    }
+
+    // Get specific historical block with transaction hashes
+    blockNumber := uint64(1000000)
+    blockID := rpc.WithBlockNumber(blockNumber)
+
+    blockWithHashes, err := client.BlockWithTxHashes(context.Background(), blockID)
+    if err != nil {
+        log.Fatal("Failed to get historical block:", err)
+    }
+
+    fmt.Printf("Historical Block %d Analysis:\n", blockNumber)
+    // Type assert to access block fields
+    if block, ok := blockWithHashes.(map[string]interface{}); ok {
+        if txs, ok := block["transactions"].([]interface{}); ok {
+            fmt.Printf("- Transaction count: %d\n", len(txs))
+        }
+        if timestamp, ok := block["timestamp"].(float64); ok {
+            fmt.Printf("- Timestamp: %v\n", timestamp)
+        }
+    }
+
+    // For detailed transaction analysis, use BlockWithTxs
+    blockWithTxs, err := client.BlockWithTxs(context.Background(), blockID)
+    if err != nil {
+        log.Printf("Failed to get block with full transactions: %v", err)
+        return
+    }
+
+    fmt.Printf("\nDetailed transaction analysis available\n")
+    // Process full transaction details as needed
+}
+```
+
+## Related RPC Methods
+
+- [BlockNumber](/docs/rpc/methods/block-number)
+- [BlockHashAndNumber](/docs/rpc/methods/block-hash-and-number)
+- [BlockWithTxHashes](/docs/rpc/methods/block-with-tx-hashes)
+- [BlockWithTxs](/docs/rpc/methods/block-with-txs)
+- [BlockWithReceipts](/docs/rpc/methods/block-with-receipts)
+- [BlockTransactionCount](/docs/rpc/methods/block-transaction-count)
+- [StateUpdate](/docs/rpc/methods/state-update)

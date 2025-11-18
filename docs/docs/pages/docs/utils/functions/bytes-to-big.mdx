@@ -1,0 +1,64 @@
+# BytesToBig
+
+Converts a byte slice to a big.Int.
+
+## Function Signature
+
+```go
+func BytesToBig(bytes []byte) *big.Int
+```
+
+## Parameters
+
+- `bytes` - The byte slice to be converted
+
+## Returns
+
+- `*big.Int` - The converted big integer value
+
+## Description
+
+BytesToBig converts a byte array to a `*big.Int` representation. This is useful when working with raw byte data that needs to be interpreted as a large integer, such as when processing cryptographic operations or deserializing binary data.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Convert byte slice to big.Int
+	bytes := []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF}
+	bigInt := utils.BytesToBig(bytes)
+
+	fmt.Printf("Bytes: %x\n", bytes)
+	fmt.Printf("Big Int: %s\n", bigInt.String())
+	// Output:
+	// Bytes: 0123456789abcdef
+	// Big Int: 81985529216486895
+}
+```
+
+## Expected Output
+
+```
+BytesToBig:
+  Input bytes: [1 35 69 103 137 171 205 239]
+  Big Int: 81985529216486895
+```
+
+## Common Use Cases
+
+1. **Deserializing Binary Data**: Convert received binary data to numeric form
+2. **Cryptographic Operations**: Process byte arrays from hash functions or signatures
+3. **Network Protocol Handling**: Convert network byte order data to integers
+
+## Related Functions
+
+- [HexToBytes](./hex-to-bytes) - Convert hex string to bytes
+- [BigToHex](./big-to-hex) - Convert big.Int to hex string
+- [HexToBN](./hex-to-bn) - Convert hex directly to big.Int
