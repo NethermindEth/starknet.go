@@ -91,7 +91,7 @@ func BuildUDCCalldata(
 
 	// salt
 	if opts.Salt == nil {
-		opts.Salt = new(felt.Felt).SetRandom()
+		opts.Salt = felt.NewRandom[felt.Felt]()
 	}
 
 	// response
