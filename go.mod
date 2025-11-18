@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/NethermindEth/juno v0.15.11-0.20251106164343-f86a9db99f5d
+	github.com/NethermindEth/juno v0.15.11
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.4.0
 	github.com/stretchr/testify v1.10.0
