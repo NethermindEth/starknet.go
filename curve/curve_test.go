@@ -41,11 +41,9 @@ func BenchmarkSignatureVerify(b *testing.B) {
 	for range b.N {
 		// setup
 		b.StopTimer()
-		randFelt, err := new(felt.Felt).SetRandom()
-		require.NoError(b, err)
 		hash := Pedersen(
 			internalUtils.DeadBeef,
-			randFelt,
+			new(felt.Felt).SetRandom(),
 		)
 		hashBigInt := internalUtils.FeltToBigInt(hash)
 		r, s, err := Sign(hashBigInt, private)

@@ -1,0 +1,84 @@
+# GetRandomKeys
+
+Generates a random private key and its corresponding public key on the Stark curve.
+
+## Function Signature
+
+```go
+func GetRandomKeys() (privKey, x, y *big.Int, err error)
+```
+
+## Returns
+
+- `privKey` (*big.Int): The generated private key
+- `x` (*big.Int): The x-coordinate of the public key
+- `y` (*big.Int): The y-coordinate of the public key
+- `err` (error): Error if key generation fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate random keys
+	privKey, x, y, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal("Failed to generate random keys:", err)
+	}
+
+	fmt.Println("GetRandomKeys:")
+	fmt.Printf("  Private Key: 0x%x\n", privKey)
+	fmt.Printf("  Public Key X: 0x%x\n", x)
+	fmt.Printf("  Public Key Y: 0x%x\n", y)
+	fmt.Println("\nNote: Keys are randomly generated, values will differ on each run")
+}
+```
+
+## Expected Output
+
+```
+GetRandomKeys:
+  Private Key: 0x16287280ce9b87050af55e55d039616f461722ebe2983754ce4d44cc4a6c6cb
+  Public Key X: 0x3f222729c13ddb9e3439059a1f15943741434c0a2bc4b71de7efe921422f84d
+  Public Key Y: 0x6008a4340e11782de576e1c2fe6f4ceee6259c52cf1f249b77e4e5762ba2267
+
+Note: Keys are randomly generated, values will differ on each run
+```
+
+## Use Cases
+
+### 1. Create Test Account
+```go
+privKey, pubX, _, err := curve.GetRandomKeys()
+if err != nil {
+    log.Fatal(err)
+}
+// Use privKey for signing, pubX as account address
+```
+
+### 2. Generate Ephemeral Keys
+```go
+// Generate temporary keys for a session
+sessionPriv, sessionPubX, sessionPubY, _ := curve.GetRandomKeys()
+```
+
+## Notes
+
+- Keys are cryptographically secure random
+- Public key X coordinate is typically used as the Starknet account address
+- The private key should be kept secret and stored securely
+- Public key Y can be derived from X using [GetYCoordinate](/docs/curve/functions/get-y-coordinate)
+
+## Related Functions
+
+- [PrivateKeyToPoint](/docs/curve/functions/private-key-to-point) - Derive public key from known private key
+- [Sign](/docs/curve/functions/sign) - Sign messages with private key
+- [GetYCoordinate](/docs/curve/functions/get-y-coordinate) - Get Y from X coordinate

@@ -1,0 +1,77 @@
+# IsAvailable
+
+Checks if the paymaster service is running and accepting requests.
+
+## Method Signature
+
+```go
+func (pm *Paymaster) IsAvailable(ctx context.Context) (bool, error)
+```
+
+## Parameters
+
+- `ctx` (context.Context): Context for the operation
+
+## Returns
+
+- `bool`: True if service is available, false otherwise
+- `error`: Error if the check fails
+
+## Description
+
+IsAvailable performs a health check on the paymaster service to determine if it's operational and ready to process transactions. This should be called before attempting to build or execute transactions.
+
+## Usage Example
+
+```go
+available, err := pm.IsAvailable(ctx)
+if err != nil {
+    log.Fatal("Health check failed:", err)
+}
+
+if available {
+    fmt.Println("Paymaster service is ready")
+} else {
+    fmt.Println("Paymaster service is unavailable")
+}
+```
+
+## Use Cases
+
+### 1. Startup Health Check
+```go
+pm, _ := paymaster.New(ctx, url)
+if available, _ := pm.IsAvailable(ctx); !available {
+    return errors.New("paymaster not ready")
+}
+```
+
+### 2. Retry Logic
+```go
+for i := 0; i < 3; i++ {
+    if available, _ := pm.IsAvailable(ctx); available {
+        break
+    }
+    time.Sleep(time.Second)
+}
+```
+
+### 3. Service Monitoring
+```go
+ticker := time.NewTicker(30 * time.Second)
+for range ticker.C {
+    available, _ := pm.IsAvailable(ctx)
+    metrics.RecordPaymasterStatus(available)
+}
+```
+
+## Notes
+
+- Returns false (not error) if service is temporarily unavailable
+- Error indicates network or communication issues
+- Lightweight operation suitable for frequent checks
+
+## Related Methods
+
+- [New](/docs/paymaster/methods/new)
+- [BuildTransaction](/docs/paymaster/methods/build-transaction)

@@ -1,0 +1,289 @@
+# ProofMerklePath
+
+Verifies if a leaf node is part of a Merkle tree by checking the validity of a Merkle path. This function recursively validates the path from a leaf to the root, ensuring data integrity without requiring the entire tree.
+
+## Function Signature
+
+```go
+func ProofMerklePath(root, leaf *big.Int, path []*big.Int) bool
+```
+
+## Parameters
+
+- `root` - The root node hash of the Merkle tree
+- `leaf` - The leaf node value to verify
+- `path` - A slice of sibling hashes from the leaf to the root
+
+## Returns
+
+- `bool` - `true` if the leaf is part of the Merkle tree path, `false` otherwise
+
+## How Proof Verification Works
+
+Merkle proof verification is a fundamental concept in cryptography that allows you to prove a value exists in a tree without revealing the entire tree:
+
+1. **Start with the leaf**: Begin with the leaf value you want to verify
+2. **Hash with siblings**: At each level, hash the current value with its sibling from the proof path
+3. **Move up the tree**: The result becomes the input for the next level
+4. **Compare with root**: If the final hash matches the root, the proof is valid
+
+### Visualization
+
+```
+           Root
+          /    \
+        H1      H2
+       /  \    /  \
+      A    B  C    D
+
+To prove leaf A exists:
+- Path contains: [B, H2]
+- Step 1: Hash(A, B) = H1
+- Step 2: Hash(H1, H2) = Root
+- If computed Root matches actual Root, proof is valid
+```
+
+## Implementation Details
+
+```go
+func ProofMerklePath(root, leaf *big.Int, path []*big.Int) bool {
+	if len(path) == 0 {
+		return root.Cmp(leaf) == 0
+	}
+	nexLeaf := MerkleHash(leaf, path[0])
+	return ProofMerklePath(root, nexLeaf, path[1:])
+}
+```
+
+The function:
+- Uses recursion to traverse the path
+- Applies `MerkleHash` at each level
+- Returns `true` only if the computed root matches the actual root
+
+## Usage Examples
+
+### Basic Proof Verification
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a Merkle tree
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Generate proof for leaf value 3
+	leaf := big.NewInt(3)
+	proof, err := tree.Proof(leaf)
+	if err != nil {
+		panic(err)
+	}
+
+	// Verify the proof
+	isValid := merkle.ProofMerklePath(tree.Root, leaf, proof)
+
+	fmt.Printf("Merkle Root: 0x%s\n", tree.Root.Text(16))
+	fmt.Printf("Leaf Value: %d\n", leaf.Int64())
+	fmt.Printf("Proof Length: %d\n", len(proof))
+	fmt.Printf("Proof Valid: %v\n", isValid)
+}
+```
+
+### Verifying Multiple Leaves
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree with multiple leaves
+	leaves := []*big.Int{
+		big.NewInt(10),
+		big.NewInt(20),
+		big.NewInt(30),
+		big.NewInt(40),
+		big.NewInt(50),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Verify each leaf
+	for _, leaf := range leaves {
+		proof, err := tree.Proof(leaf)
+		if err != nil {
+			fmt.Printf("Error generating proof for %d: %v\n", leaf.Int64(), err)
+			continue
+		}
+
+		isValid := merkle.ProofMerklePath(tree.Root, leaf, proof)
+		fmt.Printf("Leaf %d - Valid: %v, Proof size: %d\n",
+			leaf.Int64(),
+			isValid,
+			len(proof))
+	}
+}
+```
+
+### Detecting Invalid Proofs
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Get a valid proof for leaf 2
+	validLeaf := big.NewInt(2)
+	validProof, _ := tree.Proof(validLeaf)
+
+	// Try to use the proof with a different leaf
+	invalidLeaf := big.NewInt(999)
+
+	// This should return false
+	isValid := merkle.ProofMerklePath(tree.Root, invalidLeaf, validProof)
+
+	fmt.Printf("Using proof from leaf %d for leaf %d\n",
+		validLeaf.Int64(),
+		invalidLeaf.Int64())
+	fmt.Printf("Proof Valid: %v (should be false)\n", isValid)
+}
+```
+
+### Manual Proof Construction
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Build a simple 4-leaf tree manually
+	leaf1 := big.NewInt(100)
+	leaf2 := big.NewInt(200)
+	leaf3 := big.NewInt(300)
+	leaf4 := big.NewInt(400)
+
+	// Compute intermediate hashes
+	hash1_2 := merkle.MerkleHash(leaf1, leaf2)
+	hash3_4 := merkle.MerkleHash(leaf3, leaf4)
+	root := merkle.MerkleHash(hash1_2, hash3_4)
+
+	// Manually construct proof for leaf1
+	// Path: [leaf2, hash3_4]
+	manualProof := []*big.Int{leaf2, hash3_4}
+
+	// Verify the manual proof
+	isValid := merkle.ProofMerklePath(root, leaf1, manualProof)
+
+	fmt.Printf("Root: 0x%s\n", root.Text(16))
+	fmt.Printf("Proving leaf: %d\n", leaf1.Int64())
+	fmt.Printf("Proof path length: %d\n", len(manualProof))
+	fmt.Printf("Proof valid: %v\n", isValid)
+}
+```
+
+## Common Use Cases
+
+### Data Integrity Verification
+
+Verify that a piece of data is included in a larger dataset without downloading the entire dataset.
+
+```go
+// Verify transaction in a block
+isIncluded := merkle.ProofMerklePath(blockRoot, txHash, txProof)
+```
+
+### State Proofs
+
+Prove the value of a contract storage slot at a specific block height.
+
+```go
+// Verify storage value
+isValid := merkle.ProofMerklePath(stateRoot, storageValue, storageProof)
+```
+
+### Membership Testing
+
+Efficiently test if an element belongs to a set represented by a Merkle tree.
+
+```go
+// Check if address is in allowlist
+isMember := merkle.ProofMerklePath(allowlistRoot, address, membershipProof)
+```
+
+## Understanding Proof Size
+
+The size of a Merkle proof is logarithmic with respect to the number of leaves:
+
+- **4 leaves**: proof size = 2 hashes
+- **8 leaves**: proof size = 3 hashes
+- **16 leaves**: proof size = 4 hashes
+- **1024 leaves**: proof size = 10 hashes
+
+This makes Merkle proofs extremely efficient for large datasets.
+
+## Important Notes
+
+- The proof must be generated from the same Merkle tree whose root is being verified against
+- The function uses `MerkleHash` for each step, which ensures deterministic ordering
+- Empty path (length 0) means the leaf itself should equal the root
+- Invalid proofs return `false` rather than producing an error
+- The verification process is recursive and efficient
+
+## Error Handling
+
+```go
+// ProofMerklePath returns bool, so check the result
+if !merkle.ProofMerklePath(root, leaf, proof) {
+	// Proof is invalid - leaf is not in the tree or proof is corrupted
+	return fmt.Errorf("invalid Merkle proof for leaf")
+}
+```
+
+## Performance Considerations
+
+- Verification time is O(log n) where n is the number of leaves
+- Memory usage is proportional to the proof size (also O(log n))
+- No storage of the entire tree is required for verification
+- Verification is much faster than reconstructing the entire tree
+
+## Related Functions
+
+- [MerkleHash](./merkle-hash) - The hash function used at each step of verification
+- [FixedSizeMerkleTree.Proof](./fixed-size-merkle-tree#proof-method) - Generate proofs for verification
+- [FixedSizeMerkleTree](./fixed-size-merkle-tree) - Create trees that can be verified with this function

@@ -1,34 +1,50 @@
 # Call
 
-Calls the Starknet Provider's function with the given request and block ID.
+Calls a contract function on Starknet without creating a transaction.
+
+## Method Signature
+
+```go
+func (provider *Provider) Call(
+	ctx context.Context,
+	request FunctionCall,
+	blockID BlockID,
+) ([]*felt.Felt, error)
+```
 
 ## Parameters
 
-- `ctx` - The context of the request.
-- `request` - The call request object containing:
-  - `contract_address` - The address of the contract
-  - `entry_point_selector` - The selector of the function to call
-  - `calldata` - The input data for the function call
-- `blockID` - The block identifier. Can be:
-  - `BlockHash` - The hash of the block.
-  - `BlockNumber` - The number of the block.
-  - `"latest"` for the latest block
-  - `"pending"` for the pending block
+- `ctx` - Context for request cancellation and timeout
+- `request` - The function call request containing:
+  - `ContractAddress` - The address of the contract
+  - `EntryPointSelector` - The selector of the function to call
+  - `Calldata` - The input data for the function call
+- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
 
 ## Returns
 
-- `result` - The result of the function call as an array of Felts.
-- `error` - An error if any occurred.
+- `[]*felt.Felt` - Array of felt values returned by the function
+- `error` - Error if the request fails
 
-## Example
+## BlockID Parameter
+
+The `blockID` parameter specifies which block state to use for the call. See [BlockID helper functions](../helper-functions.mdx) for available options:
+- `WithBlockTag("latest")` - Latest block
+- `WithBlockTag("pending")` - Pending block
+- `WithBlockNumber(n)` - Specific block number
+- `WithBlockHash(hash)` - Specific block hash
+
+## Usage Example
 
 ```go
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -36,40 +52,67 @@ import (
 )
 
 func main() {
-	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	provider, err := rpc.NewProvider(rpcUrl)
-	if err != nil {
-		log.Fatal(err)
+	// Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
 	}
 
-	// Convert string addresses to Felt
-	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
-	entryPointSelector, _ := utils.HexToFelt("0x361458367e696363fbcc70777d07ebbd2394e89fd0adcaf147faccd1d294d60")
-	
-	// Create call request
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create client:", err)
+	}
+
+	// ETH contract address on Sepolia
+	contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	if err != nil {
+		log.Fatal("Failed to parse contract address:", err)
+	}
+
+	// Get symbol selector (symbol())
+	symbolSelector := utils.GetSelectorFromNameFelt("symbol")
+
+	// Create function call request
 	request := rpc.FunctionCall{
 		ContractAddress:    contractAddress,
-		EntryPointSelector: entryPointSelector,
-		Calldata: []*felt.Felt{},
+		EntryPointSelector: symbolSelector,
+		Calldata:           []*felt.Felt{},
 	}
-	
-	result, err := provider.Call(context.Background(), request, rpc.BlockID{Tag: "latest"})
+
+	// Call the function
+	result, err := client.Call(ctx, request, rpc.WithBlockTag("latest"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Call failed:", err)
 	}
-	fmt.Println("Call Result:", result)
+
+	// Print result
+	resultJSON, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Printf("Symbol result:\n%s\n", resultJSON)
 }
 ```
 
-## Output
-```json
-Call Result: [0x4c6f726473]
+## Expected Output
+
+```
+Symbol result:
+[
+  "0x455448"
+]
 ```
 
-## Error Cases
+## Error Handling
 
-- `CONTRACT_NOT_FOUND` - If the contract does not exist
-- `INVALID_BLOCK_ID` - If the block identifier is invalid
-- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid
-- `INVALID_ENTRY_POINT_SELECTOR` - If the entry point selector is invalid
-- `INVALID_CALLDATA` - If the calldata is invalid 
+```go
+result, err := client.Call(ctx, request, rpc.WithBlockTag("latest"))
+if err != nil {
+	// Handle errors like contract not found, invalid selector, etc.
+	return err
+}
+```
+
+## Related Methods
+
+- [TransactionByHash](./transaction-by-hash.mdx) - Get transaction details
+- [EstimateFee](./estimate-fee.mdx) - Estimate transaction fees 

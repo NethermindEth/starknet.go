@@ -15,12 +15,75 @@ export const sidebar: Sidebar = {
       ],
     },
     {
-      text: "RPC",
+      text: "account",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/account/" },
+        {
+          text: "Concepts",
+          collapsed: true,
+          items: [
+            { text: "Transaction Signing", link: "/docs/account/concepts/transaction-signing" },
+          ],
+        },
+        {
+          text: "Functions",
+          collapsed: true,
+          items: [
+            { text: "FmtCallDataCairo0", link: "/docs/account/functions/fmt-calldata-cairo0" },
+            { text: "FmtCallDataCairo2", link: "/docs/account/functions/fmt-calldata-cairo2" },
+            { text: "PrecomputeAccountAddress", link: "/docs/account/functions/precompute-account-address" },
+          ],
+        },
+        {
+          text: "Methods",
+          collapsed: true,
+          items: [
+            { text: "NewAccount", link: "/docs/account/methods/new-account" },
+            { text: "BuildAndEstimateDeployAccountTxn", link: "/docs/account/methods/build-and-estimate-deploy-account-txn" },
+            { text: "BuildAndSendDeclareTxn", link: "/docs/account/methods/build-and-send-declare-txn" },
+            { text: "BuildAndSendInvokeTxn", link: "/docs/account/methods/build-and-send-invoke-txn" },
+            { text: "DeployContractWithUDC", link: "/docs/account/methods/deploy-contract-with-udc" },
+            { text: "FmtCalldata", link: "/docs/account/methods/fmt-calldata" },
+            { text: "Nonce", link: "/docs/account/methods/nonce" },
+            { text: "SendTransaction", link: "/docs/account/methods/send-transaction" },
+            { text: "Sign", link: "/docs/account/methods/sign" },
+            { text: "SignDeclareTransaction", link: "/docs/account/methods/sign-declare-transaction" },
+            { text: "SignDeployAccountTransaction", link: "/docs/account/methods/sign-deploy-account-transaction" },
+            { text: "SignInvokeTransaction", link: "/docs/account/methods/sign-invoke-transaction" },
+            { text: "TransactionHashDeclare", link: "/docs/account/methods/transaction-hash-declare" },
+            { text: "TransactionHashDeployAccount", link: "/docs/account/methods/transaction-hash-deploy-account" },
+            { text: "TransactionHashInvoke", link: "/docs/account/methods/transaction-hash-invoke" },
+            { text: "Verify", link: "/docs/account/methods/verify" },
+            { text: "WaitForTransactionReceipt", link: "/docs/account/methods/wait-for-transaction-receipt" },
+          ],
+        },
+        {
+          text: "Keystore",
+          collapsed: true,
+          items: [
+            { text: "GetRandomKeys", link: "/docs/account/keystore/get-random-keys" },
+            { text: "NewMemKeystore", link: "/docs/account/keystore/new-mem-keystore" },
+            { text: "SetNewMemKeystore", link: "/docs/account/keystore/set-new-mem-keystore" },
+            { text: "Get", link: "/docs/account/keystore/get" },
+            { text: "Put", link: "/docs/account/keystore/put" },
+            { text: "Sign", link: "/docs/account/keystore/sign" },
+          ],
+        },
+        {
+          text: "Types",
+          link: "/docs/account/types",
+        },
+      ],
+    },
+    {
+      text: "rpc",
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/rpc/" },
         {
-          text: "Block",
+          text: "Block Methods",
+          collapsed: true,
           items: [
             { text: "BlockNumber", link: "/docs/rpc/methods/block-number" },
             {
@@ -47,68 +110,71 @@ export const sidebar: Sidebar = {
           ],
         },
         {
-          text: "Transaction",
+          text: "Transaction Methods",
+          collapsed: true,
           items: [
             {
               text: "TransactionByHash",
               link: "/docs/rpc/methods/transaction-by-hash",
             },
-                        {
+            {
               text: "TransactionReceipt",
               link: "/docs/rpc/methods/transaction-receipt",
             },
-
             {
-              text: "GetTransactionStatus",
-              link: "/docs/rpc/methods/get-transaction-status",
+              text: "TransactionStatus",
+              link: "/docs/rpc/methods/transaction-status",
             },
             {
               text: "TransactionByBlockIdAndIndex",
               link: "/docs/rpc/methods/transaction-by-block-id-and-index",
             },
-
             {
-              text: "GetMessagesStatus",
-              link: "/docs/rpc/methods/get-messages-status",
-            },            {
-              text: "AddInvokeTransaction",
-              link: "/docs/rpc/methods/get-messages-status",
+              text: "MessagesStatus",
+              link: "/docs/rpc/methods/messages-status",
             },
           ],
         },
         { text: "Call", link: "/docs/rpc/methods/call" },
         {
-          text: "Chain",
+          text: "Chain Methods",
+          collapsed: true,
           items: [
             { text: "ChainID", link: "/docs/rpc/methods/chain-ID" },
-            { text: "SpecVersion", link: "/docs/rpc/methods/specVersion" },
+            { text: "SpecVersion", link: "/docs/rpc/methods/spec-version" },
             { text: "Syncing", link: "/docs/rpc/methods/syncing" },
           ],
         },
         {
-          text: "Contract",
+          text: "Contract Methods",
+          collapsed: true,
           items: [
-            { text: "GetClass", link: "/docs/rpc/methods/get-class" },
-            { text: "GetClassAt", link: "/docs/rpc/methods/get-class-at" },
+            { text: "Class", link: "/docs/rpc/methods/get-class" },
+            { text: "ClassAt", link: "/docs/rpc/methods/get-class-at" },
             {
-              text: "GetClassHashAt",
+              text: "ClassHashAt",
               link: "/docs/rpc/methods/get-class-hash-at",
             },
-            { text: "GetNonce", link: "/docs/rpc/methods/get-nonce" },
+            { text: "Nonce", link: "/docs/rpc/methods/get-nonce" },
+            { text: "StorageAt", link: "/docs/rpc/methods/get-storage-at" },
+            { text: "StorageProof", link: "/docs/rpc/methods/storage-proof" },
+          ],
+        },
+        {
+          text: "Fee Methods",
+          collapsed: true,
+          items: [
             { text: "EstimateFee", link: "/docs/rpc/methods/estimate-fee" },
             {
               text: "EstimateMessageFee",
               link: "/docs/rpc/methods/estimate-message-fee",
             },
-            {
-              text: "GetStorageProof",
-              link: "/docs/rpc/methods/get-storage-proof",
-            },
           ],
         },
         { text: "Events", link: "/docs/rpc/methods/events" },
         {
-          text: "Trace",
+          text: "Trace Methods",
+          collapsed: true,
           items: [
             {
               text: "TraceTransaction",
@@ -125,7 +191,8 @@ export const sidebar: Sidebar = {
           ],
         },
         {
-          text: "Write",
+          text: "Write Methods",
+          collapsed: true,
           items: [
             {
               text: "AddInvokeTransaction",
@@ -141,95 +208,269 @@ export const sidebar: Sidebar = {
             },
           ],
         },
-        { text: "SpecVersion", link: "/docs/rpc/methods/spec-version" },
         {
-          text: "GetCompiledCasm",
-          link: "/docs/rpc/methods/get-compiled-casm",
-        },
-        { text: "RPC Examples", link: "/docs/rpc/examples" },
-      ],
-    },
-    {
-      text: "Account",
-      collapsed: true,
-      items: [
-        { text: "Overview", link: "/docs/account/" },
-        {
-          text: "Account Management",
-          link: "/docs/account/account-management",
+          text: "CompiledCasm",
+          link: "/docs/rpc/methods/compiled-casm",
         },
         {
-          text: "Transaction Handling",
-          link: "/docs/account/transaction-handling",
+          text: "WebSocket Methods",
+          collapsed: true,
+          items: [
+            {
+              text: "SubscribeEvents",
+              link: "/docs/rpc/websocket/subscribe-events",
+            },
+            {
+              text: "SubscribeNewHeads",
+              link: "/docs/rpc/websocket/subscribe-new-heads",
+            },
+            {
+              text: "SubscribeNewTransactionReceipts",
+              link: "/docs/rpc/websocket/subscribe-new-transaction-receipts",
+            },
+            {
+              text: "SubscribeNewTransactions",
+              link: "/docs/rpc/websocket/subscribe-new-transactions",
+            },
+            {
+              text: "SubscribeTransactionStatus",
+              link: "/docs/rpc/websocket/subscribe-transaction-status",
+            },
+          ],
         },
-        {
-          text: "Signature Verification",
-          link: "/docs/account/signature-verification",
-        },
-        { text: "Account Utilities", link: "/docs/account/account-utilities" },
+        { text: "Examples", link: "/docs/rpc/examples" },
       ],
     },
     {
-      text: "Client",
-      collapsed: true,
-      items: [
-        { text: "Overview", link: "/docs/client/" },
-        { text: "Client Configuration", link: "/docs/client/configuration" },
-        { text: "Client Methods", link: "/docs/client/methods" },
-        { text: "Client Examples", link: "/docs/client/examples" },
-      ],
-    },
-    {
-      text: "Curves",
-      collapsed: true,
-      items: [
-        { text: "Overview", link: "/docs/curves/" },
-        { text: "Curve Types", link: "/docs/curves/types" },
-        { text: "Curve Operations", link: "/docs/curves/operations" },
-      ],
-    },
-    {
-      text: "Utilities",
-      collapsed: true,
-      items: [
-        { text: "Overview", link: "/docs/utilities/" },
-        { text: "Common Utilities", link: "/docs/utilities/common" },
-        { text: "Type Utilities", link: "/docs/utilities/types" },
-      ],
-    },
-    {
-      text: "Developer Tools",
+      text: "devnet",
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/devnet/" },
-        { text: "Devnet Setup", link: "/docs/devnet/setup" },
-        { text: "Devnet Usage", link: "/docs/devnet/usage" },
+        {
+          text: "Methods",
+          collapsed: true,
+          items: [
+            { text: "NewDevNet", link: "/docs/devnet/methods/new-devnet" },
+            { text: "IsAlive", link: "/docs/devnet/methods/is-alive" },
+            { text: "Accounts", link: "/docs/devnet/methods/accounts" },
+            { text: "Mint", link: "/docs/devnet/methods/mint" },
+            { text: "FeeToken", link: "/docs/devnet/methods/fee-token" },
+          ],
+        },
+        { text: "Types", link: "/docs/devnet/types" },
       ],
     },
     {
-      text: "ABI",
+      text: "contracts",
       collapsed: true,
       items: [
-        { text: "Overview", link: "/docs/abi/" },
-        { text: "ABI Encoding", link: "/docs/abi/encoding" },
-        { text: "ABI Decoding", link: "/docs/abi/decoding" },
+        { text: "Overview", link: "/docs/contracts/" },
+        {
+          text: "Functions",
+          collapsed: true,
+          items: [
+            { text: "PrecomputeAddress", link: "/docs/contracts/functions/precompute-address" },
+            { text: "UnmarshalCasmClass", link: "/docs/contracts/functions/unmarshal-casm-class" },
+          ],
+        },
+        {
+          text: "Types",
+          collapsed: true,
+          items: [
+            { text: "ContractClass", link: "/docs/contracts/functions/contract-class" },
+            { text: "CasmClass", link: "/docs/contracts/functions/casm-class" },
+          ],
+        },
       ],
     },
     {
-      text: "Examples",
+      text: "utils",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/utils/" },
+        {
+          text: "Type Conversions",
+          collapsed: true,
+          items: [
+            { text: "HexToFelt", link: "/docs/utils/functions/hex-to-felt" },
+            { text: "HexArrToFelt", link: "/docs/utils/functions/hex-arr-to-felt" },
+            { text: "HexToBytes", link: "/docs/utils/functions/hex-to-bytes" },
+            { text: "FeltToBigInt", link: "/docs/utils/functions/felt-to-big-int" },
+            { text: "FeltArrToBigIntArr", link: "/docs/utils/functions/felt-arr-to-big-int-arr" },
+            { text: "BigIntToFelt", link: "/docs/utils/functions/big-int-to-felt" },
+            { text: "BytesToBig", link: "/docs/utils/functions/bytes-to-big" },
+            { text: "StrToBig", link: "/docs/utils/functions/str-to-big" },
+            { text: "HexToBN", link: "/docs/utils/functions/hex-to-bn" },
+            { text: "BigToHex", link: "/docs/utils/functions/big-to-hex" },
+            { text: "Uint64ToFelt", link: "/docs/utils/functions/uint64-to-felt" },
+          ],
+        },
+        {
+          text: "Unit Conversions",
+          collapsed: true,
+          items: [
+            { text: "ETHToWei", link: "/docs/utils/functions/eth-to-wei" },
+            { text: "WeiToETH", link: "/docs/utils/functions/wei-to-eth" },
+            { text: "STRKToFRI", link: "/docs/utils/functions/strk-to-fri" },
+            { text: "FRIToSTRK", link: "/docs/utils/functions/fri-to-strk" },
+          ],
+        },
+        {
+          text: "Transaction Builders",
+          collapsed: true,
+          items: [
+            { text: "BuildInvokeTxn", link: "/docs/utils/functions/build-invoke-txn" },
+            { text: "BuildDeclareTxn", link: "/docs/utils/functions/build-declare-txn" },
+            { text: "BuildDeployAccountTxn", link: "/docs/utils/functions/build-deploy-account-txn" },
+          ],
+        },
+        {
+          text: "String & Hex Utilities",
+          collapsed: true,
+          items: [
+            { text: "HexToShortStr", link: "/docs/utils/functions/hex-to-short-str" },
+            { text: "StrToHex", link: "/docs/utils/functions/str-to-hex" },
+          ],
+        },
+        {
+          text: "Selector & Hashing",
+          collapsed: true,
+          items: [
+            { text: "GetSelectorFromName", link: "/docs/utils/functions/get-selector-from-name" },
+            { text: "GetSelectorFromNameFelt", link: "/docs/utils/functions/get-selector-from-name-felt" },
+            { text: "Keccak256", link: "/docs/utils/functions/keccak256" },
+          ],
+        },
+      ],
+    },
+    {
+      text: "typeddata",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/typeddata/" },
+        { text: "TypedData", link: "/docs/typeddata/typed-data" },
+        { text: "Domain", link: "/docs/typeddata/domain" },
+        { text: "Functions", link: "/docs/typeddata/functions" },
+      ],
+    },
+    {
+      text: "hash",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/hash/" },
+        {
+          text: "Concepts",
+          collapsed: true,
+          items: [
+            { text: "Transaction Hashing", link: "/docs/hash/concepts/transaction-hashing" },
+          ],
+        },
+        {
+          text: "Functions",
+          collapsed: true,
+          items: [
+            { text: "ClassHash", link: "/docs/hash/functions/class-hash" },
+            { text: "CompiledClassHash", link: "/docs/hash/functions/compiled-class-hash" },
+            { text: "TransactionHashInvokeV0", link: "/docs/hash/functions/transaction-hash-invoke-v0" },
+            { text: "TransactionHashInvokeV1", link: "/docs/hash/functions/transaction-hash-invoke-v1" },
+            { text: "TransactionHashInvokeV3", link: "/docs/hash/functions/transaction-hash-invoke-v3" },
+            { text: "TransactionHashDeclareV1", link: "/docs/hash/functions/transaction-hash-declare-v1" },
+            { text: "TransactionHashDeclareV2", link: "/docs/hash/functions/transaction-hash-declare-v2" },
+            { text: "TransactionHashDeclareV3", link: "/docs/hash/functions/transaction-hash-declare-v3" },
+            { text: "TransactionHashBroadcastDeclareV3", link: "/docs/hash/functions/transaction-hash-broadcast-declare-v3" },
+            { text: "TransactionHashDeployAccountV1", link: "/docs/hash/functions/transaction-hash-deploy-account-v1" },
+            { text: "TransactionHashDeployAccountV3", link: "/docs/hash/functions/transaction-hash-deploy-account-v3" },
+            { text: "CalculateDeprecatedTransactionHashCommon", link: "/docs/hash/functions/calculate-deprecated-transaction-hash-common" },
+            { text: "TipAndResourcesHash", link: "/docs/hash/functions/tip-and-resources-hash" },
+            { text: "DataAvailabilityModeConc", link: "/docs/hash/functions/data-availability-mode-conc" },
+          ],
+        },
+      ],
+    },
+    {
+      text: "curve",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/curve/" },
+        {
+          text: "Functions",
+          collapsed: true,
+          items: [
+            { text: "Pedersen", link: "/docs/curve/functions/pedersen" },
+            { text: "PedersenArray", link: "/docs/curve/functions/pedersen-array" },
+            { text: "Poseidon", link: "/docs/curve/functions/poseidon" },
+            { text: "PoseidonArray", link: "/docs/curve/functions/poseidon-array" },
+            { text: "StarknetKeccak", link: "/docs/curve/functions/starknet-keccak" },
+            { text: "ComputeHashOnElements", link: "/docs/curve/functions/compute-hash-on-elements" },
+            { text: "HashPedersenElements", link: "/docs/curve/functions/hash-pedersen-elements" },
+            { text: "GetRandomKeys", link: "/docs/curve/functions/get-random-keys" },
+            { text: "PrivateKeyToPoint", link: "/docs/curve/functions/private-key-to-point" },
+            { text: "GetYCoordinate", link: "/docs/curve/functions/get-y-coordinate" },
+            { text: "Sign", link: "/docs/curve/functions/sign" },
+            { text: "SignFelts", link: "/docs/curve/functions/sign-felts" },
+            { text: "Verify", link: "/docs/curve/functions/verify" },
+            { text: "VerifyFelts", link: "/docs/curve/functions/verify-felts" },
+          ],
+        },
+      ],
+    },
+    {
+      text: "merkle",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/merkle/" },
+        {
+          text: "Functions",
+          collapsed: true,
+          items: [
+            { text: "MerkleHash", link: "/docs/merkle/functions/merkle-hash" },
+            { text: "ProofMerklePath", link: "/docs/merkle/functions/proof-merkle-path" },
+            { text: "NewFixedSizeMerkleTree", link: "/docs/merkle/functions/new-fixed-size-merkle-tree" },
+            { text: "Proof (Method)", link: "/docs/merkle/functions/proof" },
+          ],
+        },
+      ],
+    },
+    {
+      text: "paymaster",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/paymaster/" },
+        {
+          text: "Methods",
+          collapsed: true,
+          items: [
+            { text: "New", link: "/docs/paymaster/methods/new" },
+            { text: "IsAvailable", link: "/docs/paymaster/methods/is-available" },
+            { text: "GetSupportedTokens", link: "/docs/paymaster/methods/get-supported-tokens" },
+            { text: "BuildTransaction", link: "/docs/paymaster/methods/build-transaction" },
+            { text: "ExecuteTransaction", link: "/docs/paymaster/methods/execute-transaction" },
+            { text: "TrackingIDToLatestHash", link: "/docs/paymaster/methods/tracking-id-to-latest-hash" },
+          ],
+        },
+      ],
+    },
+    {
+      text: "client",
+      collapsed: true,
+      items: [
+        { text: "Overview", link: "/docs/client/" },
+        { text: "Client Functions", link: "/docs/client/functions" },
+        { text: "Client Methods", link: "/docs/client/methods" },
+        { text: "Types", link: "/docs/client/types" },
+      ],
+    },
+    {
+      text: "examples",
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/examples/" },
         { text: "Deploy Account", link: "/docs/examples/deploy-account" },
-        { text: "Deploy Contract", link: "/docs/examples/deploy-contract" },
-        {
-          text: "Internal Transactions",
-          link: "/docs/examples/internal-transactions",
-        },
-        { text: "Invoke Contract", link: "/docs/examples/invoke-contract" },
+        { text: "Deploy Contract UDC", link: "/docs/examples/deploy-contract-udc" },
+        { text: "Invoke", link: "/docs/examples/invoke" },
         { text: "Read Events", link: "/docs/examples/read-events" },
-        { text: "Call", link: "/docs/examples/simple-call" },
-        { text: "Declare", link: "/docs/examples/declare" },
+        { text: "Simple Call", link: "/docs/examples/simple-call" },
+        { text: "Simple Declare", link: "/docs/examples/simple-declare" },
         { text: "Typed Data", link: "/docs/examples/typed-data" },
         { text: "WebSocket", link: "/docs/examples/websocket" },
       ],

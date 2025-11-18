@@ -1,0 +1,538 @@
+# Domain
+
+The `Domain` type provides domain separation for typed data messages, ensuring that signatures cannot be replayed across different applications, versions, or blockchain networks. This is a critical security feature in the SNIP-12 typed data standard.
+
+## Type Definition
+
+```go
+type Domain struct {
+	Name     string
+	Version  string
+	ChainID  string
+	Revision uint8
+
+	// Internal flags for JSON marshaling compatibility
+	hasStringChainID  bool
+	hasOldChainIDName bool
+	HasStringRevision bool
+}
+```
+
+## Fields
+
+### Name (required)
+
+The name of the DApp or protocol using this typed data.
+
+- **Type**: `string`
+- **Description**: A human-readable identifier for your application
+- **Example**: `"MyDApp"`, `"StarkNet Mail"`, `"MyToken"`
+
+This field allows users to see which application is requesting their signature.
+
+### Version (required)
+
+The version of the message schema or application.
+
+- **Type**: `string`
+- **Description**: Version identifier for schema compatibility
+- **Example**: `"1"`, `"1.0.0"`, `"2"`
+
+Incrementing the version when you change your message structure prevents old signatures from being valid for new message formats.
+
+### ChainID (required)
+
+The chain identifier where the signature is valid.
+
+- **Type**: `string`
+- **Description**: Identifies the Starknet network
+- **Example**: `"SN_MAIN"`, `"SN_SEPOLIA"`, `"1"`, `"0x534e5f4d41494e"`
+
+This prevents signatures from being replayed across different networks (mainnet, testnet, etc.).
+
+### Revision (optional)
+
+The SNIP-12 revision version determining hash algorithms and type support.
+
+- **Type**: `uint8`
+- **Description**: Revision number (0 or 1)
+- **Default**: `0` if omitted
+- **Values**:
+  - `0`: Revision 0 - Uses Pedersen hash, supports basic types
+  - `1`: Revision 1 - Uses Poseidon hash, supports additional types and enums
+
+## Domain Separation Purpose
+
+Domain separation ensures that:
+
+1. **Application Isolation**: Signatures for one application cannot be used in another
+2. **Version Control**: Old signatures don't work with new message schemas
+3. **Network Isolation**: Mainnet signatures can't be replayed on testnet
+4. **Security**: Prevents cross-application signature replay attacks
+
+## Example Usage
+
+### Basic Domain Definition
+
+```go
+package main
+
+import (
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Create a domain for your application
+	domain := typeddata.Domain{
+		Name:     "MyDApp",
+		Version:  "1",
+		ChainID:  "SN_MAIN",
+		Revision: 0,
+	}
+
+	// Use this domain with TypedData
+	// ...
+}
+```
+
+### Domain with Different Networks
+
+```go
+package main
+
+import (
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+// Domain for mainnet
+var mainnetDomain = typeddata.Domain{
+	Name:     "MyDApp",
+	Version:  "1",
+	ChainID:  "SN_MAIN",
+	Revision: 1,
+}
+
+// Domain for testnet
+var sepoliaDomain = typeddata.Domain{
+	Name:     "MyDApp",
+	Version:  "1",
+	ChainID:  "SN_SEPOLIA",
+	Revision: 1,
+}
+
+func main() {
+	// Use appropriate domain based on network
+	// Signatures from mainnet won't work on testnet and vice versa
+}
+```
+
+### Version Migration Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Version 1: Original message structure
+	domainV1 := typeddata.Domain{
+		Name:     "MyToken",
+		Version:  "1",
+		ChainID:  "SN_MAIN",
+		Revision: 0,
+	}
+
+	// Version 2: Updated message structure with new fields
+	domainV2 := typeddata.Domain{
+		Name:     "MyToken",
+		Version:  "2",
+		ChainID:  "SN_MAIN",
+		Revision: 1, // Also upgraded to Revision 1
+	}
+
+	// Old signatures (v1) won't be valid for new messages (v2)
+	fmt.Printf("Domain V1 for legacy support\n")
+	fmt.Printf("Domain V2 for new features\n")
+
+	// You can verify which version a message uses
+	var td typeddata.TypedData
+	json.Unmarshal([]byte(`{...}`), &td)
+	fmt.Printf("Message version: %s\n", td.Domain.Version)
+}
+```
+
+## Chain ID Formats
+
+The ChainID field accepts multiple formats for compatibility:
+
+### String Identifiers (Recommended)
+
+```go
+domain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "SN_MAIN",    // Mainnet
+}
+
+domain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "SN_SEPOLIA", // Sepolia testnet
+}
+```
+
+### Numeric Chain IDs
+
+```go
+domain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "1", // Numeric format
+}
+```
+
+### Hexadecimal Chain IDs
+
+```go
+domain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "0x534e5f4d41494e", // Hex format for SN_MAIN
+}
+```
+
+## JSON Representation
+
+The Domain is typically defined in JSON as part of a TypedData structure:
+
+```json
+{
+	"types": { ... },
+	"primaryType": "...",
+	"domain": {
+		"name": "MyDApp",
+		"version": "1",
+		"chainId": 1
+	},
+	"message": { ... }
+}
+```
+
+### Field Name Variations
+
+The package supports both naming conventions for the chain ID field:
+
+```json
+// Modern format (preferred)
+"domain": {
+	"name": "MyDApp",
+	"version": "1",
+	"chainId": "SN_MAIN"
+}
+
+// Legacy format (supported for compatibility)
+"domain": {
+	"name": "MyDApp",
+	"version": "1",
+	"chain_id": "SN_MAIN"
+}
+```
+
+Both formats are automatically handled during unmarshaling.
+
+## Domain Hash Calculation
+
+The domain is hashed as part of the message signing process. The domain hash is calculated based on the revision:
+
+### Revision 0 (Pedersen Hash)
+
+```go
+domain_hash = PedersenHash(
+	type_hash("StarkNetDomain"),
+	encode(name),
+	encode(version),
+	encode(chainId)
+)
+```
+
+### Revision 1 (Poseidon Hash)
+
+```go
+domain_hash = PoseidonHash(
+	type_hash("StarknetDomain"),
+	encode(name),
+	encode(version),
+	encode(chainId)
+)
+```
+
+Note the difference in domain type name: "StarkNetDomain" (Revision 0) vs "StarknetDomain" (Revision 1).
+
+## Complete Example
+
+Here's a complete example showing domain usage in a permit system:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Define domain for a token permit system
+	permitJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Permit": [
+				{ "name": "spender", "type": "felt" },
+				{ "name": "amount", "type": "felt" },
+				{ "name": "nonce", "type": "felt" }
+			]
+		},
+		"primaryType": "Permit",
+		"domain": {
+			"name": "StarkToken",
+			"version": "1",
+			"chainId": "SN_MAIN"
+		},
+		"message": {
+			"spender": "0x1234567890abcdef",
+			"amount": "1000000000000000000",
+			"nonce": "0"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(permitJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Access domain information
+	fmt.Printf("Application: %s\n", td.Domain.Name)
+	fmt.Printf("Version: %s\n", td.Domain.Version)
+	fmt.Printf("Chain: %s\n", td.Domain.ChainID)
+	fmt.Printf("Revision: %d\n", td.Domain.Revision)
+
+	// Calculate domain hash
+	domainHash, err := td.GetStructHash("StarkNetDomain")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Domain hash: %s\n", domainHash.String())
+
+	// The domain hash is included in the final message hash
+	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Message hash: %s\n", messageHash.String())
+}
+```
+
+## Domain Type Definition
+
+The domain structure is defined as a type in the TypedData:
+
+### Revision 0 Domain Type
+
+```json
+"StarkNetDomain": [
+	{ "name": "name", "type": "felt" },
+	{ "name": "version", "type": "felt" },
+	{ "name": "chainId", "type": "felt" }
+]
+```
+
+### Revision 1 Domain Type
+
+```json
+"StarknetDomain": [
+	{ "name": "name", "type": "shortstring" },
+	{ "name": "version", "type": "shortstring" },
+	{ "name": "chainId", "type": "shortstring" },
+	{ "name": "revision", "type": "shortstring" }
+]
+```
+
+Note that Revision 1:
+- Uses "StarknetDomain" instead of "StarkNetDomain"
+- Uses "shortstring" type instead of "felt"
+- Includes an optional "revision" field
+
+## Best Practices
+
+### 1. Use Descriptive Names
+
+```go
+// Good
+domain := typeddata.Domain{
+	Name: "MyDApp Governance",
+	Version: "1",
+	ChainID: "SN_MAIN",
+}
+
+// Avoid generic names
+domain := typeddata.Domain{
+	Name: "App", // Too generic
+	Version: "1",
+	ChainID: "SN_MAIN",
+}
+```
+
+### 2. Increment Version on Schema Changes
+
+```go
+// When adding new fields to your message type
+// Increment the version
+domainV1 := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1", // Original
+	ChainID: "SN_MAIN",
+}
+
+domainV2 := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "2", // New version for updated schema
+	ChainID: "SN_MAIN",
+}
+```
+
+### 3. Use Appropriate Chain IDs
+
+```go
+// Production
+productionDomain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "SN_MAIN",
+}
+
+// Testing
+testDomain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "SN_SEPOLIA",
+}
+
+// Local development
+devDomain := typeddata.Domain{
+	Name:    "MyDApp",
+	Version: "1",
+	ChainID: "SN_GOERLI", // Or your devnet chain ID
+}
+```
+
+### 4. Choose Appropriate Revision
+
+```go
+// For new applications, prefer Revision 1
+domain := typeddata.Domain{
+	Name:     "NewDApp",
+	Version:  "1",
+	ChainID:  "SN_MAIN",
+	Revision: 1, // Use Poseidon hash and additional types
+}
+
+// For compatibility with existing systems
+domain := typeddata.Domain{
+	Name:     "LegacyDApp",
+	Version:  "1",
+	ChainID:  "SN_MAIN",
+	Revision: 0, // Use Pedersen hash for compatibility
+}
+```
+
+## Security Considerations
+
+### Domain Collision
+
+Ensure your domain name is unique enough to avoid collisions:
+
+```go
+// Potentially problematic - too generic
+domain := typeddata.Domain{
+	Name: "Token",
+	Version: "1",
+	ChainID: "SN_MAIN",
+}
+
+// Better - more specific
+domain := typeddata.Domain{
+	Name: "MyCompany.MyToken",
+	Version: "1",
+	ChainID: "SN_MAIN",
+}
+```
+
+### Chain ID Verification
+
+Always verify you're using the correct chain ID:
+
+```go
+func createDomainForNetwork(network string) typeddata.Domain {
+	chainID := ""
+	switch network {
+	case "mainnet":
+		chainID = "SN_MAIN"
+	case "sepolia":
+		chainID = "SN_SEPOLIA"
+	default:
+		panic("Invalid network")
+	}
+
+	return typeddata.Domain{
+		Name:    "MyDApp",
+		Version: "1",
+		ChainID: chainID,
+	}
+}
+```
+
+### Version Management
+
+Keep track of domain versions in your codebase:
+
+```go
+package contracts
+
+const (
+	DomainName    = "MyDApp"
+	DomainVersion = "1"
+)
+
+func NewMainnetDomain() typeddata.Domain {
+	return typeddata.Domain{
+		Name:     DomainName,
+		Version:  DomainVersion,
+		ChainID:  "SN_MAIN",
+		Revision: 1,
+	}
+}
+```
+
+## Related Documentation
+
+- [TypedData](./typed-data) - Learn about the complete TypedData structure
+- [Functions](./functions) - Utility functions including GetRevision
+- [Examples](../examples/typed-data) - Complete examples using domains
+
+## Reference
+
+- [SNIP-12 Domain Separator](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-12.md#domain-separator)
+- [EIP-712 Domain](https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator) - The Ethereum standard that inspired SNIP-12

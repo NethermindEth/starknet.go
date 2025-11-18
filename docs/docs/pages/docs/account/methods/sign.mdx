@@ -1,0 +1,91 @@
+# Sign
+
+Signs a felt message using the account's private key.
+
+## Method Signature
+
+```go
+func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
+```
+
+## Parameters
+
+- `ctx` - Context for cancellation and timeout
+- `msg` - Message to sign as felt
+
+## Returns
+
+- `[]*felt.Felt` - Signature as array [r, s]
+- `error` - Error if signing fails
+
+## Usage Example
+
+> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+)
+
+func main() {
+	// Assuming 'acc' is your Account instance
+	var acc *account.Account
+	// acc = ... (already initialized)
+
+	// Create a message to sign
+	message, _ := new(felt.Felt).SetString("0x4d7920746573742073747277742073747277742073747277742053696d706c65206d657373616765")
+
+	// Sign the message
+	ctx := context.Background()
+	signature, err := acc.Sign(ctx, message)
+	if err != nil {
+		log.Fatalf("Error signing: %v", err)
+	}
+
+	fmt.Printf("Message: %s\n", message)
+	fmt.Println("Signature components:")
+	for i, sig := range signature {
+		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	}
+	fmt.Printf("Total components: %d\n", len(signature))
+}
+```
+
+## Expected Output
+
+```
+Message: 0x4d7920746573742073747277742073747277742073747277742053696d706c65206d657373616765
+Signature components:
+Signature[0]: 0x43177e5821ad945f9ac31106d11c058542091b47dcfa72d78e84964c00fb166
+Signature[1]: 0x9a380b4b67dd5a75837a934081432ab7a3486a687404f444a3fd92db6eecaa
+Total components: 2
+```
+
+## Description
+
+Sign uses the account's private key from the keystore to sign a message. The signature is compatible with Starknet's signature verification scheme and returns two felt components (r, s).
+
+## Error Handling
+
+```go
+signature, err := acc.Sign(ctx, message)
+if err != nil {
+	// Handle errors like:
+	// - Key not found in keystore
+	// - Signing failure
+	return err
+}
+```
+
+## Related Methods
+
+- [Verify](./verify.mdx) - Verify signatures
+- [SignInvokeTransaction](./sign-invoke-transaction.mdx) - Sign invoke transactions
+- [SignDeclareTransaction](./sign-declare-transaction.mdx) - Sign declare transactions

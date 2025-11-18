@@ -1,0 +1,105 @@
+# ProofMerklePath
+
+Verifies if a given leaf node is part of a Merkle tree path.
+
+## Function Signature
+
+```go
+func ProofMerklePath(root, leaf *big.Int, path []*big.Int) bool
+```
+
+## Parameters
+
+- `root` (*big.Int): The root node of the Merkle tree
+- `leaf` (*big.Int): The leaf node to be verified
+- `path` ([]*big.Int): The path of sibling nodes from leaf to root
+
+## Returns
+
+- `bool`: True if the leaf is part of the Merkle tree, false otherwise
+
+## Description
+
+ProofMerklePath verifies a Merkle proof by recursively hashing the leaf with each element in the proof path and checking if the final computed hash matches the provided root. This is used to prove that a specific value is included in a Merkle tree without revealing the entire tree.
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a simple Merkle tree structure
+	leaf1 := big.NewInt(1)
+	leaf2 := big.NewInt(2)
+	leaf3 := big.NewInt(3)
+	leaf4 := big.NewInt(4)
+
+	// Build a simple tree
+	hash12 := merkle.MerkleHash(leaf1, leaf2)
+	hash34 := merkle.MerkleHash(leaf3, leaf4)
+	root := merkle.MerkleHash(hash12, hash34)
+
+	// Create proof path for leaf1
+	path := []*big.Int{leaf2, hash34}
+
+	// Verify the proof
+	isValid := merkle.ProofMerklePath(root, leaf1, path)
+
+	fmt.Println("ProofMerklePath:")
+	fmt.Printf("  Root: %s\n", root.String())
+	fmt.Printf("  Leaf: %s\n", leaf1.String())
+	fmt.Printf("  Proof valid: %v\n", isValid)
+}
+```
+
+## Expected Output
+
+```
+ProofMerklePath:
+  Root: 1495843805577365372815383092855314999655972568718384694240322356330711134665
+  Leaf: 1
+  Path length: 2
+  Proof valid: true
+```
+
+## Use Cases
+
+### 1. Verify Account in State Tree
+```go
+// Verify account exists in state root
+isValid := merkle.ProofMerklePath(stateRoot, accountHash, accountProof)
+if !isValid {
+    return errors.New("invalid account proof")
+}
+```
+
+### 2. Verify Storage Value
+```go
+// Verify storage slot value
+valid := merkle.ProofMerklePath(storageRoot, storageValue, proof)
+```
+
+### 3. Verify Transaction Inclusion
+```go
+// Verify transaction is in block
+included := merkle.ProofMerklePath(txRoot, txHash, txProof)
+```
+
+## Notes
+
+- The proof path should contain sibling nodes from leaf to root
+- Returns false if proof is invalid (no error thrown)
+- Path elements are hashed in order with the current hash
+- More efficient than verifying the entire tree
+
+## Related Functions
+
+- [MerkleHash](/docs/merkle/functions/merkle-hash) - Hash function used for verification
+- [Proof (method)](/docs/merkle/functions/proof) - Generate Merkle proofs

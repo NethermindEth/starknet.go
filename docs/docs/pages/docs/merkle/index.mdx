@@ -1,0 +1,96 @@
+# Merkle Package
+
+The Merkle package provides functionality for working with Merkle trees in Starknet. This package enables you to create fixed-size Merkle trees, generate proofs, and verify Merkle paths using Pedersen hash functions.
+
+## Overview
+
+Merkle trees are cryptographic data structures that allow efficient verification of data integrity. In Starknet, they are used extensively for state commitment and proof generation. This package provides:
+
+- Merkle hash calculation using Pedersen hash
+- Fixed-size Merkle tree construction
+- Merkle proof generation
+- Merkle path verification
+
+## Key Components
+
+### Functions
+- [MerkleHash](./merkle-hash) - Calculate the Merkle hash of two big integers
+- [ProofMerklePath](./proof-merkle-path) - Verify if a leaf is part of a Merkle tree path
+
+### Types
+- [FixedSizeMerkleTree](./fixed-size-merkle-tree) - Fixed-size Merkle tree implementation
+
+## Quick Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a Merkle tree with leaf values
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+	}
+
+	// Build the tree
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Get the root
+	fmt.Printf("Merkle Root: 0x%s\n", tree.Root.Text(16))
+
+	// Generate proof for a leaf
+	leaf := big.NewInt(3)
+	proof, err := tree.Proof(leaf)
+	if err != nil {
+		panic(err)
+	}
+
+	// Verify the proof
+	isValid := merkle.ProofMerklePath(tree.Root, leaf, proof)
+	fmt.Printf("Proof valid: %v\n", isValid)
+}
+```
+
+## Getting Started
+
+To use the Merkle package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/merkle"
+```
+
+## How Merkle Trees Work
+
+A Merkle tree is a binary tree where:
+
+1. Each leaf node contains a data value
+2. Each non-leaf node contains the hash of its two children
+3. The root represents a cryptographic commitment to all the data
+
+This structure allows you to prove that a specific value exists in the tree by providing a path of sibling hashes from the leaf to the root, without revealing all the data in the tree.
+
+## Use Cases
+
+- **State Commitment**: Committing to contract state in a compact way
+- **Proof Generation**: Creating proofs that specific data exists in a larger dataset
+- **Data Verification**: Verifying data integrity without accessing the entire dataset
+- **Storage Proofs**: Proving contract storage values
+
+## Available Documentation
+
+- [MerkleHash Function](./merkle-hash) - Learn how to calculate Merkle hashes
+- [ProofMerklePath Function](./proof-merkle-path) - Understand proof verification
+- [FixedSizeMerkleTree Type](./fixed-size-merkle-tree) - Work with Merkle trees
+
+## Version
+
+This documentation is based on the latest version of the starknet.go library.

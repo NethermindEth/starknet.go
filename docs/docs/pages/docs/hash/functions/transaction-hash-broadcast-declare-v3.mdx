@@ -1,0 +1,54 @@
+# TransactionHashBroadcastDeclareV3
+
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This function is used internally by the Account package. Most developers should use account signing methods instead.
+</Callout>
+
+Calculates the transaction hash for a Broadcast Declare V3 transaction using the Poseidon hash algorithm.
+
+## Function Signature
+
+```go
+func TransactionHashBroadcastDeclareV3(
+    txn *rpc.BroadcastDeclareTxnV3,
+    chainID *felt.Felt,
+) (*felt.Felt, error)
+```
+
+## Parameters
+
+- `txn` - The Broadcast Declare V3 transaction containing:
+  - `Version` - Transaction version string
+  - `SenderAddress` - Address of the account declaring the class
+  - `ContractClass` - The Sierra contract class being declared
+  - `CompiledClassHash` - Hash of the compiled (CASM) class
+  - `Nonce` - Account nonce
+  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
+  - `Tip` - Additional fee tip
+  - `PayMasterData` - Optional paymaster data
+  - `AccountDeploymentData` - Optional account deployment data
+  - `FeeMode` - Fee data availability mode
+  - `NonceDataMode` - Nonce data availability mode
+- `chainID` - The Starknet chain ID
+
+## Returns
+
+- `*felt.Felt` - The calculated transaction hash
+- `error` - Error if required parameters are missing
+
+## Description
+
+This function calculates the transaction hash for Broadcast Declare V3 transactions. It's similar to [TransactionHashDeclareV3](./transaction-hash-declare-v3) but works with `BroadcastDeclareTxnV3` which includes the full contract class instead of just the class hash.
+
+Used by: `account.TransactionHashDeclare()` method
+
+## Specification
+
+Follows the [V3 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2) and [SNIP-8](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md).
+
+## Related Functions
+
+- [TransactionHashDeclareV3](./transaction-hash-declare-v3) - Standard V3 declare hash
+- [ClassHash](./class-hash) - Calculate class hashes from contract class

@@ -1,23 +1,37 @@
-# Get Nonce
+# Nonce
 
-Returns the nonce for a given blockID and contract address.
+Retrieves the nonce for a contract at a specific block state.
+
+## Method Signature
+
+```go
+func (provider *Provider) Nonce(
+	ctx context.Context,
+	blockID BlockID,
+	contractAddress *felt.Felt,
+) (*felt.Felt, error)
+```
 
 ## Parameters
 
-- `ctx` - The context of the request.
+- `ctx` - Context for request cancellation and timeout
+- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
 - `contractAddress` - The address of the contract
-- `blockID` - The block identifier. Can be:
-  - `BlockHash` - The hash of the block.
-  - `BlockNumber` - The number of the block.
-  - `"latest"` for the latest block
-  - `"pending"` for the pending block
 
 ## Returns
 
-- `nonce` - The nonce of the contract.
-- `error` - An error if any occurred.
+- `*felt.Felt` - The contract's nonce at the requested state
+- `error` - Error if the request fails
 
-## Example
+## BlockID Parameter
+
+The `blockID` parameter specifies which block state to query. See [BlockID helper functions](../helper-functions.mdx) for available options:
+- `WithBlockTag("latest")` - Latest block
+- `WithBlockTag("pending")` - Pending block
+- `WithBlockNumber(n)` - Specific block number
+- `WithBlockHash(hash)` - Specific block hash
+
+## Usage Example
 
 ```go
 package main
@@ -26,41 +40,59 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-
-	"encoding/json"
 )
 
 func main() {
-	rpcUrl := "https://free-rpc.nethermind.io/mainnet-juno/"
-	provider, err := rpc.NewProvider(rpcUrl)
-	if err != nil {
-		log.Fatal(err)
+	// Create RPC client
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in environment")
 	}
 
-	contractAddress, _ := utils.HexToFelt("0x124aeb495b947201f5fac96fd1138e326ad86195b98df6dec9009158a533b49")
-	result, err := provider.Nonce(context.Background(), rpc.BlockID{Tag: "latest"}, contractAddress)
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create client:", err)
 	}
-	resultJson, err := json.MarshalIndent(result, "", "  ")
+
+	// ETH contract address on Sepolia
+	contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse contract address:", err)
 	}
-	fmt.Println("Nonce:", string(resultJson))
+
+	// Get nonce
+	nonce, err := client.Nonce(ctx, rpc.WithBlockTag("latest"), contractAddress)
+	if err != nil {
+		log.Fatal("Failed to get nonce:", err)
+	}
+
+	fmt.Printf("Nonce: %s\n", nonce)
 }
 ```
 
-## Output
+## Expected Output
 
-```json
-Nonce: "0x0"
+```
+Nonce: 0x0
 ```
 
-## Error Cases
+## Error Handling
 
-- `CONTRACT_NOT_FOUND` - If the contract does not exist
-- `INVALID_BLOCK_ID` - If the block identifier is invalid
-- `INVALID_CONTRACT_ADDRESS` - If the contract address is invalid 
+```go
+nonce, err := client.Nonce(ctx, rpc.WithBlockTag("latest"), contractAddress)
+if err != nil {
+	// Handle errors like contract not found, invalid block ID, etc.
+	return err
+}
+```
+
+## Related Methods
+
+- [ClassHashAt](./get-class-hash-at.mdx) - Get class hash at a specific contract address
+- [EstimateFee](./estimate-fee.mdx) - Estimate transaction fees

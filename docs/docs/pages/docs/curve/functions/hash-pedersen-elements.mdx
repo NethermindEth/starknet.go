@@ -1,0 +1,28 @@
+# HashPedersenElements
+
+import { Callout } from 'vocs/components'
+
+<Callout type="warning">
+  **Internal Helper Function**: This is a low-level utility that works with `*big.Int` types. Most developers should use [PedersenArray](./pedersen-array) which works with `*felt.Felt` types instead.
+</Callout>
+
+Calculates Pedersen hash of a list of big.Int elements.
+
+## Function Signature
+
+```go
+func HashPedersenElements(elems []*big.Int) (hash *big.Int)
+```
+
+## Expected Output
+
+```
+HashPedersenElements:
+  Input elements: [111, 222, 333]
+  Hash: 1806953628366150061155015437827467975050659843036579320561057832655817945018
+```
+
+## Related Functions
+
+- [ComputeHashOnElements](/docs/curve/functions/compute-hash-on-elements)
+- [PedersenArray](/docs/curve/functions/pedersen-array)

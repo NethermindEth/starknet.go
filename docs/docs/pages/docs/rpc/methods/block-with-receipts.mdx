@@ -1,22 +1,82 @@
 # BlockWithReceipts
 
-Gets a block with both transactions and their corresponding receipts.
+Gets a block with both full transaction details and their corresponding receipts. This is the most comprehensive block query method, providing complete information about transactions and their execution results including gas usage, events emitted, execution status, and fees paid. Each transaction is paired with its receipt, making this ideal for analyzing transaction outcomes. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
+func (provider *Provider) BlockWithReceipts(
+    ctx context.Context,
+    blockID BlockID,
+) (interface{}, error)
 ```
+
+**Source:** [block.go:L214-L244](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L214-L244)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier (number, hash, or tag)
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag like "latest" or "pending")
 
 ## Returns
 
-- `interface{}` - Block with transactions and receipts
-- `error` - Error if the request fails
+- `interface{}`: The retrieved block (either `*BlockWithReceipts` or `*PreConfirmedBlockWithReceipts`)
+- `error`: Error if the request fails
+
+:::note
+The method can return either a confirmed block (`BlockWithReceipts`) or a pre-confirmed block (`PreConfirmedBlockWithReceipts`) depending on the block status. This can return `ErrBlockNotFound` if the specified block doesn't exist.
+:::
+
+## Type Definitions
+
+### BlockID
+
+The `blockID` parameter specifies which block to retrieve. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
+### BlockWithReceipts
+
+```go
+type BlockWithReceipts struct {
+    BlockHeader
+    Status BlockStatus `json:"status"`
+    BlockBodyWithReceipts
+}
+```
+
+**Source:** [types_block.go:L29-L33](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L29-L33)
 
 ## Usage Example
 
@@ -28,22 +88,36 @@ import (
     "encoding/json"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
     }
 
     // Get latest block with receipts
     blockID := rpc.WithBlockTag("latest")
-    block, err := client.BlockWithReceipts(context.Background(), blockID)
+    block, err := provider.BlockWithReceipts(context.Background(), blockID)
     if err != nil {
-        log.Fatal("Failed to get block with receipts:", err)
+        log.Fatal(err)
     }
 
     // Pretty print the result
@@ -52,129 +126,28 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```json
-{
-  "block_hash": "0x66fa94498a5413e02d11aeb8646d4d47f1c2a067d8dbe3e33b2f0e8bb7f31df",
-  "parent_hash": "0x69e45eea2e6d6b541ebf70b8cbf150bdf039a7404201745cdb210c43eb49021",
-  "block_number": 1675853,
-  "new_root": "0x75286d81567156b1d5dbf3c3572fbd3b323954712631fadb85fc56ff065bb9d",
-  "timestamp": 1755962052,
-  "sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-  "l1_gas_price": {
-    "price_in_fri": "0x223e7750c8ad",
-    "price_in_wei": "0x3c4c9b6f"
-  },
-  "status": "ACCEPTED_ON_L2",
-  "transactions": [
-    {
-      "transaction": {
-        "transaction_hash": null,
-        "type": "INVOKE",
-        "version": "0x3",
-        "nonce": "0x15a7c",
-        "sender_address": "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-        "calldata": ["0x16", "0x36970a65c6b1e9e2d85e724a1517ee6a9a7c106fcc2c8f384ed839c1176e5c0"],
-        "resource_bounds": {
-          "l1_gas": {"max_amount": "0x0", "max_price_per_unit": "0x1566a00e5d302"},
-          "l2_gas": {"max_amount": "0x2540be400", "max_price_per_unit": "0x6fc23ac00"}
-        }
-      },
-      "receipt": {
-        "transaction_hash": "0x6dda0d2e2716227b87d912d654e1bc8b96441f043c29834e082413ae1320afa",
-        "type": "INVOKE",
-        "actual_fee": {
-          "amount": "0x627bebf0c73a80",
-          "unit": "FRI"
-        },
-        "finality_status": "ACCEPTED_ON_L2",
-        "execution_status": "REVERTED",
-        "revert_reason": "Transaction execution has failed: INVALID_STARK_KEY_SIGNATURE",
-        "events": [
-          {
-            "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-            "keys": ["0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"],
-            "data": ["0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da"]
-          }
-        ],
-        "execution_resources": {
-          "l1_gas": 0,
-          "l1_data_gas": 128,
-          "l2_gas": 9240267
-        }
-      }
-    }
-  ]
-}
-```
-
-The block contains 2 transactions with their receipts - one failed (REVERTED) and one successful (SUCCEEDED). Each transaction is paired with its corresponding receipt showing execution results, gas usage, events, and fees.
-
-## Analyze Transaction Results Example
-
-```go
-// Get a specific block to analyze transaction outcomes
-blockNumber := uint64(1500000)
-blockID := rpc.WithBlockNumber(blockNumber)
-
-blockWithReceipts, err := client.BlockWithReceipts(context.Background(), blockID)
-if err != nil {
-    log.Fatal("Failed to get block with receipts:", err)
-}
-
-fmt.Printf("Block %d retrieved with transaction receipts\n", blockNumber)
-fmt.Printf("Use this data to analyze:\n")
-fmt.Printf("- Transaction execution status\n")
-fmt.Printf("- Gas usage per transaction\n") 
-fmt.Printf("- Events emitted\n")
-fmt.Printf("- Transaction outcomes\n")
-```
-
-## Use Cases
-
-- **Transaction Analysis** - See both transaction and execution results
-- **Gas Analytics** - Analyze gas consumption patterns
-- **Event Processing** - Access events with their originating transactions
-- **Execution Monitoring** - Track transaction success/failure rates
-- **Audit and Compliance** - Complete transaction audit trails
-- **Block Explorers** - Display comprehensive block information
-- **Fee Analysis** - Study actual vs estimated fees
-
-## Receipt Information Included
-
-Each transaction receipt contains:
-- **Execution Status** - SUCCESS, REVERTED, or REJECTED
-- **Actual Gas Used** - Real gas consumption for each resource type
-- **Events Emitted** - All events generated during execution
-- **Messages to L1** - Any L2→L1 messages sent
-- **Actual Fees** - Final fees paid in FRI or WEI
-- **Execution Resources** - Detailed resource consumption breakdown
-
-## Performance Considerations
-
-- **Largest data payload** among block methods
-- Higher bandwidth and memory usage
-- Slower response times for blocks with many transactions
-- Consider caching for frequently accessed blocks
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-blockWithReceipts, err := client.BlockWithReceipts(ctx, blockID)
+block, err := provider.BlockWithReceipts(ctx, blockID)
 if err != nil {
-    log.Printf("Error getting block with receipts: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrBlockNotFound):
+        log.Printf("Block not found")
+    default:
+        log.Printf("Failed to get block: %v", err)
+    }
     return
 }
 
-// Process the complete block data
-fmt.Printf("Processing block with full transaction and receipt data\n")
+fmt.Printf("Successfully retrieved block with transactions and receipts\n")
 ```
 
-## Comparison with Other Block Methods
-
-| Method | Data Size | Use Case |
-|--------|-----------|----------|
-| `BlockWithTxHashes` | Small | Quick overview |
-| `BlockWithTxs` | Medium | Transaction details |
-| `BlockWithReceipts` | Large | Complete execution data |
+## Common Use Cases
+- Analyzing complete transaction execution including gas costs and events. See [example](/docs/rpc/examples#transaction-outcome-analysis).
+- Analyzing gas usage patterns and costs across all transactions in a block.
+- Verifying transaction execution status and results for auditing purposes.

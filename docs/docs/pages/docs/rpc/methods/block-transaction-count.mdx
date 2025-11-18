@@ -1,22 +1,68 @@
 # BlockTransactionCount
 
-Gets the number of transactions in a specific block.
+Gets the number of transactions in a specific block without fetching the full transaction data. This is a lightweight method ideal for quickly checking block activity or monitoring transaction volume over time. The method returns a simple count, making it much more efficient than fetching full block data when you only need to know how many transactions are present. 
 
 ## Method Signature
 
 ```go
-func (provider *Provider) BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
+func (provider *Provider) BlockTransactionCount(
+    ctx context.Context,
+    blockID BlockID,
+) (uint64, error)
 ```
+
+**Source:** [block.go:L165-L175](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L165-L175)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier (number, hash, or tag)
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag like "latest" or "pending")
 
 ## Returns
 
-- `uint64` - Number of transactions in the block
-- `error` - Error if the request fails
+- `uint64`: The number of transactions in the block
+- `error`: Error if the request fails
+:::note
+This can return `ErrBlockNotFound` if the specified block doesn't exist.
+:::
+## Type Definitions
+
+### BlockID
+
+The `blockID` parameter specifies which block to retrieve. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -27,109 +73,56 @@ import (
     "context"
     "fmt"
     "log"
+    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+    // Load environment variables from .env file
+    err := godotenv.Load()
     if err != nil {
-        log.Fatal("Failed to create client:", err)
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
     }
 
     // Get transaction count for latest block
     blockID := rpc.WithBlockTag("latest")
-    txCount, err := client.BlockTransactionCount(context.Background(), blockID)
+    txCount, err := provider.BlockTransactionCount(context.Background(), blockID)
     if err != nil {
-        log.Fatal("Failed to get transaction count:", err)
+        log.Fatal(err)
     }
 
     fmt.Printf("Latest block contains %d transactions\n", txCount)
 }
 ```
 
-## Expected Output
-
-```
-Latest block contains 1 transactions
-```
-
-## Historical Analysis Example
-
-```go
-// Analyze transaction volume over multiple blocks
-blockNumbers := []uint64{1500000, 1500001, 1500002, 1500003, 1500004}
-totalTxs := uint64(0)
-
-for _, blockNum := range blockNumbers {
-    blockID := rpc.WithBlockNumber(blockNum)
-    txCount, err := client.BlockTransactionCount(context.Background(), blockID)
-    if err != nil {
-        log.Printf("Failed to get tx count for block %d: %v", blockNum, err)
-        continue
-    }
-    
-    fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
-    totalTxs += txCount
-}
-
-fmt.Printf("Total transactions across %d blocks: %d\n", len(blockNumbers), totalTxs)
-fmt.Printf("Average transactions per block: %.2f\n", float64(totalTxs)/float64(len(blockNumbers)))
-```
-
-## Use Cases
-
-- **Network Analytics** - Monitor transaction volume trends
-- **Performance Monitoring** - Track network activity levels
-- **Block Analysis** - Quick block size assessment without downloading full data
-- **Capacity Planning** - Understand network usage patterns
-- **Lightweight Monitoring** - Efficient way to track blockchain activity
-- **Data Validation** - Verify expected transaction counts
-
-## Performance Benefits
-
-- **Minimal Data Transfer** - Returns only a single number
-- **Fast Response** - No need to transfer transaction data
-- **Efficient for Monitoring** - Perfect for dashboards and alerts
-- **Low Resource Usage** - Minimal memory and bandwidth requirements
-
-## Monitoring Example
-
-```go
-// Monitor network activity
-func monitorNetworkActivity(client *rpc.Provider) {
-    ticker := time.NewTicker(30 * time.Second)
-    defer ticker.Stop()
-    
-    for {
-        select {
-        case <-ticker.C:
-            blockID := rpc.WithBlockTag("latest")
-            txCount, err := client.BlockTransactionCount(context.Background(), blockID)
-            if err != nil {
-                log.Printf("Failed to get tx count: %v", err)
-                continue
-            }
-            
-            blockNum, err := client.BlockNumber(context.Background())
-            if err != nil {
-                log.Printf("Failed to get block number: %v", err)
-                continue
-            }
-            
-            fmt.Printf("Block %d: %d transactions\n", blockNum, txCount)
-        }
-    }
-}
-```
-
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 ## Error Handling
 
 ```go
-txCount, err := client.BlockTransactionCount(ctx, blockID)
+txCount, err := provider.BlockTransactionCount(ctx, blockID)
 if err != nil {
-    log.Printf("Error getting transaction count: %v", err)
+    switch {
+    case errors.Is(err, rpc.ErrBlockNotFound):
+        log.Printf("Block not found")
+    default:
+        log.Printf("Failed to get transaction count: %v", err)
+    }
     return
 }
 
@@ -140,10 +133,10 @@ if txCount == 0 {
 }
 ```
 
-## Comparison with Full Block Methods
+## Common Use Cases
+- Tracking network activity by monitoring transaction counts over time. See [example](/docs/rpc/examples#transaction-volume-monitoring).
+- Quickly identifying busy blocks without fetching full transaction data. See [example](/docs/rpc/examples#block-analysis).
+- Collecting data for analyzing network usage patterns and trends.
+- Identifying blocks with no transactions for network analysis.
 
-| Method | Returns | Use Case |
-|--------|---------|----------|
-| `BlockTransactionCount` | Count only | Quick stats |
-| `BlockWithTxHashes` | Hashes | Transaction references |
-| `BlockWithTxs` | Full transactions | Complete analysis |
+
