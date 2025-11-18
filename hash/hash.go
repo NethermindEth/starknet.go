@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
-	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 )
 
@@ -233,12 +232,12 @@ func getByteCodeSegmentHasher(
 	components := make([]*felt.Felt, len(segments)*2)
 
 	for i, val := range segments {
-		components[i*2] = internalUtils.Uint64ToFelt(val.Size)
+		components[i*2] = felt.NewFromUint64[felt.Felt](val.Size)
 		components[i*2+1] = val.Value
 	}
 
 	return new(felt.Felt).Add(
-		internalUtils.Uint64ToFelt(1),
+		felt.NewFromUint64[felt.Felt](1),
 		hashFunc(components...),
 	), totalLen, nil
 }
