@@ -244,7 +244,9 @@ func ComputeHashOnElements(elems []*big.Int) (hash *big.Int) {
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
 func Pedersen(a, b *felt.Felt) *felt.Felt {
-	return junoCrypto.Pedersen(a, b)
+	hash := junoCrypto.Pedersen(a, b)
+
+	return &hash
 }
 
 // Poseidon is a function that implements the Poseidon hash.
@@ -256,7 +258,9 @@ func Pedersen(a, b *felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
 func Poseidon(a, b *felt.Felt) *felt.Felt {
-	return junoCrypto.Poseidon(a, b)
+	hash := junoCrypto.Poseidon(a, b)
+
+	return &hash
 }
 
 // Blake2s is a function that implements the Blake2s hash.
@@ -284,7 +288,9 @@ func Blake2s(a, b *felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func PedersenArray(felts ...*felt.Felt) *felt.Felt {
-	return junoCrypto.PedersenArray(felts...)
+	hash := junoCrypto.PedersenArray(felts...)
+
+	return &hash
 }
 
 // PoseidonArray is a function that takes a variadic number of felt.Felt
@@ -297,7 +303,9 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
-	return junoCrypto.PoseidonArray(felts...)
+	hash := junoCrypto.PoseidonArray(felts...)
+
+	return &hash
 }
 
 // Blake2sArray is a function that takes a variadic number of felt.Felt
@@ -325,7 +333,9 @@ func Blake2sArray(felts ...*felt.Felt) *felt.Felt {
 //   - *felt.Felt: pointer to a felt.Felt
 //   - error: An error if any
 func StarknetKeccak(b []byte) *felt.Felt {
-	return junoCrypto.StarknetKeccak(b)
+	hash := junoCrypto.StarknetKeccak(b)
+
+	return &hash
 }
 
 // fmtPrivKey formats a private key to a 32 bytes array by padding it

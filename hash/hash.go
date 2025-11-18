@@ -4,7 +4,6 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/NethermindEth/juno/core/crypto"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
@@ -489,17 +488,17 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Fe
 		return nil, err
 	}
 
-	return crypto.PoseidonArray(
+	return curve.PoseidonArray(
 		prefixInvoke,
 		txnVersionFelt,
 		txn.SenderAddress,
 		tipAndResourceHash,
-		crypto.PoseidonArray(txn.PayMasterData...),
+		curve.PoseidonArray(txn.PayMasterData...),
 		chainID,
 		txn.Nonce,
-		new(felt.Felt).SetUint64(DAUint64),
-		crypto.PoseidonArray(txn.AccountDeploymentData...),
-		crypto.PoseidonArray(txn.Calldata...),
+		felt.NewFromUint64[felt.Felt](DAUint64),
+		curve.PoseidonArray(txn.AccountDeploymentData...),
+		curve.PoseidonArray(txn.Calldata...),
 	), nil
 }
 
@@ -625,16 +624,16 @@ func TransactionHashDeclareV3(
 		return nil, err
 	}
 
-	return crypto.PoseidonArray(
+	return curve.PoseidonArray(
 		prefixDeclare,
 		txnVersionFelt,
 		txn.SenderAddress,
 		tipAndResourceHash,
-		crypto.PoseidonArray(txn.PayMasterData...),
+		curve.PoseidonArray(txn.PayMasterData...),
 		chainID,
 		txn.Nonce,
-		new(felt.Felt).SetUint64(DAUint64),
-		crypto.PoseidonArray(txn.AccountDeploymentData...),
+		felt.NewFromUint64[felt.Felt](DAUint64),
+		curve.PoseidonArray(txn.AccountDeploymentData...),
 		txn.ClassHash,
 		txn.CompiledClassHash,
 	), nil
@@ -684,16 +683,16 @@ func TransactionHashBroadcastDeclareV3(
 		return nil, err
 	}
 
-	return crypto.PoseidonArray(
+	return curve.PoseidonArray(
 		prefixDeclare,
 		txnVersionFelt,
 		txn.SenderAddress,
 		tipAndResourceHash,
-		crypto.PoseidonArray(txn.PayMasterData...),
+		curve.PoseidonArray(txn.PayMasterData...),
 		chainID,
 		txn.Nonce,
-		new(felt.Felt).SetUint64(DAUint64),
-		crypto.PoseidonArray(txn.AccountDeploymentData...),
+		felt.NewFromUint64[felt.Felt](DAUint64),
+		curve.PoseidonArray(txn.AccountDeploymentData...),
 		ClassHash(txn.ContractClass),
 		txn.CompiledClassHash,
 	), nil
@@ -776,16 +775,16 @@ func TransactionHashDeployAccountV3(
 		return nil, err
 	}
 
-	return crypto.PoseidonArray(
+	return curve.PoseidonArray(
 		prefixDeployAccount,
 		txnVersionFelt,
 		contractAddress,
 		tipAndResourceHash,
-		crypto.PoseidonArray(txn.PayMasterData...),
+		curve.PoseidonArray(txn.PayMasterData...),
 		chainID,
 		txn.Nonce,
-		new(felt.Felt).SetUint64(DAUint64),
-		crypto.PoseidonArray(txn.ConstructorCalldata...),
+		felt.NewFromUint64[felt.Felt](DAUint64),
+		curve.PoseidonArray(txn.ConstructorCalldata...),
 		txn.ClassHash,
 		txn.ContractAddressSalt,
 	), nil
@@ -814,8 +813,8 @@ func TipAndResourcesHash(
 	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
 	l1DataGasBounds := new(felt.Felt).SetBytes(l1DataGasBytes)
 
-	return crypto.PoseidonArray(
-		new(felt.Felt).SetUint64(tip),
+	return curve.PoseidonArray(
+		felt.NewFromUint64[felt.Felt](tip),
 		l1Bounds,
 		l2Bounds,
 		l1DataGasBounds,
