@@ -1,6 +1,6 @@
 # ChainID
 
-Returns the chain ID for transaction replay protection.
+Returns the chain ID for transaction replay protection. The chain ID is used to ensure that transactions signed for one network cannot be replayed on another network. Common chain IDs include `SN_MAIN` for Starknet Mainnet and `SN_SEPOLIA` for Starknet Sepolia testnet. This method caches the result after the first call for improved performance.
 
 ## Method Signature
 
@@ -8,14 +8,16 @@ Returns the chain ID for transaction replay protection.
 func (provider *Provider) ChainID(ctx context.Context) (string, error)
 ```
 
+**Source:** [chain.go:L18-L29](https://github.com/NethermindEth/starknet.go/blob/main/rpc/chain.go#L18-L29)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
+- `ctx` (context.Context): Context for request cancellation and timeout
 
 ## Returns
 
-- `string` - The chain ID (e.g., "SN_MAIN", "SN_SEPOLIA")
-- `error` - Error if the request fails
+- `string`: The chain ID (e.g., "SN_MAIN" for mainnet, "SN_SEPOLIA" for testnet)
+- `error`: Error if the request fails
 
 ## Usage Example
 
@@ -23,54 +25,70 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error)
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
+    "context"
+    "fmt"
+    "log"
+    "os"
 
-	"github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
 
-	// Get chain ID
-	chainID, err := client.ChainID(ctx)
-	if err != nil {
-		log.Fatal("Failed to get chain ID:", err)
-	}
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	fmt.Printf("Chain ID: %s\n", chainID)
+    ctx := context.Background()
+
+    // Get chain ID
+    chainID, err := provider.ChainID(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Chain ID: %s\n", chainID)
 }
 ```
 
-## Expected Output
-
-```
-Chain ID: SN_SEPOLIA
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-chainID, err := client.ChainID(ctx)
+chainID, err := provider.ChainID(ctx)
 if err != nil {
-	// Handle error
-	return err
+    log.Printf("Failed to get chain ID: %v", err)
+    return
 }
+
+fmt.Printf("Connected to network: %s\n", chainID)
 ```
+
+## Common Use Cases
+
+- **Transaction Signing** - Verify you're signing transactions for the correct network. See [example](/docs/rpc/examples#chain-id-verification).
+- **Network Validation** - Confirm your application is connected to the expected network (mainnet vs testnet). See [example](/docs/rpc/examples#chain-id-network-validation).
+- **Multi-Network Support** - Determine which network the provider is connected to for multi-network applications. See [example](/docs/rpc/examples#chain-id-multi-network).
 
 ## Related Methods
 
-- [SpecVersion](./spec-version.mdx) - Get RPC specification version
-- [Syncing](./syncing.mdx) - Get node sync status
+- [SpecVersion](/docs/rpc/methods/spec-version) - Get the RPC specification version
+- [Syncing](/docs/rpc/methods/syncing) - Get the synchronization status of the node
+- [BlockNumber](/docs/rpc/methods/block-number) - Get the latest block number
