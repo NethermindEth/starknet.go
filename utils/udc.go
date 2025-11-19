@@ -48,7 +48,15 @@ type UDCOptions struct {
 	//nolint:lll // The links would be unclickable if we break the line.
 	OriginIndependent bool
 	// The UDC version to be used. If not provided, UDCCairoV0 will be used.
-	UDCVersion UDCVersion
+	UDCVersion UDCVersion;
+}
+
+// Creates a new UDCOptions instance
+// UDCCairoV2 will be used as the default UDC version
+func NewUDCOptions() *UDCOptions {
+	return &UDCOptions{
+		UDCVersion: UDCCairoV2,
+	}
 }
 
 // Enum representing the UDC version to be used
@@ -80,13 +88,14 @@ func BuildUDCCalldata(
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
 ) (rpc.InvokeFunctionCall, *felt.Felt, error) {
+opts.UDCVersion = UDCCairoV2 
 	var result rpc.InvokeFunctionCall
 	if classHash == nil {
 		return result, nil, errClassHashNotProvided
 	}
 
 	if opts == nil {
-		opts = new(UDCOptions)
+		opts = NewUDCOptions()
 	}
 
 	// salt
