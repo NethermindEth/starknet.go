@@ -1,35 +1,89 @@
 # Class
 
-Retrieves the contract class definition associated with the given class hash.
+Retrieves the contract class definition associated with the given class hash at a specific block. This returns the complete class definition including the Sierra program, entry points, and ABI, which is essential for understanding contract functionality and interacting with contracts.
 
 ## Method Signature
 
 ```go
 func (provider *Provider) Class(
-	ctx context.Context,
-	blockID BlockID,
-	classHash *felt.Felt,
+    ctx context.Context,
+    blockID BlockID,
+    classHash *felt.Felt,
 ) (ClassOutput, error)
 ```
 
+**Source:** [contract.go:L24-L35](https://github.com/NethermindEth/starknet.go/blob/main/rpc/contract.go#L24-L35)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
-- `classHash` - The hash of the class to retrieve
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag)
+- `classHash` (*felt.Felt): The hash of the contract class to retrieve
 
 ## Returns
 
-- `ClassOutput` - The contract class definition (includes sierra_program, entry_points_by_type, and abi)
-- `error` - Error if the request fails
+- `ClassOutput`: The contract class definition (interface type that can be a DeprecatedContractClass or ContractClass)
+- `error`: Error if the request fails
 
-## BlockID Parameter
+:::note
+This can return `ErrClassHashNotFound` if the class hash doesn't exist, or `ErrBlockNotFound` if the block doesn't exist.
+:::
 
-The `blockID` parameter specifies which block state to query. See [BlockID helper functions](../helper-functions.mdx) for available options:
-- `WithBlockTag("latest")` - Latest block
-- `WithBlockTag("pending")` - Pending block
-- `WithBlockNumber(n)` - Specific block number
-- `WithBlockHash(hash)` - Specific block hash
+## Type Definitions
+
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
+
+
+### ClassOutput
+
+```go
+type ClassOutput interface{}
+
+var (
+    _ ClassOutput = (*contracts.DeprecatedContractClass)(nil)
+    _ ClassOutput = (*contracts.ContractClass)(nil)
+)
+```
+
+The ClassOutput can be either a `DeprecatedContractClass` (Cairo 0) or `ContractClass` (Cairo 1+).
+
+**Source:** [types_contract.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L59-L64)
 
 ## Usage Example
 
@@ -37,88 +91,93 @@ The `blockID` parameter specifies which block state to query. See [BlockID helpe
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"os"
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+    "os"
 
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-	// Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
 
-	// ETH contract class hash on Sepolia
-	classHash, err := utils.HexToFelt("0x046ded64ae2dead6448e247234bab192a9c483644395b66f2155f2614e5804b0")
-	if err != nil {
-		log.Fatal("Failed to parse class hash:", err)
-	}
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	// Get class information
-	class, err := client.Class(ctx, rpc.WithBlockTag("latest"), classHash)
-	if err != nil {
-		log.Fatal("Failed to get class:", err)
-	}
+    ctx := context.Background()
 
-	// Print result (first 500 characters)
-	classJSON, _ := json.MarshalIndent(class, "", "  ")
-	fmt.Printf("Class info (first 500 chars):\n%s\n", string(classJSON)[:500])
+    // ETH contract class hash on Sepolia
+    classHash, err := utils.HexToFelt("0x046ded64ae2dead6448e247234bab192a9c483644395b66f2155f2614e5804b0")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Get class definition
+    blockID := rpc.WithBlockTag("latest")
+    class, err := provider.Class(ctx, blockID, classHash)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Print class information (first 500 characters)
+    classJSON, _ := json.MarshalIndent(class, "", "  ")
+    classStr := string(classJSON)
+    if len(classStr) > 500 {
+        classStr = classStr[:500] + "..."
+    }
+    fmt.Printf("Class definition:\n%s\n", classStr)
 }
 ```
 
-## Expected Output
-
-```
-Class info (first 500 chars):
-{
-  "sierra_program": [
-    "0x1",
-    "0x4",
-    "0x0",
-    "0x2",
-    "0x4",
-    "0x1",
-    "0x367",
-    "0x99",
-    "0x59",
-    "0x52616e6765436865636b",
-    "0x800000000000000100000000000000000000000000000000",
-    "0x75313238",
-    "0x800000000000000700000000000000000000000000000000",
-    "0x537472756374",
-    "0x800000000000000f00000000000000000000000000000001",
-    "0x0",
-    "0x2ee1e2b1b89f8c495f200e4956278a4d47395fe262f27b52e5865c9524c08c3",
-    "0x456e756d",
-    "0x80000000000000070000
-```
-
-**Note:** The full output contains the complete sierra program, entry points, and ABI. Only the first 500 characters are shown here for brevity.
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-class, err := client.Class(ctx, rpc.WithBlockTag("latest"), classHash)
+class, err := provider.Class(ctx, blockID, classHash)
 if err != nil {
-	// Handle errors like class not found, invalid block ID, etc.
-	return err
+    if errors.Is(err, rpc.ErrClassHashNotFound) {
+        log.Printf("Class hash not found: %s", classHash)
+        return
+    }
+    if errors.Is(err, rpc.ErrBlockNotFound) {
+        log.Printf("Block not found")
+        return
+    }
+    log.Printf("Error retrieving class: %v", err)
+    return
 }
+
+fmt.Printf("Successfully retrieved class definition\n")
 ```
+
+## Common Use Cases
+
+- **Contract Analysis** - Retrieve and analyze contract class definitions for security auditing or verification. See [example](/docs/rpc/examples#class-analysis).
+- **ABI Extraction** - Extract the ABI from a class hash to interact with contracts. See [example](/docs/rpc/examples#class-abi-extraction).
+- **Contract Verification** - Verify that deployed contracts match expected class definitions. See [example](/docs/rpc/examples#class-verification).
 
 ## Related Methods
 
-- [ClassAt](./get-class-at.mdx) - Get class definition at a specific contract address
-- [ClassHashAt](./get-class-hash-at.mdx) - Get class hash at a specific contract address
+- [ClassAt](/docs/rpc/methods/get-class-at) - Get class definition at a specific contract address
+- [ClassHashAt](/docs/rpc/methods/get-class-hash-at) - Get class hash at a specific contract address
+- [StorageAt](/docs/rpc/methods/get-storage-at) - Get storage value at a contract address
