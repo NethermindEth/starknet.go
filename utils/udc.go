@@ -88,7 +88,6 @@ func BuildUDCCalldata(
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
 ) (rpc.InvokeFunctionCall, *felt.Felt, error) {
-opts.UDCVersion = UDCCairoV2 
 	var result rpc.InvokeFunctionCall
 	if classHash == nil {
 		return result, nil, errClassHashNotProvided
