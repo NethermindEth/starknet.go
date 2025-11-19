@@ -1440,3 +1440,271 @@ func main() {
     }
 }
 ```
+
+## Contract Upgrade Detection 
+
+Track when a contract's implementation changes by monitoring its class hash over time:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+    "time"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Contract address to monitor (e.g., ETH on Sepolia)
+    contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Monitoring contract for upgrades: %s\n\n", contractAddress)
+
+    // Get current block number
+    currentBlock, err := provider.BlockNumber(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Track class hash across recent blocks (last 100 blocks)
+    var previousClassHash string
+    upgradeDetected := false
+
+    startBlock := currentBlock - 100
+    if startBlock < 0 {
+        startBlock = 0
+    }
+
+    for blockNum := startBlock; blockNum <= currentBlock; blockNum++ {
+        blockID := rpc.WithBlockNumber(blockNum)
+
+        classHash, err := provider.ClassHashAt(ctx, blockID, contractAddress)
+        if err != nil {
+            // Contract might not exist in earlier blocks
+            continue
+        }
+
+        classHashStr := classHash.String()
+
+        if previousClassHash == "" {
+            previousClassHash = classHashStr
+            fmt.Printf("Block %d: Initial class hash: %s\n", blockNum, classHashStr)
+        } else if classHashStr != previousClassHash {
+            fmt.Printf("\n*** UPGRADE DETECTED at block %d! ***\n", blockNum)
+            fmt.Printf("  Previous class hash: %s\n", previousClassHash)
+            fmt.Printf("  New class hash:      %s\n", classHashStr)
+            previousClassHash = classHashStr
+            upgradeDetected = true
+        }
+    }
+
+    if !upgradeDetected {
+        fmt.Printf("\nNo upgrades detected in the last %d blocks\n", currentBlock-startBlock)
+        fmt.Printf("Current class hash: %s\n", previousClassHash)
+    }
+
+    // Real-time monitoring example (monitor for 60 seconds)
+    fmt.Printf("\n=== Starting Real-Time Monitoring ===\n")
+    fmt.Printf("Monitoring for 60 seconds...\n\n")
+
+    monitoringStart := time.Now()
+    lastCheckedBlock := currentBlock
+
+    for time.Since(monitoringStart) < 60*time.Second {
+        time.Sleep(5 * time.Second)
+
+        latestBlock, err := provider.BlockNumber(ctx)
+        if err != nil {
+            log.Printf("Error getting latest block: %v", err)
+            continue
+        }
+
+        if latestBlock > lastCheckedBlock {
+            blockID := rpc.WithBlockNumber(latestBlock)
+
+            classHash, err := provider.ClassHashAt(ctx, blockID, contractAddress)
+            if err != nil {
+                log.Printf("Error getting class hash: %v", err)
+                continue
+            }
+
+            classHashStr := classHash.String()
+
+            if classHashStr != previousClassHash {
+                fmt.Printf("\n*** UPGRADE DETECTED at block %d! ***\n", latestBlock)
+                fmt.Printf("  Previous class hash: %s\n", previousClassHash)
+                fmt.Printf("  New class hash:      %s\n", classHashStr)
+                previousClassHash = classHashStr
+            } else {
+                fmt.Printf("Block %d: No change (class hash: %s...)\n",
+                    latestBlock, classHashStr[:10])
+            }
+
+            lastCheckedBlock = latestBlock
+        }
+    }
+
+    fmt.Printf("\nMonitoring complete.\n")
+}
+```
+
+## Implementation Verification 
+
+Verify that a contract is using the expected implementation class:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // Define contracts to verify
+    type ContractInfo struct {
+        Name              string
+        Address           string
+        ExpectedClassHash string
+    }
+
+    contracts := []ContractInfo{
+        {
+            Name:              "ETH Token",
+            Address:           "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            ExpectedClassHash: "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a",
+        },
+        // Add more contracts as needed
+    }
+
+    fmt.Printf("=== Contract Implementation Verification ===\n\n")
+
+    blockID := rpc.WithBlockTag("latest")
+    allValid := true
+
+    for _, contract := range contracts {
+        fmt.Printf("Checking: %s\n", contract.Name)
+        fmt.Printf("  Address: %s\n", contract.Address)
+
+        // Parse contract address
+        contractAddr, err := utils.HexToFelt(contract.Address)
+        if err != nil {
+            log.Printf("  [ERROR] Error parsing address: %v\n\n", err)
+            allValid = false
+            continue
+        }
+
+        // Get actual class hash
+        actualClassHash, err := provider.ClassHashAt(ctx, blockID, contractAddr)
+        if err != nil {
+            log.Printf("  [ERROR] Error getting class hash: %v\n\n", err)
+            allValid = false
+            continue
+        }
+
+        actualClassHashStr := actualClassHash.String()
+
+        // Parse expected class hash
+        expectedClassHash, err := utils.HexToFelt(contract.ExpectedClassHash)
+        if err != nil {
+            log.Printf("  [ERROR] Error parsing expected class hash: %v\n\n", err)
+            allValid = false
+            continue
+        }
+
+        expectedClassHashStr := expectedClassHash.String()
+
+        // Verify
+        if actualClassHashStr == expectedClassHashStr {
+            fmt.Printf("  [OK] Implementation verified!\n")
+            fmt.Printf("  Class Hash: %s\n\n", actualClassHashStr)
+        } else {
+            fmt.Printf("  [MISMATCH] Implementation mismatch!\n")
+            fmt.Printf("  Expected: %s\n", expectedClassHashStr)
+            fmt.Printf("  Actual:   %s\n\n", actualClassHashStr)
+            allValid = false
+        }
+    }
+
+    fmt.Printf("=== Verification Summary ===\n")
+    if allValid {
+        fmt.Printf("[SUCCESS] All contracts are using the expected implementations\n")
+    } else {
+        fmt.Printf("[FAILED] Some contracts have unexpected implementations\n")
+        fmt.Printf("[WARNING] Please review the mismatches above\n")
+    }
+
+    // Additional: Get class definition for verification
+    fmt.Printf("\n=== Fetching Class Definition ===\n")
+
+    contractAddr, _ := utils.HexToFelt(contracts[0].Address)
+    classHash, _ := provider.ClassHashAt(ctx, blockID, contractAddr)
+
+    // Get the full class definition
+    _, err = provider.Class(ctx, blockID, classHash)
+    if err != nil {
+        log.Printf("Error getting class: %v\n", err)
+    } else {
+        fmt.Printf("Successfully retrieved class definition for verification\n")
+        fmt.Printf("Class Hash: %s\n", classHash)
+
+        // You can now inspect the class definition (ABI, entry points, etc.)
+        fmt.Printf("Class retrieved - ready for detailed verification\n")
+    }
+}
+```
