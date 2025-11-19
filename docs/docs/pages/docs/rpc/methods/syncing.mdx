@@ -1,6 +1,9 @@
 # Syncing
 
-Gets the synchronization status of the node.
+Gets the synchronization status of the node. This method returns whether the node is currently syncing with the network and provides progress information including the starting block, current block, and highest block known to the node. 
+:::note
+A fully synchronized node returns `IsSyncing: false`.
+:::
 
 ## Method Signature
 
@@ -8,14 +11,37 @@ Gets the synchronization status of the node.
 func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error)
 ```
 
+**Source:** [chain.go:L39-L46](https://github.com/NethermindEth/starknet.go/blob/main/rpc/chain.go#L39-L46)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
+- `ctx` (context.Context): Context for request cancellation and timeout
 
 ## Returns
 
-- `SyncStatus` - Synchronization status (false if synced, or sync progress object)
-- `error` - Error if the request fails
+- `SyncStatus`: Synchronization status containing sync progress information
+- `error`: Error if the request fails
+
+## Type Definitions
+
+### SyncStatus
+
+```go
+type SyncStatus struct {
+    // A boolean indicating whether the node is syncing. If false, all other fields are empty.
+    IsSyncing bool
+
+    // All these fields are only present if IsSyncing is true.
+    StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
+    StartingBlockNum  uint64     `json:"starting_block_num,omitempty"`
+    CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
+    CurrentBlockNum   uint64     `json:"current_block_num,omitempty"`
+    HighestBlockHash  *felt.Felt `json:"highest_block_hash,omitempty"`
+    HighestBlockNum   uint64     `json:"highest_block_num,omitempty"`
+}
+```
+
+**Source:** [types.go:L100-L111](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L100-L111)
 
 ## Usage Example
 
@@ -23,65 +49,88 @@ func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error)
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
+    "context"
+    "fmt"
+    "log"
+    "os"
 
-	"github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
 
-	// Get sync status
-	syncStatus, err := client.Syncing(ctx)
-	if err != nil {
-		log.Fatal("Failed to get sync status:", err)
-	}
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	// Check if node is syncing
-	if syncStatus.IsSyncing {
-		fmt.Printf("Node is syncing:\n")
-		fmt.Printf("  Starting Block Hash: %s\n", syncStatus.StartingBlockHash)
-		fmt.Printf("  Starting Block Num: %d\n", syncStatus.StartingBlockNum)
-		fmt.Printf("  Current Block Hash: %s\n", syncStatus.CurrentBlockHash)
-		fmt.Printf("  Current Block Num: %d\n", syncStatus.CurrentBlockNum)
-		fmt.Printf("  Highest Block Hash: %s\n", syncStatus.HighestBlockHash)
-		fmt.Printf("  Highest Block Num: %d\n", syncStatus.HighestBlockNum)
-	} else {
-		fmt.Println("Node is not syncing (fully synchronized)")
-	}
+    ctx := context.Background()
+
+    // Get synchronization status
+    syncStatus, err := provider.Syncing(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Check if node is syncing
+    if syncStatus.IsSyncing {
+        fmt.Printf("Node is syncing:\n")
+        fmt.Printf("  Starting Block: %d (Hash: %s)\n",
+            syncStatus.StartingBlockNum, syncStatus.StartingBlockHash)
+        fmt.Printf("  Current Block: %d (Hash: %s)\n",
+            syncStatus.CurrentBlockNum, syncStatus.CurrentBlockHash)
+        fmt.Printf("  Highest Block: %d (Hash: %s)\n",
+            syncStatus.HighestBlockNum, syncStatus.HighestBlockHash)
+
+        // Calculate sync progress
+        if syncStatus.HighestBlockNum > syncStatus.StartingBlockNum {
+            progress := float64(syncStatus.CurrentBlockNum-syncStatus.StartingBlockNum) /
+                       float64(syncStatus.HighestBlockNum-syncStatus.StartingBlockNum) * 100
+            fmt.Printf("  Progress: %.2f%%\n", progress)
+        }
+    } else {
+        fmt.Println("Node is fully synchronized")
+    }
 }
 ```
 
-## Expected Output
-
-```
-Node is not syncing (fully synchronized)
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-syncStatus, err := client.Syncing(ctx)
+syncStatus, err := provider.Syncing(ctx)
 if err != nil {
-	// Handle error
-	return err
+    log.Printf("Failed to get sync status: %v", err)
+    return
+}
+
+if syncStatus.IsSyncing {
+    log.Printf("Warning: Node is still syncing (at block %d/%d)",
+        syncStatus.CurrentBlockNum, syncStatus.HighestBlockNum)
+} else {
+    log.Println("Node is ready - fully synchronized")
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [ChainID](./chain-ID.mdx) - Get chain ID
-- [SpecVersion](./spec-version.mdx) - Get RPC specification version
+- Checkin if your node is fully synchronized before serving requests. 
+- Monitoring synchronization progress and estimate completion time. 
+- Waiting for node to finish syncing before starting your application. 
+
