@@ -279,13 +279,8 @@ fmt.Printf("Retrieved %d events\n", len(eventChunk.Events))
 
 ## Common Use Cases
 
-- Monitoring token transfers by filtering Transfer events from ERC20 contracts
-- Tracking contract state changes by querying events from specific contract addresses
-- Building event indexers by paginating through historical events with continuation tokens
-- Analyzing transaction activity within specific block ranges
+- Monitoring token transfers by filtering Transfer events from ERC20 contracts.
+- Tracking contract state changes by querying events from specific contract addresses.
+- Building event indexers by paginating through historical events with continuation tokens.
+- Analyzing transaction activity within specific block ranges.
 
-## Related Methods
-
-- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get blocks containing the transactions that emitted events
-- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Get detailed transaction information including all emitted events
-- [SubscribeEvents](/docs/rpc/websocket/subscribe-events) - Subscribe to real-time event notifications via WebSocket
