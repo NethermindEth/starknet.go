@@ -1,22 +1,112 @@
 # AddInvokeTransaction
 
-Submits an invoke transaction to the network for execution.
+Submits an invoke transaction (V3) to the Starknet network for execution. Invoke transactions are used to execute functions on deployed contracts. The transaction must include valid signatures, correct nonce, and sufficient resource bounds to cover execution costs.
 
 ## Method Signature
 
 ```go
-func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn *BroadcastInvokeTxnV3) (*AddInvokeTransactionResponse, error)
+func (provider *Provider) AddInvokeTransaction(
+	ctx context.Context,
+	invokeTxn *BroadcastInvokeTxnV3,
+) (AddInvokeTransactionResponse, error)
 ```
+
+**Source:** [write.go:L18-L40](https://github.com/NethermindEth/starknet.go/blob/main/rpc/write.go#L18-L40)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `invokeTxn` - The invoke transaction to submit
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `invokeTxn` (*BroadcastInvokeTxnV3): The V3 invoke transaction to submit to the network
 
 ## Returns
 
-- `*AddInvokeTransactionResponse` - Response containing transaction hash
-- `error` - Error if the submission fails
+- `AddInvokeTransactionResponse`: Response containing the submitted transaction hash
+- `error`: Error if the submission fails
+
+:::note
+This method can return multiple error types including `ErrInsufficientAccountBalance`, `ErrInvalidTransactionNonce`, `ErrValidationFailure`, `ErrFeeBelowMinimum`, `ErrDuplicateTx`, and others. Always check for specific error types when handling failures.
+:::
+
+## Type Definitions
+
+:::tip
+The invoke transaction submission system uses these related types:
+:::
+1. Input Type (`BroadcastInvokeTxnV3`) defines the V3 invoke transaction structure with all required fields including sender, calldata, signature, nonce, and resource bounds.
+2. Result Type (`AddInvokeTransactionResponse`) contains the transaction hash assigned by the network for tracking the submitted transaction.
+
+The method submits the transaction to the network's mempool and returns immediately with a transaction hash, before execution completes.
+
+### BroadcastInvokeTxnV3
+
+```go
+type BroadcastInvokeTxnV3 = InvokeTxnV3
+```
+
+**Source:** [types_broadcast_transaction.go:L18](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_broadcast_transaction.go#L18)
+
+### InvokeTxnV3
+
+```go
+type InvokeTxnV3 struct {
+	Type           TransactionType        `json:"type"`
+	SenderAddress  *felt.Felt             `json:"sender_address"`
+	Calldata       []*felt.Felt           `json:"calldata"`
+	Version        TransactionVersion     `json:"version"`
+	Signature      []*felt.Felt           `json:"signature"`
+	Nonce          *felt.Felt             `json:"nonce"`
+	ResourceBounds *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip            U64                    `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The data needed to deploy the account contract from which this tx will be initiated
+	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
+```
+
+**Source:** [types_transaction.go:L39-L56](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L39-L56)
+
+### AddInvokeTransactionResponse
+
+```go
+type AddInvokeTransactionResponse struct {
+	Hash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+**Source:** [types_transaction_response.go:L18-L20](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L18-L20)
+
+### ResourceBoundsMapping
+
+```go
+type ResourceBoundsMapping struct {
+	// The max amount and max price per unit of L1 gas used in this tx
+	L1Gas ResourceBounds `json:"l1_gas"`
+	// The max amount and max price per unit of L1 blob gas used in this tx
+	L1DataGas ResourceBounds `json:"l1_data_gas"`
+	// The max amount and max price per unit of L2 gas used in this tx
+	L2Gas ResourceBounds `json:"l2_gas"`
+}
+```
+
+**Source:** [types_transaction.go:L121-L128](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L121-L128)
+
+### ResourceBounds
+
+```go
+type ResourceBounds struct {
+	// The max amount of the resource that can be used in the tx
+	MaxAmount U64 `json:"max_amount"`
+	// The max price per unit of this resource for this tx
+	MaxPricePerUnit U128 `json:"max_price_per_unit"`
+}
+```
+
+**Source:** [types_transaction.go:L176-L181](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L176-L181)
 
 ## Usage Example
 
@@ -24,105 +114,233 @@ func (provider *Provider) AddInvokeTransaction(ctx context.Context, invokeTxn *B
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
+	"math/big"
 	"os"
+	"time"
 
-    "github.com/NethermindEth/starknet.go/rpc"
-    "github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    // Get RPC URL from environment variable
-    rpcURL := os.Getenv("STARKNET_RPC_URL")
-    if rpcURL == "" {
-        log.Fatal("STARKNET_RPC_URL not set in environment")
-    }
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
+	// Get configuration from environment variables
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
 
-    // Create a V3 invoke transaction
-    accountAddr, _ := new(felt.Felt).SetString("0x0517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802")
-    getPubKeySelector, _ := new(felt.Felt).SetString("0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b")
-    
-    invokeTransaction := &rpc.BroadcastInvokeTxnV3{
-        Type:          rpc.TransactionType("INVOKE"),
-        Version:       rpc.TransactionVersion("0x3"),
-        SenderAddress: accountAddr,
-        Calldata: []*felt.Felt{
-            new(felt.Felt).SetUint64(1),    // call_array_len: 1 call
-            accountAddr,                    // contract_address to call
-            getPubKeySelector,              // get_public_key selector  
-            new(felt.Felt).SetUint64(0),    // calldata_len: 0 parameters
-        },
-        Signature: []*felt.Felt{
-            new(felt.Felt).SetString("0x164c0c437039f691c167ad0d0611d97987c07b03bec4191134ce2b83c4ac062"),
-            new(felt.Felt).SetString("0x1a806c406f4641ec8d962172e81991343157377d2416edb12246f5a51c452c8"),
-        },
-        Nonce: new(felt.Felt).SetUint64(1),
-        ResourceBounds: &rpc.ResourceBoundsMapping{
-            L1Gas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0x0"),
-                MaxPricePerUnit: rpc.U128("0x33a937098d80"),
-            },
-            L2Gas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0x15c2a0"),
-                MaxPricePerUnit: rpc.U128("0x10c388d00"),
-            },
-            L1DataGas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0xc0"),
-                MaxPricePerUnit: rpc.U128("0xdb31"),
-            },
-        },
-        Tip:                   rpc.U64("0x0"),
-        PayMasterData:         []*felt.Felt{},
-        AccountDeploymentData: []*felt.Felt{},
-        NonceDataMode:         rpc.DAModeL1,
-        FeeMode:               rpc.DAModeL1,
-    }
+	privateKeyStr := os.Getenv("ACCOUNT_PRIVATE_KEY")
+	if privateKeyStr == "" {
+		log.Fatal("ACCOUNT_PRIVATE_KEY not found in .env file")
+	}
 
-    // Submit the transaction
-    result, err := client.AddInvokeTransaction(ctx, invokeTransaction)
-    if err != nil {
-        log.Fatal("Failed to add invoke transaction:", err)
-    }
+	publicKeyStr := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	if publicKeyStr == "" {
+		log.Fatal("ACCOUNT_PUBLIC_KEY not found in .env file")
+	}
 
-    // Pretty print the result
-    resultJSON, _ := json.MarshalIndent(result, "", "  ")
-    fmt.Printf("Transaction submitted:\n%s\n", resultJSON)
+	accountAddressStr := os.Getenv("ACCOUNT_ADDRESS")
+	if accountAddressStr == "" {
+		log.Fatal("ACCOUNT_ADDRESS not found in .env file")
+	}
+
+	// Initialize provider
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Parse account details
+	privateKey, _ := new(felt.Felt).SetString(privateKeyStr)
+	publicKey, _ := new(felt.Felt).SetString(publicKeyStr)
+	accountAddress, _ := new(felt.Felt).SetString(accountAddressStr)
+
+	// Create keystore and account instance
+	ks := account.NewMemKeystore()
+	ks.Put(publicKey.String(), privateKey.BigInt(new(big.Int)))
+	acct, err := account.NewAccount(client, accountAddress, publicKey.String(), ks, 2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get current nonce
+	nonce, err := acct.Nonce(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ETH token contract on Sepolia
+	ethTokenAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+
+	// Function selector for "balanceOf"
+	balanceOfSelector := utils.GetSelectorFromNameFelt("balanceOf")
+
+	// Build calldata for the invoke transaction
+	// For account execute: [num_calls, contract_address, selector, calldata_len, ...calldata]
+	calldata := []*felt.Felt{
+		new(felt.Felt).SetUint64(1),  // Number of calls
+		ethTokenAddress,               // Contract address
+		balanceOfSelector,             // Function selector
+		new(felt.Felt).SetUint64(1),  // Calldata length
+		accountAddress,                // Account address as parameter to balanceOf
+	}
+
+	// Build the invoke transaction
+	invokeTx := rpc.InvokeTxnV3{
+		Type:          rpc.TransactionTypeInvoke,
+		Version:       rpc.TransactionV3,
+		SenderAddress: accountAddress,
+		Nonce:         nonce,
+		Calldata:      calldata,
+		Signature:     []*felt.Felt{}, // Will be filled by SignInvokeTransaction
+		// Resource bounds - use high initial values for estimation
+		ResourceBounds: &rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x186a0",         // 100000
+				MaxPricePerUnit: "0x33a937098d80", // High price for estimation
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x186a0",         // 100000
+				MaxPricePerUnit: "0x33a937098d80", // High price for estimation
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x186a0",      // 100000
+				MaxPricePerUnit: "0x10c388d00", // High price for estimation
+			},
+		},
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
+	}
+
+	// Estimate the fee using the provider (skip validation for estimation)
+	simFlags := []rpc.SimulationFlag{rpc.SkipValidate}
+	feeEstimate, err := client.EstimateFee(ctx, []rpc.BroadcastTxn{invokeTx}, simFlags, rpc.WithBlockTag(rpc.BlockTagLatest))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(feeEstimate) > 0 {
+		// Add buffer to the gas estimate (20% more)
+		estimatedL1DataGas := feeEstimate[0].L1DataGasConsumed.Uint64()
+		estimatedL2Gas := feeEstimate[0].L2GasConsumed.Uint64()
+
+		// Set resource bounds with buffer
+		invokeTx.ResourceBounds = &rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", estimatedL1DataGas*12/10)), // 20% buffer
+				MaxPricePerUnit: rpc.U128("0x33a937098d80"),                            // Max price in STRK
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", estimatedL1DataGas*12/10)), // 20% buffer
+				MaxPricePerUnit: rpc.U128("0x33a937098d80"),                            // Max price in STRK
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", estimatedL2Gas*12/10)), // 20% buffer
+				MaxPricePerUnit: rpc.U128("0x10c388d00"),                           // Max price in STRK
+			},
+		}
+	}
+
+	// Sign the transaction
+	err = acct.SignInvokeTransaction(ctx, &invokeTx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Submit the transaction using the provider
+	resp, err := client.AddInvokeTransaction(ctx, &invokeTx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction submitted successfully!\n")
+	fmt.Printf("Transaction Hash: %s\n", resp.Hash.String())
+
+	// Wait for transaction confirmation
+	receipt, err := waitForTransaction(ctx, client, resp.Hash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction confirmed!\n")
+	fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
+	fmt.Printf("Status: %s\n", receipt.FinalityStatus)
+	fmt.Printf("Actual Fee: %s\n", receipt.ActualFee.Amount.String())
+}
+
+// waitForTransaction waits for a transaction to be confirmed on the network
+func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, error) {
+	for i := 0; i < 60; i++ { // Wait up to 5 minutes
+		receipt, err := client.TransactionReceipt(ctx, txHash)
+		if err == nil {
+			if receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL2 ||
+			   receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL1 {
+				return receipt, nil
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+		fmt.Print(".")
+	}
+
+	return nil, fmt.Errorf("transaction confirmation timeout")
 }
 ```
 
-## Expected Output
-
-```json
-{
-  "transaction_hash": "0x033d1aea5d06db63b8989fb8afbc08c20315460de752414bd6bc2fe23ea570dc"
-}
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
-Common errors include invalid signatures, insufficient balance, and wrong nonce values. Always verify transaction parameters before submission.
-
 ```go
-result, err := client.AddInvokeTransaction(ctx, invokeTransaction)
+result, err := provider.AddInvokeTransaction(ctx, &invokeTx)
 if err != nil {
-    log.Printf("Transaction failed: %v", err)
-    return
+	switch {
+	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
+		log.Printf("Insufficient balance to pay for transaction fees")
+		return
+	case errors.Is(err, rpc.ErrInvalidTransactionNonce):
+		log.Printf("Invalid nonce - transaction nonce must match account nonce")
+		return
+	case errors.Is(err, rpc.ErrValidationFailure):
+		log.Printf("Transaction validation failed - check signature and parameters")
+		return
+	case errors.Is(err, rpc.ErrFeeBelowMinimum):
+		log.Printf("Resource bounds too low for current network conditions")
+		return
+	case errors.Is(err, rpc.ErrDuplicateTx):
+		log.Printf("Transaction with same hash already submitted")
+		return
+	default:
+		log.Printf("Failed to submit transaction: %v", err)
+		return
+	}
 }
-// Safe to use result.TransactionHash
+
+fmt.Printf("Transaction Hash: %s\n", result.Hash)
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test transactions before submitting
-- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate transaction fees
-- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Check transaction execution status
-- [Nonce](/docs/rpc/methods/get-nonce) - Get current nonce for transaction sequencing
+- Executing functions on deployed smart contracts to modify contract state.
+- Performing token transfers by invoking transfer functions on ERC20 contracts.
+- Interacting with DeFi protocols by calling swap, stake, or yield farming functions.
+- Managing multi-signature wallets by submitting transactions that require approval.
+
