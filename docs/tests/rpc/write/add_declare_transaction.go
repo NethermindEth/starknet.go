@@ -1,122 +1,5 @@
-# AddDeclareTransaction
-
-Submits a declare transaction (V3) to the Starknet network to register a new contract class. Declare transactions make contract classes available for deployment by publishing the Sierra contract class and its compiled CASM hash. Once declared, the class can be deployed multiple times using deploy account or deploy system call transactions.
-
-## Method Signature
-
-```go
-func (provider *Provider) AddDeclareTransaction(
-	ctx context.Context,
-	declareTransaction *BroadcastDeclareTxnV3,
-) (AddDeclareTransactionResponse, error)
-```
-
-**Source:** [write.go:L51-L79](https://github.com/NethermindEth/starknet.go/blob/main/rpc/write.go#L51-L79)
-
-## Parameters
-
-- `ctx` (context.Context): Context for request cancellation and timeout
-- `declareTransaction` (*BroadcastDeclareTxnV3): The V3 declare transaction containing the contract class and metadata
-
-## Returns
-
-- `AddDeclareTransactionResponse`: Response containing both the transaction hash and the declared class hash
-- `error`: Error if the submission fails
-
-:::note
-This method can return multiple error types including `ErrClassAlreadyDeclared`, `ErrCompilationFailed`, `ErrCompiledClassHashMismatch`, `ErrInsufficientAccountBalance`, `ErrContractClassSizeTooLarge`, and others. Always verify the contract class before submission.
-:::
-
-## Prerequisites
-
-Before declaring a contract, you need compiled Cairo contract files:
-
-### Compile Your Cairo Contract
-
-```bash
-# Create and build your contract
-mkdir my_contract && cd my_contract
-scarb init
-# Edit src/lib.cairo with your contract code
-scarb build
-```
-
-This generates two files in `target/dev/`:
-- `{package_name}_{contract_name}.contract_class.json` - Sierra contract class
-- `{package_name}_{contract_name}.compiled_contract_class.json` - CASM compiled bytecode
-
-:::note
-See the environment variables required in the usage example code below (`.env` file setup).
-:::
-
-## Type Definitions
-
-:::tip
-The declare transaction submission system uses these related types:
-:::
-1. Input Type (`BroadcastDeclareTxnV3`) contains the contract class definition, compiled class hash, sender information, and resource bounds.
-2. Result Type (`AddDeclareTransactionResponse`) returns both the transaction hash for tracking execution and the class hash for future deployments.
-3. Contract Class (`contracts.ContractClass`) represents the Sierra contract class with entry points, ABI, and program data.
-
-The method validates the compiled class hash matches the provided contract class and registers it on-chain.
-
-### BroadcastDeclareTxnV3
-
-```go
-type BroadcastDeclareTxnV3 struct {
-	Type              TransactionType          `json:"type"`
-	SenderAddress     *felt.Felt               `json:"sender_address"`
-	CompiledClassHash *felt.Felt               `json:"compiled_class_hash"`
-	Version           TransactionVersion       `json:"version"`
-	Signature         []*felt.Felt             `json:"signature"`
-	Nonce             *felt.Felt               `json:"nonce"`
-	ContractClass     *contracts.ContractClass `json:"contract_class"`
-	ResourceBounds    *ResourceBoundsMapping   `json:"resource_bounds"`
-	Tip               U64                      `json:"tip"`
-	// The data needed to allow the paymaster to pay for the transaction in native tokens
-	PayMasterData []*felt.Felt `json:"paymaster_data"`
-	// The data needed to deploy the account contract from which this tx will be initiated
-	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
-	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
-	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
-}
-```
-
-**Source:** [types_broadcast_transaction.go:L22-L40](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_broadcast_transaction.go#L22-L40)
-
-### AddDeclareTransactionResponse
-
-```go
-type AddDeclareTransactionResponse struct {
-	Hash      *felt.Felt `json:"transaction_hash"`
-	ClassHash *felt.Felt `json:"class_hash"`
-}
-```
-
-**Source:** [types_transaction_response.go:L6-L9](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L6-L9)
-
-### ResourceBoundsMapping
-
-```go
-type ResourceBoundsMapping struct {
-	// The max amount and max price per unit of L1 gas used in this tx
-	L1Gas ResourceBounds `json:"l1_gas"`
-	// The max amount and max price per unit of L1 blob gas used in this tx
-	L1DataGas ResourceBounds `json:"l1_data_gas"`
-	// The max amount and max price per unit of L2 gas used in this tx
-	L2Gas ResourceBounds `json:"l2_gas"`
-}
-```
-
-**Source:** [types_transaction.go:L121-L128](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L121-L128)
-
-## Usage Example
-
-```go
 package main
-
+ 
 import (
 	"context"
 	"encoding/json"
@@ -125,7 +8,7 @@ import (
 	"math/big"
 	"os"
 	"time"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/contracts"
@@ -133,95 +16,95 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
 	// Load environment variables
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
+ 
 	// Get configuration from environment
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	privateKeyStr := os.Getenv("ACCOUNT_PRIVATE_KEY")
 	publicKeyStr := os.Getenv("ACCOUNT_PUBLIC_KEY")
 	accountAddressStr := os.Getenv("ACCOUNT_ADDRESS")
-
+ 
 	if rpcURL == "" || privateKeyStr == "" || publicKeyStr == "" || accountAddressStr == "" {
 		log.Fatal("Missing required environment variables")
 	}
-
+ 
 	// Parse credentials
 	privateKey, err := new(felt.Felt).SetString(privateKeyStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	publicKey, err := new(felt.Felt).SetString(publicKeyStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	accountAddress, err := new(felt.Felt).SetString(accountAddressStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Initialize provider
 	ctx := context.Background()
 	client, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Create keystore
 	ks := account.NewMemKeystore()
 	ks.Put(publicKey.String(), privateKey.BigInt(new(big.Int)))
-
+ 
 	// Create account controller
 	acct, err := account.NewAccount(client, accountAddress, publicKey.String(), ks, 2)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Get current nonce
 	nonce, err := acct.Nonce(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Load the compiled contract files
 	// Replace with your actual contract paths
 	sierraPath := "counter_contract/target/dev/counter_Counter.contract_class.json"
 	casmPath := "counter_contract/target/dev/counter_Counter.compiled_contract_class.json"
-
+ 
 	// Check if files exist
 	if _, err := os.Stat(sierraPath); os.IsNotExist(err) {
 		log.Fatal("Contract files not found! Run: cd counter_contract && scarb build")
 	}
-
+ 
 	// Load Sierra contract
 	sierraContent, err := os.ReadFile(sierraPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	var contractClass contracts.ContractClass
 	if err := json.Unmarshal(sierraContent, &contractClass); err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Load CASM contract
 	casmContent, err := os.ReadFile(casmPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	var casmClass contracts.CasmClass
 	if err := json.Unmarshal(casmContent, &casmClass); err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Calculate the compiled class hash first
 	// Note: There's sometimes a mismatch between local calculation and what the sequencer expects
 	// If you get a mismatch error, use the "Expected" hash from the error message
@@ -229,17 +112,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Override with the correct hash if there's a known mismatch
 	// IMPORTANT: Replace this with the "Expected" hash from your error message if you get a mismatch
 	// Example: compiledClassHash, _ = new(felt.Felt).SetString("0x4fe67cc3cb8e0e3c06161a5b8ccaed841e5e3116138bef832b19fa298c74f6c")
-
+ 
 	// Calculate class hash from the contract
 	classHash := hash.ClassHash(&contractClass)
-
+ 
 	fmt.Printf("Class Hash: %s\n", classHash.String())
 	fmt.Printf("Compiled Class Hash: %s\n", compiledClassHash.String())
-
+ 
 	// Check if contract is already declared
 	fmt.Println("Checking if contract is already declared...")
 	_, err = client.ClassAt(ctx, rpc.WithBlockTag(rpc.BlockTagLatest), classHash)
@@ -248,7 +131,7 @@ func main() {
 		fmt.Printf("Class Hash: %s\n", classHash.String())
 		return
 	}
-
+ 
 	// Try alternative check with Class method
 	_, err = client.Class(ctx, rpc.WithBlockTag(rpc.BlockTagLatest), classHash)
 	if err == nil {
@@ -256,9 +139,9 @@ func main() {
 		fmt.Printf("Class Hash: %s\n", classHash.String())
 		return
 	}
-
+ 
 	fmt.Println("Contract not found on-chain, proceeding with declaration...")
-
+ 
 	// Create the declare transaction
 	declareTx := &rpc.BroadcastDeclareTxnV3{
 		Type:              rpc.TransactionTypeDeclare,
@@ -288,7 +171,7 @@ func main() {
 		NonceDataMode:         rpc.DAModeL1,
 		FeeMode:               rpc.DAModeL1,
 	}
-
+ 
 	// Estimate fee
 	fmt.Println("Estimating transaction fee...")
 	simFlags := []rpc.SimulationFlag{rpc.SkipValidate}
@@ -298,7 +181,7 @@ func main() {
 		simFlags,
 		rpc.WithBlockTag(rpc.BlockTagLatest),
 	)
-
+ 
 	if err != nil {
 		fmt.Printf("Fee estimation failed: %v\n", err)
 		fmt.Println("Continuing with default resource bounds...")
@@ -306,7 +189,7 @@ func main() {
 		// Update resource bounds based on estimate with 20% buffer
 		estimatedL1DataGas := feeEstimate[0].L1DataGasConsumed.Uint64()
 		estimatedL2Gas := feeEstimate[0].L2GasConsumed.Uint64()
-
+ 
 		declareTx.ResourceBounds = &rpc.ResourceBoundsMapping{
 			L1Gas: rpc.ResourceBounds{
 				MaxAmount:       rpc.U64(fmt.Sprintf("0x%x", estimatedL1DataGas*12/10)),
@@ -321,12 +204,12 @@ func main() {
 				MaxPricePerUnit: rpc.U128("0x10c388d00"),
 			},
 		}
-
+ 
 		fmt.Printf("Estimated L1 Data Gas: %d\n", estimatedL1DataGas)
 		fmt.Printf("Estimated L2 Gas: %d\n", estimatedL2Gas)
 		fmt.Printf("Overall Fee: %s STRK\n", feeEstimate[0].OverallFee.String())
 	}
-
+ 
 	// Sign the transaction
 	// Create a DeclareTxnV3 for signing (required for proper hash calculation)
 	declareTxnV3 := rpc.DeclareTxnV3{
@@ -344,37 +227,37 @@ func main() {
 		NonceDataMode:         declareTx.NonceDataMode,
 		FeeMode:               declareTx.FeeMode,
 	}
-
+ 
 	err = acct.SignDeclareTransaction(ctx, &declareTxnV3)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	// Copy signature back to broadcast transaction
 	declareTx.Signature = declareTxnV3.Signature
-
+ 
 	// Submit the transaction
 	resp, err := client.AddDeclareTransaction(ctx, declareTx)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	fmt.Printf("Contract declared successfully!\n")
 	fmt.Printf("Transaction Hash: %s\n", resp.Hash.String())
 	fmt.Printf("Class Hash: %s\n", resp.ClassHash.String())
-
+ 
 	// Wait for transaction confirmation
 	receipt, err := waitForTransaction(ctx, client, resp.Hash)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+ 
 	fmt.Printf("Transaction confirmed!\n")
 	fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
 	fmt.Printf("Status: %s\n", receipt.FinalityStatus)
 	fmt.Printf("Actual Fee: %s\n", receipt.ActualFee.Amount.String())
 }
-
+ 
 // waitForTransaction waits for a transaction to be confirmed on the network
 func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	for i := 0; i < 60; i++ { // Wait up to 5 minutes
@@ -385,65 +268,10 @@ func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.
 				return receipt, nil
 			}
 		}
-
+ 
 		time.Sleep(5 * time.Second)
 		fmt.Print(".")
 	}
-
+ 
 	return nil, fmt.Errorf("transaction confirmation timeout")
 }
-```
-
-:::note
-**Important Notes:**
-1. The `ClassHash` field must be included in the `DeclareTxnV3` struct for proper transaction hash calculation during signing.
-2. **Compiled Class Hash Mismatch**: If you get error `"The compiled class hash did not match"`, look at the error message for the "Expected" hash value and use that instead of the calculated hash. This is a known issue where the local hash calculation may differ from what the sequencer expects.
-3. Always check if a contract is already declared before attempting to declare it again to avoid duplicate declaration errors.
-:::
-
-## Error Handling
-
-```go
-result, err := client.AddDeclareTransaction(ctx, &declareTx)
-if err != nil {
-	switch {
-	case errors.Is(err, rpc.ErrClassAlreadyDeclared):
-		log.Printf("Class already declared - use existing class hash")
-		return
-	case errors.Is(err, rpc.ErrCompilationFailed):
-		log.Printf("Contract class compilation failed")
-		return
-	case errors.Is(err, rpc.ErrCompiledClassHashMismatch):
-		log.Printf("Compiled class hash mismatch - check the expected hash in error")
-		return
-	case errors.Is(err, rpc.ErrContractClassSizeTooLarge):
-		log.Printf("Contract class exceeds maximum size limit")
-		return
-	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
-		log.Printf("Insufficient balance to pay for declaration fees")
-		return
-	case errors.Is(err, rpc.ErrInvalidTransactionNonce):
-		log.Printf("Invalid nonce - transaction nonce must match account nonce")
-		return
-	default:
-		log.Printf("Failed to declare class: %v", err)
-		return
-	}
-}
-
-fmt.Printf("Class Hash: %s\n", result.ClassHash)
-```
-
-## Common Use Cases
-
-- Deploying new smart contracts by first declaring the contract class on-chain
-- Upgrading existing contracts by declaring a new version of the contract class
-- Sharing reusable contract logic by declaring libraries that multiple contracts can use
-- Publishing open-source contract implementations for community use and verification
-
-## Related Methods
-
-- [Class](/docs/rpc/methods/get-class) - Retrieve a declared contract class by its hash
-- [ClassHashAt](/docs/rpc/methods/class-hash-at) - Get the class hash of a deployed contract
-- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate fees for the declare transaction before submission
-- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test declaration before submitting to the network
