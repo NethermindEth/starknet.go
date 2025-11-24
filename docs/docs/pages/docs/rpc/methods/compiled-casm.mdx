@@ -1,15 +1,17 @@
 # CompiledCasm
 
-Retrieves the compiled CASM (Cairo Assembly) for a declared contract class.
+Get the CASM (Cairo Assembly) code resulting from compiling a given declared contract class. CASM is the low-level compiled format that is executed on Starknet. Sierra classes are compiled to CASM before execution on the network.
 
 ## Method Signature
 
 ```go
-func (p *Provider) CompiledCasm(
-    ctx context.Context,
-    classHash *felt.Felt,
+func (provider *Provider) CompiledCasm(
+	ctx context.Context,
+	classHash *felt.Felt,
 ) (*contracts.CasmClass, error)
 ```
+
+**Source:** [executables.go:L20-L30](https://github.com/NethermindEth/starknet.go/blob/main/rpc/executables.go#L20-L30)
 
 ## Parameters
 
@@ -18,18 +20,53 @@ func (p *Provider) CompiledCasm(
 
 ## Returns
 
-- `*contracts.CasmClass`: The compiled CASM class containing bytecode and entry points
-- `error`: Error if the class is not found or compilation failed
+- `*contracts.CasmClass`: The compiled CASM class containing bytecode, entry points, prime, compiler version, and hints
+- `error`: Error if any occurred (`ErrClassHashNotFound`, `ErrCompilationError`)
 
-## Description
+## Type Definitions
 
-CompiledCasm returns the compiled Cairo Assembly (CASM) for a declared Sierra class. This method retrieves the low-level compiled bytecode that is executed on Starknet.
+### CasmClass
 
-The CASM class includes:
-- **ByteCode**: The compiled Cairo assembly instructions
-- **Entry Points**: External, L1 Handler, and Constructor entry points
-- **Prime**: The prime number used in field arithmetic
-- **Compiler Version**: Version of the Cairo compiler used
+The struct that represents the compiled Cairo contract class (CASM_COMPILED_CONTRACT_CLASS).
+
+```go
+type CasmClass struct {
+	EntryPointsByType CasmEntryPointsByType `json:"entry_points_by_type"`
+	ByteCode          []*felt.Felt          `json:"bytecode"`
+	Prime             NumAsHex              `json:"prime"`
+	CompilerVersion   string                `json:"compiler_version"`
+	Hints             []Hints               `json:"hints"`
+	// a list of sizes of segments in the bytecode, each segment is hashed
+	// individually when computing the bytecode hash
+	BytecodeSegmentLengths *NestedUints `json:"bytecode_segment_lengths,omitempty"`
+}
+```
+
+**Source:** [types_casm_class.go:L11-L22](https://github.com/NethermindEth/starknet.go/blob/main/contracts/types_casm_class.go#L11-L22)
+
+### CasmEntryPointsByType
+
+```go
+type CasmEntryPointsByType struct {
+	Constructor []CasmEntryPoint `json:"CONSTRUCTOR"`
+	External    []CasmEntryPoint `json:"EXTERNAL"`
+	L1Handler   []CasmEntryPoint `json:"L1_HANDLER"`
+}
+```
+
+**Source:** [types_casm_class.go:L62-L66](https://github.com/NethermindEth/starknet.go/blob/main/contracts/types_casm_class.go#L62-L66)
+
+### CasmEntryPoint
+
+```go
+type CasmEntryPoint struct {
+	Selector *felt.Felt `json:"selector"`
+	Offset   uint       `json:"offset"`
+	Builtins []string   `json:"builtins"`
+}
+```
+
+**Source:** [types_casm_class.go:L68-L72](https://github.com/NethermindEth/starknet.go/blob/main/contracts/types_casm_class.go#L68-L72)
 
 ## Usage Example
 
@@ -37,107 +74,81 @@ The CASM class includes:
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-    "github.com/NethermindEth/juno/core/felt"
-    "github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    client, err := rpc.NewProvider(context.Background(), "https://starknet-sepolia.public.blastapi.io/rpc/v0_7")
-    if err != nil {
-        log.Fatal(err)
-    }
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    // Class hash of a declared contract
-    classHash, _ := new(felt.Felt).SetString("0x05400e90f7e0ae78bd02c77cd75527280470e2fe19c54970dd79dc37a9d3645c")
+	// Get RPC URL from environment variable
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
 
-    // Get compiled CASM
-    casmClass, err := client.CompiledCasm(context.Background(), classHash)
-    if err != nil {
-        log.Fatal(err)
-    }
+	// Initialize provider
+	ctx := context.Background()
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    fmt.Printf("Prime: %s\n", casmClass.Prime)
-    fmt.Printf("Compiler Version: %s\n", casmClass.CompilerVersion)
-    fmt.Printf("Bytecode Length: %d\n", len(casmClass.ByteCode))
-    fmt.Printf("External Entry Points: %d\n", len(casmClass.EntryPointsByType.External))
-    
-    // Example output:
-    // Prime: 0x800000000000011000000000000000000000000000000000000000000000001
-    // Compiler Version: 2.1.0
-    // Bytecode Length: 1250
-    // External Entry Points: 5
+	// Class hash of a declared contract
+	classHash, _ := new(felt.Felt).SetString("0x05400e90f7e0ae78bd02c77cd75527280470e2fe19c54970dd79dc37a9d3645c")
+
+	// Get compiled CASM
+	casmClass, err := client.CompiledCasm(ctx, classHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Prime: %s\n", casmClass.Prime)
+	fmt.Printf("Compiler Version: %s\n", casmClass.CompilerVersion)
+	fmt.Printf("Bytecode Length: %d\n", len(casmClass.ByteCode))
+	fmt.Printf("External Entry Points: %d\n", len(casmClass.EntryPointsByType.External))
 }
 ```
 
-## CasmClass Structure
-
-```go
-type CasmClass struct {
-    EntryPointsByType      CasmEntryPointsByType
-    ByteCode              []*felt.Felt
-    Prime                 NumAsHex
-    CompilerVersion       string
-    Hints                 []Hints
-    BytecodeSegmentLengths *NestedUints
-}
-
-type CasmEntryPointsByType struct {
-    Constructor []CasmEntryPoint
-    External    []CasmEntryPoint
-    L1Handler   []CasmEntryPoint
-}
-
-type CasmEntryPoint struct {
-    Selector *felt.Felt
-    Offset   int
-    Builtins []string
-}
-```
-
-## Use Cases
-
-1. **Contract Analysis**: Examine the compiled bytecode of a contract
-2. **Debugging**: Understand the low-level execution of contract functions
-3. **Verification**: Verify that Sierra code compiles to expected CASM
-4. **Gas Optimization**: Analyze bytecode for optimization opportunities
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
 casmClass, err := client.CompiledCasm(ctx, classHash)
 if err != nil {
-    switch {
-    case errors.Is(err, rpc.ErrClassHashNotFound):
-        // Class hash not found - contract not declared
-        log.Println("Class not declared")
-    case errors.Is(err, rpc.ErrCompilationError):
-        // Compilation error - invalid Sierra
-        log.Println("Sierra compilation failed")
-    default:
-        log.Printf("RPC error: %v", err)
-    }
+	switch {
+	case errors.Is(err, rpc.ErrClassHashNotFound):
+		log.Println("Class not declared")
+		return
+	case errors.Is(err, rpc.ErrCompilationError):
+		log.Println("Sierra compilation failed")
+		return
+	default:
+		log.Printf("RPC error: %v", err)
+		return
+	}
 }
+
+fmt.Printf("Successfully retrieved CASM for class %s\n", classHash.String())
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [Class](/docs/rpc/methods/get-class) - Get Sierra contract class
-- [ClassAt](/docs/rpc/methods/get-class-at) - Get class deployed at address
-- [ClassHashAt](/docs/rpc/methods/get-class-hash-at) - Get class hash at address
+- Examining the compiled bytecode of a contract to understand its low-level implementation.
+- Understanding the low-level execution flow of contract functions for debugging purposes.
+- Verifying that Sierra code compiles to the expected CASM bytecode.
+- Analyzing bytecode for optimization opportunities and gas efficiency improvements.
 
-## RPC Specification
-
-- **Method**: `starknet_getCompiledCasm`
-- **Version**: RPC v0.9.0
-- **Returns**: Compiled CASM class with bytecode and entry points
-
-## Notes
-
-- CASM is the low-level compiled format executed on Starknet
-- Sierra classes are compiled to CASM before execution
-- Not all nodes may support this method (check node capabilities)
-- The bytecode is represented as felt values
