@@ -1,6 +1,6 @@
 # NewFixedSizeMerkleTree
 
-Creates a new fixed-size Merkle tree from a set of leaves.
+Creates a new fixed-size Merkle tree from the provided leaf values. The function builds the tree bottom-up by repeatedly hashing pairs of nodes using `MerkleHash`, stores all intermediate branches for efficient proof generation, and computes the root hash.
 
 ## Function Signature
 
@@ -8,27 +8,39 @@ Creates a new fixed-size Merkle tree from a set of leaves.
 func NewFixedSizeMerkleTree(leaves ...*big.Int) *FixedSizeMerkleTree
 ```
 
+**Source:** [merkle.go:L27-L36](https://github.com/NethermindEth/starknet.go/blob/main/merkle/merkle.go#L27-L36)
+
 ## Parameters
 
-- `leaves` (...*big.Int): Variable number of big.Int leaves
+- `leaves` (...*big.Int): Variable number of `*big.Int` values representing the leaf nodes
 
 ## Returns
 
-- `*FixedSizeMerkleTree`: A pointer to the constructed Merkle tree
+- `*FixedSizeMerkleTree`: A pointer to the constructed Merkle tree with computed root
 
 ## Type Definition
 
+The returned `FixedSizeMerkleTree` struct contains:
+
 ```go
 type FixedSizeMerkleTree struct {
-    Leaves   []*big.Int      // The leaf nodes
-    Branches [][]*big.Int    // Internal branch nodes by level
-    Root     *big.Int        // The root hash
+	Leaves   []*big.Int      // The original leaf values
+	Branches [][]*big.Int    // All intermediate levels of the tree
+	Root     *big.Int        // The root hash representing the entire tree
 }
 ```
 
-## Description
+**Source:** [merkle.go:L10-L14](https://github.com/NethermindEth/starknet.go/blob/main/merkle/merkle.go#L10-L14)
 
-NewFixedSizeMerkleTree constructs a complete Merkle tree from the given leaves. It builds all intermediate branch nodes and calculates the root hash. The tree structure is stored for efficient proof generation.
+## How It Works
+
+The tree construction process:
+
+1. Accepts any number of leaf values as variadic parameters
+2. Builds the tree bottom-up by repeatedly hashing pairs of nodes using `MerkleHash`
+3. If there's an odd number of nodes at any level, the last node is paired with zero
+4. Stores all intermediate branches in a 2D slice for efficient proof generation
+5. Computes and stores the root hash at the top level
 
 ## Usage Example
 
@@ -56,50 +68,25 @@ func main() {
 	fmt.Printf("  Number of leaves: %d\n", len(tree.Leaves))
 	fmt.Printf("  Root: %s\n", tree.Root.String())
 	fmt.Printf("  Number of branch levels: %d\n", len(tree.Branches))
+
+	// Generate proof for leaf2
+	proof, err := tree.Proof(leaf2)
+	if err != nil {
+		fmt.Printf("  Error generating proof: %v\n", err)
+	} else {
+		fmt.Printf("  Proof for leaf 20: %d elements\n", len(proof))
+		for i, p := range proof {
+			fmt.Printf("    Proof[%d]: %s\n", i, p.String())
+		}
+	}
 }
 ```
 
-## Expected Output
+## Common Use Cases
 
-```
-FixedSizeMerkleTree:
-  Number of leaves: 4
-  Root: 3289236780871467278066969017419911418936258725212665349707673738908324835498
-  Number of branch levels: 2
-```
+- Create trees for proving that specific values are part of a committed dataset such as allowlists or whitelists. See [Verifying Multiple Leaves example](/docs/merkle/examples#verifying-multiple-leaves).
+- Generate compact cryptographic commitments to large state that can be efficiently verified. See [Basic Tree Creation example](/docs/merkle/examples#basic-merkle-tree-creation-and-verification).
+- Build trees for verifying specific elements of a dataset without downloading all the data.
+- Create Merkle roots for transaction batches or state snapshots in blockchain applications. See [Large Tree example](/docs/merkle/examples#large-tree-with-proof-size-analysis).
+- Handle datasets with odd numbers of elements by automatically pairing the last leaf with zero. See [Handling Odd Number of Leaves example](/docs/merkle/examples#handling-odd-number-of-leaves).
 
-## Use Cases
-
-### 1. Build State Tree
-```go
-// Create state tree from account hashes
-accountHashes := []*big.Int{hash1, hash2, hash3, hash4}
-stateTree := merkle.NewFixedSizeMerkleTree(accountHashes...)
-stateRoot := stateTree.Root
-```
-
-### 2. Transaction Tree
-```go
-// Build transaction Merkle tree for a block
-txHashes := []*big.Int{tx1Hash, tx2Hash, tx3Hash}
-txTree := merkle.NewFixedSizeMerkleTree(txHashes...)
-```
-
-### 3. Generate Proofs
-```go
-// Create tree and generate proof
-tree := merkle.NewFixedSizeMerkleTree(leaves...)
-proof, err := tree.Proof(targetLeaf)
-```
-
-## Notes
-
-- Tree is built immediately upon construction
-- All leaves must be provided at creation time
-- The tree size is fixed after construction
-- Use the Proof method to generate membership proofs
-
-## Related Functions
-
-- [MerkleHash](/docs/merkle/functions/merkle-hash) - Hash function used internally
-- [Proof (method)](/docs/merkle/functions/proof) - Generate proofs from the tree

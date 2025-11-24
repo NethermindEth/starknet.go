@@ -1,6 +1,6 @@
 # MerkleHash
 
-Calculates the Merkle hash of two big integers using Pedersen hash.
+Calculates the Merkle hash of two big integers using the Pedersen hash function. This function ensures deterministic ordering by always hashing the smaller value first, which means `MerkleHash(a, b)` always equals `MerkleHash(b, a)`.
 
 ## Function Signature
 
@@ -8,18 +8,27 @@ Calculates the Merkle hash of two big integers using Pedersen hash.
 func MerkleHash(x, y *big.Int) *big.Int
 ```
 
+**Source:** [merkle.go:L46-L52](https://github.com/NethermindEth/starknet.go/blob/main/merkle/merkle.go#L46-L52)
+
 ## Parameters
 
-- `x` (*big.Int): The first big integer
-- `y` (*big.Int): The second big integer
+- `x` (*big.Int): The first big integer value
+- `y` (*big.Int): The second big integer value
 
 ## Returns
 
-- `*big.Int`: The Merkle hash of the two big integers
+- `*big.Int`: The Merkle hash result as a big integer
 
-## Description
+## How It Works
 
-MerkleHash computes the Pedersen hash of two big integers, which is commonly used for building Merkle trees in Starknet. This function is the building block for constructing Merkle proofs and verifying membership in Merkle trees.
+The `MerkleHash` function implements a deterministic hashing scheme:
+
+1. Compares the two input values `x` and `y`
+2. Orders them so the smaller value is always first
+3. Computes the Pedersen hash using `curve.HashPedersenElements`
+4. Returns the resulting hash
+
+This ordering ensures that `MerkleHash(a, b)` always equals `MerkleHash(b, a)`, which is important for Merkle tree construction and proof verification.
 
 ## Usage Example
 
@@ -48,48 +57,10 @@ func main() {
 }
 ```
 
-## Expected Output
+## Common Use Cases
 
-```
-MerkleHash:
-  Input X: 100
-  Input Y: 200
-  Merkle Hash: 1190318657291239389318004338386448811383527911496343880521068778567968702926
-```
+- `MerkleHash` is the fundamental building block for constructing Merkle trees. See [Manual Tree Construction example](/docs/merkle/examples#manual-merkle-tree-construction).
+- When verifying a Merkle proof, you use `MerkleHash` to recompute intermediate hashes along the path from the leaf to the root.
+- In Starknet, `MerkleHash` is used to create compact commitments to larger data structures, allowing efficient verification of state.
+- The function ensures consistent hash values regardless of input order, making it reliable for cryptographic operations. See [Deterministic Hash Ordering example](/docs/merkle/examples#deterministic-hash-ordering).
 
-## Use Cases
-
-### 1. Building Merkle Tree Nodes
-```go
-// Hash two sibling nodes to create parent
-leftChild := big.NewInt(123)
-rightChild := big.NewInt(456)
-parentNode := merkle.MerkleHash(leftChild, rightChild)
-```
-
-### 2. Verifying Merkle Proofs
-```go
-// Reconstruct root by hashing leaf with proof elements
-currentHash := leafValue
-for _, proofElement := range proof {
-    currentHash = merkle.MerkleHash(currentHash, proofElement)
-}
-```
-
-### 3. Storage Proof Verification
-```go
-// Verify storage value is part of state tree
-storageHash := merkle.MerkleHash(key, value)
-```
-
-## Notes
-
-- Uses Pedersen hash internally for cryptographic security
-- The hash is deterministic - same inputs always produce same output
-- Order matters: MerkleHash(x, y) ≠ MerkleHash(y, x)
-- Used as the fundamental building block for Merkle tree operations
-
-## Related Functions
-
-- [ProofMerklePath](/docs/merkle/functions/proof-merkle-path) - Verify Merkle proofs
-- [NewFixedSizeMerkleTree](/docs/merkle/functions/new-fixed-size-merkle-tree) - Create Merkle trees
