@@ -7,13 +7,11 @@ import (
 )
 
 func main() {
-	// Sample data to hash
-	data := []byte("Hello Starknet")
-
 	// Compute Starknet Keccak hash
-	hash := curve.StarknetKeccak(data)
+	input := []byte("Hello Starknet")
+	hash := curve.StarknetKeccak(input)
 
 	fmt.Println("StarknetKeccak Hash:")
-	fmt.Printf("  Input: %s\n", string(data))
+	fmt.Printf("  Input: %s\n", string(input))
 	fmt.Printf("  Hash: %s\n", hash.String())
 }

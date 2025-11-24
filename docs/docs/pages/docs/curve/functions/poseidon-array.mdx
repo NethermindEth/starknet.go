@@ -1,6 +1,6 @@
 # PoseidonArray
 
-Computes the Poseidon hash of multiple field elements.
+Computes the Poseidon hash of multiple field elements. This function extends the two-input Poseidon hash to handle arrays of any length, providing efficient hashing for variable-length data in SNARK-friendly applications.
 
 ## Function Signature
 
@@ -8,15 +8,52 @@ Computes the Poseidon hash of multiple field elements.
 func PoseidonArray(felts ...*felt.Felt) *felt.Felt
 ```
 
-## Expected Output
+**Source:** [curve.go:L274-L286](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L274-L286)
 
+## Parameters
+
+- `felts` (...*felt.Felt): Variadic number of field elements to hash
+
+## Returns
+
+- `*felt.Felt`: The Poseidon hash of all inputs
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create array of felt values
+	felt1 := new(felt.Felt).SetUint64(1)
+	felt2 := new(felt.Felt).SetUint64(2)
+	felt3 := new(felt.Felt).SetUint64(3)
+	felt4 := new(felt.Felt).SetUint64(4)
+
+	// Compute Poseidon hash of array
+	hash := curve.PoseidonArray(felt1, felt2, felt3, felt4)
+	if hash == nil {
+		log.Fatal("Failed to compute PoseidonArray hash")
+	}
+
+	fmt.Println("PoseidonArray Hash:")
+	fmt.Printf("  Input: [%s, %s, %s, %s]\n", felt1.String(), felt2.String(), felt3.String(), felt4.String())
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
 ```
-PoseidonArray Hash:
-  Input: [0x1, 0x2, 0x3, 0x4]
-  Hash: 0x26e3ad8b876e02bc8a4fc43dad40a8f81a6384083cabffa190bcf40d512ae1d
-```
 
-## Related Functions
+## Common Use Cases
 
-- [Poseidon](/docs/curve/functions/poseidon)
-- [PedersenArray](/docs/curve/functions/pedersen-array)
+- Hash multiple transaction fields together when building ZK-STARK applications that require efficient multi-element hashing.
+- Compute commitments to arrays of data where SNARK-friendly operations provide performance benefits.
+- Use when working with Starknet protocols that require Poseidon hashing for arrays with variable number of elements.
+- Process calldata arrays efficiently when building smart contract interactions that leverage ZK-STARK properties.
+
