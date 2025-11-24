@@ -1020,7 +1020,6 @@ func TestEstimateFee(t *testing.T) {
 	}
 }
 
-//nolint:dupl // fix this later
 func TestGetStorageProof(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -1079,8 +1078,8 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 							},
 						},
 					},
@@ -1102,16 +1101,16 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 					},
@@ -1175,8 +1174,8 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 							},
 						},
 					},
@@ -1198,16 +1197,16 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 					},
