@@ -8,15 +8,14 @@ import (
 )
 
 func main() {
-	// Use a sample private key
-	privKey := new(big.Int)
-	privKey.SetString("1234567890123456789", 10)
+	// Known private key
+	privKey := big.NewInt(1234567890123456789)
 
-	// Get the public key point
+	// Derive public key
 	x, y := curve.PrivateKeyToPoint(privKey)
 
 	fmt.Println("PrivateKeyToPoint:")
-	fmt.Printf("  Private Key: %s\n", privKey.String())
+	fmt.Printf("  Private Key: 0x%x\n", privKey)
 	fmt.Printf("  Public Key X: 0x%x\n", x)
 	fmt.Printf("  Public Key Y: 0x%x\n", y)
 }

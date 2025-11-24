@@ -412,6 +412,7 @@ export const sidebar: Sidebar = {
             { text: "VerifyFelts", link: "/docs/curve/functions/verify-felts" },
           ],
         },
+        { text: "Examples", link: "/docs/curve/examples" },
       ],
     },
     {

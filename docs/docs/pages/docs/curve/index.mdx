@@ -1,26 +1,41 @@
 # Curve Package
 
-The Curve package provides cryptographic operations for Starknet: hash functions, digital signatures, and key management. Use it for signing transactions, generating keys, and computing hashes.
+The Curve package provides cryptographic primitives for Starknet applications, including hash functions, digital signatures, and elliptic curve operations. This package is fundamental for transaction signing, key management, and cryptographic hashing throughout the Starknet ecosystem.
 
-## What This Package Does
+## Overview
 
-**Cryptographic Hash Functions**
-- Pedersen hash (legacy, widely used)
-- Poseidon hash (modern, more efficient)
-- Keccak hash
-- Starknet Keccak
+Starknet uses specialized cryptographic functions optimized for zero-knowledge proof systems. The curve package implements these primitives on the Stark curve (a variant of the NIST P-256 curve) and provides:
 
-**Digital Signatures**
-- Sign messages and transaction hashes
-- Verify signatures
-- ECDSA operations on the StarkCurve
+- **Hash Functions**: Pedersen, Poseidon, and Keccak variants for different use cases
+- **Digital Signatures**: ECDSA signing and verification for transaction authorization
+- **Key Management**: Key pair generation and elliptic curve point operations
+- **Type Flexibility**: Functions available in both `*big.Int` and `*felt.Felt` variants
 
-**Key Management**
-- Generate random key pairs
-- Derive public keys from private keys
-- Elliptic curve point operations
+## Key Components
 
-## Import
+### Hash Functions
+- [Pedersen](/docs/curve/functions/pedersen) - Hash two field elements (legacy, widely used)
+- [PedersenArray](/docs/curve/functions/pedersen-array) - Hash multiple field elements
+- [Poseidon](/docs/curve/functions/poseidon) - SNARK-friendly hash of two elements
+- [PoseidonArray](/docs/curve/functions/poseidon-array) - SNARK-friendly hash of arrays
+- [StarknetKeccak](/docs/curve/functions/starknet-keccak) - Compute function selectors
+- [ComputeHashOnElements](/docs/curve/functions/compute-hash-on-elements) - Hash with length prefix
+- [HashPedersenElements](/docs/curve/functions/hash-pedersen-elements) - Sequential Pedersen hashing
+
+### Signature Functions
+- [Sign](/docs/curve/functions/sign) - Sign message hashes with private keys
+- [SignFelts](/docs/curve/functions/sign-felts) - Sign using felt types
+- [Verify](/docs/curve/functions/verify) - Verify ECDSA signatures
+- [VerifyFelts](/docs/curve/functions/verify-felts) - Verify signatures using felt types
+
+### Key Operations
+- [GetRandomKeys](/docs/curve/functions/get-random-keys) - Generate secure random key pairs
+- [PrivateKeyToPoint](/docs/curve/functions/private-key-to-point) - Derive public key from private key
+- [GetYCoordinate](/docs/curve/functions/get-y-coordinate) - Calculate Y coordinate from X
+
+## Getting Started
+
+To use the curve package, import it in your Go code:
 
 ```go
 import "github.com/NethermindEth/starknet.go/curve"
@@ -40,137 +55,108 @@ import (
 )
 
 func main() {
-	// Generate random keys
-	privKey, pubKeyX, pubKeyY, err := curve.GetRandomKeys()
+	// Generate a random key pair
+	privKey, pubKeyX, _, err := curve.GetRandomKeys()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Public key: (%s, %s)\n", pubKeyX.String(), pubKeyY.String())
+	fmt.Printf("Public key: %x\n", pubKeyX)
 
-	// Sign a message
+	// Sign a message hash
 	msgHash := big.NewInt(12345)
 	r, s, err := curve.Sign(msgHash, privKey)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Signature: (r=%s, s=%s)\n", r.String(), s.String())
 
 	// Verify the signature
 	valid, err := curve.Verify(msgHash, r, s, pubKeyX)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Signature valid: %t\n", valid)
+	fmt.Printf("Signature valid: %v\n", valid)
 }
 ```
 
-## Available Functions
+For more examples, see the [Examples page](/docs/curve/examples).
 
-### Hashing Functions
+## How Cryptographic Operations Work in Starknet
 
-- **[Pedersen](./hashing)** - Pedersen hash of two felts (legacy, widely used for compatibility)
-- **[PedersenArray](./hashing)** - Pedersen hash of multiple felts
-- **[Poseidon](./hashing)** - Poseidon hash of two felts (modern, more efficient)
-- **[PoseidonArray](./hashing)** - Poseidon hash of multiple felts
-- **[StarknetKeccak](./hashing)** - Starknet-specific Keccak variant
-- **[ComputeHashOnElements](./hashing)** - Hash array of elements using Pedersen
+### Hash Functions
 
-See [Hashing Functions](./hashing) for details.
+Starknet uses two primary hash functions, each optimized for different purposes:
 
-### Cryptographic Functions
+**Pedersen Hash**: The legacy hash function used throughout Starknet's history. It's widely supported in existing contracts and infrastructure. Pedersen hashing is collision-resistant and suitable for Merkle trees, state commitments, and contract address calculations.
 
-- **[Sign](./cryptographic)** - Sign a message hash with private key
-- **[SignFelts](./cryptographic)** - Sign a felt message with felt private key
-- **[Verify](./cryptographic)** - Verify a signature
-- **[VerifyFelts](./cryptographic)** - Verify a felt signature
+**Poseidon Hash**: A modern hash function designed specifically for zero-knowledge proof systems. Poseidon is significantly more efficient than Pedersen when used inside STARK proofs, making it ideal for new implementations where proof generation cost matters.
 
-See [Cryptographic Functions](./cryptographic) for details.
+**Keccak**: Used primarily for computing function selectors from function names. The `StarknetKeccak` variant ensures compatibility with Starknet's selector computation standard.
 
-### Key Operations
+### Digital Signatures
 
-- **[GetRandomKeys](./keys)** - Generate random key pair
-- **[PrivateToPoint](./keys)** - Derive public key from private key
-- **[GetYCoordinate](./keys)** - Get Y coordinate from X coordinate on curve
+Starknet uses ECDSA (Elliptic Curve Digital Signature Algorithm) on the Stark curve for all signatures. Every transaction must be signed with the account's private key, producing two values (r, s) that form the signature. The signature proves that the transaction was authorized by the account owner without revealing the private key.
 
-See [Key Operations](./keys) for details.
+The verification process uses the public key (specifically the x-coordinate, which serves as the Starknet account identifier) to confirm the signature's authenticity.
 
-## Common Use Cases
+### Key Management
 
-### Transaction Signing
+Starknet accounts are controlled by elliptic curve key pairs. The private key is a secret number that must be kept secure, while the public key's x-coordinate serves as the account's public identifier and is used for signature verification.
 
-Sign transaction hashes before submitting to Starknet:
+Key generation uses cryptographically secure random number generation to ensure unpredictability. The public key is derived from the private key through elliptic curve scalar multiplication, a one-way operation that makes it computationally infeasible to recover the private key from the public key.
 
-```go
-txHash := big.NewInt(0) // Your transaction hash
-privKey := big.NewInt(0) // Your private key
+## Choosing the Right Function
 
-r, s, err := curve.Sign(txHash, privKey)
-if err != nil {
-    log.Fatal(err)
-}
-// Use r, s as signature
-```
+### Hash Function Selection
 
-### Hash Computation
+- **Use Pedersen** when:
+  - Working with existing contracts that expect Pedersen hashes
+  - Building Merkle trees for state commitments
+  - Calculating contract addresses (follows legacy standard)
+  - Interacting with older Starknet infrastructure
 
-Choose the appropriate hash function:
+- **Use Poseidon** when:
+  - Building new contracts where proof efficiency matters
+  - Implementing ZK-friendly protocols
+  - Optimizing for proof generation costs
+  - Working with Cairo 1.0+ contracts
 
-```go
-import "github.com/NethermindEth/juno/core/felt"
+- **Use StarknetKeccak** when:
+  - Computing function selectors from function names
+  - Hashing arbitrary byte strings to field elements
 
-// Pedersen (for compatibility with existing systems)
-hash1 := curve.Pedersen(
-    new(felt.Felt).SetUint64(123),
-    new(felt.Felt).SetUint64(456),
-)
+### Signature Function Selection
 
-// Poseidon (for new implementations - more efficient)
-hash2 := curve.Poseidon(
-    new(felt.Felt).SetUint64(123),
-    new(felt.Felt).SetUint64(456),
-)
-```
+- **Use Sign/Verify** when:
+  - Working with `*big.Int` types throughout your application
+  - Integrating with systems that use big integers
+  - Maximum compatibility with Go's standard library
 
-**When to use which:**
-- Use Pedersen for compatibility with older contracts/systems
-- Use Poseidon for new implementations (faster and more efficient)
+- **Use SignFelts/VerifyFelts** when:
+  - Working with Starknet's `felt.Felt` types
+  - Building applications that primarily use Juno's felt library
+  - Avoiding type conversions between big.Int and felt
 
-### Account Creation
+## Use Cases
 
-Generate keys for a new Starknet account:
+- **Transaction Signing**: Sign transaction hashes before submitting to Starknet
+- **Account Creation**: Generate secure key pairs for new Starknet accounts
+- **Function Selectors**: Compute selectors for contract function calls
+- **State Commitments**: Create Merkle trees and hash state data
+- **Signature Verification**: Validate that transactions were signed by expected accounts
+- **Key Derivation**: Derive public keys from private keys for address calculation
 
-```go
-privKey, pubKeyX, pubKeyY, err := curve.GetRandomKeys()
-if err != nil {
-    log.Fatal(err)
-}
+:::note
+See the [Examples page](/docs/curve/examples) for comprehensive examples covering:
+- Pedersen and PedersenArray hashing
+- StarknetKeccak selector computation
+- Key pair generation and management
+- Complete sign and verify workflows
 
-// pubKeyX is typically used as the Starknet account public key
-fmt.Printf("Account public key: %s\n", pubKeyX.String())
-```
+:::tip 
+Security Best Practices
+- Never log or store private keys unencrypted.
+- Use `GetRandomKeys()` for secure key generation.
+- Always verify signatures before trusting signed data.
+- Use Poseidon for new implementations (unless Pedersen compatibility required).
+:::
 
-See the [Deploy Account example](/docs/examples/deploy-account) for the complete account deployment flow.
-
-## Security Notes
-
-When using the curve package:
-
-1. **Private Key Protection** - Never log or expose private keys
-2. **Randomness** - Use `GetRandomKeys()` for secure key generation
-3. **Hash Function Selection** - Use Poseidon for new code, Pedersen for compatibility
-4. **Signature Verification** - Always verify signatures before trusting signed data
-
-## Related Packages
-
-- **[Account Package](/docs/account/)** - Uses curve for transaction signing
-- **[Hash Package](/docs/hash/)** - Higher-level hash functions for transactions
-- **[Utils Package](/docs/utils/)** - Additional cryptographic utilities
-
-## Examples
-
-- **[Deploy Account](/docs/examples/deploy-account)** - Uses `GetRandomKeys()` for account creation
-- **[Invoke Contract](/docs/examples/invoke)** - Transaction signing with curve functions
-
-## Reference
-
-Full API reference: [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/curve)
