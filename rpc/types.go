@@ -33,7 +33,7 @@ type ContractStorageDiffItem struct {
 	StorageEntries []StorageEntry `json:"storage_entries"`
 }
 
-// DeclaredClassesItem is an object with class_hash and compiled_class_hash
+// The declared class hash and compiled class hash
 type DeclaredClassesItem struct {
 	// The hash of the declared class
 	ClassHash *felt.Felt `json:"class_hash"`
@@ -41,7 +41,7 @@ type DeclaredClassesItem struct {
 	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
 }
 
-// DeployedContractItem A new contract deployed as part of the new state
+// A new contract deployed as part of the new state
 type DeployedContractItem struct {
 	// ContractAddress is the address of the contract
 	Address *felt.Felt `json:"address"`
@@ -49,7 +49,7 @@ type DeployedContractItem struct {
 	ClassHash *felt.Felt `json:"class_hash"`
 }
 
-// contracts whose class was replaced
+// The list of contracts whose class was replaced
 type ReplacedClassesItem struct {
 	// The address of the contract whose class was replaced
 	ContractClass *felt.Felt `json:"contract_address"`
@@ -68,18 +68,18 @@ type ContractNonce struct {
 // StateDiff is the change in state applied in this block, given as a
 // mapping of addresses to the new values and/or new contracts.
 type StateDiff struct {
-	// list storage changes
-	StorageDiffs []ContractStorageDiffItem `json:"storage_diffs"`
-	// a list of Deprecated declared classes
-	DeprecatedDeclaredClasses []*felt.Felt `json:"deprecated_declared_classes"`
-	// list of DeclaredClassesItems objects
+	// A list of declared classes
 	DeclaredClasses []DeclaredClassesItem `json:"declared_classes"`
-	// list of new contract deployed as part of the state update
+	// A list of new contracts deployed as part of the state update
 	DeployedContracts []DeployedContractItem `json:"deployed_contracts"`
-	// list of contracts whose class was replaced
-	ReplacedClasses []ReplacedClassesItem `json:"replaced_classes"`
-	// Nonces provides the updated nonces per contract addresses
+	// A list of hashes of deprecated declared classes
+	DeprecatedDeclaredClasses []*felt.Felt `json:"deprecated_declared_classes"`
+	// Updated nonces per contract addresses
 	Nonces []ContractNonce `json:"nonces"`
+	// The list of contracts whose class was replaced
+	ReplacedClasses []ReplacedClassesItem `json:"replaced_classes"`
+	// The changes in the storage per contract address
+	StorageDiffs []ContractStorageDiffItem `json:"storage_diffs"`
 }
 
 // The output of the StateUpdate method.
@@ -130,14 +130,14 @@ type StateUpdate struct {
 	NewRoot *felt.Felt `json:"new_root"`
 	// The previous global state root.
 	OldRoot   *felt.Felt `json:"old_root"`
-	StateDiff StateDiff  `json:"state_diff"`
+	StateDiff *StateDiff `json:"state_diff"`
 }
 
 // The information about the state update of the pre-confirmed block
 type PreConfirmedStateUpdate struct {
 	// The previous global state root.
 	OldRoot   *felt.Felt `json:"old_root,omitempty"`
-	StateDiff StateDiff  `json:"state_diff"`
+	StateDiff *StateDiff `json:"state_diff"`
 }
 
 // SyncStatus is An object describing the node synchronisation status
