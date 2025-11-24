@@ -61,28 +61,42 @@ type PreConfirmedBlockTxHashes struct {
 }
 
 type BlockHeader struct {
+	// The root of Merkle Patricia trie for events in the block
+	EventCommitment *felt.Felt `json:"event_commitment"`
+	// The number of events in the block
+	EventCount uint64 `json:"event_count"`
 	// Hash The hash of this block
 	Hash *felt.Felt `json:"block_hash"`
-	// ParentHash The hash of this block's parent
-	ParentHash *felt.Felt `json:"parent_hash"`
-	// Number the block number (its height)
-	Number uint64 `json:"block_number"`
-	// NewRoot The new global state root
-	NewRoot *felt.Felt `json:"new_root"`
-	// Timestamp the time in which the block was created, encoded in Unix time
-	Timestamp uint64 `json:"timestamp"`
-	// SequencerAddress the StarkNet identity of the sequencer submitting this block
-	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
 	// The price of l1 gas in the block
 	L1GasPrice ResourcePrice `json:"l1_gas_price"`
 	// The price of l2 gas in the block
 	L2GasPrice ResourcePrice `json:"l2_gas_price"`
-	// The price of l1 data gas in the block
-	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
-	// Specifies whether the data of this block is published via blob data or calldata
-	L1DAMode L1DAMode `json:"l1_da_mode"`
+	// NewRoot The new global state root
+	NewRoot *felt.Felt `json:"new_root"`
+	// Number the block number (its height)
+	Number uint64 `json:"block_number"`
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// The root of Merkle Patricia trie for receipts in the block
+	ReceiptCommitment *felt.Felt `json:"receipt_commitment"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
 	// Semver of the current Starknet protocol
 	StarknetVersion string `json:"starknet_version"`
+	// The state diff commitment hash in the block
+	StateDiffCommitment *felt.Felt `json:"state_diff_commitment"`
+	// The length of the state diff in the block
+	StateDiffLength uint64 `json:"state_diff_length"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// The root of Merkle Patricia trie for transactions in the block
+	TransactionCommitment *felt.Felt `json:"transaction_commitment"`
+	// The number of transactions in the block
+	TransactionCount uint64 `json:"transaction_count"`
 }
 
 type PreConfirmedBlockHeader struct {
