@@ -426,9 +426,16 @@ export const sidebar: Sidebar = {
             { text: "MerkleHash", link: "/docs/merkle/functions/merkle-hash" },
             { text: "ProofMerklePath", link: "/docs/merkle/functions/proof-merkle-path" },
             { text: "NewFixedSizeMerkleTree", link: "/docs/merkle/functions/new-fixed-size-merkle-tree" },
-            { text: "Proof (Method)", link: "/docs/merkle/functions/proof" },
           ],
         },
+        {
+          text: "Methods",
+          collapsed: true,
+          items: [
+            { text: "Proof", link: "/docs/merkle/methods/proof" },
+          ],
+        },
+        { text: "Examples", link: "/docs/merkle/examples" },
       ],
     },
     {

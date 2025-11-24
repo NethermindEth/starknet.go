@@ -1,0 +1,67 @@
+# Proof
+
+Generates a Merkle proof for a given leaf in the tree. The proof consists of the sibling nodes needed to reconstruct the path from the leaf to the root, allowing efficient verification of membership. Returns an error if the leaf is not found in the tree. The proof size is logarithmic (log2(n)) where n is the number of leaves, and proof elements are ordered from leaf to root.
+
+## Method Signature
+
+```go
+func (mt *FixedSizeMerkleTree) Proof(leaf *big.Int) ([]*big.Int, error)
+```
+
+**Source:** [merkle.go:L89-L91](https://github.com/NethermindEth/starknet.go/blob/main/merkle/merkle.go#L89-L91)
+
+## Parameters
+
+- `leaf` (*big.Int): The leaf for which to generate the proof
+
+## Returns
+
+- `[]*big.Int`: The Merkle proof (path of sibling nodes from leaf to root)
+- `error`: Error if leaf is not found or proof generation fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create tree
+	leaf1 := big.NewInt(10)
+	leaf2 := big.NewInt(20)
+	leaf3 := big.NewInt(30)
+	leaf4 := big.NewInt(40)
+
+	tree := merkle.NewFixedSizeMerkleTree(leaf1, leaf2, leaf3, leaf4)
+
+	// Generate proof for leaf2
+	proof, err := tree.Proof(leaf2)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Proof for leaf 20: %d elements\n", len(proof))
+	for i, p := range proof {
+		fmt.Printf("  Proof[%d]: %s\n", i, p.String())
+	}
+}
+```
+
+## Common Use Cases
+
+- Generate proofs to verify that specific values are part of a committed dataset. See [Basic Tree Creation example](/docs/merkle/examples#basic-merkle-tree-creation-and-verification).
+- Generate proofs for multiple leaves efficiently when batch verification is needed. See [Verifying Multiple Leaves example](/docs/merkle/examples#verifying-multiple-leaves).
+- Handle cases where leaf values don't exist in the tree by checking for errors. See [Detecting Invalid Proofs example](/docs/merkle/examples#detecting-invalid-proofs).
+- Use generated proofs with `ProofMerklePath` function for verification to confirm leaf membership in the tree.
+
+## Related Functions
+
+- [ProofMerklePath](/docs/merkle/functions/proof-merkle-path) - Verify generated proofs
+- [NewFixedSizeMerkleTree](/docs/merkle/functions/new-fixed-size-merkle-tree) - Create the tree
