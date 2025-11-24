@@ -1,7 +1,9 @@
 package rpc
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -80,19 +82,61 @@ type StateDiff struct {
 	Nonces []ContractNonce `json:"nonces"`
 }
 
-// STATE_UPDATE in spec
+// The output of the StateUpdate method.
+// It can be either a StateUpdate or a PreConfirmedStateUpdate, depending
+// whether the requested block is a pre-confirmed block or not.
 type StateUpdateOutput struct {
-	// BlockHash is the block identifier. Nil for pre_confirmed block.
-	BlockHash *felt.Felt `json:"block_hash"`
-	// NewRoot is the new global state root. Nil for pre_confirmed block.
-	NewRoot *felt.Felt `json:"new_root"`
-	PreConfirmedStateUpdate
+	// The block state update. Nil if the requested block is a pre-confirmed block.
+	StateUpdate *StateUpdate
+	// The pre-confirmed block state update. Nil if the requested block is not
+	// a pre-confirmed block.
+	PreConfirmedStateUpdate *PreConfirmedStateUpdate
 }
 
-// PRE_CONFIRMED_STATE_UPDATE in spec
-type PreConfirmedStateUpdate struct {
-	// OldRoot is the previous global state root.
+// UnmarshalJSON unmarshals the JSON data into a StateUpdateOutput struct.
+func (o *StateUpdateOutput) UnmarshalJSON(data []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var preConfirmedStateUpdate PreConfirmedStateUpdate
+	if err := decoder.Decode(&preConfirmedStateUpdate); err == nil {
+		o.PreConfirmedStateUpdate = &preConfirmedStateUpdate
+
+		return nil
+	}
+
+	var stateUpdate StateUpdate
+	if err := json.Unmarshal(data, &stateUpdate); err == nil {
+		o.StateUpdate = &stateUpdate
+
+		return nil
+	}
+
+	return errors.New("invalid state update")
+}
+
+// MarshalJSON marshals the StateUpdateOutput struct into JSON format.
+func (o StateUpdateOutput) MarshalJSON() ([]byte, error) {
+	if o.StateUpdate != nil {
+		return json.Marshal(o.StateUpdate)
+	}
+
+	return json.Marshal(o.PreConfirmedStateUpdate)
+}
+
+// The information about the state update of the requested block.
+type StateUpdate struct {
+	BlockHash *felt.Felt `json:"block_hash"`
+	// The new global state root.
+	NewRoot *felt.Felt `json:"new_root"`
+	// The previous global state root.
 	OldRoot   *felt.Felt `json:"old_root"`
+	StateDiff StateDiff  `json:"state_diff"`
+}
+
+// The information about the state update of the pre-confirmed block
+type PreConfirmedStateUpdate struct {
+	// The previous global state root.
+	OldRoot   *felt.Felt `json:"old_root,omitempty"`
 	StateDiff StateDiff  `json:"state_diff"`
 }
 
