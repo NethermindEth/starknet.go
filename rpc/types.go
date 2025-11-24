@@ -65,6 +65,14 @@ type ContractNonce struct {
 	Nonce *felt.Felt `json:"nonce"`
 }
 
+// The class hash and the new Blake-migrated compiled class hash
+type MigratedCompiledClass struct {
+	// The hash of the class
+	ClassHash *felt.Felt `json:"class_hash"`
+	// The Blake-migrated Cairo assembly hash corresponding to the class
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
 // StateDiff is the change in state applied in this block, given as a
 // mapping of addresses to the new values and/or new contracts.
 type StateDiff struct {
@@ -74,6 +82,8 @@ type StateDiff struct {
 	DeployedContracts []DeployedContractItem `json:"deployed_contracts"`
 	// A list of hashes of deprecated declared classes
 	DeprecatedDeclaredClasses []*felt.Felt `json:"deprecated_declared_classes"`
+	// A list of migrated compiled classes
+	MigratedCompiledClasses []MigratedCompiledClass `json:"migrated_compiled_classes"`
 	// Updated nonces per contract addresses
 	Nonces []ContractNonce `json:"nonces"`
 	// The list of contracts whose class was replaced
