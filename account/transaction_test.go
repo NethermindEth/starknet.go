@@ -184,6 +184,10 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 				ks, pub, _ := account.GetRandomKeys()
 				// called when instantiating the account
 				mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
+				mockRPCProvider.EXPECT().
+					ClassHashAt(context.Background(), gomock.Any(), gomock.Any()).
+					Return(internalUtils.RANDOM_FELT, nil).
+					Times(1)
 				acnt, err := account.NewAccount(
 					mockRPCProvider,
 					internalUtils.RANDOM_FELT,
@@ -198,9 +202,6 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(new(felt.Felt).SetUint64(1), nil).
 					Times(1)
-				mockRPCProvider.EXPECT().
-					BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
-					Return(&rpc.Block{}, nil).Times(1)
 				mockRPCProvider.EXPECT().
 					EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return([]rpc.FeeEstimation{
