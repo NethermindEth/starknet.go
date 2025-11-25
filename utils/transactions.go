@@ -32,6 +32,12 @@ type TxnOptions struct {
 	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
 	UseQueryBit bool
+
+	// ONLY FOR DECLARE TXN: A boolean flag indicating whether to use the Blake2s hash
+	// function to calculate the compiled class hash. This must be set to true after
+	// the Starknet v0.14.1 upgrade, when the Poseidon hash function will be deprecated
+	// for the compiled class hash.
+	UseBlake2sHash bool
 }
 
 // TxnVersion returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and
@@ -121,13 +127,23 @@ func BuildDeclareTxn(
 	resourceBounds *rpc.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) (*rpc.BroadcastDeclareTxnV3, error) {
-	compiledClassHash, err := hash.CompiledClassHash(casmClass)
-	if err != nil {
-		return nil, err
-	}
-
 	if opts == nil {
 		opts = new(TxnOptions)
+	}
+
+	var compiledClassHash *felt.Felt
+	var err error
+
+	if opts.UseBlake2sHash {
+		compiledClassHash, err = hash.CompiledClassHashV2(casmClass)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		compiledClassHash, err = hash.CompiledClassHash(casmClass)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	declareTxn := rpc.BroadcastDeclareTxnV3{

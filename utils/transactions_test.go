@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
@@ -498,6 +499,63 @@ func TestTxnOptions(t *testing.T) {
 
 			assert.Equal(t, tt.expectedTip, opts.SafeTip())
 			assert.Equal(t, tt.expectedVersion, opts.TxnVersion())
+		})
+	}
+}
+
+// TestBuildDeclareTxnWithBlake2sHash tests the BuildDeclareTxn function with the
+// 'UseBlake2sHash' option. It checks whether the compiled class hash is calculated
+// as expected when the option is set to true or false.
+func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
+	t.Parallel()
+
+	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"../hash/testData/contracts_v2_HelloStarknet.compiled_contract_class.json",
+		"",
+	)
+
+	testCases := []struct {
+		name                      string
+		opts                      *TxnOptions
+		expectedCompiledClassHash string
+	}{
+		// Values taken from the hash/hash_test.go TestClassHashes test.
+		{
+			name: "UseBlake2sHash true",
+			opts: &TxnOptions{
+				UseBlake2sHash: true,
+			},
+			expectedCompiledClassHash: "0x23c2091df2547f77185ba592b06ee2e897b0c2a70f968521a6a24fc5bfc1b1e",
+		},
+		{
+			name: "UseBlake2sHash false",
+			opts: &TxnOptions{
+				UseBlake2sHash: false,
+			},
+			expectedCompiledClassHash: "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			declareTxn, err := BuildDeclareTxn(
+				nil,
+				&casmClass,
+				nil,
+				nil,
+				nil,
+				test.opts,
+			)
+			require.NoError(t, err)
+			require.NotNil(t, declareTxn)
+
+			assert.Equal(
+				t,
+				test.expectedCompiledClassHash,
+				declareTxn.CompiledClassHash.String(),
+			)
 		})
 	}
 }
