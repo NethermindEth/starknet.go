@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 -->
+## [0.13.2](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.2) - 2025-11-25
+Same as v0.17.1, but for RPC v0.8.1.
 
 ## [0.17.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.17.1) - 2025-11-25
 ### Added
