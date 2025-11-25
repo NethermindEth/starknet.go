@@ -15,7 +15,7 @@ require (
 
 require (
 	github.com/bits-and-blooms/bitset v1.24.0 // indirect
-	github.com/consensys/gnark-crypto v0.18.0
+	github.com/consensys/gnark-crypto v0.18.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/deckarep/golang-set/v2 v2.8.0
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
