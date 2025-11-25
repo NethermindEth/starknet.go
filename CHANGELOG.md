@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.17.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.17.1...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+## [0.17.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.17.1) - 2025-11-25
 ### Added
 - curve pkg:
   - new `Blake2s` and `Blake2sArray` functions.
