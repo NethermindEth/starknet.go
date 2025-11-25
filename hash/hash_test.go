@@ -66,50 +66,62 @@ func TestUnmarshalCasmClassHash(t *testing.T) {
 // Parameters:
 func TestClassHashes(t *testing.T) {
 	type testSetType struct {
-		FileNameWithoutExtensions string
-		ExpectedClassHash         string
-		ExpectedCompiledClassHash string
+		FileNameWithoutExtensions   string
+		ExpectedClassHash           string
+		ExpectedCompiledClassHash   string
+		ExpectedCompiledClassHashV2 string
 	}
 
 	// Ref ClassHash: https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/tests/unit/hash/sierra_class_hash_test.py
 	// Ref CompiledClassHash: https://github.com/software-mansion/starknet.py/blob/39af414389984efbc6edc48b0fe1f914ea5b9a77/starknet_py/tests/unit/hash/casm_class_hash_test.py
+	// All compiled class hash v2 were compared with the starknet.js output.
 	testSet := []testSetType{
 		{ // internal case, with "abi" field as string
-			FileNameWithoutExtensions: "hello_starknet_compiled",
-			ExpectedClassHash:         "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944",
-			ExpectedCompiledClassHash: "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603",
+			FileNameWithoutExtensions:   "hello_starknet_compiled",
+			ExpectedClassHash:           "0x4ec2ecf58014bc2ffd7c84843c3525e5ecb0a2cac33c47e9c347f39fc0c0944",
+			ExpectedCompiledClassHash:   "0x785fa5f2bacf0bfe3bc413be5820a61e1ea63f2ec27ef00331ee9f46ad07603",
+			ExpectedCompiledClassHashV2: "0x7f820fff216c87dbbf911d4aa7ab3963ed7f795d94f7414d76f8072340882d6",
 		},
 		{
-			FileNameWithoutExtensions: "contracts_v2_Account",
-			ExpectedClassHash:         "0x183078afce57a1d33b948ea6cd9ab0769dd08ca93a6afe4c23637b08aa893c1",
-			ExpectedCompiledClassHash: "0x108977ab61715437fc7097b6499b3cf9491361eb6a8ce6df6c8536b7feec508",
+			FileNameWithoutExtensions:   "contracts_v2_Account",
+			ExpectedClassHash:           "0x183078afce57a1d33b948ea6cd9ab0769dd08ca93a6afe4c23637b08aa893c1",
+			ExpectedCompiledClassHash:   "0x108977ab61715437fc7097b6499b3cf9491361eb6a8ce6df6c8536b7feec508",
+			ExpectedCompiledClassHashV2: "0x2e57d572ab29c7d987642f772e31f6b79f3905fa7e1ad2cec3d9bf6c0a1e843",
 		},
 		{
-			FileNameWithoutExtensions: "contracts_v2_ERC20",
-			ExpectedClassHash:         "0x746248ba570006607113ae3f4dbb4130e81233fb818d15329c6a4aaccf94812",
-			ExpectedCompiledClassHash: "0x5adc857416202a5902c01168542e188c3aa6380f57c911ae98cf20bc52be367",
+			FileNameWithoutExtensions:   "contracts_v2_ERC20",
+			ExpectedClassHash:           "0x746248ba570006607113ae3f4dbb4130e81233fb818d15329c6a4aaccf94812",
+			ExpectedCompiledClassHash:   "0x5adc857416202a5902c01168542e188c3aa6380f57c911ae98cf20bc52be367",
+			ExpectedCompiledClassHashV2: "0x2b58f66af5fb4a7786d0421ac013dce33787d8b48eaa96a5fac5ddb8e518216",
 		},
 		{
-			FileNameWithoutExtensions: "contracts_v2_HelloStarknet",
-			ExpectedClassHash:         "0x224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5",
-			ExpectedCompiledClassHash: "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
+			FileNameWithoutExtensions:   "contracts_v2_HelloStarknet",
+			ExpectedClassHash:           "0x224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5",
+			ExpectedCompiledClassHash:   "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17",
+			ExpectedCompiledClassHashV2: "0x23c2091df2547f77185ba592b06ee2e897b0c2a70f968521a6a24fc5bfc1b1e",
 		},
 		{
-			FileNameWithoutExtensions: "contracts_v2_TestContract",
-			ExpectedClassHash:         "0x3adac8a417b176d27e11b420aa1063b07a6b54bbb21091ad77b2a9156af7a3b",
-			ExpectedCompiledClassHash: "0x2193add92c182c9236f0c156f11dc4f18d5a78fd9b763a3c0f4a1d3bd8b87d4",
+			FileNameWithoutExtensions:   "contracts_v2_TestContract",
+			ExpectedClassHash:           "0x3adac8a417b176d27e11b420aa1063b07a6b54bbb21091ad77b2a9156af7a3b",
+			ExpectedCompiledClassHash:   "0x2193add92c182c9236f0c156f11dc4f18d5a78fd9b763a3c0f4a1d3bd8b87d4",
+			ExpectedCompiledClassHashV2: "0x5631da39bff7ff19330ced4175b5d16877ec4287d06a6271f6bff4cb16caf91",
 		},
 		{
-			FileNameWithoutExtensions: "contracts_v2_TokenBridge",
-			ExpectedClassHash:         "0x3d138e923f01b7ed1bb82b9b4e7f6df64e0c429faf8b27539addc71c1407237",
-			ExpectedCompiledClassHash: "0x41d26534c7ca29e212ae48acfb9f86f69a9624977c979697c15f587fa95204",
+			FileNameWithoutExtensions:   "contracts_v2_TokenBridge",
+			ExpectedClassHash:           "0x3d138e923f01b7ed1bb82b9b4e7f6df64e0c429faf8b27539addc71c1407237",
+			ExpectedCompiledClassHash:   "0x41d26534c7ca29e212ae48acfb9f86f69a9624977c979697c15f587fa95204",
+			ExpectedCompiledClassHashV2: "0x75479c288f8cdee2738a08de3f5123836c48ae02bdb6d265a4ab7524bdb7904",
 		},
 	}
 
 	t.Run("Test Sierra ClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/"+test.FileNameWithoutExtensions+".contract_class.json", "")
+				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+					t,
+					"./testData/"+test.FileNameWithoutExtensions+".contract_class.json",
+					"",
+				)
 
 				hashResult := hash.ClassHash(&sierraClass)
 				assert.Equal(t, test.ExpectedClassHash, hashResult.String())
@@ -120,11 +132,31 @@ func TestClassHashes(t *testing.T) {
 	t.Run("Test CompiledClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json", "")
+				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+					t,
+					"./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json",
+					"",
+				)
 
 				hashResult, err := hash.CompiledClassHash(&casmClass)
 				require.NoError(t, err)
 				assert.Equal(t, test.ExpectedCompiledClassHash, hashResult.String())
+			})
+		}
+	})
+
+	t.Run("Test CompiledClassHashV2:", func(t *testing.T) {
+		for _, test := range testSet {
+			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
+				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+					t,
+					"./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json",
+					"",
+				)
+
+				hashResult, err := hash.CompiledClassHashV2(&casmClass)
+				require.NoError(t, err)
+				assert.Equal(t, test.ExpectedCompiledClassHashV2, hashResult.String())
 			})
 		}
 	})

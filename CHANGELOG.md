@@ -15,6 +15,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 -->
 
+### Added
+- curve pkg:
+  - new `Blake2s` and `Blake2sArray` functions.
+- hash pkg:
+  - new `CompiledClassHashV2` function to compute the compiled class hash using the Blake2s hash function.
+- utils pkg:
+  - new `UseBlake2sHash` param in the `TxnOptions` struct to be used by the `BuildDeclareTxn` function.
+- account pkg:
+  - new `UseBlake2sHash` param in the `TxnOptions` struct to be used by the `BuildAndSendDeclareTxn` method.
+
+### Changed
+- In the `account.BuildAndSendDeclareTxn` method, if the new `opts.UseBlake2sHash` param is nil,
+Starknet.go will automatically fetch the current Starknet version and decide
+whether to use the Blake2s hash function.
+
 ## [0.17.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.17.0) - 2025-11-06
 ### Added
 - New `paymaster` pkg for interacting with paymaster services via the SNIP-29 API.
