@@ -37,6 +37,13 @@ type TxnOptions struct {
 	UseLatest bool
 	// The simulation flag to be used when estimating fees. Default: none.
 	SimulationFlag rpc.SimulationFlag
+
+	// ONLY FOR THE `BuildAndSendDeclareTxn` METHOD: A pointer to a boolean flag
+	// indicating whether to use the Blake2s hash function to calculate the compiled
+	// class hash.
+	// If omitted (nil), Starknet.go will automatically fetch the current Starknet
+	// version and decide whether to use the Blake2s hash function.
+	UseBlake2sHash *bool
 }
 
 // BlockID returns the block ID for fee estimation based on the UseLatest flag.
