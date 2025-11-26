@@ -2,11 +2,31 @@
 
 Retrieves information about the fee token used on the DevNet.
 
+:::danger 
+
+This method is **permanently broken** and cannot work with any available DevNet version.
+
+**Why it's broken:**
+- Designed for deprecated Python starknet-devnet (no longer available)
+- Expects `/fee_token` endpoint which doesn't exist in starknet-devnet-rs
+
+**Workaround:** DevNet logs show fee token addresses at startup:
+```bash
+docker logs starknet-devnet | grep "FeeToken" -A3
+```
+
+Typical addresses:
+- ETH: `0x49D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7`
+- STRK: `0x4718F5A0FC34CC1AF16A1CDEE98FFB20C31F5CD61D6AB07201858F4287C938D`
+:::
+
 ## Method Signature
 
 ```go
 func (devnet *DevNet) FeeToken() (*FeeToken, error)
 ```
+
+**Source:** [devnet.go:L189-L205](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L189-L205)
 
 ## Parameters
 
