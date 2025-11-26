@@ -2,11 +2,25 @@
 
 Mints tokens to a specified address for testing purposes.
 
+:::danger 
+
+This method is **permanently broken** and cannot work with any available DevNet version.
+
+**Why it's broken:**
+- Designed for deprecated Python starknet-devnet (no longer available)
+- Expects `/mint` endpoint which doesn't exist in starknet-devnet-rs
+- Current starknet-devnet-rs has a different minting mechanism
+
+**Note:** Starknet DevNet-rs accounts come pre-funded with 1000 ETH/STRK, which is usually sufficient for testing.
+:::
+
 ## Method Signature
 
 ```go
 func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, error)
 ```
+
+**Source:** [devnet.go:L141-L170](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L141-L170)
 
 ## Parameters
 

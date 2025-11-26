@@ -257,7 +257,6 @@ export const sidebar: Sidebar = {
             { text: "FeeToken", link: "/docs/devnet/methods/fee-token" },
           ],
         },
-        { text: "Types", link: "/docs/devnet/types" },
       ],
     },
     {
