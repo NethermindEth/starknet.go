@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Internal Helper Function**: This is a low-level utility used internally by V3 transaction hash functions. Most developers should use [TransactionHashInvokeV3](./transaction-hash-invoke-v3), [TransactionHashDeclareV3](./transaction-hash-declare-v3), or [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) instead.
 </Callout>
 
-Concatenates data availability modes for fee and nonce into a single uint64 value.
+Concatenates data availability modes for fee and nonce into a single uint64 value. This internal helper function combines the fee data availability mode and nonce data availability mode for V3 transaction hash calculations.
 
 ## Function Signature
 
@@ -17,17 +17,53 @@ func DataAvailabilityModeConc(
 ) (uint64, error)
 ```
 
-## Description
+**Source:** [hash.go:L788-L800](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L788-L800)
 
-This internal helper function concatenates the fee data availability mode and nonce data availability mode into a single uint64 value used in V3 transaction hash calculations. It is automatically called by:
-- [TransactionHashInvokeV3](./transaction-hash-invoke-v3)
-- [TransactionHashDeclareV3](./transaction-hash-declare-v3)
-- [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3)
-- [TransactionHashBroadcastDeclareV3](./transaction-hash-broadcast-declare-v3)
+## Parameters
 
-Data availability modes specify whether transaction data is posted to L1 or L2, affecting gas costs and security guarantees.
+- `feeDAMode` (rpc.DataAvailabilityMode): Fee data availability mode (L1 or L2)
+- `nonceDAMode` (rpc.DataAvailabilityMode): Nonce data availability mode (L1 or L2)
 
-## Related Functions
+## Returns
 
-- [ClassHash](/docs/hash/functions/class-hash)
-- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+- `uint64`: The concatenated data availability modes value
+- `error`: Error if conversion fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+
+    "github.com/NethermindEth/starknet.go/hash"
+    "github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+    // This is an internal helper - typically you would use specific V3 transaction hash functions
+    // Example usage for educational purposes:
+
+    feeDAMode := rpc.DataAvailabilityMode(0)    // L1 data availability
+    nonceDAMode := rpc.DataAvailabilityMode(0)  // L1 data availability
+
+    daModeConc, err := hash.DataAvailabilityModeConc(feeDAMode, nonceDAMode)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Data Availability Mode Concatenated: %d\n", daModeConc)
+}
+```
+
+## Common Use Cases
+
+This internal function is commonly used for:
+
+- Computing the data availability mode component when calculating V3 invoke transaction hashes to encode fee and nonce DA settings.
+- Generating the DA mode value for V3 declare transactions to specify whether transaction data is posted to L1 or L2 for verification.
+- Calculating the DA mode component for V3 deploy account transactions to control gas costs through data availability choices.
+- Implementing transaction analysis tools that decode and validate data availability settings from V3 transaction hashes.
+- Building fee estimation systems that need to understand how data availability mode choices affect transaction costs and security guarantees.

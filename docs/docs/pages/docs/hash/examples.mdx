@@ -1,0 +1,288 @@
+# Hash Examples
+
+This page provides essential examples demonstrating the most commonly used hash calculation functions in Starknet: computing class hashes, calculating transaction hashes for different transaction types, and understanding the transaction hashing workflow.
+
+## Class Hash Calculation
+
+This example shows how to calculate the hash of a Sierra contract class, which is required when declaring a new contract on Starknet. The class hash uniquely identifies a contract class and is computed by hashing the contract's version, entry points, ABI, and Sierra program using Poseidon. Understanding this is essential for contract deployment and verification workflows.
+
+See the complete example with RPC verification in [ClassHash function documentation](/docs/hash/functions/class-hash#usage-example).
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+)
+
+func main() {
+	sierraPath := "counter_contract/target/dev/counter_Counter.contract_class.json"
+
+	sierraData, err := os.ReadFile(sierraPath)
+	if err != nil {
+		log.Fatalf("Failed to read Sierra file: %v", err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(sierraData, &contractClass); err != nil {
+		log.Fatalf("Failed to parse Sierra JSON: %v", err)
+	}
+
+	classHash := hash.ClassHash(&contractClass)
+	fmt.Printf("Class Hash: %s\n", classHash.String())
+}
+```
+
+## Compiled Class Hash (CASM)
+
+This example demonstrates calculating the hash of a compiled contract class in CASM format. After compiling a Sierra contract to CASM, you need this hash for the declare transaction. The compiled class hash proves that the CASM bytecode corresponds to the declared Sierra class, enabling Starknet to verify execution correctness.
+
+See the complete example with both Sierra and CASM hash calculation in [CompiledClassHash function documentation](/docs/hash/functions/compiled-class-hash#usage-example).
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+)
+
+func main() {
+	casmPath := "counter_contract/target/dev/counter_Counter.compiled_contract_class.json"
+
+	casmData, err := os.ReadFile(casmPath)
+	if err != nil {
+		log.Fatalf("Failed to read CASM file: %v", err)
+	}
+
+	var casmClass contracts.CasmClass
+	if err := json.Unmarshal(casmData, &casmClass); err != nil {
+		log.Fatalf("Failed to parse CASM JSON: %v", err)
+	}
+
+	compiledHash, err := hash.CompiledClassHash(&casmClass)
+	if err != nil {
+		log.Fatalf("Failed to calculate compiled class hash: %v", err)
+	}
+
+	fmt.Printf("Compiled Class Hash: %s\n", compiledHash.String())
+}
+```
+
+## Transaction Hash - Invoke V3
+
+This example shows how to calculate the transaction hash for an Invoke V3 transaction, which is the current standard for invoking contract functions on Starknet. The transaction hash serves as a unique identifier for the transaction and is used for tracking transaction status. Invoke V3 transactions use resource bounds instead of max fee and include data availability modes for efficient fee calculation.
+
+See the complete example with RPC verification in [TransactionHashInvokeV3 function documentation](/docs/hash/functions/transaction-hash-invoke-v3#usage-example).
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	senderAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	nonce := new(felt.Felt).SetUint64(5)
+
+	ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	transferSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
+
+	calldata := []*felt.Felt{
+		new(felt.Felt).SetUint64(1),
+		ethContract,
+		transferSelector,
+		new(felt.Felt).SetUint64(2),
+		new(felt.Felt).SetUint64(1),
+		new(felt.Felt).SetUint64(2),
+	}
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x10c388d00",
+		},
+	}
+
+	txn := &rpc.InvokeTxnV3{
+		Type:                  rpc.TransactionTypeInvoke,
+		Version:               rpc.TransactionV3,
+		SenderAddress:         senderAddress,
+		Nonce:                 nonce,
+		Calldata:              calldata,
+		Signature:             []*felt.Felt{},
+		ResourceBounds:        resourceBounds,
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
+	}
+
+	txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```
+
+## Transaction Hash - Declare V3
+
+This example demonstrates calculating the transaction hash for a Declare V3 transaction, which is used to declare new contract classes on Starknet. When declaring a contract, you must provide both the Sierra class hash and the compiled (CASM) class hash. The transaction hash uniquely identifies the declaration and is needed for tracking the declaration status on-chain.
+
+See the complete example with RPC verification in [TransactionHashDeclareV3 function documentation](/docs/hash/functions/transaction-hash-declare-v3#usage-example).
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	senderAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	compiledClassHash, _ := new(felt.Felt).SetString("0x0fedcba9876543210fedcba9876543210fedcba9876543210fedcba98765432")
+	nonce := new(felt.Felt).SetUint64(15)
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x10c388d00",
+		},
+	}
+
+	txn := &rpc.DeclareTxnV3{
+		Type:                  rpc.TransactionTypeDeclare,
+		Version:               rpc.TransactionV3,
+		SenderAddress:         senderAddress,
+		ClassHash:             classHash,
+		CompiledClassHash:     compiledClassHash,
+		Nonce:                 nonce,
+		ResourceBounds:        resourceBounds,
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
+		Signature:             []*felt.Felt{},
+	}
+
+	txHash, err := hash.TransactionHashDeclareV3(txn, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```
+
+## Transaction Hash - Deploy Account V3
+
+This example shows how to calculate the transaction hash for a Deploy Account V3 transaction, which is used to deploy new account contracts. Deploy account transactions are special because they create the account contract and calculate its address based on the class hash, salt, and constructor parameters. The transaction hash is essential for tracking the account deployment and deriving the final contract address.
+
+See the complete example with RPC verification in [TransactionHashDeployAccountV3 function documentation](/docs/hash/functions/transaction-hash-deploy-account-v3#usage-example).
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+)
+
+func main() {
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	salt := new(felt.Felt).SetUint64(12345)
+	nonce := new(felt.Felt).SetUint64(0)
+
+	publicKey, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x10c388d00",
+		},
+	}
+
+	txn := &rpc.DeployAccountTxnV3{
+		Type:                rpc.TransactionTypeDeployAccount,
+		Version:             rpc.TransactionV3,
+		ClassHash:           classHash,
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		Nonce:               nonce,
+		ResourceBounds:      resourceBounds,
+		Tip:                 "0x0",
+		PayMasterData:       []*felt.Felt{},
+		NonceDataMode:       rpc.DAModeL1,
+		FeeMode:             rpc.DAModeL1,
+		Signature:           []*felt.Felt{},
+	}
+
+	contractAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+	txHash, err := hash.TransactionHashDeployAccountV3(txn, contractAddress, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```

@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Note**: V0 transactions are deprecated. For new applications, use [TransactionHashInvokeV3](./transaction-hash-invoke-v3) for V3 transactions.
 </Callout>
 
-Calculates the transaction hash for an Invoke V0 transaction using the deprecated Pedersen-based hash calculation.
+Calculates the transaction hash for an Invoke V0 transaction using the deprecated Pedersen-based hash calculation. This function is maintained for compatibility with historical transactions and uses the Pedersen hash algorithm.
 
 ## Function Signature
 
@@ -17,26 +17,98 @@ func TransactionHashInvokeV0(
 ) (*felt.Felt, error)
 ```
 
+**Source:** [hash.go:L356-L390](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L356-L390)
+
 ## Parameters
 
-- `txn` - The Invoke V0 transaction containing:
-  - `Version` - Transaction version string
-  - `ContractAddress` - Address of the contract being invoked
-  - `EntryPointSelector` - Selector of the function to call
-  - `Calldata` - Array of felt values as function parameters
-  - `MaxFee` - Maximum fee willing to pay
-- `chainID` - The Starknet chain ID
+- `txn` (*rpc.InvokeTxnV0): The Invoke V0 transaction containing Version, ContractAddress, EntryPointSelector, Calldata, and MaxFee
+- `chainID` (*felt.Felt): The Starknet chain ID
 
 ## Returns
 
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
+- `*felt.Felt`: The calculated transaction hash
+- `error`: Error if required parameters are missing
 
-## Description
+## Usage Example
 
-This function calculates the transaction hash for deprecated Invoke V0 transactions. It uses the Pedersen hash algorithm and is maintained for compatibility with historical transactions. Internally calls [CalculateDeprecatedTransactionHashCommon](./calculate-deprecated-transaction-hash-common).
+```go
+package main
 
-## Related Functions
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-- [ClassHash](/docs/hash/functions/class-hash)
-- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
+
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	entryPoint, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
+	maxFee := new(felt.Felt).SetUint64(1000000000000000)
+
+	txn := &rpc.InvokeTxnV0{
+		Type:    rpc.TransactionTypeInvoke,
+		Version: rpc.TransactionV0,
+		MaxFee:  maxFee,
+		FunctionCall: rpc.FunctionCall{
+			ContractAddress:    contractAddr,
+			EntryPointSelector: entryPoint,
+			Calldata: []*felt.Felt{
+				new(felt.Felt).SetUint64(1),
+				new(felt.Felt).SetUint64(2),
+			},
+		},
+		Signature: []*felt.Felt{},
+	}
+
+	txHash, err := hash.TransactionHashInvokeV0(txn, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
+}
+```
+
+## Common Use Cases
+
+This function is commonly used for:
+
+- Processing historical Starknet transactions from blocks created before V1 transaction version was introduced to verify or audit transaction hashes.
+- Building blockchain explorers that need to display and verify transaction details for all transaction versions including legacy V0 transactions.
+- Implementing transaction verification systems that validate the integrity of historical transaction data retrieved from archive nodes or databases.
+- Creating migration tools that analyze and report on legacy transaction formats when upgrading systems to support newer transaction versions.
+- Developing forensic analysis tools that reconstruct and verify transaction histories across the entire lifecycle of the Starknet network.
+
