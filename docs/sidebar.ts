@@ -385,6 +385,7 @@ export const sidebar: Sidebar = {
             { text: "DataAvailabilityModeConc", link: "/docs/hash/functions/data-availability-mode-conc" },
           ],
         },
+        { text: "Examples", link: "/docs/hash/examples" },
       ],
     },
     {

@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Internal Helper Function**: This is a low-level utility used internally by other hash functions. Most developers should use the specific transaction hash functions ([TransactionHashInvokeV1](./transaction-hash-invoke-v1), [TransactionHashDeclareV2](./transaction-hash-declare-v2), etc.) instead of calling this directly.
 </Callout>
 
-Calculates the common transaction hash for deprecated transaction versions (V0, V1, V2) using the Pedersen hash algorithm.
+Calculates the common transaction hash for deprecated transaction versions (V0, V1, V2) using the Pedersen hash algorithm. This internal helper function implements the deprecated (Pedersen-based) transaction hash calculation common to V0, V1, and V2 transactions.
 
 ## Function Signature
 
@@ -23,18 +23,80 @@ func CalculateDeprecatedTransactionHashCommon(
 ) *felt.Felt
 ```
 
-## Description
+**Source:** [hash.go:L44-L87](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L44-L87)
 
-This internal helper function implements the deprecated (Pedersen-based) transaction hash calculation common to V0, V1, and V2 transactions. It is called by:
-- [TransactionHashInvokeV0](./transaction-hash-invoke-v0)
-- [TransactionHashInvokeV1](./transaction-hash-invoke-v1)
-- [TransactionHashDeclareV1](./transaction-hash-declare-v1)
-- [TransactionHashDeclareV2](./transaction-hash-declare-v2)
-- [TransactionHashDeployAccountV1](./transaction-hash-deploy-account-v1)
+## Parameters
 
-**Note**: The word "Deprecated" refers to **deprecated transaction versions**, not a deprecated function. V3 transactions use the newer Poseidon hash algorithm instead.
+- `txHashPrefix` (*felt.Felt): The prefix of the transaction hash (invoke, declare, or deploy_account)
+- `version` (*felt.Felt): The version of the transaction
+- `contractAddress` (*felt.Felt): The address of the contract
+- `entryPointSelector` (*felt.Felt): The selector of the entry point
+- `calldata` (*felt.Felt): The hashed calldata of the transaction
+- `maxFee` (*felt.Felt): The maximum fee for the transaction
+- `chainID` (*felt.Felt): The ID of the blockchain
+- `additionalData` ([]*felt.Felt): Additional data to be included in the hash (e.g., nonce, compiled class hash)
 
-## Related Functions
+## Returns
 
-- [ClassHash](/docs/hash/functions/class-hash)
-- [TransactionHashInvokeV3](/docs/hash/functions/transaction-hash-invoke-v3)
+- `*felt.Felt`: The calculated transaction hash
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
+
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	prefixInvoke := new(felt.Felt).SetBytes([]byte("invoke"))
+	version := new(felt.Felt).SetUint64(1)
+	contractAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	entryPointSelector := &felt.Zero
+
+	calldata := []*felt.Felt{
+		new(felt.Felt).SetUint64(1),
+		new(felt.Felt).SetUint64(2),
+	}
+	calldataHash := curve.PedersenArray(calldata...)
+
+	maxFee := new(felt.Felt).SetUint64(1000000000000000)
+	nonce := new(felt.Felt).SetUint64(5)
+
+	txHash := hash.CalculateDeprecatedTransactionHashCommon(
+		prefixInvoke,
+		version,
+		contractAddress,
+		entryPointSelector,
+		calldataHash,
+		maxFee,
+		chainID,
+		[]*felt.Felt{nonce},
+	)
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+}
+```
+
+## Common Use Cases
+
+This internal function is commonly used for:
+
+- Calculating transaction hashes for Invoke V0 and V1 transactions in historical block processing systems that need to verify or reconstruct transaction hashes from older blocks.
+- Computing transaction hashes for Declare V1 and V2 transactions when implementing custom transaction verification or indexing services for Starknet networks.
+- Generating transaction hashes for Deploy Account V1 transactions in wallet implementations that need to handle legacy account deployments.
+- Building custom transaction hash verification tools that need to support the full range of Starknet transaction versions from V0 through V2.
+- Implementing blockchain explorers or analytics platforms that process historical Starknet transactions and need to verify transaction identifiers against on-chain data.
+
