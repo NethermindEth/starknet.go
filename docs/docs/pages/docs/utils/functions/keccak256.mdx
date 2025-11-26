@@ -8,6 +8,8 @@ Computes the Keccak256 hash of the input data.
 func Keccak256(data ...[]byte) []byte
 ```
 
+**Source:** [keccak.go:L152-L154](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L152-L154)
+
 ## Parameters
 
 - `data` (...[]byte): Variable number of byte slices to hash
@@ -46,10 +48,11 @@ func main() {
 
 ## Use Cases
 
-- Function selector calculation
-- Event signature hashing
-- Data integrity verification
+- Function selector calculation.
+- Event signature hashing.
+- Data integrity verification.
 
-## Related Functions
+## See Also
 
-- [GetSelectorFromNameFelt](/docs/utils/functions/get-selector-from-name-felt)
+- [Keccak State for Incremental Hashing](/docs/utils/examples#keccak-state-for-incremental-hashing) covers advanced hashing techniques
+

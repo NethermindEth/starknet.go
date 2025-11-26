@@ -7,20 +7,23 @@ import (
 )
 
 func main() {
-	// Generate selectors for common function names
-	functionNames := []string{
-		"transfer",
-		"balanceOf",
-		"approve",
-		"transferFrom",
-		"get_balance",
-	}
+	// Calculate selector for transfer function
+	selector := utils.GetSelectorFromNameFelt("transfer")
+	fmt.Printf("transfer selector: %s\n", selector.String())
+	// Output: 0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
 
-	fmt.Println("GetSelectorFromNameFelt:")
-	for _, name := range functionNames {
-		selector := utils.GetSelectorFromNameFelt(name)
-		fmt.Printf("  Function: %s\n", name)
-		fmt.Printf("  Selector: %s\n", selector.String())
-		fmt.Println()
-	}
+	// Calculate selector for balanceOf function
+	selector2 := utils.GetSelectorFromNameFelt("balanceOf")
+	fmt.Printf("balanceOf selector: %s\n", selector2.String())
+	// Output: 0x2e4263afad30923c891518314c3c95dbe830a16874e8abc5777a9a20b54c76e
+
+	// Calculate selector for approve function
+	selector3 := utils.GetSelectorFromNameFelt("approve")
+	fmt.Printf("approve selector: %s\n", selector3.String())
+	// Output: 0x219209e083275171774dab1df80982e9df2096516f06319c5c6d71ae0a8480c
+
+	// Calculate selector for increase_balance function
+	selector4 := utils.GetSelectorFromNameFelt("increase_balance")
+	fmt.Printf("increase_balance selector: %s\n", selector4.String())
+	// Output: 0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320
 }

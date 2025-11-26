@@ -1,26 +1,3 @@
-# FRIToSTRK
-
-Converts FRI amount to STRK.
-
-## Function Signature
-
-```go
-func FRIToSTRK(fri *felt.Felt) float64
-```
-
-**Source:** [transactions.go:L506-L508](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L506-L508)
-
-## Parameters
-
-- `fri` (*felt.Felt): Amount in FRI
-
-## Returns
-
-- `float64`: Amount in STRK
-
-## Usage Example
-
-```go
 package main
 
 import (
@@ -48,8 +25,3 @@ func main() {
 	fmt.Printf("%s FRI = %v STRK\n", fri3.String(), strk3)
 	// Output: 10 STRK
 }
-```
-
-## See Also
-
-- [Token Amount Conversions](/docs/utils/examples#token-amount-conversions) for working with STRK token amounts

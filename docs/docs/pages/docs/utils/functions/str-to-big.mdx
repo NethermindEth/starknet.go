@@ -8,6 +8,8 @@ Converts a string representation of a number to a big.Int.
 func StrToBig(str string) *big.Int
 ```
 
+**Source:** [keccak.go:L37-L39](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L37-L39)
+
 ## Parameters
 
 - `str` - The string to convert to a `*big.Int` (numeric string representation)
@@ -45,22 +47,15 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-StrToBig:
-  Input string: "999999999999999999999999"
-  Big Int: 999999999999999999999999
-```
-
 ## Common Use Cases
 
-1. **Configuration Parsing**: Convert numeric config values to big.Int
-2. **API Response Processing**: Parse large numbers from JSON responses
-3. **Fee Calculations**: Handle fee amounts that exceed standard integer limits
-4. **Token Amounts**: Process large token quantities with high decimal precision
+1. Converting numeric config values to `big.Int`.
+2. Parsing large numbers from JSON responses.
+3. Handling fee amounts that exceed standard integer limits.
+4. Processing large token quantities with high decimal precision.
 
-## Comparison with Similar Functions
+:::info
+Comparison with Similar Functions
 
 | Function | Input | Output | Use Case |
 |----------|-------|--------|----------|
@@ -69,8 +64,8 @@ StrToBig:
 | `UTF8StrToBig` | UTF-8 string | `*big.Int` | Hash string to number |
 | `BigIntToFelt` | `*big.Int` | `*felt.Felt` | Convert to Starknet Felt |
 
-## Related Functions
+:::
 
-- [HexToBN](./hex-to-bn) - Convert hex string to big.Int
-- [BigIntToFelt](./big-int-to-felt) - Convert big.Int to Felt
-- [StrToHex](./str-to-hex) - Convert string to hex representation
+## See Also
+
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) for parsing numeric strings in various formats
