@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.17.0...HEAD) <!-- Update the version number on each new release -->
+## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.17.1...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
 ### Changed
@@ -14,6 +14,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 -->
+## [0.13.2](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.2) - 2025-11-25
+Same as v0.17.1, but for RPC v0.8.1.
+
+## [0.17.1](https://github.com/NethermindEth/starknet.go/releases/tag/v0.17.1) - 2025-11-25
+### Added
+- curve pkg:
+  - new `Blake2s` and `Blake2sArray` functions.
+- hash pkg:
+  - new `CompiledClassHashV2` function to compute the compiled class hash using the Blake2s hash function.
+- utils pkg:
+  - new `UseBlake2sHash` param in the `TxnOptions` struct to be used by the `BuildDeclareTxn` function.
+- account pkg:
+  - new `UseBlake2sHash` param in the `TxnOptions` struct to be used by the `BuildAndSendDeclareTxn` method.
+
+### Changed
+- In the `account.BuildAndSendDeclareTxn` method, if the new `opts.UseBlake2sHash` param is nil,
+Starknet.go will automatically fetch the current Starknet version and decide
+whether to use the Blake2s hash function.
 
 ## [0.17.0](https://github.com/NethermindEth/starknet.go/releases/tag/v0.17.0) - 2025-11-06
 ### Added
