@@ -7,17 +7,23 @@ import (
 )
 
 func main() {
-	functionNames := []string{
-		"transfer",
-		"balanceOf",
-		"approve",
-		"increase_balance",
-	}
+	// Calculate selector for transfer function
+	selector := utils.GetSelectorFromName("transfer")
+	fmt.Printf("transfer selector: %s\n", selector.String())
+	// Output: 232670485425082704932579856502088130646006032362877466777181098476241604910
 
-	fmt.Println("GetSelectorFromNameFelt:")
-	for _, name := range functionNames {
-		selector := utils.GetSelectorFromNameFelt(name)
-		fmt.Printf("  Function: %s\n", name)
-		fmt.Printf("  Selector: %s\n\n", selector.String())
-	}
+	// Calculate selector for balanceOf function
+	selector2 := utils.GetSelectorFromName("balanceOf")
+	fmt.Printf("balanceOf selector: %s\n", selector2.String())
+	// Output: 1329834051710658431905476803636683007309440415093485624770810668234540816910
+
+	// Calculate selector for approve function
+	selector3 := utils.GetSelectorFromName("approve")
+	fmt.Printf("approve selector: %s\n", selector3.String())
+	// Output: 949021990203918389843157787496164629863144228991510976554585288817234167820
+
+	// Convert to hex if needed
+	selectorHex := utils.BigToHex(selector)
+	fmt.Printf("transfer selector (hex): %s\n", selectorHex)
+	// Output: 0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
 }

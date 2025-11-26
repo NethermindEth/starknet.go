@@ -8,6 +8,8 @@ Converts a hexadecimal string to a Felt value.
 func HexToFelt(hex string) (*felt.Felt, error)
 ```
 
+**Source:** [felt.go:L29-L31](https://github.com/NethermindEth/starknet.go/blob/main/utils/felt.go#L29-L31)
+
 ## Parameters
 
 - `hex` (string): Hexadecimal string (with or without "0x" prefix)
@@ -48,7 +50,8 @@ func main() {
 }
 ```
 
-## Related Functions
+## See Also
 
-- [FeltToBigInt](/docs/utils/functions/felt-to-big-int)
-- [BigIntToFelt](/docs/utils/functions/big-int-to-felt)
+- [Smart Contract Integration](/docs/utils/examples#smart-contract-integration) shows how to convert contract addresses from hex
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) for working with different data formats together
+

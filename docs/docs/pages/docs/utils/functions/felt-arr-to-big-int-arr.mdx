@@ -8,6 +8,8 @@ Converts an array of Felt objects to an array of big.Int objects.
 func FeltArrToBigIntArr(f []*felt.Felt) []*big.Int
 ```
 
+**Source:** [felt.go:L81-L83](https://github.com/NethermindEth/starknet.go/blob/main/utils/felt.go#L81-L83)
+
 ## Parameters
 
 - `f` - The array of `*felt.Felt` objects to convert
@@ -64,28 +66,21 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-FeltArrToBigIntArr:
-  Input Felt array: [123, 456, 789]
-  Output big.Int array: [123, 456, 789]
-```
-
 ## Common Use Cases
 
-1. **Legacy Code Integration**: Interface with existing code that uses `big.Int`
-2. **Mathematical Operations**: Perform operations not available on Felt types
-3. **Data Export**: Convert Starknet data to formats that use big integers
-4. **Cross-Package Operations**: Work with packages that expect `big.Int` arrays
+1. Interfaceing with existing code that uses `big.Int`.
+2. Performing operations not available on Felt types.
+3. Converting Starknet data to formats that use big integers.
+4. Working with packages that expect `big.Int` arrays.
 
-## Performance Notes
+:::info
+Performance Notes
 
 - Conversion is done element-by-element
 - Original Felt array is not modified
 - Returns a new array of big.Int pointers
+:::
 
-## Related Functions
+## See Also
 
-- [FeltToBigInt](./felt-to-big-int) - Convert single Felt to big.Int
-- [BigIntToFelt](./big-int-to-felt) - Convert single big.Int to Felt
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) demonstrates batch conversion patterns

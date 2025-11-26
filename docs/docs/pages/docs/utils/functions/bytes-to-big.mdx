@@ -8,6 +8,8 @@ Converts a byte slice to a big.Int.
 func BytesToBig(bytes []byte) *big.Int
 ```
 
+**Source:** [keccak.go:L107-L109](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L107-L109)
+
 ## Parameters
 
 - `bytes` - The byte slice to be converted
@@ -43,22 +45,13 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-BytesToBig:
-  Input bytes: [1 35 69 103 137 171 205 239]
-  Big Int: 81985529216486895
-```
-
 ## Common Use Cases
 
-1. **Deserializing Binary Data**: Convert received binary data to numeric form
-2. **Cryptographic Operations**: Process byte arrays from hash functions or signatures
-3. **Network Protocol Handling**: Convert network byte order data to integers
+1. Converting received binary data to numeric form.
+2. Processing byte arrays from hash functions or signatures.
+3. Converting network byte order data to integers.
 
-## Related Functions
+## See Also
 
-- [HexToBytes](./hex-to-bytes) - Convert hex string to bytes
-- [BigToHex](./big-to-hex) - Convert big.Int to hex string
-- [HexToBN](./hex-to-bn) - Convert hex directly to big.Int
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) demonstrates byte-to-number conversions
+

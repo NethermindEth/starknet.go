@@ -7,17 +7,18 @@ import (
 )
 
 func main() {
-	fmt.Println("HexToShortStr:")
-	
-	hexValues := []string{
-		"0x48656c6c6f",        // "Hello"
-		"0x576f726c64",        // "World"
-		"0x537461726b6e6574",  // "Starknet"
-	}
-	
-	for _, hex := range hexValues {
-		str := utils.HexToShortStr(hex)
-		fmt.Printf("  Input: %s\n", hex)
-		fmt.Printf("  Output: %s\n\n", str)
-	}
+	// Decode "Hello"
+	str := utils.HexToShortStr("0x48656c6c6f")
+	fmt.Printf("0x48656c6c6f = %s\n", str)
+	// Output: Hello
+
+	// Decode "World"
+	str2 := utils.HexToShortStr("0x576f726c64")
+	fmt.Printf("0x576f726c64 = %s\n", str2)
+	// Output: World
+
+	// Decode "Starknet"
+	str3 := utils.HexToShortStr("0x537461726b6e6574")
+	fmt.Printf("0x537461726b6e6574 = %s\n", str3)
+	// Output: Starknet
 }

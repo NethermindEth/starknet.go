@@ -12,6 +12,8 @@ func BuildDeployAccountTxn(
 ) (*rpc.DeployAccountTxn, error)
 ```
 
+**Source:** [transactions.go:L187-L194](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L187-L194)
+
 ## Parameters
 
 - `classHash` (*felt.Felt): Class hash of the account contract to deploy
@@ -116,16 +118,17 @@ txn, _ := utils.BuildDeployAccountTxn(
     opts,
 )
 ```
-
-## Notes
+:::tip
 
 - Salt ensures unique account addresses even with same class hash
 - Constructor calldata format depends on the account contract implementation
 - Account address can be precomputed before deployment
 - The transaction must be signed by the account's private key
 - Requires funding the account address before deployment (for fees)
+:::
 
-## Account Deployment Flow
+:::info
+The Account Deployment Flow
 
 ```
 1. Choose account contract class (OpenZeppelin, Argent, custom)
@@ -137,9 +140,9 @@ txn, _ := utils.BuildDeployAccountTxn(
 7. Sign with corresponding private key
 8. Submit transaction
 ```
+:::
 
-## Related Functions
+## See Also
 
-- [contracts.PrecomputeAddress](/docs/contracts/functions/precompute-address) - Calculate account address before deployment
-- [BuildInvokeTxn](/docs/utils/functions/build-invoke-txn) - Build invoke transactions
-- Account.DeployAccount - Higher-level deploy with automatic signing
+- [Transaction Construction](/docs/utils/examples#transaction-construction) covers deploy account transactions
+

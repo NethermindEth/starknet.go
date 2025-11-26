@@ -8,6 +8,8 @@ Generates a selector from a given function name, returned as a `*big.Int`.
 func GetSelectorFromName(funcName string) *big.Int
 ```
 
+**Source:** [keccak.go:L129-L131](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L129-L131)
+
 ## Parameters
 
 - `funcName` (string): Function name (e.g., "transfer", "balanceOf")
@@ -56,13 +58,12 @@ func main() {
 
 ## Use Cases
 
-- Building transaction calldata
-- Contract function calls
-- Event filtering by selector
-- When you need the selector as `*big.Int` for mathematical operations
+- Building transaction calldata.
+- Contract function calls.
+- Event filtering by selector.
+- When you need the selector as `*big.Int` for mathematical operations.
 
-## Related Functions
+## See Also
 
-- [GetSelectorFromNameFelt](/docs/utils/functions/get-selector-from-name-felt) - Returns selector as `*felt.Felt`
-- [Keccak256](/docs/utils/functions/keccak256) - Low-level Keccak hash function
-- [BigToHex](/docs/utils/functions/big-to-hex) - Convert `*big.Int` to hex string
+- [Smart Contract Integration](/docs/utils/examples#smart-contract-integration) demonstrates using selectors for contract calls
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) for converting selectors between types

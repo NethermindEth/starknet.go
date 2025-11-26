@@ -8,6 +8,8 @@ Converts ETH amount to Wei.
 func ETHToWei(eth float64) *felt.Felt
 ```
 
+**Source:** [transactions.go:L500-L502](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L500-L502)
+
 ## Parameters
 
 - `eth` (float64): Amount in ETH
@@ -45,7 +47,8 @@ func main() {
 }
 ```
 
-## Related Functions
+## See Also
 
-- [WeiToETH](/docs/utils/functions/wei-to-eth)
-- [STRKToFRI](/docs/utils/functions/strk-to-fri)
+- [Token Amount Conversions](/docs/utils/examples#token-amount-conversions) for handling token amounts
+- [Fee Estimation and Resource Bounds](/docs/utils/examples#fee-estimation-and-resource-bounds) demonstrates converting ETH amounts for transaction fees
+

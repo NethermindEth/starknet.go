@@ -7,14 +7,18 @@ import (
 )
 
 func main() {
-	// Convert ETH amounts to Wei
-	ethAmounts := []float64{1.0, 0.5, 0.001, 2.5}
+	// Convert 1 ETH to Wei
+	wei := utils.ETHToWei(1.0)
+	fmt.Printf("1 ETH = %s Wei\n", wei.String())
+	// Output: 0xde0b6b3a7640000
 
-	fmt.Println("ETHToWei:")
-	for _, eth := range ethAmounts {
-		wei := utils.ETHToWei(eth)
-		fmt.Printf("  ETH: %.4f\n", eth)
-		fmt.Printf("  Wei: %s\n", wei.String())
-		fmt.Println()
-	}
+	// Convert 0.5 ETH to Wei
+	wei2 := utils.ETHToWei(0.5)
+	fmt.Printf("0.5 ETH = %s Wei\n", wei2.String())
+	// Output: 0x6f05b59d3b20000
+
+	// Convert 2.5 ETH to Wei
+	wei3 := utils.ETHToWei(2.5)
+	fmt.Printf("2.5 ETH = %s Wei\n", wei3.String())
+	// Output: 0x22b1c8c1227a0000
 }

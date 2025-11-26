@@ -11,6 +11,8 @@ func BuildInvokeTxn(
 ) (*rpc.InvokeTxnV3, error)
 ```
 
+**Source:** [transactions.go:L94-L100](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L94-L100)
+
 ## Parameters
 
 - `functionCalls` ([]rpc.FunctionCall): Array of function calls to execute
@@ -115,16 +117,16 @@ mintCall := rpc.FunctionCall{
 txn, _ := utils.BuildInvokeTxn([]rpc.FunctionCall{mintCall}, opts)
 ```
 
-## Notes
-
+:::tip
 - Always use V3 transaction format (current standard)
 - Resource bounds are required for V3 transactions
 - Nonce must be provided in BuildOptions
 - The transaction still needs to be signed before submission
 - Use Account methods for automatic signing and submission
+:::
 
-## Related Functions
+## See Also
 
-- [BuildDeclareTxn](/docs/utils/functions/build-declare-txn) - Build declare transactions
-- [BuildDeployAccountTxn](/docs/utils/functions/build-deploy-account-txn) - Build deploy account transactions
-- Account.BuildAndSendInvokeTxn - Higher-level invoke with automatic signing
+- [Transaction Construction](/docs/utils/examples#transaction-construction) walks through building complete invoke transactions
+- [Fee Estimation and Resource Bounds](/docs/utils/examples#fee-estimation-and-resource-bounds) for calculating transaction fees
+- [Custom Resource Bounds](/docs/utils/examples#custom-resource-bounds) if you need fine-grained control over resources

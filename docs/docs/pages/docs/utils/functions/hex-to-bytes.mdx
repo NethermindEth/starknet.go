@@ -8,6 +8,8 @@ Converts a hexadecimal string to a byte slice.
 func HexToBytes(hexString string) ([]byte, error)
 ```
 
+**Source:** [keccak.go:L96-L98](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L96-L98)
+
 ## Parameters
 
 - `hexString` - The hexadecimal string to be converted (with or without "0x" prefix)
@@ -50,15 +52,6 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-HexToBytes:
-  Input hex: 0x48656c6c6f
-  Bytes: [72 101 108 108 111]
-  ASCII: Hello
-```
-
 ## Error Handling
 
 ```go
@@ -72,14 +65,12 @@ if err != nil {
 
 ## Common Use Cases
 
-1. **Address Processing**: Convert hex address strings to bytes for hashing
-2. **Transaction Data**: Decode hex-encoded calldata or signatures
-3. **Hash Operations**: Convert hex hashes to bytes for verification
-4. **Binary Protocol Handling**: Decode hex-encoded network data
+1. Converting hex address strings to bytes for hashing.
+2. Decoding hex-encoded calldata or signatures.
+3. Converting hex hashes to bytes for verification.
+4. Decoding hex-encoded network data.
 
-## Related Functions
+## See Also
 
-- [BytesToBig](./bytes-to-big) - Convert bytes to big.Int
-- [HexToFelt](./hex-to-felt) - Convert hex directly to Felt
-- [HexToBN](./hex-to-bn) - Convert hex to big.Int
-- [StrToHex](./str-to-hex) - Convert string to hex
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) for working with byte arrays and hex
+
