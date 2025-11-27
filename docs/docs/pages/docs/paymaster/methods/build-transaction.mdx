@@ -1,6 +1,6 @@
 # BuildTransaction
 
-Prepares a transaction with paymaster sponsorship details.
+Prepares a transaction with paymaster sponsorship details. Takes the user's intended transaction calls and returns typed data that includes paymaster sponsorship, along with fee estimates and a tracking ID for monitoring.
 
 ## Method Signature
 
@@ -11,92 +11,106 @@ func (pm *Paymaster) BuildTransaction(
 ) (BuildTransactionResponse, error)
 ```
 
+**Source:** [build_txn.go:L24-L45](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L24-L45)
+
 ## Parameters
 
 - `ctx` (context.Context): Context for the operation
-- `request` (*BuildTransactionRequest): Transaction build request
+- `request` (*BuildTransactionRequest): Transaction build request containing the transaction and execution parameters
 
-## BuildTransactionRequest Structure
+## Returns
 
-```go
-type BuildTransactionRequest struct {
-    Transaction UserTransaction `json:"transaction"`
-    Parameters  UserParameters  `json:"parameters"`
-}
-```
-
-## BuildTransactionResponse Structure
-
-```go
-type BuildTransactionResponse struct {
-    Type       UserTxnType            `json:"type"`
-    Deployment *AccountDeploymentData `json:"deployment,omitempty"`
-    Parameters *UserParameters        `json:"parameters"`
-    TypedData  *typeddata.TypedData   `json:"typed_data,omitempty"`
-    Fee        *FeeEstimate           `json:"fee"`
-}
-```
-
-## Description
-
-BuildTransaction takes the user's intended transaction calls and returns modified calls that include paymaster sponsorship. The paymaster calculates fees, adds necessary paymaster data, and returns a tracking ID for monitoring.
+- `BuildTransactionResponse`: Response containing typed data, fee estimates, and tracking ID
+- `error`: Error if build fails
 
 ## Usage Example
 
 ```go
-request := &paymaster.BuildTransactionRequest{
-    Calls: []rpc.FunctionCall{
-        {
-            ContractAddress: targetContract,
-            EntryPointSelector: transferSelector,
-            Calldata: transferCalldata,
-        },
-    },
-    FeeToken: ethTokenAddress,
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+	// Connect to AVNU's public paymaster service on Sepolia testnet
+	paymasterURL := "https://sepolia.paymaster.avnu.fi"
+	ctx := context.Background()
+
+	fmt.Printf("Paymaster Build Transaction Example\n")
+	fmt.Printf("====================================\n\n")
+
+	// Create paymaster client
+	pm, err := paymaster.New(ctx, paymasterURL)
+	if err != nil {
+		log.Fatalf("Failed to create paymaster client: %v", err)
+	}
+
+	fmt.Println("Paymaster client created")
+
+	// Build a transaction request
+	// This example shows the structure for an invoke transaction
+	userAddress, _ := new(felt.Felt).SetString("0x1234...")
+	contractAddress, _ := new(felt.Felt).SetString("0x5678...")
+
+	// Use ETH token address on Sepolia (from GetSupportedTokens)
+	gasToken, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+
+	request := &paymaster.BuildTransactionRequest{
+		Transaction: paymaster.UserTransaction{
+			Type: paymaster.UserTxnInvoke,
+			Invoke: &paymaster.UserInvoke{
+				UserAddress: userAddress,
+				Calls: []paymaster.Call{
+					{
+						To:       contractAddress,
+						Selector: new(felt.Felt).SetUint64(1), // transfer selector
+						Calldata: []*felt.Felt{},
+					},
+				},
+			},
+		},
+		Parameters: paymaster.UserParameters{
+			Version: paymaster.UserParamV1,
+			FeeMode: paymaster.FeeMode{
+				Mode:     paymaster.FeeModeDefault,
+				GasToken: gasToken,
+			},
+		},
+	}
+
+	fmt.Println("\nBuilding transaction with paymaster...")
+
+	// Build the transaction
+	// Note: This will fail with placeholder addresses, but demonstrates the structure
+	response, err := pm.BuildTransaction(ctx, request)
+	if err != nil {
+		// Expected error with placeholder addresses:
+		// "contract not found" or "TRANSACTION_EXECUTION_ERROR"
+		fmt.Printf("Build failed (expected with placeholder addresses): %v\n", err)
+		fmt.Println("\nTo use with real addresses:")
+		fmt.Println("1. Replace userAddress with your actual account address")
+		fmt.Println("2. Replace contractAddress with target contract")
+		fmt.Println("3. Update selector and calldata for your specific call")
+		return
+	}
+
+	fmt.Println("Transaction built successfully")
+	fmt.Printf("\nTyped Data: %v\n", response.TypedData != nil)
+	fmt.Printf("Fee Estimate: %v\n", response.Fee != nil)
 }
-
-response, err := pm.BuildTransaction(ctx, request)
-if err != nil {
-    log.Fatal(err)
-}
-
-// Use response.CallsWithPaymaster in transaction
-// Store response.TrackingID for tracking
 ```
 
-## Use Cases
+## Common Use Cases
 
-### 1. Gasless Transaction
-```go
-response, _ := pm.BuildTransaction(ctx, &paymaster.BuildTransactionRequest{
-    Calls: userCalls,
-    FeeToken: preferredToken,
-})
+- Build gasless transactions with paymaster sponsorship by including the returned typed data and fee estimates.
+- Obtain fee calculations and estimates before executing transactions to display to users.
+- Generate tracking IDs for monitoring transaction status through the paymaster service.
+- Must be called before ExecuteTransaction to get the properly formatted typed data for signing.
+- PaymasterData and tracking ID from the response are required for successful transaction execution.
 
-// Execute with paymaster data
-pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
-    Calls: response.CallsWithPaymaster,
-    PaymasterData: response.PaymasterData,
-    TrackingID: response.TrackingID,
-})
-```
-
-### 2. Fee Estimation
-```go
-response, _ := pm.BuildTransaction(ctx, request)
-// Response includes fee calculation
-fmt.Printf("Tracking ID: %s\n", response.TrackingID)
-```
-
-## Notes
-
-- Must be called before ExecuteTransaction
-- TrackingID is used for monitoring transaction status
-- PaymasterData must be included in the final transaction
-- Fee calculation handled by paymaster service
-
-## Related Methods
-
-- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)
-- [GetSupportedTokens](/docs/paymaster/methods/get-supported-tokens)
-- [TrackingIDToLatestHash](/docs/paymaster/methods/tracking-id-to-latest-hash)

@@ -1,6 +1,6 @@
 # TrackingIDToLatestHash
 
-Retrieves the latest transaction hash associated with a tracking ID.
+Retrieves the latest transaction hash associated with a tracking ID. Maps a tracking ID (received from BuildTransaction) to the latest transaction hash, useful for monitoring transaction status and handling retries if a transaction fails.
 
 ## Method Signature
 
@@ -11,23 +11,17 @@ func (pm *Paymaster) TrackingIDToLatestHash(
 ) (TrackingIDResponse, error)
 ```
 
+**Source:** [tracking_id.go:L26-L41](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/tracking_id.go#L26-L41)
+
 ## Parameters
 
 - `ctx` (context.Context): Context for the operation
 - `trackingID` (*felt.Felt): Tracking ID from BuildTransaction
 
-## TrackingIDResponse Structure
+## Returns
 
-```go
-type TrackingIDResponse struct {
-    TransactionHash *felt.Felt
-    Status          string
-}
-```
-
-## Description
-
-TrackingIDToLatestHash maps a tracking ID (received from BuildTransaction) to the latest transaction hash. This is useful for monitoring transaction status and handling retries if a transaction fails.
+- `TrackingIDResponse`: Response containing the transaction hash and status
+- `error`: Error if tracking ID is invalid or not found
 
 ## Usage Example
 
@@ -46,43 +40,12 @@ fmt.Printf("Transaction Hash: %s\n", response.TransactionHash)
 fmt.Printf("Status: %s\n", response.Status)
 ```
 
-## Use Cases
+## Common Use Cases
 
-### 1. Transaction Status Monitoring
-```go
-trackingResp, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
-receipt, _ := rpcProvider.TransactionReceipt(ctx, trackingResp.TransactionHash)
-```
+- Monitor transaction status by mapping tracking IDs to their latest transaction hashes.
+- Implement retry management by checking transaction status and re-submitting if necessary.
+- Provide real-time status updates to users during long-running transaction processing.
+- TrackingID is obtained from BuildTransaction response and links all operations for that transaction.
+- If a transaction is replaced or retried by the paymaster, this method returns the latest hash.
+- Status values and behavior depend on the specific paymaster implementation.
 
-### 2. Retry Management
-```go
-response, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
-if response.Status == "FAILED" {
-    // Retry the transaction
-    pm.BuildTransaction(ctx, originalRequest)
-}
-```
-
-### 3. User Status Updates
-```go
-ticker := time.NewTicker(5 * time.Second)
-for range ticker.C {
-    resp, _ := pm.TrackingIDToLatestHash(ctx, trackingID)
-    fmt.Printf("Status: %s\n", resp.Status)
-    if resp.Status == "ACCEPTED_ON_L2" {
-        break
-    }
-}
-```
-
-## Notes
-
-- TrackingID is obtained from BuildTransaction
-- If transaction is replaced/retried, returns the latest hash
-- Status values depend on paymaster implementation
-- Useful for long-running transaction monitoring
-
-## Related Methods
-
-- [BuildTransaction](/docs/paymaster/methods/build-transaction)
-- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)
