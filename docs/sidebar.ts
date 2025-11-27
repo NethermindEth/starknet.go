@@ -335,17 +335,7 @@ export const sidebar: Sidebar = {
             },
           ],
         },
-        {
-          text: "Types",
-          collapsed: true,
-          items: [
-            {
-              text: "ContractClass",
-              link: "/docs/contracts/functions/contract-class",
-            },
-            { text: "CasmClass", link: "/docs/contracts/functions/casm-class" },
-          ],
-        },
+        { text: "Examples", link: "/docs/contracts/examples" },
       ],
     },
     {
