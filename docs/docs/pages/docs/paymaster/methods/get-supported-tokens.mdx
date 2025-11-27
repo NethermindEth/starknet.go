@@ -1,12 +1,14 @@
 # GetSupportedTokens
 
-Retrieves the list of tokens supported by the paymaster for fee payment.
+Retrieves the list of tokens supported by the paymaster for fee payment. Returns all tokens that can be used to pay transaction fees through this paymaster, with each token including its address, decimals, and current price in STRK.
 
 ## Method Signature
 
 ```go
 func (pm *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error)
 ```
+
+**Source:** [get_tokens.go:L17-L26](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/get_tokens.go#L17-L26)
 
 ## Parameters
 
@@ -17,86 +19,58 @@ func (pm *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error
 - `[]TokenData`: Array of supported token information
 - `error`: Error if request fails
 
-## TokenData Structure
-
-```go
-type TokenData struct {
-    TokenAddress  *felt.Felt
-    TokenSymbol   string
-    TokenDecimals uint8
-}
-```
-
-## Description
-
-GetSupportedTokens returns all tokens that can be used to pay transaction fees through this paymaster. Each token includes its address, symbol, and decimal precision.
-
 ## Usage Example
 
 ```go
-tokens, err := pm.GetSupportedTokens(ctx)
-if err != nil {
-    log.Fatal(err)
-}
+package main
 
-for _, token := range tokens {
-    fmt.Printf("Token: %s (%s)\n", token.TokenSymbol, token.TokenAddress)
-    fmt.Printf("  Decimals: %d\n", token.TokenDecimals)
-}
-```
+import (
+	"context"
+	"fmt"
+	"log"
 
-## Expected Output
+	"github.com/NethermindEth/starknet.go/paymaster"
+)
 
-```
-Token: ETH (0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7)
-  Decimals: 18
-Token: STRK (0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d)
-  Decimals: 18
-Token: USDC (0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8)
-  Decimals: 6
-```
+func main() {
+	// Connect to AVNU's public paymaster service on Sepolia testnet
+	paymasterURL := "https://sepolia.paymaster.avnu.fi"
+	ctx := context.Background()
 
-## Use Cases
+	fmt.Printf("Paymaster Supported Tokens Example\n")
+	fmt.Printf("===================================\n\n")
 
-### 1. Display Fee Options to User
-```go
-tokens, _ := pm.GetSupportedTokens(ctx)
-for i, token := range tokens {
-    fmt.Printf("%d. Pay with %s\n", i+1, token.TokenSymbol)
-}
-```
+	// Create paymaster client
+	pm, err := paymaster.New(ctx, paymasterURL)
+	if err != nil {
+		log.Fatalf("Failed to create paymaster client: %v", err)
+	}
 
-### 2. Validate Token Selection
-```go
-tokens, _ := pm.GetSupportedTokens(ctx)
-isSupported := false
-for _, token := range tokens {
-    if token.TokenAddress.Equal(selectedToken) {
-        isSupported = true
-        break
-    }
-}
-```
+	fmt.Println("Paymaster client created")
+	fmt.Println("\nRetrieving supported tokens...")
 
-### 3. Auto-select Best Token
-```go
-tokens, _ := pm.GetSupportedTokens(ctx)
-// Select token user has balance in
-for _, token := range tokens {
-    balance, _ := getTokenBalance(userAddr, token.TokenAddress)
-    if balance.Cmp(requiredAmount) >= 0 {
-        return token
-    }
+	// Get list of supported fee tokens
+	tokens, err := pm.GetSupportedTokens(ctx)
+	if err != nil {
+		log.Fatalf("Failed to get supported tokens: %v", err)
+	}
+
+	// Display supported tokens
+	fmt.Printf("\nFound %d supported token(s)\n\n", len(tokens))
+
+	for i, token := range tokens {
+		fmt.Printf("Token %d:\n", i+1)
+		fmt.Printf("  Address:  %s\n", token.TokenAddress.String())
+		fmt.Printf("  Decimals: %d\n", token.Decimals)
+		fmt.Printf("  Price:    %s STRK\n\n", token.PriceInStrk)
+	}
 }
 ```
 
-## Notes
+## Common Use Cases
 
-- Token list may change as paymaster adds/removes support
-- Check regularly if caching token information
-- Decimals needed for amount formatting
-
-## Related Methods
-
-- [BuildTransaction](/docs/paymaster/methods/build-transaction)
-- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)
+- Display fee payment options to users showing available tokens and their symbols.
+- Validate user's token selection against the list of supported tokens before building transactions.
+- Auto-select the best token based on user's available balances and token prices.
+- Token list may change as paymaster adds or removes support, so check regularly if caching token information.
+- Token decimals are needed for proper amount formatting and display.
