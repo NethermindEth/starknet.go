@@ -1,33 +1,37 @@
 # TypedData Package
 
-The `typedata` package provides functionality for working with typed structured data on Starknet, similar to EIP-712 for Ethereum. This package enables off-chain message signing with type safety and domain separation, commonly used for authentication, permits, and other signature-based operations.
+The TypedData package provides functionality for working with typed structured data on Starknet, implementing the SNIP-12 standard for off-chain message signing with type safety and domain separation.
 
-## Package Overview
+## Overview
 
-The typedata package implements the SNIP-12 standard (Starknet Improvement Proposal 12), which defines a structured data signing format for Starknet. This allows applications to:
+TypedData implements Starknet's equivalent of Ethereum's EIP-712, enabling applications to create structured, human-readable messages for signing. This is essential for authentication, permits, meta-transactions, and other signature-based operations that require users to understand what they're signing.
 
-- Create type-safe message structures for signing
-- Generate deterministic message hashes
-- Implement domain separation to prevent signature replay across different applications
-- Support multiple data type revisions (v0 and v1)
-
-## Key Features
+The package provides:
 
 - **Type-Safe Messages**: Define structured message formats with strict type definitions
-- **Domain Separation**: Prevent signature reuse across different applications and chains
-- **Multiple Revisions**: Support for Revision 0 (Pedersen hash) and Revision 1 (Poseidon hash)
-- **Complex Types**: Handle nested structs, arrays, enums, and preset types like u256
-- **SNIP-12 Compliant**: Fully compatible with the Starknet typed data standard
+- **Domain Separation**: Prevent signature replay across different applications and chains
+- **Multiple Revisions**: Support for Revision 0 (Pedersen) and Revision 1 (Poseidon hashing)
+- **Complex Types**: Handle nested structs, arrays, enums, and preset types
+- **SNIP-12 Compliance**: Fully compatible with the Starknet typed data standard
 
-## Import Path
+## Key Components
+
+- [NewTypedData](/docs/typeddata/functions/new-typed-data) - Create a new TypedData instance from types, domain, and message
+- [GetMessageHash](/docs/typeddata/methods/get-message-hash) - Generate the hash of a message for a specific account
+- [GetStructHash](/docs/typeddata/methods/get-struct-hash) - Calculate the hash of a struct type
+- [GetTypeHash](/docs/typeddata/methods/get-type-hash) - Get the hash of a type definition
+- [EncodeData](/docs/typeddata/functions/encode-data) - Encode typed data into felt array
+- [GetRevision](/docs/typeddata/functions/get-revision) - Get the revision object for a version number
+
+## Getting Started
+
+To use the TypedData package, import it in your Go code:
 
 ```go
 import "github.com/NethermindEth/starknet.go/typeddata"
 ```
 
 ## Quick Example
-
-Here's a simple example demonstrating how to create typed data and generate a message hash:
 
 ```go
 package main
@@ -41,7 +45,7 @@ import (
 )
 
 func main() {
-	// Define the typed data JSON
+	// Define typed data JSON (SNIP-12 format)
 	typedDataJSON := []byte(`{
 		"types": {
 			"StarkNetDomain": [
@@ -49,13 +53,9 @@ func main() {
 				{ "name": "version", "type": "felt" },
 				{ "name": "chainId", "type": "felt" }
 			],
-			"Person": [
-				{ "name": "name", "type": "felt" },
-				{ "name": "wallet", "type": "felt" }
-			],
 			"Mail": [
-				{ "name": "from", "type": "Person" },
-				{ "name": "to", "type": "Person" },
+				{ "name": "from", "type": "felt" },
+				{ "name": "to", "type": "felt" },
 				{ "name": "contents", "type": "felt" }
 			]
 		},
@@ -63,92 +63,155 @@ func main() {
 		"domain": {
 			"name": "StarkNet Mail",
 			"version": "1",
-			"chainId": 1
+			"chainId": "SN_SEPOLIA"
 		},
 		"message": {
-			"from": {
-				"name": "Alice",
-				"wallet": "0x1234567890123456789012345678901234567890"
-			},
-			"to": {
-				"name": "Bob",
-				"wallet": "0x0987654321098765432109876543210987654321"
-			},
-			"contents": "Hello, Bob!"
+			"from": "0x1234",
+			"to": "0x5678",
+			"contents": "Hello!"
 		}
 	}`)
 
-	// Unmarshal the typed data
+	// Unmarshal typed data
 	var td typeddata.TypedData
 	err := json.Unmarshal(typedDataJSON, &td)
 	if err != nil {
-		log.Fatal("Failed to unmarshal typed data:", err)
+		log.Fatalf("Failed to unmarshal: %v", err)
 	}
 
-	// Get the message hash for a specific account
+	// Get message hash for signing
 	accountAddress := "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
 	messageHash, err := td.GetMessageHash(accountAddress)
 	if err != nil {
-		log.Fatal("Failed to get message hash:", err)
+		log.Fatalf("Failed to get hash: %v", err)
 	}
 
 	fmt.Printf("Message Hash: %s\n", messageHash.String())
 }
 ```
 
-## Documentation Sections
+For more examples, see the [Examples page](/docs/typeddata/examples).
 
-- [TypedData](./typed-data) - Core TypedData type, NewTypedData function, and hash methods
-- [Domain](./domain) - Domain structure for application and chain separation
-- [Functions](./functions) - Utility functions including EncodeData and GetRevision
+## How TypedData Works in Starknet
 
-## Understanding EIP-712 Style Signing
+### SNIP-12 Standard
 
-The typedata package implements a Starknet-specific version of EIP-712 structured data hashing and signing. This approach provides several benefits:
+SNIP-12 (Starknet Improvement Proposal 12) defines how structured data should be hashed and signed on Starknet. It ensures that:
 
-### Type Safety
-By defining explicit type structures, both the application and the signer can verify that the data being signed matches the expected format, preventing errors and potential security issues.
+1. **Messages are structured** - Data follows predefined type schemas
+2. **Hashes are deterministic** - Same data always produces the same hash
+3. **Domains are separated** - Signatures can't be replayed across different apps
+4. **Types are validated** - The signer knows exactly what they're signing
 
-### Human-Readable Messages
-Unlike raw transaction data, typed data messages are structured and can be displayed to users in a meaningful way before signing, improving transparency.
+### Type System
+
+The TypedData type system supports:
+
+- **Basic types**: felt, bool, string, selector
+- **Numeric types** (Rev 1): u128, i128, timestamp
+- **Address types** (Rev 1): ContractAddress, ClassHash
+- **Complex types**: Structs, arrays, enums (Rev 1)
+- **Preset types** (Rev 1): u256, TokenAmount, NftId
 
 ### Domain Separation
-Each message includes a domain object that specifies the application name, version, and chain ID. This prevents signatures from being replayed across different applications or networks.
 
-### Deterministic Hashing
-The structured format ensures that identical data always produces the same hash, making signature verification reliable and predictable.
+Each TypedData includes a domain object specifying:
+
+- **name**: Application name (e.g., "MyDapp")
+- **version**: Application version (e.g., "1")
+- **chainId**: Network identifier (e.g., "SN_MAIN", "SN_SEPOLIA")
+- **revision**: Hash algorithm version (0 = Pedersen, 1 = Poseidon)
+
+This prevents signatures from one application or network being used in another.
+
+### Hash Computation
+
+The message hash is computed as:
+
+```
+messageHash = hash(
+    structHash(domain),
+    accountAddress,
+    structHash(message)
+)
+```
+
+Where `structHash` recursively hashes all fields according to their types.
+
+## Choosing the Right Approach
+
+### Revision 0 vs Revision 1
+
+- **Use Revision 1** when:
+  - Building new applications (recommended)
+  - Need Poseidon hashing (more efficient)
+  - Want enum support
+  - Working with u256, TokenAmount, NftId preset types
+  - Need ContractAddress, ClassHash types
+
+- **Use Revision 0** when:
+  - Maintaining compatibility with older applications
+  - Working with systems that only support Pedersen hashing
+  - Using basic felt/bool/string types only
+
+### JSON vs Programmatic Creation
+
+- **Use JSON unmarshaling** when:
+  - Receiving typed data from frontend/API
+  - Working with standardized message formats
+  - Need easy integration with web wallets
+
+- **Use NewTypedData** when:
+  - Building typed data programmatically in Go
+  - Need fine-grained control over type definitions
+  - Generating messages dynamically
 
 ## Use Cases
 
-The typedata package is commonly used for:
-
-1. **Authentication**: Sign login messages to prove account ownership
-2. **Permits**: Off-chain approvals for token operations
-3. **Meta-Transactions**: Sign transaction parameters for relayer submission
-4. **Voting**: Sign votes in governance systems
-5. **Session Keys**: Authorize temporary session keys with specific permissions
+- **Authentication**: Sign login messages to prove account ownership without gas costs
+- **Permits**: Off-chain token approvals (EIP-2612 style) for gasless transactions
+- **Meta-Transactions**: Sign transaction parameters for relayer submission
+- **Voting**: Off-chain governance voting with cryptographic proof
+- **Session Keys**: Authorize temporary keys with specific permissions
+- **Gasless Onboarding**: Let users interact before funding their accounts
 
 ## Revisions
 
-The package supports two revisions:
+### Revision 0
+- Hash algorithm: Pedersen
+- Basic types: felt, bool, string, selector, merkletree
+- Used by: Early Starknet applications
 
-- **Revision 0**: Uses Pedersen hash, supports basic types (felt, bool, string, selector, merkletree)
-- **Revision 1**: Uses Poseidon hash (more efficient), adds support for enums, u128, i128, ContractAddress, ClassHash, timestamp, shortstring, and preset types (u256, TokenAmount, NftId)
+### Revision 1
+- Hash algorithm: Poseidon (more efficient)
+- All Revision 0 types plus:
+  - Numeric: u128, i128, timestamp
+  - Addresses: ContractAddress, ClassHash
+  - String: shortstring
+  - Complex: enums
+  - Presets: u256, TokenAmount, NftId
+- Recommended for: New applications
 
-New applications should use Revision 1 for better performance and expanded type support.
-
-## SNIP-12 Standard
-
-The package implements the SNIP-12 standard for typed structured data hashing and signing on Starknet. For more details on the specification, see:
+## SNIP-12 Resources
 
 - [SNIP-12 Specification](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-12.md)
+- [Starknet Signing Standards](https://community.starknet.io/t/signing-transactions-and-off-chain-messages/66)
 
-## Related Packages
+:::tip
+Best Practices
+- Always use Revision 1 for new applications to benefit from Poseidon hashing efficiency
+- Include all relevant domain fields (name, version, chainId) for proper separation
+- Validate typed data structure before asking users to sign
+- Display human-readable message content to users before signing
+- Store domain and types definitions for signature verification later
+:::
 
-- [Account Package](../account/) - Uses typedata for signing messages
-- [Curve Package](../curve/) - Provides the underlying hash functions (Pedersen, Poseidon)
-- [Hash Package](../hash/) - Additional hash utilities for Starknet
-
-## Version
-
-This documentation is based on version v0.8.1 of the Starknet.go library.
+:::note
+See the [Examples page](/docs/typeddata/examples) for comprehensive examples covering:
+- Basic message signing workflow
+- Working with different revisions
+- Complex nested types and structs
+- Preset types (u256, TokenAmount, NftId)
+- Domain separation patterns
+- Integration with account signing
+:::

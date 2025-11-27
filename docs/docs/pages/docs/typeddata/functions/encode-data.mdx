@@ -1,0 +1,98 @@
+# EncodeData
+
+Encodes typed data into an array of felt values according to SNIP-12 encoding rules.
+
+## Function Signature
+
+```go
+func EncodeData(
+	typeDef *TypeDefinition,
+	td *TypedData,
+	context ...string,
+) (enc []*felt.Felt, err error)
+```
+
+**Source:** [typedData.go:L456-L487](https://github.com/NethermindEth/starknet.go/blob/main/typeddata/typedData.go#L456-L487)
+
+## Parameters
+
+- `typeDef` (*TypeDefinition): The type definition to encode
+- `td` (*TypedData): The TypedData instance containing the message
+- `context` (...string): Optional context path for nested encoding
+
+## Returns
+
+- `[]*felt.Felt`: Array of encoded felt values
+- `error`: Error if encoding fails
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Create TypedData from JSON (includes revision field)
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{"name": "name", "type": "shortstring"},
+				{"name": "version", "type": "shortstring"},
+				{"name": "chainId", "type": "shortstring"},
+				{"name": "revision", "type": "shortstring"}
+			],
+			"Mail": [
+				{"name": "from", "type": "felt"},
+				{"name": "to", "type": "felt"},
+				{"name": "contents", "type": "shortstring"}
+			]
+		},
+		"primaryType": "Mail",
+		"domain": {
+			"name": "StarkNet Mail",
+			"version": "1",
+			"chainId": "SN_SEPOLIA",
+			"revision": "1"
+		},
+		"message": {
+			"from": "0x1234",
+			"to": "0x5678",
+			"contents": "Hello!"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatalf("Failed to unmarshal: %v", err)
+	}
+
+	// Get type definition for Mail
+	typeDef := td.Types["Mail"]
+
+	// Encode the message data
+	encoded, err := typeddata.EncodeData(&typeDef, &td)
+	if err != nil {
+		log.Fatalf("Encoding failed: %v", err)
+	}
+
+	fmt.Printf("Encoded Mail message: %d felts\n", len(encoded))
+	for i, felt := range encoded {
+		fmt.Printf("  [%d]: %s\n", i, felt.String())
+	}
+}
+```
+
+## Common Use Cases
+
+- Encode data for manual hash calculations in custom hash computation workflows.
+- Inspect encoded felt values to understand SNIP-12 encoding for debugging purposes.
+- Build custom signing flows with low-level encoding control for advanced workflows. See [Array Types example](/docs/typeddata/examples#array-types).
+- EncodeData handles special cases like domain encoding with both chainId and chain_id field names.

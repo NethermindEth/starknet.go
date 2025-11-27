@@ -438,9 +438,25 @@ export const sidebar: Sidebar = {
       collapsed: true,
       items: [
         { text: "Overview", link: "/docs/typeddata/" },
-        { text: "TypedData", link: "/docs/typeddata/typed-data" },
-        { text: "Domain", link: "/docs/typeddata/domain" },
-        { text: "Functions", link: "/docs/typeddata/functions" },
+        {
+          text: "Functions",
+          collapsed: true,
+          items: [
+            { text: "NewTypedData", link: "/docs/typeddata/functions/new-typed-data" },
+            { text: "EncodeData", link: "/docs/typeddata/functions/encode-data" },
+            { text: "GetRevision", link: "/docs/typeddata/functions/get-revision" },
+          ],
+        },
+        {
+          text: "Methods",
+          collapsed: true,
+          items: [
+            { text: "GetMessageHash", link: "/docs/typeddata/methods/get-message-hash" },
+            { text: "GetStructHash", link: "/docs/typeddata/methods/get-struct-hash" },
+            { text: "GetTypeHash", link: "/docs/typeddata/methods/get-type-hash" },
+          ],
+        },
+        { text: "Examples", link: "/docs/typeddata/examples" },
       ],
     },
     {
