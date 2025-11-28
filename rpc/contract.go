@@ -196,7 +196,12 @@ func (provider *Provider) EstimateFee(
 	if err := do(
 		ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(
+			err,
+			ErrBlockNotFound,
+			ErrContractNotFound,
+			ErrTxnExec,
+		)
 	}
 
 	return raw, nil
@@ -221,7 +226,11 @@ func (provider *Provider) EstimateMessageFee(
 	if err := do(
 		ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID,
 	); err != nil {
-		return raw, rpcerr.UnwrapToRPCErr(err, ErrContractError, ErrBlockNotFound)
+		return raw, rpcerr.UnwrapToRPCErr(err,
+			ErrContractError,
+			ErrContractNotFound,
+			ErrBlockNotFound,
+		)
 	}
 
 	return raw, nil

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -82,7 +81,7 @@ func TestTransactionTrace(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.TransactionHash.String(), func(t *testing.T) {
-			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "")
+			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[InvokeTxnTrace](t, test.ExpectedRespFile, "result")
 
 			resp, err := testConfig.Provider.TraceTransaction(
 				context.Background(),
@@ -97,8 +96,7 @@ func TestTransactionTrace(t *testing.T) {
 
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
-			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-			require.NoError(t, err)
+			rawExpectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, test.ExpectedRespFile, "result")
 
 			compareTraceTxnsJSON(t, rawExpectedResp, rawResp)
 		})
@@ -299,13 +297,10 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 				return
 			}
-			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
+			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "result")
 
 			// read file to compare JSONs
-			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-			require.NoError(t, err)
-			expectedRespArr := make([]any, 0)
-			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
 
 			//nolint:dupl // Similar to TestSimulateTransaction, but they're testing different things.
 			for i, actualTrace := range resp {

@@ -108,6 +108,7 @@ func TestEvents(t *testing.T) {
 							},
 							BlockHash:       internalUtils.TestHexToFelt(t, "0x18a38934263d8b27a15d2e170d90030daa3a66e589b545908f376a8fdc971c8"),
 							BlockNumber:     144933,
+							EventIndex:      1,
 							TransactionHash: internalUtils.TestHexToFelt(t, "0x622817859a37dedf36cfb1417247f93dcc5840845bb8969df47491ef33e088e"),
 						},
 					},
