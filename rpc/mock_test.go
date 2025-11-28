@@ -1452,7 +1452,7 @@ func mock_starknet_traceTransaction(result interface{}, args ...interface{}) err
 	case "0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282":
 		rawTrace, err := internalUtils.UnmarshalJSONFileToType[InvokeTxnTrace](
 			"testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
-			"",
+			"result",
 		)
 		if err != nil {
 			return err
