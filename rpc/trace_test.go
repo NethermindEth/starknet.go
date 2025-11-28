@@ -299,13 +299,10 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 				return
 			}
-			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")
+			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "result")
 
 			// read file to compare JSONs
-			rawExpectedResp, err := os.ReadFile(test.ExpectedRespFile)
-			require.NoError(t, err)
-			expectedRespArr := make([]any, 0)
-			require.NoError(t, json.Unmarshal(rawExpectedResp, &expectedRespArr))
+			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
 
 			//nolint:dupl // Similar to TestSimulateTransaction, but they're testing different things.
 			for i, actualTrace := range resp {

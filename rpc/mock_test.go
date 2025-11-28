@@ -1398,7 +1398,7 @@ func mock_starknet_traceBlockTransactions(result interface{}, args ...interface{
 		blockID.Hash.String() == "0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2" {
 		rawBlockTrace, err := internalUtils.UnmarshalJSONFileToType[[]Trace](
 			"testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
-			"",
+			"result",
 		)
 		if err != nil {
 			return err
