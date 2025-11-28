@@ -19,9 +19,16 @@
 		"l1_da_mode": "CALLDATA",
 		"starknet_version": "0.13.2",
 		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
+			"price_in_fri": "0x1",
+			"price_in_wei": "0x1"
 		},
+		"transaction_commitment": "0x7e1abab0e8fe10709b549f3e813de31ed869cefe8b9aed2508efddcde5c13e2",
+		"event_commitment": "0x5d91ab0385e753610877c7f90335d73166c8dba96e1cb88c6fd99d91b4d5cfe",
+		"receipt_commitment": "0x4cd1fc02d8ae2da225359ed9e31c729f61c9794692848c09df11737989ff31b",
+		"state_diff_commitment": "0x4740ec2ff9ba062d5d62bac3662e3852fdcbd8365927fe8a2afff94f4edcc",
+		"event_count": 40,
+		"transaction_count": 9,
+		"state_diff_length": 26,
 		"transactions": [
 			{
 				"transaction_hash": "0x641245619f0e5010cb9f074066b5503c1800cd378ffdcae19eece606b08770c",
