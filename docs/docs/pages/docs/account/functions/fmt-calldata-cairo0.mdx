@@ -2,11 +2,13 @@
 
 Formats function calls into calldata for Cairo 0 contracts.
 
-## Method Signature
+## Function Signature
 
 ```go
 func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt
 ```
+
+**Source:** [account.go:L182-L207](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L182-L207)
 
 ## Parameters
 
@@ -107,6 +109,13 @@ if len(functionCalls) == 0 {
 calldata := account.FmtCallDataCairo0(functionCalls)
 // Safe to use calldata
 ```
+
+## Common Use Cases
+
+- Format calldata for multi-call transactions on Cairo 0 accounts
+- Prepare calldata for legacy contract interactions
+- Convert function calls to the Cairo 0 calldata format required by older account contracts
+- Use when interacting with Cairo 0 account contracts that expect the legacy calldata structure
 
 ## Related Methods
 
