@@ -23,48 +23,24 @@ func (pm *Paymaster) ExecuteTransaction(
 - `ExecuteTransactionResponse`: Response containing tracking ID and transaction hash
 - `error`: Error if execution fails
 
+## Type Definitions
+
+### ExecuteTransactionResponse
+
+**Source:** [execute_txn.go:L85-L92](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/execute_txn.go#L85-L92)
+
+```go
+type ExecuteTransactionResponse struct {
+    TrackingID      *felt.Felt `json:"tracking_id"`
+    TransactionHash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+**Fields:**
+- `TrackingID` (*felt.Felt): A unique identifier used to track an execution request of a user. Its purpose is to track possibly different transactions sent by the paymaster and which are associated with a same user request
+- `TransactionHash` (*felt.Felt): Hash of the transaction broadcasted by the paymaster
+
 ## Usage Example
-
-```go
-// First, build the transaction
-buildResp, _ := pm.BuildTransaction(ctx, buildRequest)
-
-// Then execute it
-execRequest := &paymaster.ExecuteTransactionRequest{
-    Calls: buildResp.CallsWithPaymaster,
-    PaymasterData: buildResp.PaymasterData,
-    TrackingID: buildResp.TrackingID,
-}
-
-execResp, err := pm.ExecuteTransaction(ctx, execRequest)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Transaction submitted: %s\n", execResp.TransactionHash)
-```
-
-## Complete Flow Example
-
-```go
-// 1. Build transaction
-buildResp, err := pm.BuildTransaction(ctx, &paymaster.BuildTransactionRequest{
-    Calls: calls,
-    FeeToken: feeToken,
-})
-
-// 2. Execute transaction
-execResp, err := pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
-    Calls: buildResp.CallsWithPaymaster,
-    PaymasterData: buildResp.PaymasterData,
-    TrackingID: buildResp.TrackingID,
-})
-
-// 3. Monitor transaction
-fmt.Printf("Transaction: %s\n", execResp.TransactionHash)
-```
-
-## Common Use Cases
 
 - Submit sponsored transactions to the Starknet network after building with BuildTransaction.
 - Execute gasless transactions where the paymaster covers all fees according to the terms established earlier.
