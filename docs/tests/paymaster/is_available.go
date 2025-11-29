@@ -3,24 +3,42 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/paymaster"
 )
 
 func main() {
-	fmt.Println("IsAvailable Demo:")
-	fmt.Println("  Method: pm.IsAvailable(ctx)")
+	// Connect to AVNU's public paymaster service on Sepolia testnet
+	paymasterURL := "https://sepolia.paymaster.avnu.fi"
+	ctx := context.Background()
+
+	fmt.Printf("Paymaster Health Check Example\n")
+
+	// Create paymaster client
+	pm, err := paymaster.New(ctx, paymasterURL)
+	if err != nil {
+		log.Fatalf("Failed to create paymaster client: %v", err)
+	}
+
+	fmt.Println("Paymaster client created")
+	fmt.Println("\nPerforming health check...")
+
+	// Check if paymaster service is available and operational
+	available, err := pm.IsAvailable(ctx)
+	if err != nil {
+		log.Fatalf("Health check failed: %v", err)
+	}
+
+	// Display results
 	fmt.Println()
-	fmt.Println("Purpose:")
-	fmt.Println("  Check if the paymaster service is running and accepting requests")
-	fmt.Println()
-	fmt.Println("Returns:")
-	fmt.Println("  - bool: true if service is available")
-	fmt.Println("  - error: error if check fails")
-	fmt.Println()
-	fmt.Println("Usage:")
-	fmt.Println("  available, err := pm.IsAvailable(ctx)")
-	fmt.Println("  if available {")
-	fmt.Println("      fmt.Println(\"Paymaster service is ready\")")
-	fmt.Println("  }")
-	
-	_ = context.Background()
+	if available {
+		fmt.Println("Paymaster service is AVAILABLE")
+		fmt.Println("\nService Status: OPERATIONAL")
+		fmt.Println("Ready to process transactions")
+	} else {
+		fmt.Println("Paymaster service is UNAVAILABLE")
+		fmt.Println("\nService Status: DOWN")
+		fmt.Println("The service is temporarily unavailable")
+	}
 }

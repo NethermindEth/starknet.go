@@ -467,6 +467,8 @@ timeBounds := &paymaster.TimeBounds{
 
 Response from the BuildTransaction method.
 
+**Source:** [build_txn.go:L382-L395](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L382-L395)
+
 #### Type Definition
 
 ```go
@@ -509,6 +511,8 @@ signature, _ := acc.Sign(ctx, messageHash)
 
 Response from the ExecuteTransaction method.
 
+**Source:** [execute_txn.go:L85-L92](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/execute_txn.go#L85-L92)
+
 #### Type Definition
 
 ```go
@@ -543,6 +547,8 @@ status, _ := pm.TrackingIDToLatestHash(ctx, response.TrackingID)
 ### TrackingIDResponse
 
 Response from the TrackingIDToLatestHash method.
+
+**Source:** [tracking_id.go:L44-L49](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/tracking_id.go#L44-L49)
 
 #### Type Definition
 
@@ -582,6 +588,8 @@ case paymaster.TxnStatusDropped:
 
 Detailed fee estimation in STRK and gas token.
 
+**Source:** [build_txn.go:L371-L377](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L371-L377)
+
 #### Type Definition
 
 ```go
@@ -620,6 +628,8 @@ fmt.Printf("Max Fee (Token): %s\n", fee.SuggestedMaxFeeInGasToken.String())
 ### TokenData
 
 Information about a supported token.
+
+**Source:** [get_tokens.go:L30-L38](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/get_tokens.go#L30-L38)
 
 #### Type Definition
 

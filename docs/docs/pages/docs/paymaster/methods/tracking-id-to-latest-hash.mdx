@@ -23,29 +23,28 @@ func (pm *Paymaster) TrackingIDToLatestHash(
 - `TrackingIDResponse`: Response containing the transaction hash and status
 - `error`: Error if tracking ID is invalid or not found
 
-## Usage Example
+## Type Definitions
+
+### TrackingIDResponse
+
+**Source:** [tracking_id.go:L44-L49](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/tracking_id.go#L44-L49)
 
 ```go
-// Get tracking ID from BuildTransaction
-buildResp, _ := pm.BuildTransaction(ctx, request)
-trackingID := buildResp.TrackingID
-
-// Later, check transaction status
-response, err := pm.TrackingIDToLatestHash(ctx, trackingID)
-if err != nil {
-    log.Fatal(err)
+type TrackingIDResponse struct {
+    TransactionHash *felt.Felt `json:"transaction_hash"`
+    Status          TxnStatus  `json:"status"`
 }
-
-fmt.Printf("Transaction Hash: %s\n", response.TransactionHash)
-fmt.Printf("Status: %s\n", response.Status)
 ```
 
-## Common Use Cases
+**Fields:**
+- `TransactionHash` (*felt.Felt): The hash of the most recent transaction sent by the paymaster and corresponding to the tracking ID
+- `Status` (TxnStatus): The status of the transaction associated with the ID (active, accepted, or dropped)
+
+## Usage Example
 
 - Monitor transaction status by mapping tracking IDs to their latest transaction hashes.
 - Implement retry management by checking transaction status and re-submitting if necessary.
 - Provide real-time status updates to users during long-running transaction processing.
-- TrackingID is obtained from BuildTransaction response and links all operations for that transaction.
 - If a transaction is replaced or retried by the paymaster, this method returns the latest hash.
 - Status values and behavior depend on the specific paymaster implementation.
 

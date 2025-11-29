@@ -9,20 +9,25 @@ import (
 )
 
 func main() {
-	// Paymaster service URL (example)
-	paymasterURL := "https://paymaster.example.com/rpc"
+	// Using AVNU's public SNIP-29 compliant paymaster on Sepolia testnet
+	paymasterURL := "https://sepolia.paymaster.avnu.fi"
+	ctx := context.Background()
 
 	// Create a new paymaster client
-	ctx := context.Background()
 	pm, err := paymaster.New(ctx, paymasterURL)
 	if err != nil {
-		log.Fatal("Failed to create paymaster client:", err)
+		log.Fatal(err)
 	}
 
-	fmt.Println("New Paymaster Client:")
-	fmt.Printf("  Service URL: %s\n", paymasterURL)
-	fmt.Printf("  Client created: %v\n", pm != nil)
-	
-	// Note: Actual usage requires a running paymaster service
-	fmt.Println("\nNote: This requires a SNIP-29 compliant paymaster service")
+	fmt.Println("Paymaster client created successfully")
+
+	// Check if the paymaster service is available
+	available, err := pm.IsAvailable(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if available {
+		fmt.Println("Paymaster service is ready")
+	}
 }

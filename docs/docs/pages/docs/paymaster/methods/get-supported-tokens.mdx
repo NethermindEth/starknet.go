@@ -19,6 +19,25 @@ func (pm *Paymaster) GetSupportedTokens(ctx context.Context) ([]TokenData, error
 - `[]TokenData`: Array of supported token information
 - `error`: Error if request fails
 
+## Type Definitions
+
+### TokenData
+
+**Source:** [get_tokens.go:L30-L38](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/get_tokens.go#L30-L38)
+
+```go
+type TokenData struct {
+    TokenAddress *felt.Felt `json:"token_address"`
+    Decimals     uint8      `json:"decimals"`
+    PriceInStrk  string     `json:"price_in_strk"`
+}
+```
+
+**Fields:**
+- `TokenAddress` (*felt.Felt): Token contract address on Starknet
+- `Decimals` (uint8): The number of decimals of the token
+- `PriceInStrk` (string): Price in STRK (in FRI units, as a hex string representing u256)
+
 ## Usage Example
 
 ```go
@@ -74,3 +93,4 @@ func main() {
 - Auto-select the best token based on user's available balances and token prices.
 - Token list may change as paymaster adds or removes support, so check regularly if caching token information.
 - Token decimals are needed for proper amount formatting and display.
+

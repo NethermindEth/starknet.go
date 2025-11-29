@@ -23,94 +23,54 @@ func (pm *Paymaster) BuildTransaction(
 - `BuildTransactionResponse`: Response containing typed data, fee estimates, and tracking ID
 - `error`: Error if build fails
 
-## Usage Example
+## Type Definitions
+
+### BuildTransactionResponse
+
+**Source:** [build_txn.go:L382-L395](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L382-L395)
 
 ```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/paymaster"
-)
-
-func main() {
-	// Connect to AVNU's public paymaster service on Sepolia testnet
-	paymasterURL := "https://sepolia.paymaster.avnu.fi"
-	ctx := context.Background()
-
-	fmt.Printf("Paymaster Build Transaction Example\n")
-	fmt.Printf("====================================\n\n")
-
-	// Create paymaster client
-	pm, err := paymaster.New(ctx, paymasterURL)
-	if err != nil {
-		log.Fatalf("Failed to create paymaster client: %v", err)
-	}
-
-	fmt.Println("Paymaster client created")
-
-	// Build a transaction request
-	// This example shows the structure for an invoke transaction
-	userAddress, _ := new(felt.Felt).SetString("0x1234...")
-	contractAddress, _ := new(felt.Felt).SetString("0x5678...")
-
-	// Use ETH token address on Sepolia (from GetSupportedTokens)
-	gasToken, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	request := &paymaster.BuildTransactionRequest{
-		Transaction: paymaster.UserTransaction{
-			Type: paymaster.UserTxnInvoke,
-			Invoke: &paymaster.UserInvoke{
-				UserAddress: userAddress,
-				Calls: []paymaster.Call{
-					{
-						To:       contractAddress,
-						Selector: new(felt.Felt).SetUint64(1), // transfer selector
-						Calldata: []*felt.Felt{},
-					},
-				},
-			},
-		},
-		Parameters: paymaster.UserParameters{
-			Version: paymaster.UserParamV1,
-			FeeMode: paymaster.FeeMode{
-				Mode:     paymaster.FeeModeDefault,
-				GasToken: gasToken,
-			},
-		},
-	}
-
-	fmt.Println("\nBuilding transaction with paymaster...")
-
-	// Build the transaction
-	// Note: This will fail with placeholder addresses, but demonstrates the structure
-	response, err := pm.BuildTransaction(ctx, request)
-	if err != nil {
-		// Expected error with placeholder addresses:
-		// "contract not found" or "TRANSACTION_EXECUTION_ERROR"
-		fmt.Printf("Build failed (expected with placeholder addresses): %v\n", err)
-		fmt.Println("\nTo use with real addresses:")
-		fmt.Println("1. Replace userAddress with your actual account address")
-		fmt.Println("2. Replace contractAddress with target contract")
-		fmt.Println("3. Update selector and calldata for your specific call")
-		return
-	}
-
-	fmt.Println("Transaction built successfully")
-	fmt.Printf("\nTyped Data: %v\n", response.TypedData != nil)
-	fmt.Printf("Fee Estimate: %v\n", response.Fee != nil)
+type BuildTransactionResponse struct {
+    Type       UserTxnType            `json:"type"`
+    Deployment *AccountDeploymentData `json:"deployment,omitempty"`
+    Parameters *UserParameters        `json:"parameters"`
+    TypedData  *typeddata.TypedData   `json:"typed_data,omitempty"`
+    Fee        *FeeEstimate           `json:"fee"`
 }
 ```
 
-## Common Use Cases
+**Fields:**
+- `Type` (UserTxnType): The type of the transaction
+- `Deployment` (*AccountDeploymentData): Deployment data for deploy and deploy_and_invoke transactions (nil for invoke)
+- `Parameters` (*UserParameters): Execution parameters to be used when executing the transaction
+- `TypedData` (*typeddata.TypedData): Typed data for signing (nil for deploy transactions)
+- `Fee` (*FeeEstimate): The fee estimation for the transaction
+
+### FeeEstimate
+
+**Source:** [build_txn.go:L371-L377](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L371-L377)
+
+```go
+type FeeEstimate struct {
+    GasTokenPriceInStrk       *felt.Felt `json:"gas_token_price_in_strk"`
+    EstimatedFeeInStrk        *felt.Felt `json:"estimated_fee_in_strk"`
+    EstimatedFeeInGasToken    *felt.Felt `json:"estimated_fee_in_gas_token"`
+    SuggestedMaxFeeInStrk     *felt.Felt `json:"suggested_max_fee_in_strk"`
+    SuggestedMaxFeeInGasToken *felt.Felt `json:"suggested_max_fee_in_gas_token"`
+}
+```
+
+**Fields:**
+- `GasTokenPriceInStrk` (*felt.Felt): Price of the gas token in STRK
+- `EstimatedFeeInStrk` (*felt.Felt): Estimated transaction fee in STRK
+- `EstimatedFeeInGasToken` (*felt.Felt): Estimated transaction fee in the gas token
+- `SuggestedMaxFeeInStrk` (*felt.Felt): Suggested maximum fee in STRK to ensure execution
+- `SuggestedMaxFeeInGasToken` (*felt.Felt): Suggested maximum fee in gas token to ensure execution
+
+## Usage Example
 
 - Build gasless transactions with paymaster sponsorship by including the returned typed data and fee estimates.
 - Obtain fee calculations and estimates before executing transactions to display to users.
 - Generate tracking IDs for monitoring transaction status through the paymaster service.
 - Must be called before ExecuteTransaction to get the properly formatted typed data for signing.
 - PaymasterData and tracking ID from the response are required for successful transaction execution.
-

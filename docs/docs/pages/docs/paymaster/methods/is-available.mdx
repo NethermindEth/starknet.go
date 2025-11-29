@@ -38,7 +38,6 @@ func main() {
 	ctx := context.Background()
 
 	fmt.Printf("Paymaster Health Check Example\n")
-	fmt.Printf("==============================\n\n")
 
 	// Create paymaster client
 	pm, err := paymaster.New(ctx, paymasterURL)
@@ -76,3 +75,4 @@ func main() {
 - Monitor service availability for operational metrics and alerting systems.
 - Returns false (not error) if service is temporarily unavailable, while errors indicate network or communication issues.
 - Lightweight operation suitable for frequent health checks.
+
