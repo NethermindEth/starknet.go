@@ -8,6 +8,8 @@ Formats function calls into calldata for Cairo 2 contracts.
 func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt
 ```
 
+**Source:** [account.go:L221-L236](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L221-L236)
+
 ## Parameters
 
 - `callArray` - Slice of function calls to format
@@ -106,6 +108,13 @@ if len(functionCalls) == 0 {
 calldata := account.FmtCallDataCairo2(functionCalls)
 // Safe to use calldata
 ```
+
+## Common Use Cases
+
+- Format calldata for modern Cairo 2/Cairo 1 account contracts
+- Prepare multi-call transactions with the new calldata format
+- Use when interacting with Cairo 2 account contracts that use the updated calldata structure
+- More compact calldata format compared to Cairo 0, reducing transaction costs
 
 ## Related Methods
 

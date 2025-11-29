@@ -12,6 +12,8 @@ func PrecomputeAccountAddress(
 ) *felt.Felt
 ```
 
+**Source:** [account.go:L144-L149](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L144-L149)
+
 ## Parameters
 
 - `salt` - Random value for address generation
@@ -97,6 +99,13 @@ if salt == nil || classHash == nil {
 address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
 // Safe to use address
 ```
+
+## Common Use Cases
+
+- Calculate the address where an account contract will be deployed before deployment
+- Fund a precomputed address with tokens to pay for deployment fees
+- Verify that an account will deploy to the expected address
+- Essential for the counterfactual deployment pattern where you interact with an address before deploying the contract
 
 ## Related Methods
 
