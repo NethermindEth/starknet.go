@@ -25,10 +25,6 @@ func BuildDeclareTxn(
 - `*rpc.DeclareTxnV2`: Fully constructed declare transaction V2
 - `error`: Error if build fails
 
-## Description
-
-BuildDeclareTxn creates a declare transaction for registering a new contract class on Starknet. It requires both the Sierra class (high-level) and the compiled CASM class hash (low-level executable).
-
 ## Usage Example
 
 ```go
@@ -106,7 +102,6 @@ upgradeCall := rpc.FunctionCall{
 - After declaration, use the class hash to deploy contract instances
 - Declare V2 is the current standard (includes compiled class hash)
 :::
-
 ## See Also
 
 - [Transaction Construction](/docs/utils/examples#transaction-construction) includes declare transaction examples

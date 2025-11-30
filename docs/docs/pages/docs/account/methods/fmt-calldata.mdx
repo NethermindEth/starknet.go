@@ -139,14 +139,6 @@ func main() {
 Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
 :::
 
-## Description
-
-FmtCalldata formats function calls based on the account's Cairo version:
-- **Cairo v0**: Uses the legacy format
-- **Cairo v2**: Uses the newer format
-
-The formatting differences are handled internally based on the account's Cairo version. This method is typically used internally by BuildAndSendInvokeTxn.
-
 ## Error Handling
 
 ```go
