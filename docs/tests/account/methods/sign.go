@@ -1,68 +1,124 @@
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	// Load .env file
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
-
-	// Get RPC URL from environment
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
-
-	// Create RPC provider
-	ctx := context.Background()
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	// Create account address
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	// Create keystore with test key
-	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
-	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
-
-	// Create account
-	acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse account address:", err)
 	}
-
-	// Create a message to sign
-	message, _ := new(felt.Felt).SetString("0x4d7920746573742073747277742073747277742073747277742073747277742053696d706c65206d657373616765")
-
-	fmt.Println("Signing message:")
-	fmt.Printf("Message: %s\n", message)
-
-	// Sign the message
-	signature, err := acc.Sign(ctx, message)
+ 
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
 	if err != nil {
-		fmt.Printf("Error signing: %v\n", err)
-		return
+		log.Fatal("Failed to create account:", err)
 	}
-
-	fmt.Println("\nSignature components:")
-	for i, sig := range signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+ 
+	message := new(felt.Felt).SetUint64(12345)
+	fmt.Printf("Message to sign: %s\n", message.String())
+	fmt.Printf("Message (decimal): %d\n", message.Uint64())
+ 
+	signature, err := accnt.Sign(ctx, message)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
 	}
-	fmt.Printf("\nTotal signature components: %d\n", len(signature))
+ 
+	fmt.Printf("Signature components:\n")
+	fmt.Printf("  r: %s\n", signature[0].String())
+	fmt.Printf("  s: %s\n", signature[1].String())
+ 
+	pubKeyFelt, _ := utils.HexToFelt(publicKey)
+	isValid, err := curve.Verify(message.BigInt(new(big.Int)), signature[0].BigInt(new(big.Int)), signature[1].BigInt(new(big.Int)), pubKeyFelt.BigInt(new(big.Int)))
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("Signature verification: %v\n", isValid)
+ 
+	messageStr := "Hello Starknet!"
+	fmt.Printf("Original message: \"%s\"\n", messageStr)
+ 
+	messageFelt := new(felt.Felt).SetBigInt(utils.UTF8StrToBig(messageStr))
+	fmt.Printf("Message as felt: %s\n", messageFelt.String())
+ 
+	signature2, err := accnt.Sign(ctx, messageFelt)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
+	}
+ 
+	fmt.Printf("Signature:\n")
+	fmt.Printf("  r: %s\n", signature2[0].String())
+	fmt.Printf("  s: %s\n", signature2[1].String())
+ 
+	isValid2, err := curve.Verify(messageFelt.BigInt(new(big.Int)), signature2[0].BigInt(new(big.Int)), signature2[1].BigInt(new(big.Int)), pubKeyFelt.BigInt(new(big.Int)))
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("Signature valid: %v\n", isValid2)
+ 
+	txHash, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	fmt.Printf("Transaction hash: %s\n", txHash.String())
+ 
+	signature3, err := accnt.Sign(ctx, txHash)
+	if err != nil {
+		log.Fatal("Failed to sign transaction hash:", err)
+	}
+ 
+	fmt.Printf("Transaction signature:\n")
+	fmt.Printf("  r: %s\n", signature3[0].String())
+	fmt.Printf("  s: %s\n", signature3[1].String())
+ 
+	isValid3, err := curve.Verify(txHash.BigInt(new(big.Int)), signature3[0].BigInt(new(big.Int)), signature3[1].BigInt(new(big.Int)), pubKeyFelt.BigInt(new(big.Int)))
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("Signature valid: %v\n", isValid3)
 }

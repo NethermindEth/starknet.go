@@ -1,6 +1,6 @@
 # FmtCalldata
 
-Formats calldata based on the account's Cairo version.
+Formats calldata based on the account's Cairo version (Cairo v0 or Cairo v2). This method automatically selects the appropriate calldata format based on the account's CairoVersion field.
 
 ## Method Signature
 
@@ -8,126 +8,164 @@ Formats calldata based on the account's Cairo version.
 func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error)
 ```
 
+**Source:** [account.go:L159-L168](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L159-L168)
+
 ## Parameters
 
-- `fnCalls` - Slice of function calls to format
+- `fnCalls` ([]rpc.FunctionCall): Slice of function calls to format
 
 ## Returns
 
-- `[]*felt.Felt` - Formatted calldata
-- `error` - Error if Cairo version unsupported
+- `[]*felt.Felt`: Formatted calldata array
+- `error`: Error if Cairo version is unsupported
 
 ## Usage Example
-
-> **Prerequisites**: This example assumes you have account instances already created for both Cairo v0 and v2. To learn how to create an account, see [NewAccount](./new-account.mdx).
 
 ```go
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc2' is Cairo v2 Account and 'acc0' is Cairo v0 Account
-	var acc2, acc0 *account.Account
-	// acc2 = ... (already initialized with CairoV2)
-	// acc0 = ... (already initialized with CairoV0)
+	ctx := context.Background()
 
-	// Create function calls
-	contractAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	entryPointSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
-	recipient, _ := new(felt.Felt).SetString("0x1234567890abcdef")
-
-	functionCalls := []rpc.FunctionCall{
-		{
-			ContractAddress:    contractAddress,
-			EntryPointSelector: entryPointSelector,
-			Calldata: []*felt.Felt{
-				recipient,
-				new(felt.Felt).SetUint64(100),
-				new(felt.Felt).SetUint64(0),
-			},
-		},
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	// Format calldata for Cairo v2
-	calldata2, err := acc2.FmtCalldata(functionCalls)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
+	}
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatalf("Error formatting Cairo v2 calldata: %v", err)
+		log.Fatal("Failed to create provider:", err)
 	}
 
-	fmt.Println("Cairo v2 formatted calldata:")
-	for i, data := range calldata2 {
-		fmt.Printf("  [%d]: %s\n", i, data)
-	}
-	fmt.Printf("Total elements: %d\n\n", len(calldata2))
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
 
-	// Format calldata for Cairo v0
-	calldata0, err := acc0.FmtCalldata(functionCalls)
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatalf("Error formatting Cairo v0 calldata: %v", err)
+		log.Fatal("Failed to parse account address:", err)
 	}
 
-	fmt.Println("Cairo v0 formatted calldata:")
-	for i, data := range calldata0 {
-		fmt.Printf("  [%d]: %s\n", i, data)
+	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	transferSelector := utils.GetSelectorFromNameFelt("transfer")
+	recipient := accountAddressFelt
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+	u256Amount, _ := utils.HexToU256Felt(amount.String())
+
+	fnCall := rpc.FunctionCall{
+		ContractAddress:    strkContract,
+		EntryPointSelector: transferSelector,
+		Calldata:           append([]*felt.Felt{recipient}, u256Amount...),
 	}
-	fmt.Printf("Total elements: %d\n", len(calldata0))
+
+	accntV2, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create Cairo v2 account:", err)
+	}
+
+	calldataV2, err := accntV2.FmtCalldata([]rpc.FunctionCall{fnCall})
+	if err != nil {
+		log.Fatal("Failed to format Cairo v2 calldata:", err)
+	}
+
+	fmt.Println("Cairo v2 Formatted Calldata:")
+	fmt.Printf("Total elements: %d\n", len(calldataV2))
+	fmt.Printf("  [0] Num calls:         %s\n", calldataV2[0].String())
+	fmt.Printf("  [1] Contract address:  %s\n", calldataV2[1].String())
+	fmt.Printf("  [2] Entry point sel:   %s\n", calldataV2[2].String())
+	fmt.Printf("  [3] Calldata length:   %s\n", calldataV2[3].String())
+
+	accntV0, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV0,
+	)
+	if err != nil {
+		log.Fatal("Failed to create Cairo v0 account:", err)
+	}
+
+	calldataV0, err := accntV0.FmtCalldata([]rpc.FunctionCall{fnCall})
+	if err != nil {
+		log.Fatal("Failed to format Cairo v0 calldata:", err)
+	}
+
+	fmt.Println("Cairo v0 Formatted Calldata:")
+	fmt.Printf("Total elements: %d\n", len(calldataV0))
+	fmt.Printf("  [0] Num calls:             %s\n", calldataV0[0].String())
+	fmt.Printf("  [1] Contract address:      %s\n", calldataV0[1].String())
+	fmt.Printf("  [2] Entry point selector:  %s\n", calldataV0[2].String())
+	fmt.Printf("  [3] Calldata offset:       %s\n", calldataV0[3].String())
 }
 ```
 
-## Expected Output
-
-```
-Cairo v2 formatted calldata:
-  [0]: 0x1
-  [1]: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-  [2]: 0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
-  [3]: 0x3
-  [4]: 0x1234567890abcdef
-  [5]: 0x64
-  [6]: 0x0
-Total elements: 7
-
-Cairo v0 formatted calldata:
-  [0]: 0x1
-  [1]: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-  [2]: 0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
-  [3]: 0x0
-  [4]: 0x3
-  [5]: 0x3
-  [6]: 0x1234567890abcdef
-  [7]: 0x64
-  [8]: 0x0
-Total elements: 9
-```
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Description
 
 FmtCalldata formats function calls based on the account's Cairo version:
-- **Cairo v0**: Uses the legacy format with 9 elements total
-- **Cairo v2**: Uses the newer format with 7 elements total
+- **Cairo v0**: Uses the legacy format
+- **Cairo v2**: Uses the newer format
 
-The formatting differences are handled internally based on the account's Cairo version.
+The formatting differences are handled internally based on the account's Cairo version. This method is typically used internally by BuildAndSendInvokeTxn.
 
 ## Error Handling
 
 ```go
 formatted, err := acc.FmtCalldata(functionCalls)
 if err != nil {
-	// Handle errors like:
-	// - Unsupported Cairo version (v1)
-	return err
+	switch {
+	case errors.Is(err, account.ErrUnsupportedCairoVersion):
+		log.Println("Cairo version not supported (only v0 and v2 are supported)")
+	default:
+		log.Printf("Failed to format calldata: %v", err)
+	}
+	return
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - Uses FmtCalldata internally
-- [SignInvokeTransaction](./sign-invoke-transaction.mdx) - Uses formatted calldata
+- Manually format calldata before signing transactions
+- Format calldata for custom transaction building workflows
+- Debug calldata formatting differences between Cairo versions
+- Usually handled automatically by BuildAndSendInvokeTxn
+- Low-level operation for advanced users building custom transaction flows

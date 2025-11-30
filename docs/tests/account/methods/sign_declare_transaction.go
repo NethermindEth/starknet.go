@@ -1,72 +1,131 @@
 package main
-
+ 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
-
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
-
-	ctx := context.Background()
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
-	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
-
-	acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse account address:", err)
 	}
-
-	// Create a declare transaction V2
-	classHash, _ := new(felt.Felt).SetString("0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855")
-	compiledClassHash, _ := new(felt.Felt).SetString("0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37")
-
-	declareTx := &rpc.DeclareTxnV2{
-		Type:              rpc.TransactionTypeDeclare,
-		SenderAddress:     accountAddress,
-		CompiledClassHash: compiledClassHash,
-		ClassHash:         classHash,
-		MaxFee:            new(felt.Felt).SetUint64(1000000000000),
-		Version:           rpc.TransactionV2,
-		Signature:         []*felt.Felt{}, // Empty before signing
-		Nonce:             new(felt.Felt).SetUint64(0),
-	}
-
-	fmt.Printf("Before signing - Signature length: %d\n", len(declareTx.Signature))
-
-	// Sign the transaction
-	err = acc.SignDeclareTransaction(ctx, declareTx)
+ 
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
 	if err != nil {
-		fmt.Printf("Error signing transaction: %v\n", err)
-		return
+		log.Fatal("Failed to create account:", err)
 	}
-
-	fmt.Printf("After signing - Signature length: %d\n", len(declareTx.Signature))
-	for i, sig := range declareTx.Signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+ 
+	content, err := os.ReadFile("contracts/cairo0/hello_starknet_compiled.json")
+	if err != nil {
+		fmt.Printf("Note: Contract file not found, using mock data for demonstration\n\n")
+ 
+		nonce, err := accnt.Nonce(ctx)
+		if err != nil {
+			log.Fatal("Failed to get nonce:", err)
+		}
+ 
+		mockClassHash, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+		mockCompiledClassHash, _ := utils.HexToFelt("0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd")
+ 
+		declareTxn := &rpc.DeclareTxnV3{
+			Nonce:   nonce,
+			Type:    rpc.TransactionTypeDeclare,
+			Version: rpc.TransactionV3,
+			ResourceBounds: &rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x0",
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x0",
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x0",
+				},
+			},
+			Tip:                   "0x0",
+			PayMasterData:         []*felt.Felt{},
+			AccountDeploymentData: []*felt.Felt{},
+			NonceDataMode:         rpc.DAModeL1,
+			FeeMode:               rpc.DAModeL1,
+			SenderAddress:         accountAddressFelt,
+			ClassHash:             mockClassHash,
+			CompiledClassHash:     mockCompiledClassHash,
+			Signature:             []*felt.Felt{},
+		}
+ 
+		fmt.Printf("Sender:              %s\n", declareTxn.SenderAddress.String())
+		fmt.Printf("Nonce:               %d\n", declareTxn.Nonce.Uint64())
+		fmt.Printf("Class Hash:          %s\n", declareTxn.ClassHash.String())
+		fmt.Printf("Compiled Class Hash: %s\n", declareTxn.CompiledClassHash.String())
+		fmt.Printf("Signature (before):  %v\n\n", declareTxn.Signature)
+ 
+		err = accnt.SignDeclareTransaction(ctx, declareTxn)
+		if err != nil {
+			log.Fatal("Failed to sign declare transaction:", err)
+		}
+ 
+		fmt.Printf("Signature components:\n")
+		fmt.Printf("  r: %s\n", declareTxn.Signature[0].String())
+		fmt.Printf("  s: %s\n", declareTxn.Signature[1].String())
+ 
+	} else {
+		var class contracts.ContractClass
+		if err := json.Unmarshal(content, &class); err != nil {
+			log.Fatal("Failed to unmarshal contract class:", err)
+		}
+ 
+		fmt.Printf("Contract class loaded with %d entry points\n", len(class.EntryPointsByType.External))
 	}
 }
