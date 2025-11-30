@@ -14,6 +14,8 @@ Creates a new JSON-RPC client connected to the given URL.
 func DialHTTP(endpoint string) (*Client, error)
 ```
 
+**Source:** [http.go:L125](https://github.com/NethermindEth/starknet.go/blob/main/client/http.go#L125)
+
 #### Parameters
 
 - `endpoint` - The HTTP(S) URL of the JSON-RPC server
@@ -53,8 +55,10 @@ Creates a new JSON-RPC client connected via WebSocket to the given URL.
 #### Function Signature
 
 ```go
-func DialWebsocket(ctx context.Context, endpoint string, origin string) (*Client, error)
+func DialWebsocket(ctx context.Context, endpoint, origin string) (*Client, error)
 ```
+
+**Source:** [websocket.go:L222](https://github.com/NethermindEth/starknet.go/blob/main/client/websocket.go#L222)
 
 #### Parameters
 
@@ -104,6 +108,8 @@ Creates a new context with HTTP headers that will be applied by the Client when 
 ```go
 func NewContextWithHeaders(ctx context.Context, h http.Header) context.Context
 ```
+
+**Source:** [context_headers.go:L28](https://github.com/NethermindEth/starknet.go/blob/main/client/context_headers.go#L28)
 
 #### Parameters
 
@@ -171,6 +177,8 @@ Retrieves the request timeout from the given context.
 func ContextRequestTimeout(ctx context.Context) (time.Duration, bool)
 ```
 
+**Source:** [http.go:L377](https://github.com/NethermindEth/starknet.go/blob/main/client/http.go#L377)
+
 #### Parameters
 
 - `ctx` - Context to extract timeout from
@@ -220,6 +228,8 @@ Generates a new random ID for use with RPC subscriptions.
 func NewID() ID
 ```
 
+**Source:** [subscription.go:L57](https://github.com/NethermindEth/starknet.go/blob/main/client/subscription.go#L57)
+
 #### Returns
 
 - `ID` - A new unique identifier
@@ -257,6 +267,8 @@ Creates a new RPC server instance.
 ```go
 func NewServer() *Server
 ```
+
+**Source:** [server.go:L62](https://github.com/NethermindEth/starknet.go/blob/main/client/server.go#L62)
 
 #### Returns
 
@@ -310,6 +322,8 @@ Extracts a Notifier from the given context. This is used on the server side to s
 ```go
 func NotifierFromContext(ctx context.Context) (*Notifier, bool)
 ```
+
+**Source:** [subscription.go:L99](https://github.com/NethermindEth/starknet.go/blob/main/client/subscription.go#L99)
 
 #### Parameters
 
@@ -368,8 +382,10 @@ Extracts peer information from the given context. This is useful for identifying
 #### Function Signature
 
 ```go
-func PeerInfoFromContext(ctx context.Context) (*PeerInfo, bool)
+func PeerInfoFromContext(ctx context.Context) PeerInfo
 ```
+
+**Source:** [server.go:L277](https://github.com/NethermindEth/starknet.go/blob/main/client/server.go#L277)
 
 #### Parameters
 
@@ -377,8 +393,7 @@ func PeerInfoFromContext(ctx context.Context) (*PeerInfo, bool)
 
 #### Returns
 
-- `*PeerInfo` - Information about the peer connection
-- `bool` - True if peer info was found, false otherwise
+- `PeerInfo` - Information about the peer connection
 
 #### Usage Example
 
@@ -399,10 +414,7 @@ type AuthService struct{}
 // GetClientInfo returns information about the connected client
 func (s *AuthService) GetClientInfo(ctx context.Context) (map[string]string, error) {
     // Get peer info from context
-    peerInfo, ok := client.PeerInfoFromContext(ctx)
-    if !ok {
-        return nil, fmt.Errorf("no peer info available")
-    }
+    peerInfo := client.PeerInfoFromContext(ctx)
 
     info := map[string]string{
         "transport": peerInfo.Transport,
