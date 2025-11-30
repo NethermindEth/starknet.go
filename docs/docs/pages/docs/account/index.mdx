@@ -1,16 +1,56 @@
 # Account Package
 
-The account package handles Starknet account management, transaction building, signing, and execution. Use it to create accounts, send transactions, and manage cryptographic keys.
+The Account package provides comprehensive functionality for managing Starknet accounts, building and signing transactions, and executing contract interactions. This package is the primary interface for performing on-chain operations in Starknet applications.
 
-## What This Package Does
+## Overview
 
-- Create and manage Starknet accounts
-- Build, sign, and execute transactions (invoke, declare, deploy)
-- Estimate fees and manage resource bounds
-- Handle key storage through the Keystore interface
-- Support both Cairo 0 and Cairo 2 contracts
+Accounts in Starknet are smart contracts that manage authentication and authorization for transaction execution. Unlike Ethereum's Externally Owned Accounts (EOAs), Starknet uses Account Abstraction where every account is a contract with customizable validation logic.
 
-## Quick Start
+The account package lets you create and manage accounts, build and sign different types of transactions (invoke, declare, deploy), estimate fees using resource bounds for V3 transactions, and manage keys through a secure keystore interface. It works with both Cairo 0 and Cairo 2 contracts, giving you flexibility across different contract versions.
+
+## Key Components
+
+### Functions
+- [FmtCallDataCairo0](/docs/account/functions/fmt-calldata-cairo0) - Format calldata arrays for Cairo 0 contracts
+- [FmtCallDataCairo2](/docs/account/functions/fmt-calldata-cairo2) - Format calldata arrays for Cairo 2 contracts
+- [PrecomputeAccountAddress](/docs/account/functions/precompute-account-address) - Calculate account address before deployment
+
+### Methods
+- [NewAccount](/docs/account/methods/new-account) - Create a new account instance
+- [BuildAndEstimateDeployAccountTxn](/docs/account/methods/build-and-estimate-deploy-account-txn) - Build and estimate deploy account transaction
+- [BuildAndSendDeclareTxn](/docs/account/methods/build-and-send-declare-txn) - Declare a contract class
+- [BuildAndSendInvokeTxn](/docs/account/methods/build-and-send-invoke-txn) - Execute contract function calls
+- [DeployContractWithUDC](/docs/account/methods/deploy-contract-with-udc) - Deploy contracts using Universal Deployer Contract
+- [FmtCalldata](/docs/account/methods/fmt-calldata) - Format calldata based on account Cairo version
+- [Nonce](/docs/account/methods/nonce) - Get current account nonce
+- [SendTransaction](/docs/account/methods/send-transaction) - Send a signed transaction
+- [Sign](/docs/account/methods/sign) - Sign a message hash
+- [SignDeclareTransaction](/docs/account/methods/sign-declare-transaction) - Sign declare transactions
+- [SignDeployAccountTransaction](/docs/account/methods/sign-deploy-account-transaction) - Sign deploy account transactions
+- [SignInvokeTransaction](/docs/account/methods/sign-invoke-transaction) - Sign invoke transactions
+- [TransactionHashDeclare](/docs/account/methods/transaction-hash-declare) - Calculate declare transaction hash
+- [TransactionHashDeployAccount](/docs/account/methods/transaction-hash-deploy-account) - Calculate deploy account transaction hash
+- [TransactionHashInvoke](/docs/account/methods/transaction-hash-invoke) - Calculate invoke transaction hash
+- [Verify](/docs/account/methods/verify) - Verify ECDSA signature
+- [WaitForTransactionReceipt](/docs/account/methods/wait-for-transaction-receipt) - Wait for transaction confirmation
+
+### Keystore
+- [GetRandomKeys](/docs/account/keystore/get-random-keys) - Generate random key pairs for testing
+- [NewMemKeystore](/docs/account/keystore/new-mem-keystore) - Create empty in-memory keystore
+- [Get](/docs/account/keystore/get) - Retrieve private key from keystore
+- [Put](/docs/account/keystore/put) - Store private key in keystore
+- [Sign](/docs/account/keystore/sign) - Sign message hash with stored key
+- [SetNewMemKeystore](/docs/account/keystore/set-new-mem-keystore) - Create keystore with initial key pair
+
+## Getting Started
+
+To use the Account package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/account"
+```
+
+## Quick Example
 
 ```go
 package main
@@ -26,25 +66,19 @@ import (
 )
 
 func main() {
-	// Create RPC provider
 	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Generate random keys for testing
-	ks, pubKey, privKey := account.GetRandomKeys()
-	fmt.Printf("Public Key: %s\n", pubKey.String())
-	fmt.Printf("Private Key: %s\n", privKey.String())
-
-	// Create account
+	ks, pubKey, _ := account.GetRandomKeys()
 	accountAddress, _ := felt.SetString("0x1234...")
+
 	acc, err := account.NewAccount(provider, accountAddress, pubKey.String(), ks, account.CairoV2)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Get nonce
 	nonce, err := acc.Nonce(context.Background())
 	if err != nil {
 		log.Fatal(err)
@@ -53,200 +87,95 @@ func main() {
 }
 ```
 
-**See Also:**
-- [Deploy Account example](/docs/examples/deploy-account) - Deploy a new account
-- [Invoke Contract example](/docs/examples/invoke) - Send transactions
-- [Deploy with UDC example](/docs/examples/deploy-contract-udc) - Deploy contracts
+For more examples, see the [Examples page](/docs/examples).
 
-## Package Structure
+## How Accounts Work in Starknet
 
-### [Functions](./functions.mdx)
+### Account Abstraction
 
-Standalone functions for calldata formatting, address computation, and key management:
+Starknet implements native Account Abstraction, meaning every account is a smart contract. Each account can define its own signature validation logic, allowing for different authentication methods like ECDSA, Schnorr signatures, or even multisig setups. Accounts can also implement session keys for temporary authorization of specific operations, and since they're contracts, they can be upgraded to add new features over time.
 
-- `FmtCallDataCairo0` / `FmtCallDataCairo2` - Format calldata for Cairo versions
-- `PrecomputeAccountAddress` - Calculate address before deployment
-- `GetRandomKeys` - Generate key pairs for testing
-- `NewMemKeystore` / `SetNewMemKeystore` - Create in-memory keystores
+The account package handles these complexities for you while still giving you full control over how transactions are signed and executed.
 
-### [Keystore](./keystore.mdx)
+### Transaction Lifecycle
 
-Key management interface and implementations:
+Every transaction in Starknet goes through five steps. First, you build the transaction with its calldata, nonce, and resource bounds. Then you calculate the transaction hash that needs to be signed. Next, you generate an ECDSA signature over that hash. After that, you broadcast the signed transaction to the network. Finally, you poll for the transaction receipt to confirm it was processed.
 
-- `Keystore` interface - Define custom key storage
-- `MemKeystore` - In-memory keystore for development
+The account package gives you methods for each individual step if you need fine control, or convenience methods like `BuildAndSendInvokeTxn` that handle multiple steps automatically.
 
-### [Methods](./methods.mdx)
+### Transaction Types
 
-Account methods for transactions and cryptographic operations:
+Starknet supports three main transaction types. Invoke transactions execute one or more contract function calls in a single transaction. Declare transactions register new contract classes on-chain so they can be deployed later. Deploy Account transactions create new account contracts at a precomputed address.
 
-- `BuildAndSendInvokeTxn` - Execute contract functions
-- `BuildAndSendDeclareTxn` - Declare contract classes
-- `Sign` / `SignInvokeTransaction` / `SignDeclareTransaction` - Sign messages and transactions
-- `TransactionHashInvoke` / `TransactionHashDeclare` - Calculate transaction hashes
-- `Nonce` - Get account nonce
-- `Verify` - Verify signatures
-- `WaitForTransactionReceipt` - Wait for confirmation
+Each transaction type has different versions (V0, V1, V2, V3) with their own fee mechanisms and data structures. Newer versions generally provide better fee estimation and more granular control over gas costs.
 
-### [Types](./types.mdx)
+### Resource Bounds (V3 Transactions)
 
-Type definitions and structures:
-
-- `Account` - Main account structure
-- `AccountInterface` - Account interface
-- `CairoVersion` - Cairo version constants
-- `TxnOptions` - Transaction configuration
-- `UDCOptions` - Universal Deployer Contract options
-
-## Key Features
-
-### Transaction Handling
-
-Build, sign, and send transactions with automatic nonce management and fee estimation:
+Transaction V3 introduces resource bounds that let you set precise limits on fees. You can specify the maximum amount of resources (L1 Gas, L2 Gas, L1 Data Gas) your transaction can consume and the maximum price per unit you're willing to pay. This prevents unexpected fee spikes and gives you much better control over transaction costs.
 
 ```go
-// Simple invoke
-resp, err := accnt.BuildAndSendInvokeTxn(
-    context.Background(),
-    []rpc.InvokeFunctionCall{fnCall},
-    nil,
-)
+resourceBounds := &rpc.ResourceBoundsMapping{
+    L1Gas: rpc.ResourceBounds{
+        MaxAmount:       "0x100000",
+        MaxPricePerUnit: "0x2540be400",
+    },
+    L2Gas: rpc.ResourceBounds{
+        MaxAmount:       "0x0",
+        MaxPricePerUnit: "0x0",
+    },
+}
 ```
 
-See the [Invoke example](/docs/examples/invoke) for both simple and detailed approaches.
+## Choosing the Right Approach
 
-### Fee Estimation
+### High-Level vs Low-Level Methods
 
-Estimate fees before sending transactions:
+The account package provides both convenience methods and granular control. Use the `BuildAndSend` methods when you want automatic nonce management and fee estimation with standard transaction settings. These methods handle everything in one call and work well for most applications.
 
-```go
-feeEst, err := accnt.EstimateFee(
-    context.Background(),
-    []rpc.BroadcastTxn{invokeTxn},
-    []rpc.SimulationFlag{},
-    rpc.WithBlockTag("latest"),
-)
-```
+Use manual construction when you need precise control over resource bounds and fees, want to inspect or modify transactions before sending them, or need to implement custom transaction batching logic. Manual construction also helps when you need to separate the building, signing, and sending steps for your specific workflow.
 
-### Key Management
+### Keystore Implementations
 
-The Keystore interface allows custom key storage implementations. Use `MemKeystore` for development or implement your own for production:
+Use `MemKeystore` when you're developing and testing locally, building CLI tools, or prototyping where keys are generated per-session and don't need to persist. It's simple and works great for development.
 
-```go
-// Create keystore
-ks := account.NewMemKeystore()
-
-// Store keys
-ks.Put(publicKey, privateKey)
-
-// Use with account
-acc, err := account.NewAccount(provider, address, pubKey, ks, account.CairoV2)
-```
-
-### Cairo Version Support
-
-Supports both Cairo 0 and Cairo 2 contract formats with automatic calldata formatting:
-
-```go
-// Cairo 2 account
-acc, _ := account.NewAccount(provider, address, pubKey, ks, account.CairoV2)
-
-// Cairo 0 account
-acc, _ := account.NewAccount(provider, address, pubKey, ks, account.CairoV0)
-```
+Implement a custom keystore when building production applications that need secure key storage, integrating with hardware wallets or HSMs, implementing multi-signature schemes, or when keys need to persist across sessions with proper encryption.
 
 ## Common Workflows
 
 ### Deploy a New Account
 
-```go
-// 1. Generate keys
-ks, pubKey, _ := account.GetRandomKeys()
+First generate keys and precompute the address where your account will live. Then fund that precomputed address using a faucet or by transferring tokens to it. Once funded, build and send the deploy account transaction. Finally, wait for confirmation that the account was deployed successfully.
 
-// 2. Precompute address
-address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata)
-
-// 3. Fund the address (use faucet or transfer)
-
-// 4. Build and send deploy transaction
-deployTx, precomputedAddr, err := acc.BuildAndEstimateDeployAccountTxn(
-    context.Background(),
-    pubKey,
-    classHash,
-    constructorCalldata,
-    1.5,
-)
-resp, err := acc.SendTransaction(context.Background(), deployTx)
-```
-
-See the [Deploy Account example](/docs/examples/deploy-account) for the complete flow.
+See the [Deploy Account example](/docs/examples/deploy-account) for complete implementation.
 
 ### Execute Contract Function
 
-```go
-// Build function call
-fnCall := rpc.InvokeFunctionCall{
-    ContractAddress: contractAddr,
-    FunctionName:    "transfer",
-    CallData:        calldata,
-}
+Build an invoke function call with the contract address and your calldata. Send the transaction using `BuildAndSendInvokeTxn` which handles nonce management and signing automatically. Wait for the transaction receipt to confirm execution.
 
-// Send transaction
-resp, err := acc.BuildAndSendInvokeTxn(
-    context.Background(),
-    []rpc.InvokeFunctionCall{fnCall},
-    nil,
-)
-
-// Wait for confirmation
-receipt, err := acc.WaitForTransactionReceipt(context.Background(), resp.Hash, time.Second)
-```
+See the [Invoke example](/docs/examples/invoke) for detailed walkthrough.
 
 ### Declare Contract Class
 
-```go
-// Load contract files
-casmClass, err := utils.UnmarshalJSONFileToType[contracts.CasmClass]("contract.casm.json", "")
-contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass]("contract.sierra.json", "")
+Load your compiled contract files (both the .casm.json and .sierra.json). Build and send the declare transaction which registers the contract class on-chain. The response includes the class hash you'll use to deploy instances of this contract later.
 
-// Declare
-resp, err := acc.BuildAndSendDeclareTxn(
-    context.Background(),
-    casmClass,
-    contractClass,
-    nil,
-)
-```
+See the [Declare example](/docs/examples/simple-declare) for step-by-step guide.
 
-See the [Declare example](/docs/examples/simple-declare) for details.
+## Use Cases
 
-## Installation
+You can use the account package to build web3 applications that interact with Starknet contracts, create and manage user accounts with custom validation logic, or build bots and automation tools for contract interactions. It handles contract deployment and management, lets you execute multiple contract calls in a single transaction, and supports paymaster patterns for gasless transactions. It's also essential for creating test accounts and executing transactions in development environments.
 
-```bash
-go get github.com/NethermindEth/starknet.go
-```
+## Understanding Nonces and Replay Protection
 
-## Import
+Every account maintains a nonce (number used once) that increments with each transaction. This prevents replay attacks where an attacker could re-broadcast a signed transaction. Nonces must be sequential starting from 0, and each transaction consumes exactly one nonce. If you try to send a transaction with the wrong nonce, the network will reject it. The `Nonce` method retrieves the current nonce from on-chain state.
 
-```go
-import "github.com/NethermindEth/starknet.go/account"
-```
+The `BuildAndSend` methods automatically fetch and use the correct nonce for you. When using manual construction, you need to track and manage nonces yourself.
 
-## Related Packages
+:::note
+See the [Examples page](/docs/examples) for comprehensive examples covering complete account deployment workflows, invoke transaction patterns for ERC20 transfers and contract interactions, declare and deploy contract workflows, multi-call transactions, paymaster integration for fee abstraction, and WebSocket integration for real-time transaction monitoring.
+:::
 
-- **[RPC Package](/docs/rpc/)** - Low-level RPC operations (accounts are built on RPC)
-- **[Curve Package](/docs/curve/)** - Cryptographic operations for signing
-- **[Hash Package](/docs/hash/)** - Transaction hash calculations
-- **[Utils Package](/docs/utils/)** - Helper functions for conversions
+:::tip
+Best Practices
 
-## Examples
-
-- **[Deploy Account](/docs/examples/deploy-account)** - Deploy a new account
-- **[Invoke Contract](/docs/examples/invoke)** - Execute contract functions
-- **[Deploy with UDC](/docs/examples/deploy-contract-udc)** - Deploy contracts using UDC
-- **[Declare Contract](/docs/examples/simple-declare)** - Declare contract classes
-- **[Paymaster](/docs/examples/paymaster)** - Use paymasters for fee abstraction
-
-## Reference
-
-Full API reference: [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/account)
+Always use `BuildAndSend` methods unless you need precise control over transaction parameters. Store private keys securely and never commit them to version control or expose them in logs. Use resource bounds (V3) to cap maximum fees and prevent unexpected costs. Wait for transaction confirmation using `WaitForTransactionReceipt` before assuming success. For production applications, implement a custom Keystore with encryption and secure storage. Test with Starknet Sepolia testnet before deploying to mainnet.
+:::

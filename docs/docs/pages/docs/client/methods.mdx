@@ -14,6 +14,8 @@ Performs a JSON-RPC call with the given arguments and unmarshals the result into
 func (c *Client) Call(result interface{}, method string, args ...interface{}) error
 ```
 
+**Source:** [client.go:L340](https://github.com/NethermindEth/starknet.go/blob/main/client/client.go#L340)
+
 #### Parameters
 
 - `result` - Pointer to variable where the result will be unmarshaled
@@ -65,15 +67,17 @@ Performs a JSON-RPC call with context support for cancellation and timeout.
 #### Method Signature
 
 ```go
-func (c *Client) CallContext(ctx context.Context, result interface{}, method string, args ...interface{}) error
+func (c *Client) CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
 ```
+
+**Source:** [client.go:L359](https://github.com/NethermindEth/starknet.go/blob/main/client/client.go#L359)
 
 #### Parameters
 
 - `ctx` - Context for request cancellation and timeout
 - `result` - Pointer to variable where the result will be unmarshaled
 - `method` - The JSON-RPC method name to call
-- `args` - Variable number of arguments to pass to the method
+- `args` - Arguments to pass to the method (single interface{} that can be a struct or other type)
 
 #### Returns
 
@@ -163,6 +167,8 @@ Sends multiple RPC requests in a single batch and waits for the server response.
 ```go
 func (c *Client) BatchCall(b []BatchElem) error
 ```
+
+**Source:** [client.go:L408](https://github.com/NethermindEth/starknet.go/blob/main/client/client.go#L408)
 
 #### Parameters
 
@@ -301,9 +307,11 @@ func (c *Client) Subscribe(
     namespace string,
     methodSuffix string,
     channel interface{},
-    args ...interface{},
+    args interface{},
 ) (*ClientSubscription, error)
 ```
+
+**Source:** [client.go:L541](https://github.com/NethermindEth/starknet.go/blob/main/client/client.go#L541)
 
 #### Parameters
 
@@ -311,7 +319,7 @@ func (c *Client) Subscribe(
 - `namespace` - The RPC namespace (e.g., "starknet")
 - `methodSuffix` - The subscription method suffix (e.g., "subscribeNewHeads")
 - `channel` - Channel to receive notifications (must be a channel type)
-- `args` - Additional arguments for the subscription
+- `args` - Arguments for the subscription (single interface{} that can be a struct or other type)
 
 #### Returns
 
@@ -467,6 +475,8 @@ Closes the client connection and aborts any in-flight requests.
 func (c *Client) Close()
 ```
 
+**Source:** [client.go:L311](https://github.com/NethermindEth/starknet.go/blob/main/client/client.go#L311)
+
 #### Usage Example
 
 ```go
@@ -524,6 +534,8 @@ Cancels the subscription and closes the notification channel.
 func (sub *ClientSubscription) Unsubscribe()
 ```
 
+**Source:** [subscription.go:L280](https://github.com/NethermindEth/starknet.go/blob/main/client/subscription.go#L280)
+
 #### Usage Example
 
 ```go
@@ -547,6 +559,8 @@ Returns a channel that receives the subscription error.
 ```go
 func (sub *ClientSubscription) Err() <-chan error
 ```
+
+**Source:** [subscription.go:L268](https://github.com/NethermindEth/starknet.go/blob/main/client/subscription.go#L268)
 
 #### Returns
 

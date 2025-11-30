@@ -1,12 +1,14 @@
 # Get
 
-Retrieves a private key from the keystore.
+Retrieves a private key from the MemKeystore by its identifier (typically the public key as a hex string). The method is thread-safe and returns an error if the key doesn't exist.
 
 ## Method Signature
 
 ```go
 func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error)
 ```
+
+**Source:** [keystore.go:L78](https://github.com/NethermindEth/starknet.go/blob/main/account/keystore.go#L78)
 
 ## Parameters
 
@@ -23,121 +25,43 @@ func (ks *MemKeystore) Get(senderAddress string) (*big.Int, error)
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/NethermindEth/starknet.go/account"
 )
 
 func main() {
-	// Create a keystore and add some keys
+	ctx := context.Background()
+
+	pubKey := "0x3b8abf14ab2632589812dd0ca906cc314afe293e8d69a5852af0178859ab053"
+	privKey, _ := new(big.Int).SetString("0x1e7fcb94882a17e2313ddb9d5f037c33cc17601703f7e41c47bbbcc426d0b10", 0)
+
 	ks := account.NewMemKeystore()
+	ks.Put(pubKey, privKey)
+	fmt.Printf("Put: Added key to keystore\n")
+	fmt.Printf("  Public Key:  %s\n\n", pubKey)
 
-	// Add keys to the keystore
-	pubKey1 := "0x0123456789abcdef"
-	privKey1 := new(big.Int).SetUint64(11111)
-	ks.Put(pubKey1, privKey1)
-
-	pubKey2 := "0xfedcba9876543210"
-	privKey2 := new(big.Int).SetUint64(22222)
-	ks.Put(pubKey2, privKey2)
-
-	pubKey3 := "0xaabbccddeeff0011"
-	privKey3 := new(big.Int).SetUint64(33333)
-	ks.Put(pubKey3, privKey3)
-
-	fmt.Println("Keystore populated with 3 keys")
-
-	// Get existing keys
-	fmt.Println("\nRetrieving existing keys:")
-
-	key1, err := ks.Get(pubKey1)
+	retrievedKey, err := ks.Get(pubKey)
 	if err != nil {
-		fmt.Printf("Error getting key 1: %v\n", err)
-	} else {
-		fmt.Printf("Key 1 (public: %s): %s\n", pubKey1, key1)
+		log.Fatal("Get failed:", err)
+	}
+	fmt.Printf("Get: Retrieved private key\n")
+	fmt.Printf("  Match: %v\n\n", retrievedKey.Cmp(privKey) == 0)
+
+	msgHash := new(big.Int).SetUint64(12345)
+	r, s, err := ks.Sign(ctx, pubKey, msgHash)
+	if err != nil {
+		log.Fatal("Sign failed:", err)
 	}
 
-	key2, err := ks.Get(pubKey2)
-	if err != nil {
-		fmt.Printf("Error getting key 2: %v\n", err)
-	} else {
-		fmt.Printf("Key 2 (public: %s): %s\n", pubKey2, key2)
-	}
-
-	key3, err := ks.Get(pubKey3)
-	if err != nil {
-		fmt.Printf("Error getting key 3: %v\n", err)
-	} else {
-		fmt.Printf("Key 3 (public: %s): %s\n", pubKey3, key3)
-	}
-
-	// Try to get non-existent keys
-	fmt.Println("\nAttempting to retrieve non-existent keys:")
-
-	_, err = ks.Get("0xnonexistent")
-	if err != nil {
-		fmt.Printf("Error for '0xnonexistent': %v\n", err)
-	}
-
-	_, err = ks.Get("")
-	if err != nil {
-		fmt.Printf("Error for empty string: %v\n", err)
-	}
-
-	_, err = ks.Get("0x0000000000000000")
-	if err != nil {
-		fmt.Printf("Error for '0x0000000000000000': %v\n", err)
-	}
-
-	// Verify keys are retrieved correctly
-	fmt.Println("\nVerifying retrieved keys match original:")
-	fmt.Printf("Key 1 matches: %v\n", key1.String() == privKey1.String())
-	fmt.Printf("Key 2 matches: %v\n", key2.String() == privKey2.String())
-	fmt.Printf("Key 3 matches: %v\n", key3.String() == privKey3.String())
-
-	// Test case sensitivity
-	fmt.Println("\nTesting case sensitivity:")
-
-	// Try uppercase version of existing key
-	upperKey := "0X0123456789ABCDEF"
-	_, err = ks.Get(upperKey)
-	if err != nil {
-		fmt.Printf("Uppercase key not found (keys are case-sensitive): %v\n", err)
-	}
-
-	// Mixed case
-	mixedKey := "0x0123456789AbCdEf"
-	_, err = ks.Get(mixedKey)
-	if err != nil {
-		fmt.Printf("Mixed case key not found (keys are case-sensitive): %v\n", err)
-	}
+	fmt.Printf("Sign: Signed message hash\n")
+	fmt.Printf("  Message: %s\n", msgHash.String())
+	fmt.Printf("  Signature r: %s\n", r.String())
+	fmt.Printf("  Signature s: %s\n", s.String())
 }
-```
-
-## Expected Output
-
-```
-Keystore populated with 3 keys
-
-Retrieving existing keys:
-Key 1 (public: 0x0123456789abcdef): 11111
-Key 2 (public: 0xfedcba9876543210): 22222
-Key 3 (public: 0xaabbccddeeff0011): 33333
-
-Attempting to retrieve non-existent keys:
-Error for '0xnonexistent': error getting key for sender 0xnonexistent: sender does not exist
-Error for empty string: error getting key for sender : sender does not exist
-Error for '0x0000000000000000': error getting key for sender 0x0000000000000000: sender does not exist
-
-Verifying retrieved keys match original:
-Key 1 matches: true
-Key 2 matches: true
-Key 3 matches: true
-
-Testing case sensitivity:
-Uppercase key not found (keys are case-sensitive): error getting key for sender 0X0123456789ABCDEF: sender does not exist
-Mixed case key not found (keys are case-sensitive): error getting key for sender 0x0123456789AbCdEf: sender does not exist
 ```
 
 ## Error Handling
@@ -145,20 +69,15 @@ Mixed case key not found (keys are case-sensitive): error getting key for sender
 ```go
 key, err := ks.Get(publicKey)
 if err != nil {
-	if errors.Is(err, account.ErrSenderNoExist) {
-		// Handle missing key
-		fmt.Println("Key not found")
-	}
+	// Handle key not found error
 	return err
 }
 ```
 
-## Description
+## Common Use Cases
 
-Get retrieves a private key from the MemKeystore by its identifier (typically the public key as a hex string). The method is thread-safe.
-
-## Related Methods
-
-- [Put](./put.mdx) - Store keys in keystore
-- [Sign](./sign.mdx) - Sign using stored keys
-- [NewMemKeystore](./new-mem-keystore.mdx) - Create keystore
+- Retrieving private keys for signing operations
+- Verifying that a key exists in the keystore before use
+- Loading keys from keystore for account operations
+- Validating key storage after Put operations
+- Managing multiple account keys from a single keystore
