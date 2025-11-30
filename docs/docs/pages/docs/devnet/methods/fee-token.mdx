@@ -82,14 +82,6 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-Fee Token Information:
-  Symbol:  ETH
-  Address: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-```
-
 ## Use Cases
 
 ### Query Fee Token Contract
@@ -203,8 +195,3 @@ fmt.Printf("Minted %s %s\n", response.NewBalance, response.Unit)
 - Used for paying transaction fees on DevNet
 - Can be queried and transferred like any ERC-20 token
 
-## Related Methods
-
-- [Mint](./mint.mdx) - Mint fee tokens to an address
-- [Accounts](./accounts.mdx) - Get accounts that hold fee tokens
-- [IsAlive](./is-alive.mdx) - Verify DevNet is running

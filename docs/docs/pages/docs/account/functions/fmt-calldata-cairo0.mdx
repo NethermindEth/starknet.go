@@ -1,3 +1,5 @@
+
+
 # FmtCallDataCairo0
 
 Formats function calls into calldata for Cairo 0 contracts.
@@ -75,28 +77,6 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-Formatted calldata length: 9
-
-Calldata structure:
-  Number of calls: 0x1
-  First call contract: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-  First call selector: 0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
-
-Full calldata array:
-  [0]: 0x1
-  [1]: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-  [2]: 0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
-  [3]: 0x0
-  [4]: 0x3
-  [5]: 0x3
-  [6]: 0x1234567890abcdef
-  [7]: 0x64
-  [8]: 0x0
-```
-
 ## Error Handling
 
 This function doesn't return an error. Ensure the function calls array is properly populated before calling.
@@ -117,7 +97,3 @@ calldata := account.FmtCallDataCairo0(functionCalls)
 - Convert function calls to the Cairo 0 calldata format required by older account contracts
 - Use when interacting with Cairo 0 account contracts that expect the legacy calldata structure
 
-## Related Methods
-
-- [FmtCallDataCairo2](/docs/account/functions/fmt-calldata-cairo2) - Format calldata for Cairo 2 contracts
-- [Account.FmtCalldata](/docs/account/methods/fmt-calldata) - Automatically formats based on account's Cairo version
