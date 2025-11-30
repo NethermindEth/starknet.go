@@ -1,103 +1,56 @@
-# SendTransaction
-
-Sends a pre-built and signed V3 transaction to the network. This is a low-level method that provides a unified way to send Invoke, Declare, and Deploy Account transactions. Most users should use the higher-level methods like BuildAndSendInvokeTxn or BuildAndSendDeclareTxn instead.
-
-## Method Signature
-
-```go
-func (account *Account) SendTransaction(
-	ctx context.Context,
-	txn rpc.BroadcastTxn,
-) (rpc.TransactionResponse, error)
-```
-
-**Source:** [transaction.go:L360-L429](https://github.com/NethermindEth/starknet.go/blob/main/account/transaction.go#L360-L429)
-
-## Parameters
-
-- `ctx` (context.Context): Context for cancellation and timeout
-- `txn` (rpc.BroadcastTxn): Pre-built V3 transaction (BroadcastInvokeTxnV3, BroadcastDeclareTxnV3, or BroadcastDeployAccountTxnV3)
-
-## Returns
-
-- `rpc.TransactionResponse`: Response containing transaction hash and optional class hash or contract address
-- `error`: Error if sending fails or transaction type is unsupported
-
-## TransactionResponse Structure
-
-**Source:** [types_transaction_response.go:L23-L30](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L23-L30)
-
-The returned response contains:
-
-```go
-type TransactionResponse struct {
-	Hash            *felt.Felt `json:"transaction_hash"`
-	ClassHash       *felt.Felt `json:"class_hash,omitempty"`
-	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
-}
-```
-
-**Fields:**
-- `Hash` (*felt.Felt): Transaction hash (present for all transaction types)
-- `ClassHash` (*felt.Felt): Class hash (present only for declare transactions)
-- `ContractAddress` (*felt.Felt): Contract address (present only for deploy account transactions)
-
-## Usage Example
-
-```go
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
 	ctx := context.Background()
-
+ 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Failed to load .env file:", err)
 	}
-
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
 		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
-
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
 		log.Fatal("Failed to create provider:", err)
 	}
-
+ 
 	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
 	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
 	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
-
+ 
 	if accountAddress == "" || publicKey == "" || privateKey == "" {
 		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
 	}
-
+ 
 	ks := account.NewMemKeystore()
 	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
 	if !ok {
 		log.Fatal("Failed to parse private key")
 	}
 	ks.Put(publicKey, privKeyBI)
-
+ 
 	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
 		log.Fatal("Failed to parse account address:", err)
 	}
-
+ 
 	accnt, err := account.NewAccount(
 		provider,
 		accountAddressFelt,
@@ -108,27 +61,27 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to create account:", err)
 	}
-
+ 
 	nonce, err := accnt.Nonce(ctx)
 	if err != nil {
 		log.Fatal("Failed to get nonce:", err)
 	}
-
+ 
 	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
 	amount := new(felt.Felt).SetUint64(1)
 	u256Amount, _ := utils.HexToU256Felt(amount.String())
-
+ 
 	fnCall := rpc.FunctionCall{
 		ContractAddress:    strkContract,
 		EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
 		Calldata:           append([]*felt.Felt{accountAddressFelt}, u256Amount...),
 	}
-
+ 
 	calldata, err := accnt.FmtCalldata([]rpc.FunctionCall{fnCall})
 	if err != nil {
 		log.Fatal("Failed to format calldata:", err)
 	}
-
+ 
 	invokeTx := utils.BuildInvokeTxn(
 		accnt.Address,
 		nonce,
@@ -149,12 +102,12 @@ func main() {
 		},
 		nil,
 	)
-
+ 
 	err = accnt.SignInvokeTransaction(ctx, invokeTx)
 	if err != nil {
 		log.Fatal("Failed to sign for estimation:", err)
 	}
-
+ 
 	feeRes, err := accnt.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{invokeTx},
@@ -164,48 +117,18 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to estimate fee:", err)
 	}
-
+ 
 	invokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
-
+ 
 	err = accnt.SignInvokeTransaction(ctx, invokeTx)
 	if err != nil {
 		log.Fatal("Failed to sign final transaction:", err)
 	}
-
+ 
 	response, err := accnt.SendTransaction(ctx, invokeTx)
 	if err != nil {
 		log.Fatal("Failed to send transaction:", err)
 	}
-
+ 
 	fmt.Printf("Transaction Hash: %s\n", response.Hash.String())
 }
-```
-
-:::note
-Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
-:::
-
-## Error Handling
-
-```go
-response, err := acc.SendTransaction(ctx, txn)
-if err != nil {
-	switch {
-	case errors.Is(err, account.ErrUnsupportedTransactionType):
-		log.Println("Transaction must be a V3 transaction")
-	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
-		log.Println("Insufficient balance to pay transaction fees")
-	default:
-		log.Printf("Failed to send transaction: %v", err)
-	}
-	return
-}
-```
-
-## Common Use Cases
-
-- Send pre-built deploy account transactions after funding the precomputed address
-- Send manually constructed and signed transactions for advanced workflows
-- Low-level transaction sending when you need complete control over transaction construction
-- Usually handled automatically by BuildAndSendInvokeTxn and BuildAndSendDeclareTxn
-- Advanced users building custom transaction flows with manual signing

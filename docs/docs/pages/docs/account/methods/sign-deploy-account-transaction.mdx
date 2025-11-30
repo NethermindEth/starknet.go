@@ -1,6 +1,6 @@
 # SignDeployAccountTransaction
 
-Signs a deploy account transaction.
+Signs a deploy account transaction using the account's private key. This method computes the transaction hash based on the deploy account version, signs it, and attaches the signature to the transaction, making it ready for broadcasting.
 
 ## Method Signature
 
@@ -11,6 +11,8 @@ func (account *Account) SignDeployAccountTransaction(
 	precomputeAddress *felt.Felt,
 ) error
 ```
+
+**Source:** [signature.go:L104-L127](https://github.com/NethermindEth/starknet.go/blob/main/account/signature.go#L104-L127)
 
 ## Parameters
 
@@ -24,8 +26,6 @@ func (account *Account) SignDeployAccountTransaction(
 
 ## Usage Example
 
-> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
-
 ```go
 package main
 
@@ -33,80 +33,141 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance
-	var acc *account.Account
-	// acc = ... (already initialized)
+	ctx := context.Background()
 
-	// Create a deploy account transaction V1
-	classHash, _ := new(felt.Felt).SetString("0x04c6d6cf894f8bc96bb9c525e6853e5483177841f7388f74a46cfda6f028c755")
-	contractAddressSalt, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
-	pubKey, _ := new(felt.Felt).SetString("0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2")
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
+	}
 
-	deployAccountTx := &rpc.DeployAccountTxnV1{
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
+	}
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	classHash, _ := utils.HexToFelt("0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
+	salt := new(felt.Felt).SetUint64(12345)
+	newAccountPubKey, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	constructorCalldata := []*felt.Felt{newAccountPubKey}
+
+	precomputedAddress := contracts.PrecomputeAddress(
+		new(felt.Felt).SetUint64(0),
+		salt,
+		classHash,
+		constructorCalldata,
+	)
+
+	fmt.Printf("Class Hash:       %s\n", classHash.String())
+	fmt.Printf("Salt:             %s\n", salt.String())
+	fmt.Printf("Public Key:       %s\n", newAccountPubKey.String())
+	fmt.Printf("Precomputed Addr: %s\n\n", precomputedAddress.String())
+
+	deployTxn := &rpc.DeployAccountTxnV3{
 		Type:                rpc.TransactionTypeDeployAccount,
-		MaxFee:              new(felt.Felt).SetUint64(1000000000000),
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{}, // Empty before signing
+		Version:             rpc.TransactionV3,
 		Nonce:               new(felt.Felt).SetUint64(0),
 		ClassHash:           classHash,
-		ContractAddressSalt: contractAddressSalt,
-		ConstructorCalldata: []*felt.Felt{pubKey},
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		ResourceBounds: &rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+		},
+		Tip:           "0x0",
+		PayMasterData: []*felt.Felt{},
+		NonceDataMode: rpc.DAModeL1,
+		FeeMode:       rpc.DAModeL1,
+		Signature:     []*felt.Felt{},
 	}
 
-	// Precompute the contract address (required for signing)
-	precomputedAddress, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
+	fmt.Printf("Nonce:            %d\n", deployTxn.Nonce.Uint64())
+	fmt.Printf("Signature (before): %v\n\n", deployTxn.Signature)
 
-	fmt.Printf("Before signing - Signature length: %d\n", len(deployAccountTx.Signature))
+	newAcctKs := account.NewMemKeystore()
+	newPrivKey := new(big.Int).SetBytes([]byte("temp_private_key_for_demo"))
+	newAcctKs.Put(newAccountPubKey.String(), newPrivKey)
 
-	// Sign the transaction
-	ctx := context.Background()
-	err := acc.SignDeployAccountTransaction(ctx, deployAccountTx, precomputedAddress)
+	newAcct, err := account.NewAccount(
+		provider,
+		precomputedAddress,
+		newAccountPubKey.String(),
+		newAcctKs,
+		account.CairoV2,
+	)
 	if err != nil {
-		log.Fatalf("Error signing transaction: %v", err)
+		log.Fatal("Failed to create new account instance:", err)
 	}
 
-	fmt.Printf("After signing - Signature length: %d\n", len(deployAccountTx.Signature))
-	for i, sig := range deployAccountTx.Signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	err = newAcct.SignDeployAccountTransaction(ctx, deployTxn, precomputedAddress)
+	if err != nil {
+		log.Fatal("Failed to sign deploy account transaction:", err)
 	}
+
+	fmt.Printf("Signature components:\n")
+	fmt.Printf("  r: %s\n", deployTxn.Signature[0].String())
+	fmt.Printf("  s: %s\n", deployTxn.Signature[1].String())
 }
 ```
 
-## Expected Output
-
-```
-Before signing - Signature length: 0
-After signing - Signature length: 2
-Signature[0]: 0xe1fbadfdeb9d9b7d5ed7e67f9ad8da26520420e2f240e17f363a312ef29505
-Signature[1]: 0x75fe32500627a2642e01b73a7a43168905e437b61f070ee2e557124ce679298
-```
-
-## Description
-
-SignDeployAccountTransaction signs a deploy account transaction by:
-1. Calculating the transaction hash using [TransactionHashDeployAccount](./transaction-hash-deploy-account) with the precomputed address
-2. Signing the hash with the account's private key (see [Sign](./sign) for signing details)
-3. Setting the `Signature` field on the transaction with the resulting (r, s) signature components
-
-The precomputed address is required because the account doesn't exist on-chain yet. See [PrecomputeAccountAddress](../functions/precompute-account-address) for address calculation.
-
-> For conceptual details about transaction signing, see [Transaction Signing Concepts](/docs/account/concepts/transaction-signing).
-
-**Note**: Typically handled automatically by [BuildAndEstimateDeployAccountTxn](./build-and-estimate-deploy-account-txn), which manages address computation, transaction creation, signing, and submission.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
-Common errors include invalid transaction type, hash calculation failure, or signing failure. See [Transaction Signing Concepts - Error Handling](/docs/account/concepts/transaction-signing#error-handling) for detailed error scenarios and handling patterns.
+```go
+err := accnt.SignDeployAccountTransaction(ctx, deployAccountTx, precomputedAddress)
+if err != nil {
+	// Handle signing errors
+	return err
+}
+```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndEstimateDeployAccountTxn](./build-and-estimate-deploy-account-txn.mdx) - Handles signing automatically
-- [TransactionHashDeployAccount](./transaction-hash-deploy-account.mdx) - Calculate hash
-- [PrecomputeAccountAddress](../functions/precompute-account-address.mdx) - Calculate precomputed address
+- Manual signing workflow when building deploy account transactions from scratch
+- Custom fee estimation logic requiring separate signing steps
+- Multi-signature coordination where signatures need to be collected independently
+- Testing and debugging deploy account transaction flows
+- Advanced workflows requiring fine-grained control over transaction construction and signing

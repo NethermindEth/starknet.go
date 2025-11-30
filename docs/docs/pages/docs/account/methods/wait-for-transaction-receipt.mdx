@@ -1,6 +1,6 @@
 # WaitForTransactionReceipt
 
-Waits for a transaction to be confirmed on-chain.
+Waits for a transaction to be confirmed on-chain. This method polls the network at regular intervals until the transaction is confirmed or the context is cancelled, handling the "transaction not found" case gracefully by continuing to poll.
 
 ## Method Signature
 
@@ -11,6 +11,8 @@ func (account *Account) WaitForTransactionReceipt(
 	pollInterval time.Duration,
 ) (*rpc.TransactionReceiptWithBlockInfo, error)
 ```
+
+**Source:** [account.go](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go)
 
 ## Parameters
 
@@ -25,8 +27,6 @@ func (account *Account) WaitForTransactionReceipt(
 
 ## Usage Example
 
-> **Prerequisites**: This example assumes you have a funded and deployed account instance. To learn how to create an account, see [NewAccount](./new-account.mdx).
-
 ```go
 package main
 
@@ -34,109 +34,101 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance (funded and deployed)
-	var acc *account.Account
-	// acc = ... (already initialized)
-
-	// First, send a transaction
-	ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	functionCall := rpc.InvokeFunctionCall{
-		ContractAddress: ethContract,
-		FunctionName:    "transfer",
-		CallData: []*felt.Felt{
-			acc.Address,                 // recipient
-			new(felt.Felt).SetUint64(1), // amount
-			new(felt.Felt).SetUint64(0),
-		},
-	}
-
 	ctx := context.Background()
-	response, err := acc.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{functionCall}, nil)
-	if err != nil {
-		log.Fatalf("Error sending transaction: %v", err)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	fmt.Printf("Transaction Hash: %s\n", response.Hash)
-	fmt.Println("Waiting for confirmation...")
-
-	// Wait for receipt (poll every 2 seconds)
-	receipt, err := acc.WaitForTransactionReceipt(
-		ctx,
-		response.Hash,
-		2*time.Second,
-	)
-	if err != nil {
-		log.Fatalf("Error waiting for receipt: %v", err)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set")
 	}
 
-	fmt.Println("✅ Transaction confirmed!")
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("Account credentials not set in .env")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(provider, accountAddressFelt, publicKey, ks, account.CairoV2)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	recipient := accountAddressFelt
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+	u256Amount, _ := utils.HexToU256Felt(amount.String())
+
+	invokeFnCall := rpc.InvokeFunctionCall{
+		ContractAddress: strkContract,
+		FunctionName:    "transfer",
+		CallData:        append([]*felt.Felt{recipient}, u256Amount...),
+	}
+
+	tx, err := accnt.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{invokeFnCall}, nil)
+	if err != nil {
+		log.Fatal("Failed to send transaction:", err)
+	}
+
+	fmt.Printf("Transaction sent: %s\n", tx.Hash.String())
+
+	receipt, err := accnt.WaitForTransactionReceipt(ctx, tx.Hash, 3*time.Second)
+	if err != nil {
+		log.Fatal("Failed to get receipt:", err)
+	}
+
+	fmt.Printf("Block Hash: %s\n", receipt.BlockHash.String())
 	fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
-	fmt.Printf("Execution Status: %s\n", receipt.ExecutionStatus)
-	fmt.Printf("Finality Status: %s\n", receipt.FinalityStatus)
+	fmt.Printf("Status: %s\n", receipt.FinalityStatus)
 }
 ```
 
-## Expected Output
-
-```
-Transaction Hash: 0x4bdcc9d9c3d512652fbf7c5ad6ab3d2a7add39acac1bde1c0f2341c968d02ee
-Waiting for confirmation...
-✅ Transaction confirmed!
-Block Number: 2838869
-Execution Status: SUCCEEDED
-Finality Status: PRE_CONFIRMED
-```
-
-**View on Explorer:**
-- [Voyager](https://sepolia.voyager.online/tx/0x4bdcc9d9c3d512652fbf7c5ad6ab3d2a7add39acac1bde1c0f2341c968d02ee) - View transaction details
-- [Starkscan](https://sepolia.starkscan.co/tx/0x4bdcc9d9c3d512652fbf7c5ad6ab3d2a7add39acac1bde1c0f2341c968d02ee) - Alternative explorer
-
-## Usage with Timeout
-
-```go
-// Wait with timeout
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-defer cancel()
-
-receipt, err := acc.WaitForTransactionReceipt(
-	ctx,
-	transactionHash,
-	3*time.Second,
-)
-if err != nil {
-	if err == context.DeadlineExceeded {
-		fmt.Println("Transaction confirmation timed out")
-	}
-	return err
-}
-```
-
-## Description
-
-WaitForTransactionReceipt polls the network at regular intervals until the transaction is confirmed or the context is cancelled. It handles the "transaction not found" case gracefully and continues polling.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
 ```go
-receipt, err := acc.WaitForTransactionReceipt(ctx, txHash, pollInterval)
+receipt, err := accnt.WaitForTransactionReceipt(ctx, txHash, pollInterval)
 if err != nil {
-	// Handle errors like:
-	// - Context cancelled
-	// - Context deadline exceeded
-	// - Network errors
+	// Handle errors
 	return err
 }
 
-// Check execution status
 switch receipt.ExecutionStatus {
 case rpc.TxnExecutionStatusSUCCEEDED:
 	fmt.Println("Transaction succeeded")
@@ -145,7 +137,10 @@ case rpc.TxnExecutionStatusREVERTED:
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - Send transactions
-- [TransactionReceipt](../../rpc/methods/transaction-receipt.mdx) - Get receipt without waiting
+- Waiting for transaction confirmation before proceeding with dependent operations
+- Monitoring transaction status in automated workflows
+- Ensuring transaction finality before updating application state
+- Implementing retry logic based on transaction execution status
+- Building transaction monitoring and notification systems

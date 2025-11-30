@@ -2,14 +2,14 @@ package main
  
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-	"time"
  
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
@@ -24,7 +24,7 @@ func main() {
  
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set")
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
  
 	provider, err := rpc.NewProvider(ctx, rpcURL)
@@ -37,7 +37,7 @@ func main() {
 	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
  
 	if accountAddress == "" || publicKey == "" || privateKey == "" {
-		log.Fatal("Account credentials not set in .env")
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set in .env")
 	}
  
 	ks := account.NewMemKeystore()
@@ -52,35 +52,49 @@ func main() {
 		log.Fatal("Failed to parse account address:", err)
 	}
  
-	accnt, err := account.NewAccount(provider, accountAddressFelt, publicKey, ks, account.CairoV2)
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
 	if err != nil {
 		log.Fatal("Failed to create account:", err)
 	}
  
-	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
-	recipient := accountAddressFelt
-	amount := new(felt.Felt).SetUint64(1000000000000000)
-	u256Amount, _ := utils.HexToU256Felt(amount.String())
- 
-	invokeFnCall := rpc.InvokeFunctionCall{
-		ContractAddress: strkContract,
-		FunctionName:    "transfer",
-		CallData:        append([]*felt.Felt{recipient}, u256Amount...),
-	}
- 
-	tx, err := accnt.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{invokeFnCall}, nil)
+	sierraFile, err := os.ReadFile("contract.sierra.json")
 	if err != nil {
-		log.Fatal("Failed to send transaction:", err)
+		log.Fatal("Failed to read sierra file:", err)
 	}
  
-	fmt.Printf("Transaction sent: %s\n", tx.Hash.String())
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(sierraFile, &contractClass); err != nil {
+		log.Fatal("Failed to unmarshal contract class:", err)
+	}
  
-	receipt, err := accnt.WaitForTransactionReceipt(ctx, tx.Hash, 3*time.Second)
+	casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
 	if err != nil {
-		log.Fatal("Failed to get receipt:", err)
+		log.Fatal("Failed to unmarshal casm class:", err)
 	}
  
-	fmt.Printf("Block Hash: %s\n", receipt.BlockHash.String())
-	fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
-	fmt.Printf("Status: %s\n", receipt.FinalityStatus)
+	opts := &account.TxnOptions{
+		FeeMultiplier: 1.5,
+		TipMultiplier: 1.0,
+	}
+ 
+	response, err := accnt.BuildAndSendDeclareTxn(
+		ctx,
+		casmClass,
+		&contractClass,
+		opts,
+	)
+	if err != nil {
+		log.Fatal("Failed to declare contract:", err)
+	}
+ 
+	fmt.Printf("Declare Transaction Successful:\n")
+	fmt.Printf("Transaction Hash: %s\n", response.Hash.String())
+	fmt.Printf("Class Hash:       %s\n", response.ClassHash.String())
+	fmt.Printf("\nUse this class hash to deploy contract instances\n")
 }

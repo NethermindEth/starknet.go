@@ -1,90 +1,73 @@
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	// Load .env file
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
-
-	// Get RPC URL from environment
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not set")
 	}
-
-	// Create RPC provider
-	ctx := context.Background()
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	// Create account address
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	// Create keystore with test key
-	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
-	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
-
-	// Create account
-	acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("Account credentials not set in .env")
+	}
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse account address:", err)
 	}
-
-	// Create a message to sign and verify
-	message, _ := new(felt.Felt).SetString("0x48656c6c6f20537461726b6e6574") // "Hello Starknet" in hex
-
-	fmt.Println("Signing and verifying message:")
-	fmt.Printf("Message: %s\n", message)
-
-	// Sign the message first
-	signature, err := acc.Sign(ctx, message)
+ 
+	accnt, err := account.NewAccount(provider, accountAddressFelt, publicKey, ks, account.CairoV2)
 	if err != nil {
-		fmt.Printf("Error signing: %v\n", err)
-		return
+		log.Fatal("Failed to create account:", err)
 	}
-
-	fmt.Println("\nSignature created:")
-	for i, sig := range signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
-	}
-
-	// Verify the signature
-	fmt.Println("\nVerifying signature:")
-
-	// Verify the signature
-	isValid, err := acc.Verify(message, signature)
+ 
+	message := new(felt.Felt).SetUint64(12345)
+	signature, err := accnt.Sign(ctx, message)
 	if err != nil {
-		fmt.Printf("Error verifying: %v\n", err)
-		return
+		log.Fatal("Failed to sign message:", err)
 	}
-
-	fmt.Printf("\nVerification result: %v\n", isValid)
-
-	// Try verifying with wrong message
-	wrongMessage, _ := new(felt.Felt).SetString("0x1234")
-	fmt.Printf("\nVerifying with wrong message (%s):\n", wrongMessage)
-
-	isValid2, err := acc.Verify(wrongMessage, signature)
+ 
+	isValid, err := accnt.Verify(message, signature)
 	if err != nil {
-		fmt.Printf("Error verifying: %v\n", err)
-	} else {
-		fmt.Printf("Verification result: %v\n", isValid2)
+		log.Fatal("Failed to verify signature:", err)
 	}
+ 
+	fmt.Printf("Message: %s\n", message.String())
+	fmt.Printf("Signature: [%s, %s]\n", signature[0].String(), signature[1].String())
+	fmt.Printf("Verification result: %v\n", isValid)
 }
