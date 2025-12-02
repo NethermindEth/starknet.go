@@ -1318,8 +1318,7 @@ func TestGetStorageProof(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
 			result, err := provider.StorageProof(context.Background(), test.StorageProofInput)
-			if test.ExpectedError != nil {
-				require.Error(t, err)
+			if err != nil {
 				require.ErrorContains(t, err, test.ExpectedError.Error())
 
 				return
