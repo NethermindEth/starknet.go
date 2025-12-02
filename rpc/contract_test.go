@@ -761,7 +761,7 @@ func TestEstimateMessageFee(t *testing.T) {
 					Payload:     []*felt.Felt{},
 				},
 				BlockID:       WithBlockNumber(523066),
-				ExpectedError: ErrContractError,
+				ExpectedError: ErrContractNotFound,
 			},
 			{ // invalid block number
 				MsgFromL1:     l1Handler,
@@ -772,8 +772,9 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
+		blockID, _ := json.MarshalIndent(test.BlockID, "", "  ")
 		t.Run(
-			fmt.Sprintf("blockID: %v, fromAddress: %s", test.BlockID, test.FromAddress),
+			fmt.Sprintf("blockID: %v, fromAddress: %v", string(blockID), test.FromAddress),
 			func(t *testing.T) {
 				resp, err := testConfig.Provider.EstimateMessageFee(
 					context.Background(),
@@ -792,6 +793,12 @@ func TestEstimateMessageFee(t *testing.T) {
 
 				if test.ExpectedFeeEst != nil {
 					assert.Exactly(t, *test.ExpectedFeeEst, resp)
+
+					rawExpectedFeeEst, err := json.Marshal(test.ExpectedFeeEst)
+					require.NoError(t, err)
+					rawFeeEst, err := json.Marshal(resp)
+					require.NoError(t, err)
+					assert.JSONEq(t, string(rawExpectedFeeEst), string(rawFeeEst))
 
 					return
 				}
