@@ -211,6 +211,11 @@ func TestBlockWithTxHashes(t *testing.T) {
 				assert.Truef(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
 
 				if test.ExpectedBlockWithTxHashes != nil {
+					rawExpectedBlock, err := json.Marshal(test.ExpectedBlockWithTxHashes)
+					require.NoError(t, err)
+					rawBlock, err := json.Marshal(block)
+					require.NoError(t, err)
+					assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
 					assert.Exactly(t, test.ExpectedBlockWithTxHashes, block)
 				}
 			case *PreConfirmedBlockTxHashes:
@@ -377,6 +382,11 @@ func TestBlockWithTxs(t *testing.T) {
 					assert.Equal(t, block.Hash.String()[:2], "0x", "Block Hash should start with \"0x\".")
 				} else {
 					assert.Exactly(t, test.ExpectedBlock, block)
+					rawExpectedBlock, err := json.Marshal(test.ExpectedBlock)
+					require.NoError(t, err)
+					rawBlock, err := json.Marshal(block)
+					require.NoError(t, err)
+					assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
 
 					// validates an BlockInvokeV1 transaction
 					if test.InvokeV1Index > 0 {
