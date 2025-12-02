@@ -43,9 +43,12 @@ func TestRPCError(t *testing.T) {
 	// invalid msg
 	msgFromL1 := MsgFromL1{
 		FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-		ToAddress:   internalUtils.DeadBeef,
-		Selector:    internalUtils.DeadBeef,
-		Payload:     []*felt.Felt{},
+		ToAddress: internalUtils.TestHexToFelt(
+			t,
+			"0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f",
+		),
+		Selector: internalUtils.DeadBeef,
+		Payload:  []*felt.Felt{},
 	}
 
 	_, err := testConfig.Provider.EstimateMessageFee(
