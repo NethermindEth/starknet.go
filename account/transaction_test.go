@@ -855,7 +855,7 @@ func TestSendDeclareTxn(t *testing.T) {
 
 	// Compiled Class Hash
 	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
-	compClassHash, err := hash.CompiledClassHash(&casmClass)
+	compClassHash, err := hash.CompiledClassHashV2(&casmClass)
 	require.NoError(t, err)
 
 	broadcastTx := rpc.BroadcastDeclareTxnV3{
