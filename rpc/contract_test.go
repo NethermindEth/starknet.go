@@ -1318,12 +1318,17 @@ func TestGetStorageProof(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
 			result, err := provider.StorageProof(context.Background(), test.StorageProofInput)
-			if err != nil {
+			if test.ExpectedError != nil {
+				if test.ExpectedError == ErrStorageProofNotSupported {
+					// Juno and Pathfinder return this error in different situations, so we'll just
+					// avoid assertions related to this error
+					return
+				}
+				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
 
 				return
 			}
-
 			require.NoError(t, err)
 			require.NotNil(t, result, "empty result from starknet_getStorageProof")
 
