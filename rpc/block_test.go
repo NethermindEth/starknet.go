@@ -103,7 +103,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 		ExpectedPreConfirmedBlockWithTxHashes *PreConfirmedBlockTxHashes
 	}
 
-	blockSepolia64159 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes64159.json", "result")
+	blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes3100000.json", "result")
 	blockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/integration1_300_000.json", "result")
 
 	txHashesMock := internalUtils.TestHexArrToFelt(t, []string{
@@ -158,14 +158,14 @@ func TestBlockWithTxHashes(t *testing.T) {
 				ExpectedErr: nil,
 			},
 			{
-				BlockID:                   WithBlockHash(internalUtils.TestHexToFelt(t, "0x6df565874b2ea6a02d346a23f9efb0b26abbf5708b51bb12587f88a49052964")),
+				BlockID:                   WithBlockHash(internalUtils.TestHexToFelt(t, "0x1640b846e71502526539c32c8420cd7cb0f28d83ece2e6e71aeaf7c97960bb2")),
 				ExpectedErr:               nil,
-				ExpectedBlockWithTxHashes: &blockSepolia64159,
+				ExpectedBlockWithTxHashes: &blockSepolia3100000,
 			},
 			{
-				BlockID:                   WithBlockNumber(64159),
+				BlockID:                   WithBlockNumber(3100000),
 				ExpectedErr:               nil,
-				ExpectedBlockWithTxHashes: &blockSepolia64159,
+				ExpectedBlockWithTxHashes: &blockSepolia3100000,
 			},
 		},
 		tests.IntegrationEnv: {
