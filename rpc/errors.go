@@ -40,7 +40,7 @@ var (
 	}
 	ErrEntrypointNotFound = &RPCError{
 		Code:    21,
-		Message: "Requested entrypoint does not exist in the contract",
+		Message: "Requested entry point does not exist in the contract",
 	}
 	ErrBlockNotFound = &RPCError{
 		Code:    24,

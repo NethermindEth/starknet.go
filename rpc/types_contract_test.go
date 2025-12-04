@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,9 @@ import (
 
 // TestU128_ToBigInt tests the ToBigInt method of the U128 type.
 func TestU128_ToBigInt(t *testing.T) {
-	tests := []struct {
+	tests.RunTestOn(t, tests.MockEnv)
+
+	testCases := []struct {
 		name    string // description of this test case
 		u128    rpc.U128
 		want    *big.Int
@@ -39,7 +42,7 @@ func TestU128_ToBigInt(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
+	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.u128
 			got, gotErr := u.ToBigInt()
@@ -61,7 +64,9 @@ func TestU128_ToBigInt(t *testing.T) {
 
 // TestU128_ToUint64 tests the ToUint64 method of the U128 type.
 func TestU128_ToUint64(t *testing.T) {
-	tests := []struct {
+	tests.RunTestOn(t, tests.MockEnv)
+
+	testCases := []struct {
 		name    string // description of this test case
 		u64     rpc.U64
 		want    uint64
@@ -88,7 +93,7 @@ func TestU128_ToUint64(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
+	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			u := tt.u64
 			got, gotErr := u.ToUint64()

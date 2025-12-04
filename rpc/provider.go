@@ -18,7 +18,7 @@ import (
 // rpcVersion is the version of the Starknet JSON-RPC specification that
 // this SDK is compatible with.
 // This should be updated when supporting new versions of the RPC specification.
-var rpcVersion = semver.MustParse("0.9.0")
+var rpcVersion = semver.MustParse("0.10.0")
 
 // ErrNotFound is returned by API methods if the requested item does not exist.
 var (
