@@ -37,8 +37,29 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction BlockTransaction   `json:"transaction"`
+	Transaction Transaction        `json:"transaction"`
 	Receipt     TransactionReceipt `json:"receipt"`
+}
+
+// UnmarshalJSON unmarshals the JSON representation of a TransactionWithReceipt.
+func (twr *TransactionWithReceipt) UnmarshalJSON(data []byte) error {
+	type Temp struct {
+		Transaction json.RawMessage    `json:"transaction"`
+		Receipt     TransactionReceipt `json:"receipt"`
+	}
+	var temp Temp
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	txn, err := unmarshalTxn(temp.Transaction)
+	if err != nil {
+		return err
+	}
+	twr.Transaction = txn
+	twr.Receipt = temp.Receipt
+
+	return nil
 }
 
 // The dynamic block being constructed by the sequencer. Note that this object
