@@ -674,12 +674,14 @@ func TestEstimateMessageFee(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
+	provider := testConfig.Provider
+	spy := tests.NewJSONRPCSpy(provider.c)
+	provider.c = spy
 
 	type testSetType struct {
 		MsgFromL1
 		BlockID
-		ExpectedFeeEst *MessageFeeEstimation
-		ExpectedError  *RPCError
+		ExpectedError *RPCError
 	}
 
 	// https://sepolia.voyager.online/message/0x273f4e20fc522098a60099e5872ab3deeb7fb8321a03dadbd866ac90b7268361
@@ -707,51 +709,24 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
-				ExpectedFeeEst: &MessageFeeEstimation{
-					FeeEstimationCommon: FeeEstimationCommon{
-						L1GasConsumed:     internalUtils.DeadBeef,
-						L1GasPrice:        internalUtils.DeadBeef,
-						L2GasConsumed:     internalUtils.DeadBeef,
-						L2GasPrice:        internalUtils.DeadBeef,
-						L1DataGasConsumed: internalUtils.DeadBeef,
-						L1DataGasPrice:    internalUtils.DeadBeef,
-						OverallFee:        internalUtils.DeadBeef,
-					},
-					Unit: WeiUnit,
-				},
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				MsgFromL1: l1Handler,
 				BlockID:   WithBlockNumber(523066),
-				ExpectedFeeEst: &MessageFeeEstimation{
-					FeeEstimationCommon: FeeEstimationCommon{
-						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed3"),
-						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
-						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
-						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
-						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1"),
-						OverallFee:        internalUtils.TestHexToFelt(t, "0x26d2922fd1af"),
-					},
-					Unit: WeiUnit,
-				},
 			},
 			{
-				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagLatest),
-				ExpectedFeeEst: nil,
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockTag(BlockTagLatest),
 			},
 			{
-				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagPreConfirmed),
-				ExpectedFeeEst: nil,
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
-				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagL1Accepted),
-				ExpectedFeeEst: nil,
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockTag(BlockTagL1Accepted),
 			},
 			{ // invalid msg data
 				MsgFromL1: MsgFromL1{
@@ -790,19 +765,11 @@ func TestEstimateMessageFee(t *testing.T) {
 					return
 				}
 				require.NoError(t, err)
+				rawExpectedFeeEst := spy.LastResponse()
 
-				if test.ExpectedFeeEst != nil {
-					assert.Exactly(t, *test.ExpectedFeeEst, resp)
-
-					rawExpectedFeeEst, err := json.Marshal(test.ExpectedFeeEst)
-					require.NoError(t, err)
-					rawFeeEst, err := json.Marshal(resp)
-					require.NoError(t, err)
-					assert.JSONEq(t, string(rawExpectedFeeEst), string(rawFeeEst))
-
-					return
-				}
-				assert.NotEmpty(t, resp)
+				rawFeeEst, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedFeeEst), string(rawFeeEst))
 			},
 		)
 	}
