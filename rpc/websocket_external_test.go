@@ -58,7 +58,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	provider := tConfig.Provider
 	wsProvider := tConfig.WsProvider
 
-	acc, err := setupAcc(t, tConfig)
+	acc, err := setupAcc(t, &tConfig)
 	require.NoError(t, err, "Error in setupAcc")
 
 	nonce, err := acc.Nonce(context.Background())

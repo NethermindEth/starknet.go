@@ -42,7 +42,7 @@ type TestConfiguration struct {
 //
 // Returns:
 //   - *testConfiguration: a pointer to the testConfiguration struct
-func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
+func BeforeEach(t *testing.T, isWs bool) TestConfiguration {
 	t.Helper()
 
 	var testConfig TestConfiguration
@@ -61,7 +61,7 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 		testConfig.Provider = provider
 		testConfig.Spy = &spy
 
-		return &testConfig
+		return testConfig
 	}
 
 	base := os.Getenv("HTTP_PROVIDER_URL")
@@ -79,7 +79,7 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 	})
 
 	if tests.TEST_ENV == tests.DevnetEnv || tests.TEST_ENV == tests.MainnetEnv {
-		return &testConfig
+		return testConfig
 	}
 
 	if isWs {
@@ -103,5 +103,5 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 	testConfig.PubKey = os.Getenv("STARKNET_PUBLIC_KEY")
 	testConfig.AccountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
-	return &testConfig
+	return testConfig
 }
