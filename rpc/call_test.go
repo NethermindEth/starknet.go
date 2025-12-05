@@ -51,7 +51,7 @@ func TestCall(t *testing.T) {
 				name: "Ok",
 				FunctionCall: FunctionCall{
 					// ContractAddress of predeployed devnet Feetoken
-					ContractAddress:    internalUtils.TestHexToFelt(t, DevNetETHAddress),
+					ContractAddress:    internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},

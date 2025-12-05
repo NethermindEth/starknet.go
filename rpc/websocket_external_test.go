@@ -19,7 +19,7 @@ import (
 )
 
 // returns a new account type from the provided account data in the tConfig
-func setupAcc(t *testing.T, tConfig *rpc.TestConfiguration) (*account.Account, error) {
+func setupAcc(t *testing.T, tConfig *rpc.TestSetup) (*account.Account, error) {
 	t.Helper()
 
 	ks := account.NewMemKeystore()
