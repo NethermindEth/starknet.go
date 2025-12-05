@@ -12,26 +12,51 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-// TestBlockNumber is a test function to check the behaviour of the BlockNumber function and check if there is no errors.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestBlockNumber tests the BlockNumber function.
 func TestBlockNumber(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
+	provider := testConfig.Provider
 
-	blockNumber, err := testConfig.Provider.BlockNumber(context.Background())
-	require.NoError(t, err, "BlockNumber should not return an error")
 	if tests.TEST_ENV == tests.MockEnv {
-		require.Equal(t, uint64(1234), blockNumber)
+		testConfig.MockClient.EXPECT().
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.Any(),
+				"starknet_blockNumber",
+			).
+			DoAndReturn(
+				func(_, result, _ any, _ ...any) error {
+					rawResp := result.(*json.RawMessage)
+					rawBlockNumber, err := json.Marshal(uint64(1234))
+					if err != nil {
+						return err
+					}
+					*rawResp = rawBlockNumber
+
+					return nil
+				},
+			).
+			Times(1)
 	}
+
+	blockNumber, err := provider.BlockNumber(t.Context())
+	require.NoError(t, err)
+
+	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawActualResp, err := json.Marshal(blockNumber)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
 }
 
 // TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.

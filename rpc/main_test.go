@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/clientmock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestMain(m *testing.M) {
@@ -13,41 +15,49 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-const (
-	DevNetETHAddress = "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
-)
-
-// testConfiguration is a type that is used to configure tests
-type TestConfiguration struct {
+// TestSetup is a type that is used to store setup data for the RPC tests.
+type TestSetup struct {
 	Provider   *Provider
 	WsProvider *WsProvider
 	Base       string
 	WsBase     string
+	Spy        tests.Spyer
+	// Only present in mock environment
+	MockClient *clientmock.MockClient
 
 	AccountAddress string
 	PrivKey        string
 	PubKey         string
 }
 
-// BeforeEach initialises the test environment configuration before running the script.
+// BeforeEach initialises the environment setup before running the tests.
 //
 // Parameters:
-//   - t: The testing.T object for testing purposes
-//   - isWs: a boolean value to check if the test is for the websocket provider
+//   - t: The testing.T object
+//   - isWs: a boolean value to check if the test will use the websocket provider
 //
 // Returns:
-//   - *testConfiguration: a pointer to the testConfiguration struct
-func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
+//   - TestSetup: the TestSetup struct containing the setup data
+func BeforeEach(t *testing.T, isWs bool) TestSetup {
 	t.Helper()
 
-	var testConfig TestConfiguration
+	var testConfig TestSetup
 
 	if tests.TEST_ENV == tests.MockEnv {
-		testConfig.Provider = &Provider{
-			c: &rpcMock{},
+		mockCtrl := gomock.NewController(t)
+		mockClient := clientmock.NewMockClient(mockCtrl)
+
+		spy := tests.NewJSONRPCSpy(mockClient)
+
+		provider := &Provider{
+			c: spy,
 		}
 
-		return &testConfig
+		testConfig.MockClient = mockClient
+		testConfig.Provider = provider
+		testConfig.Spy = spy
+
+		return testConfig
 	}
 
 	base := os.Getenv("HTTP_PROVIDER_URL")
@@ -55,17 +65,22 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 		testConfig.Base = base
 	}
 
-	client, err := NewProvider(t.Context(), testConfig.Base)
+	provider, err := NewProvider(t.Context(), testConfig.Base)
 	if err != nil {
 		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
 	}
-	testConfig.Provider = client
+
+	spy := tests.NewJSONRPCSpy(provider.c)
+	testConfig.Spy = spy
+	provider.c = spy
+
+	testConfig.Provider = provider
 	t.Cleanup(func() {
 		testConfig.Provider.c.Close()
 	})
 
 	if tests.TEST_ENV == tests.DevnetEnv || tests.TEST_ENV == tests.MainnetEnv {
-		return &testConfig
+		return testConfig
 	}
 
 	if isWs {
@@ -89,5 +104,5 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 	testConfig.PubKey = os.Getenv("STARKNET_PUBLIC_KEY")
 	testConfig.AccountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
-	return &testConfig
+	return testConfig
 }

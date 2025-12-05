@@ -13,8 +13,8 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
@@ -202,7 +202,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 		for _, test := range testcases {
 			t.Run(test.name, func(t *testing.T) {
 				ctrl := gomock.NewController(t)
-				mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
+				mockRPCProvider := rpcv10mock.NewMockRPCProvider(ctrl)
 
 				ks, pub, _ := account.GetRandomKeys()
 				// called when instantiating the account
@@ -460,7 +460,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
 
 		ctrl := gomock.NewController(t)
-		mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
+		mockRPCProvider := rpcv10mock.NewMockRPCProvider(ctrl)
 
 		mockRPCProvider.EXPECT().
 			Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -1022,7 +1022,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 

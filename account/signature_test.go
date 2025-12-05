@@ -7,8 +7,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -22,7 +22,7 @@ func TestVerify(t *testing.T) {
 
 	// setup mock account
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
 
 	ks := account.NewMemKeystore()
