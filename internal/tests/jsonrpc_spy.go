@@ -16,6 +16,11 @@ type Spy struct {
 	debug bool
 }
 
+// Toggles the debug mode of the spy to the opposite of the current value.
+func (s *Spy) ToggleDebug() {
+	s.debug = !s.debug
+}
+
 // The callCloser interface used in `rpc` and `paymaster` tests.
 // It's implemented by the `client.Client` type.
 type callCloser interface {
