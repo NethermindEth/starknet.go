@@ -22,10 +22,12 @@ const (
 // testConfiguration is a type that is used to configure tests
 type TestConfiguration struct {
 	Provider   *Provider
-	MockClient *clientmock.MockClient
 	WsProvider *WsProvider
 	Base       string
 	WsBase     string
+	Spy        *tests.Spyer
+	// Only present in mock environment
+	MockClient *clientmock.MockClient
 
 	AccountAddress string
 	PrivKey        string
@@ -48,10 +50,16 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 	if tests.TEST_ENV == tests.MockEnv {
 		mockCtrl := gomock.NewController(t)
 		mockClient := clientmock.NewMockClient(mockCtrl)
-		testConfig.MockClient = mockClient
-		testConfig.Provider = &Provider{
-			c: mockClient,
+
+		spy := tests.NewJSONRPCSpy(mockClient)
+
+		provider := &Provider{
+			c: spy,
 		}
+
+		testConfig.MockClient = mockClient
+		testConfig.Provider = provider
+		testConfig.Spy = &spy
 
 		return &testConfig
 	}
