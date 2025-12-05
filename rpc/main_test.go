@@ -25,7 +25,7 @@ type TestConfiguration struct {
 	WsProvider *WsProvider
 	Base       string
 	WsBase     string
-	Spy        *tests.Spyer
+	Spy        tests.Spyer
 	// Only present in mock environment
 	MockClient *clientmock.MockClient
 
@@ -59,7 +59,7 @@ func BeforeEach(t *testing.T, isWs bool) TestConfiguration {
 
 		testConfig.MockClient = mockClient
 		testConfig.Provider = provider
-		testConfig.Spy = &spy
+		testConfig.Spy = spy
 
 		return testConfig
 	}

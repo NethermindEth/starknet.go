@@ -12,7 +12,6 @@ import (
 type Spy struct {
 	callCloser
 	buff  []byte
-	mock  bool
 	debug bool
 }
 
@@ -70,19 +69,10 @@ func NewJSONRPCSpy(client callCloser, debug ...bool) Spyer {
 	if len(debug) > 0 {
 		d = debug[0]
 	}
-	if TEST_ENV == MockEnv {
-		return &Spy{
-			callCloser: client,
-			buff:       []byte{},
-			mock:       true,
-			debug:      d,
-		}
-	}
 
 	return &Spy{
 		callCloser: client,
 		buff:       []byte{},
-		mock:       false,
 		debug:      d,
 	}
 }
@@ -103,10 +93,6 @@ func (s *Spy) CallContext(
 	method string,
 	arg interface{},
 ) error {
-	if s.mock {
-		return s.callCloser.CallContext(ctx, result, method, arg)
-	}
-
 	if s.debug {
 		fmt.Printf("### Spy Debug mode: in parameters\n")
 		fmt.Printf("   arg.(%T): %+v\n", arg, arg)
@@ -147,10 +133,6 @@ func (s *Spy) CallContextWithSliceArgs(
 	method string,
 	args ...interface{},
 ) error {
-	if s.mock {
-		return s.callCloser.CallContextWithSliceArgs(ctx, result, method, args...)
-	}
-
 	if s.debug {
 		fmt.Printf("### Spy Debug mode: in parameters\n")
 		for i, v := range args {
