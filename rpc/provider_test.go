@@ -54,23 +54,10 @@ func TestCookieManagement(t *testing.T) {
 				Path:  "/",
 			})
 		} else {
-			var rawResp json.RawMessage
-			err := mock_starknet_chainId(&rawResp)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-
-				return
-			}
-			var result string
-			if err := json.Unmarshal(rawResp, &result); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-
-				return
-			}
 			data := map[string]interface{}{
 				"jsonrpc": "2.0",
 				"id":      1,
-				"result":  result,
+				"result":  "0x534e5f5345504f4c4941",
 			}
 			if err := json.NewEncoder(w).Encode(data); err != nil {
 				log.Fatal(err)

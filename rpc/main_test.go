@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/clientmock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestMain(m *testing.M) {
@@ -20,6 +22,7 @@ const (
 // testConfiguration is a type that is used to configure tests
 type TestConfiguration struct {
 	Provider   *Provider
+	MockClient *clientmock.MockClient
 	WsProvider *WsProvider
 	Base       string
 	WsBase     string
@@ -43,8 +46,11 @@ func BeforeEach(t *testing.T, isWs bool) *TestConfiguration {
 	var testConfig TestConfiguration
 
 	if tests.TEST_ENV == tests.MockEnv {
+		mockCtrl := gomock.NewController(t)
+		mockClient := clientmock.NewMockClient(mockCtrl)
+		testConfig.MockClient = mockClient
 		testConfig.Provider = &Provider{
-			c: &rpcMock{},
+			c: mockClient,
 		}
 
 		return &testConfig
