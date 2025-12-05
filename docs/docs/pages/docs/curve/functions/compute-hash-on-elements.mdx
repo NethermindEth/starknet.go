@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Internal Helper Function**: This is a legacy utility that works with `*big.Int` types. Most developers should use [PedersenArray](./pedersen-array) which works with `*felt.Felt` types and is the modern approach for Starknet development.
 </Callout>
 
-Computes hash on elements with length prefix using Pedersen.
+Computes hash on elements with length prefix using Pedersen. This function appends the array length before hashing, making it useful for creating deterministic commitments where the array length must be part of the hash.
 
 ## Function Signature
 
@@ -14,20 +14,50 @@ Computes hash on elements with length prefix using Pedersen.
 func ComputeHashOnElements(elems []*big.Int) (hash *big.Int)
 ```
 
-## Expected Output
+**Source:** [curve.go:L219-L235](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L219-L235)
 
+## Parameters
+
+- `elems` ([]*big.Int): Slice of big.Int pointers to be hashed
+
+## Returns
+
+- `hash` (*big.Int): The hash of the list of elements with length prefix
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create array of big.Int values
+	elems := []*big.Int{
+		big.NewInt(100),
+		big.NewInt(200),
+		big.NewInt(300),
+	}
+
+	// Compute hash with length prefix
+	hash := curve.ComputeHashOnElements(elems)
+
+	fmt.Println("ComputeHashOnElements:")
+	fmt.Printf("  Input elements: %v\n", elems)
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
 ```
-ComputeHashOnElements:
-  Input elements: [100, 200, 300]
-  Hash: 2102416357620316145614438783172821191669968458245246634963760104496512507408
-```
 
-## Notes
+## Common Use Cases
 
-- Appends array length before hashing
-- Uses big.Int instead of felt.Felt
+- Create commitments to arrays where the length must be included in the hash for security purposes.
+- Use in legacy code that works with big.Int types rather than felt.Felt for backwards compatibility.
+- Hash arrays where order and length both matter for the deterministic output.
 
-## Related Functions
 
-- [HashPedersenElements](/docs/curve/functions/hash-pedersen-elements)
-- [PedersenArray](/docs/curve/functions/pedersen-array)
+

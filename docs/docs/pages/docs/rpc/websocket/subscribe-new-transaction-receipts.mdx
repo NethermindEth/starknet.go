@@ -1,41 +1,68 @@
 # SubscribeNewTransactionReceipts
 
-Subscribe to new transaction receipts via WebSocket stream.
+Creates a WebSocket stream which fires events when new transaction receipts are created on Starknet. The endpoint receives optional filters including finality statuses and sender addresses. An event is fired for each finality status update. It is possible for receipts for pre-confirmed transactions to be received multiple times, or not at all.
 
 import { Callout } from 'vocs/components'
 
 <Callout type="warning">
-  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers (like Alchemy) currently do not support transaction receipt subscriptions. Check your provider's documentation for WebSocket method availability.
+  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers may have limited support for WebSocket subscriptions. Check your provider's documentation for WebSocket method availability, or consider [running your own Juno node](https://www.youtube.com/watch?v=gvdC2XIOibA) for full WebSocket support.
 </Callout>
 
 ## Method Signature
 
 ```go
 func (ws *WsProvider) SubscribeNewTransactionReceipts(
-    ctx context.Context,
-    txnReceipts chan<- *TransactionReceiptWithBlockInfo,
-    options *SubNewTxnReceiptsInput,
+	ctx context.Context,
+	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+	options *SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error)
 ```
 
+**Source:** [websocket.go:L101-L118](https://github.com/NethermindEth/starknet.go/blob/main/rpc/websocket.go#L101-L118)
+
 ## Parameters
 
-- `ctx` - The context.Context object for controlling the function call
-- `txnReceipts` - The channel to send new transaction receipts to
-- `options` - Optional input struct containing transaction filters. Set to nil if no filters are needed
+- `ctx` (context.Context): The context for controlling the function call
+- `txnReceipts` (chan&lt;- \*TransactionReceiptWithBlockInfo): The channel to send the new transaction receipts to
+- `options` (\*SubNewTxnReceiptsInput): The optional input struct containing the optional filters. Set to nil if no filters are needed
 
 ## Returns
 
-- `*client.ClientSubscription` - The client subscription object, used to unsubscribe from the stream and to get errors
-- `error` - An error, if any
+- `*client.ClientSubscription`: The client subscription object, used to unsubscribe from the stream and to get errors
+- `error`: An error if any occurred (`ErrTooManyAddressesInFilter`)
 
-## Description
+## Type Definitions
 
-SubscribeNewTransactionReceipts creates a WebSocket stream that fires events when new transaction receipts are generated on Starknet. This provides real-time information about transaction execution, including success/failure status, events emitted, and gas consumption.
+### SubNewTxnReceiptsInput
 
-You can optionally filter receipts by sender address to monitor transactions from specific accounts.
+The optional input struct containing filters for transaction receipt subscriptions.
 
-The subscription will continue to send receipts until unsubscribed or the connection is closed.
+```go
+type SubNewTxnReceiptsInput struct {
+	// (Optional) A vector of finality statuses to receive updates for.
+	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
+	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
+	// (Optional) Filter transaction receipts to only include transactions
+	// sent by the specified addresses
+	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
+}
+```
+
+**Source:** [types_transaction.go:L342-L350](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L342-L350)
+
+### TransactionReceiptWithBlockInfo
+
+The transaction receipt notification received from the server, including block information.
+
+```go
+type TransactionReceiptWithBlockInfo struct {
+	TransactionReceipt
+	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
+	BlockNumber uint       `json:"block_number,omitempty"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L245-L249](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L245-L249)
 
 ## Usage Example
 
@@ -46,118 +73,95 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Connect to WebSocket endpoint
-	wsProvider, err := rpc.NewProvider("wss://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+	// Load environment variables
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error loading .env file")
+	}
+
+	wsURL := os.Getenv("STARKNET_WS_URL")
+	if wsURL == "" {
+		log.Fatal("STARKNET_WS_URL not found in .env file")
 	}
 
 	ctx := context.Background()
 
+	// Connect to WebSocket endpoint
+	wsProvider, err := rpc.NewWebsocketProvider(ctx, wsURL)
+	if err != nil {
+		log.Fatal("Failed to connect:", err)
+	}
+	defer wsProvider.Close()
+
 	// Create channel to receive transaction receipts
 	receiptsChan := make(chan *rpc.TransactionReceiptWithBlockInfo)
 
-	// Subscribe to receipts from a specific sender address
-	senderAddress, _ := new(felt.Felt).SetString("0x1234567890abcdef...")
-	options := &rpc.SubNewTxnReceiptsInput{
-		SenderAddress: []*felt.Felt{senderAddress},
-	}
-
-	sub, err := wsProvider.SubscribeNewTransactionReceipts(ctx, receiptsChan, options)
+	// Subscribe to all transaction receipts (no filter)
+	sub, err := wsProvider.SubscribeNewTransactionReceipts(ctx, receiptsChan, &rpc.SubNewTxnReceiptsInput{})
 	if err != nil {
 		log.Fatal("Failed to subscribe:", err)
 	}
 	defer sub.Unsubscribe()
 
-	fmt.Println("Subscribed to transaction receipts...")
+	fmt.Println("Successfully subscribed to transaction receipts")
+	fmt.Println("Monitoring transaction receipts on the network...\n")
 
-	// Listen for new receipts
+	// Listen for receipts with timeout
+	timeout := time.After(60 * time.Second)
+	receiptCount := 0
+
 	for {
 		select {
 		case receipt := <-receiptsChan:
-			fmt.Printf("New Transaction Receipt:\n")
-			fmt.Printf("  Transaction Hash: %s\n", receipt.TransactionHash)
+			receiptCount++
+			fmt.Printf("Receipt #%d:\n", receiptCount)
 			fmt.Printf("  Block Number: %d\n", receipt.BlockNumber)
-			fmt.Printf("  Status: %s\n", receipt.ExecutionStatus)
-			fmt.Printf("  Events: %d\n", len(receipt.Events))
+			fmt.Printf("  Block Hash: %s\n", receipt.BlockHash)
+			fmt.Printf("  Type: %T\n\n", receipt.TransactionReceipt)
 
-			// Check if transaction succeeded
-			if receipt.ExecutionStatus == "SUCCEEDED" {
-				fmt.Println("  ✅ Transaction succeeded")
-			} else {
-				fmt.Printf("  ❌ Transaction failed: %s\n", receipt.RevertReason)
+			if receiptCount >= 3 {
+				fmt.Printf("Successfully received %d receipts\n", receiptCount)
+				return
 			}
 		case err := <-sub.Err():
 			log.Fatal("Subscription error:", err)
-		case <-time.After(60 * time.Second):
-			fmt.Println("No receipts received in 60s, exiting...")
+		case <-timeout:
+			if receiptCount > 0 {
+				fmt.Printf("Test completed - received %d receipt(s)\n", receiptCount)
+			} else {
+				fmt.Println("Timeout - no receipts received in 60s (this is normal if network is quiet)")
+			}
 			return
 		}
 	}
 }
 ```
 
-## Filter Options
-
-The `SubNewTxnReceiptsInput` struct allows filtering by sender address:
-
-```go
-type SubNewTxnReceiptsInput struct {
-	SenderAddress []*felt.Felt  // Filter by transaction sender addresses
-}
-```
-
-**Examples:**
-
-```go
-// Subscribe to all transaction receipts
-wsProvider.SubscribeNewTransactionReceipts(ctx, receiptsChan, nil)
-
-// Subscribe to receipts from specific sender
-options := &rpc.SubNewTxnReceiptsInput{
-	SenderAddress: []*felt.Felt{senderAddr},
-}
-
-// Subscribe to receipts from multiple senders
-options := &rpc.SubNewTxnReceiptsInput{
-	SenderAddress: []*felt.Felt{addr1, addr2, addr3},
-}
-```
-
-## Receipt Information
-
-The `TransactionReceiptWithBlockInfo` contains:
-
-- **Transaction Hash** - Unique identifier for the transaction
-- **Block Number** - Block containing the transaction
-- **Execution Status** - "SUCCEEDED" or "REVERTED"
-- **Events** - Events emitted during execution
-- **Actual Fee** - Gas consumed in Wei
-- **Revert Reason** - Error message if transaction failed
-- **Messages Sent** - L2→L1 messages sent
-
-## Common Use Cases
-
-1. **Transaction Monitoring**: Track status of submitted transactions
-2. **Account Activity**: Monitor all transactions from specific accounts
-3. **Automated Workflows**: Trigger actions when transactions complete
-4. **Error Tracking**: Log and analyze failed transactions
-5. **Gas Analytics**: Monitor gas consumption patterns
+:::note
+Create a `.env` file in your project root with `STARKNET_WS_URL` and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-sub, err := wsProvider.SubscribeNewTransactionReceipts(ctx, receiptsChan, options)
+sub, err := wsProvider.SubscribeNewTransactionReceipts(ctx, receiptsChan, &rpc.SubNewTxnReceiptsInput{})
 if err != nil {
-	// Handle subscription errors
-	log.Fatal("Failed to subscribe:", err)
+	switch {
+	case errors.Is(err, rpc.ErrTooManyAddressesInFilter):
+		log.Println("Too many sender addresses in the filter")
+		return
+	default:
+		log.Printf("Subscription error: %v", err)
+		return
+	}
 }
 
 // Listen for stream errors
@@ -169,18 +173,9 @@ go func() {
 }()
 ```
 
-## Possible Errors
+## Common Use Cases
 
-- `ErrTooManyAddressesInFilter` - Too many sender addresses in the filter
-- Connection errors - WebSocket connection issues
+- Tracking status of submitted transactions in real-time, including success/failure.
+- Monitoring all transaction receipts from specific accounts by filtering on sender addresses.
+- Triggering actions when transactions complete, such as sending notifications or initiating follow-up transactions.
 
-## Related Methods
-
-- [SubscribeEvents](./subscribe-events) - Subscribe to contract events
-- [SubscribeNewTransactions](./subscribe-new-transactions) - Subscribe to new transactions
-- [SubscribeTransactionStatus](./subscribe-transaction-status) - Subscribe to transaction status updates
-- [TransactionReceipt](../methods/transaction-receipt) - Query receipt by hash (non-streaming)
-
-## Specification
-
-Follows the Starknet WebSocket RPC specification for `starknet_subscribeNewTransactionReceipts`.

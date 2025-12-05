@@ -1,122 +1,143 @@
 # DevNet Package
 
-The DevNet package provides functionality for interacting with a Starknet development network for testing and development purposes. It enables developers to manage test accounts, mint tokens, and verify network connectivity during local development.
+The DevNet package provides a client for interacting with Starknet DevNet - a local Starknet node for testing and development. This package enables developers to test smart contracts locally without deploying to testnets, with instant block times and full control over the network state.
+
+:::danger DevNet Package is Broken
+
+**The DevNet package in starknet.go v0.17.0 is BROKEN and cannot work with any available DevNet version.**
+
+The `Accounts()`, `Mint()`, and `FeeToken()` methods were designed for the deprecated Python starknet-devnet which:
+- Had `/predeployed_accounts`, `/mint`, and `/fee_token` endpoints
+- Is **completely unavailable** (removed from Docker Hub and PyPI)
+- Has been replaced by starknet-devnet-rs (Rust version)
+
+The current **starknet-devnet-rs does NOT have these endpoints**, causing EOF errors.
+
+**Only working methods:**
+- ✅ `NewDevNet()` - Creates client instance
+- ✅ `IsAlive()` - Checks if DevNet is running
+- ❌ `Accounts()` - **BROKEN** (EOF error)
+- ❌ `Mint()` - **BROKEN** (endpoint doesn't exist)
+- ❌ `FeeToken()` - **BROKEN** (endpoint doesn't exist)
+
+**Required Workaround**: Use the [RPC provider](/docs/rpc/) directly to interact with DevNet. Get account credentials from DevNet startup logs:
+
+```bash
+docker logs starknet-devnet | grep "Account address"
+```
+:::
 
 ## Overview
 
-The DevNet package is designed to work with [starknet-devnet](https://github.com/0xSpaceShard/starknet-devnet-rs), a local Starknet node implementation. It provides:
+The DevNet package is designed to work with [starknet-devnet-rs](https://github.com/0xSpaceShard/starknet-devnet-rs), a local Starknet node implementation written in Rust. It provides a simple Go client for:
 
-- Connection management to local DevNet instances
-- Pre-funded test account retrieval
-- Token minting for testing
-- Network health checks
-- Fee token information access
+- **Network Management**: Connect to and monitor DevNet instances
+- **Test Account Access**: Retrieve pre-funded accounts for testing
+- **Token Minting**: Create tokens for test scenarios
+- **Fee Token Information**: Query the network's fee token details
+- **Health Monitoring**: Verify DevNet availability and responsiveness
 
-## Purpose
+## Key Components
 
-DevNet is essential for:
+### Methods
+- [NewDevNet](/docs/devnet/methods/new-devnet) - Create a DevNet client instance
+- [IsAlive](/docs/devnet/methods/is-alive) - Check if DevNet is running and accessible
+- [Accounts](/docs/devnet/methods/accounts) - Retrieve pre-funded test accounts
+- [Mint](/docs/devnet/methods/mint) - Mint tokens to any address
+- [FeeToken](/docs/devnet/methods/fee-token) - Get fee token metadata
 
-- **Local Development**: Test contracts and transactions without deploying to testnet
-- **Automated Testing**: Create reproducible test environments with pre-funded accounts
-- **Rapid Iteration**: Quickly deploy and test contracts with instant block times
-- **Cost-Free Testing**: No need for testnet tokens or gas fees
+## Getting Started
 
-## Quick Example
+To use the DevNet package, first ensure you have a running DevNet instance, then import the package:
+
+```go
+import "github.com/NethermindEth/starknet.go/devnet"
+```
+
+## Quick Example (Working with RPC)
+
+Due to API incompatibility, use the RPC provider to interact with DevNet:
 
 ```go
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"math/big"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/devnet"
-	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 func main() {
-	// Connect to local DevNet (default: http://localhost:5050)
-	devNet := devnet.NewDevNet()
-
 	// Check if DevNet is running
+	devNet := devnet.NewDevNet()
 	if !devNet.IsAlive() {
 		log.Fatal("DevNet is not running. Start it with: starknet-devnet")
 	}
+	fmt.Println("✓ DevNet is running")
 
-	// Get pre-funded test accounts
-	accounts, err := devNet.Accounts()
+	// Use RPC provider to interact with DevNet
+	provider, err := rpc.NewProvider(context.Background(), "http://localhost:5050/rpc")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Found %d pre-funded accounts\n", len(accounts))
-	fmt.Printf("First account address: %s\n", accounts[0].Address)
-	fmt.Printf("First account private key: %s\n", accounts[0].PrivateKey)
-
-	// Mint tokens to a specific address
-	address, _ := utils.HexToFelt("0x1234...")
-	amount := big.NewInt(1000000000000000000) // 1 token
-
-	mintResp, err := devNet.Mint(address, amount)
+	// Get chain ID to verify connection
+	chainID, err := provider.ChainID(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Minted %s %s\n", mintResp.NewBalance, mintResp.Unit)
-	fmt.Printf("Transaction hash: %s\n", mintResp.TransactionHash)
+	fmt.Printf("Connected to DevNet - Chain ID: %s\n", chainID)
 
-	// Get fee token information
-	feeToken, err := devNet.FeeToken()
+	// Get latest block number
+	blockNumber, err := provider.BlockNumber(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Fee token: %s at %s\n", feeToken.Symbol, feeToken.Address.String())
+	fmt.Printf("Latest block: %d\n", blockNumber)
 }
 ```
 
-## Testing Workflow
-
-Typical DevNet testing workflow:
-
-1. **Start DevNet**: Run `starknet-devnet` or use Docker
-2. **Connect**: Create DevNet instance with `NewDevNet()`
-3. **Verify**: Check connection with `IsAlive()`
-4. **Get Accounts**: Retrieve pre-funded accounts with `Accounts()`
-5. **Mint Tokens**: Add tokens to test addresses with `Mint()`
-6. **Test**: Deploy and interact with contracts using RPC provider
-7. **Repeat**: Reset DevNet state or restart for clean tests
-
 ## DevNet Setup
 
-Before using this package, you need a running DevNet instance:
+Before using this package, you need a running DevNet instance. There are several ways to set it up:
 
-### Using Binary
+### Using Cargo (Recommended)
 
 ```bash
-# Install
+# Install starknet-devnet-rs
 cargo install starknet-devnet
 
-# Run with default settings
+# Run with default settings (localhost:5050)
 starknet-devnet
 
 # Run on custom port
 starknet-devnet --port 5051
+
+# Run with deterministic seed for reproducible accounts
+starknet-devnet --seed 42
 ```
 
 ### Using Docker
 
 ```bash
-# Pull image
+# Pull the latest image
 docker pull shardlabs/starknet-devnet-rs:latest
 
-# Run DevNet
+# Run DevNet (maps port 5050)
 docker run -p 5050:5050 shardlabs/starknet-devnet-rs:latest
+
+# Run with custom port
+docker run -p 5051:5050 shardlabs/starknet-devnet-rs:latest --port 5050
 ```
 
 ### Using Docker Compose
+
+Create a `docker-compose.yml`:
 
 ```yaml
 version: '3.8'
@@ -125,60 +146,98 @@ services:
     image: shardlabs/starknet-devnet-rs:latest
     ports:
       - "5050:5050"
-    command: --seed 42
+    command: --seed 42 --accounts 10
 ```
 
-## Package Structure
+Then run:
 
-- [DevNet Methods](./methods.mdx) - Methods for interacting with DevNet
-- [Types](./types.mdx) - Type definitions used in the package
+```bash
+docker-compose up -d
+```
 
-## Integration with RPC
+## How DevNet Works
 
-DevNet is typically used alongside the RPC provider:
+### Connection Model
+
+The DevNet package uses a simple HTTP client to communicate with the DevNet server. When you create a `DevNet` instance with `NewDevNet()`, you're creating a client that points to a specific DevNet endpoint (default: `http://localhost:5050`).
+
+### Pre-funded Accounts
+
+DevNet automatically creates pre-funded test accounts when it starts. These accounts:
+
+- Are deployed and ready to use immediately
+- Come with initial token balances for gas fees
+- Have deterministic addresses when using the same seed
+- Include private keys for signing transactions
+- Typically default to 10 accounts (configurable)
+
+### Token Minting
+
+Unlike testnets where you need faucets, DevNet allows unlimited token minting to any address. This enables:
+
+- Setting up specific balance scenarios for testing
+- Funding new accounts instantly
+- Testing edge cases with extreme balances
+- Resetting account balances between tests
+
+## Typical Testing Workflow
+
+A common DevNet-based testing workflow:
+
+1. **Start DevNet**: Launch the DevNet server (cargo/docker)
+2. **Connect**: Create a DevNet client with `NewDevNet()`
+3. **Health Check**: Verify connection with `IsAlive()`
+4. **Get Accounts**: Retrieve test accounts with `Accounts()`
+5. **Setup Balances**: Mint tokens as needed with `Mint()`
+6. **Create RPC Provider**: Connect RPC client to DevNet
+7. **Test Contracts**: Deploy and interact with contracts
+8. **Repeat**: Reset or restart DevNet for clean test runs
+
+## Recommended Workflow: Using RPC Provider with DevNet
+
+Since the DevNet package methods are incompatible, use the RPC provider directly:
 
 ```go
 package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/utils"
 )
 
 func main() {
-	// Connect to DevNet
+	// Check DevNet is running
 	devNet := devnet.NewDevNet()
-
-	// Get a test account
-	accounts, err := devNet.Accounts()
-	if err != nil {
-		log.Fatal(err)
+	if !devNet.IsAlive() {
+		log.Fatal("DevNet is not running")
 	}
-	testAccount := accounts[0]
 
-	// Create RPC provider pointing to DevNet
-	provider, err := rpc.NewProvider("http://localhost:5050/rpc")
+	// Create RPC provider for DevNet
+	provider, err := rpc.NewProvider(context.Background(), "http://localhost:5050/rpc")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Parse keys and address
-	privateKey, _ := utils.HexToFelt(testAccount.PrivateKey)
-	publicKey, _ := utils.HexToFelt(testAccount.PublicKey)
-	address, _ := utils.HexToFelt(testAccount.Address)
+	// DevNet pre-funded account credentials (from starknet-devnet default accounts)
+	// You can get these by running: starknet-devnet and checking the console output
+	accountAddress, _ := new(felt.Felt).SetString("0x...")  // Replace with actual DevNet account address
+	privateKey, _ := new(felt.Felt).SetString("0x...")      // Replace with actual private key
+	publicKey, _ := new(felt.Felt).SetString("0x...")       // Replace with actual public key
 
-	// Create account for transactions
+	// Create keystore
 	ks := account.NewMemKeystore()
 	ks.Put(publicKey.String(), privateKey)
 
+	// Create account for signing transactions
 	acc, err := account.NewAccount(
 		provider,
-		address,
+		accountAddress,
 		publicKey.String(),
 		ks,
 		account.CairoV2,
@@ -187,17 +246,122 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Now use acc to send transactions on DevNet
-	// ...
+	// Verify account is ready
+	nonce, err := acc.Nonce(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Account ready! Nonce: %s\n", nonce.String())
+	fmt.Printf("Address: %s\n", accountAddress.String())
 }
 ```
 
+**Note**: To get DevNet account credentials, run `starknet-devnet` and check the console output for pre-funded account addresses and private keys.
+
+## Use Cases
+
+- **Local Development**: Test contract logic without testnet delays or costs
+- **Integration Testing**: Run automated test suites against a local blockchain
+- **CI/CD Pipelines**: Include blockchain testing in continuous integration
+- **Rapid Prototyping**: Quickly iterate on contract designs with instant blocks
+- **Multi-Account Scenarios**: Test complex interactions between multiple accounts
+- **State Management**: Reset blockchain state between tests for reproducibility
+- **Fee Testing**: Experiment with different fee scenarios using minting
+
+## Advantages of DevNet Testing
+
+### Speed
+- Instant block times (no waiting for block inclusion)
+- Immediate transaction finality
+- No network latency
+
+### Cost
+- Unlimited free tokens via minting
+- No testnet faucet dependencies
+- No gas costs
+
+### Control
+- Deterministic account generation with seeds
+- Full state reset capabilities
+- Custom network configurations
+- Isolated testing environment
+
+### Reproducibility
+- Same seed = same accounts every time
+- Consistent test environments
+- Predictable contract addresses
+
+:::tip Best Practices
+
+**Connection Management**
+- Always check `IsAlive()` before running tests to ensure DevNet is running
+- Use environment variables for DevNet URL to support different environments
+- Implement connection retry logic for CI/CD pipelines
+
+**Account Management**
+- Use different accounts for different roles (deployer, user, admin)
+- Store account indices in test constants for clarity
+- Consider using deterministic seeds for reproducible tests
+
+**State Management**
+- Restart DevNet between test suites for clean state
+- Use `Mint()` to set up specific balance scenarios
+- Document any shared state dependencies between tests
+
+**Integration**
+- Combine with RPC provider for full blockchain interaction
+- Use Account package for transaction signing and submission
+- Leverage Utils package for address and felt conversions
+:::
+
+:::note Development Tips
+
+**Starting DevNet**
+```bash
+# Basic start
+starknet-devnet
+
+# With specific configuration
+starknet-devnet --port 5051 --seed 42 --accounts 20
+
+# With timeout for long-running tests
+starknet-devnet --timeout 300
+```
+
+**Connecting from Go**
+```go
+// Default connection
+devNet := devnet.NewDevNet()
+
+// Custom URL
+devNet := devnet.NewDevNet("http://localhost:5051")
+
+// From environment
+devNet := devnet.NewDevNet(os.Getenv("DEVNET_URL"))
+```
+
+**Health Monitoring**
+```go
+// Wait for DevNet to be ready
+for i := 0; i < 10; i++ {
+    if devNet.IsAlive() {
+        break
+    }
+    time.Sleep(time.Second)
+}
+```
+:::
+
 ## Related Packages
 
-- [RPC Provider](../rpc/) - For blockchain interactions
-- [Account](../account/) - For transaction signing and sending
-- [Utils](../utils/) - For address and felt conversions
+- [RPC Provider](/docs/rpc/) - Interact with blockchain state and send transactions
+- [Account](/docs/account/) - Sign and submit transactions
+- [Utils](/docs/utils/) - Convert between address formats and felt values
 
-## Version
+## Version Compatibility
 
-This documentation is based on the latest version of starknet.go. For DevNet compatibility, use starknet-devnet-rs v0.1.0 or later.
+This documentation is based on starknet.go v0.17.0 and is compatible with:
+- starknet-devnet-rs v0.1.0+
+- Cairo 1.0+ contracts
+- Starknet RPC spec v0.7.0+

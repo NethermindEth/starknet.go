@@ -1,6 +1,6 @@
 # EstimateFee
 
-Estimates the resources required by transactions when applied on a given state.
+Estimates the resources required by transactions when applied on a given state. This method simulates transaction execution without actually submitting transactions to the network, returning gas consumption and fee estimates for each transaction in the request.
 
 ## Method Signature
 
@@ -13,25 +13,146 @@ func (provider *Provider) EstimateFee(
 ) ([]FeeEstimation, error)
 ```
 
+**Source:** [contract.go:L189-L203](https://github.com/NethermindEth/starknet.go/blob/main/rpc/contract.go#L189-L203)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `requests` - Sequence of transactions to estimate
-- `simulationFlags` - Flags describing transaction execution (e.g., `SKIP_VALIDATE`)
-- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `requests` ([]BroadcastTxn): Sequence of transactions to estimate fees for
+- `simulationFlags` ([]SimulationFlag): Flags describing transaction execution behavior
+- `blockID` (BlockID): Block identifier specifying the state to estimate against
 
 ## Returns
 
-- `[]FeeEstimation` - Fee estimation for each transaction (includes gas consumed and prices)
-- `error` - Error if the request fails
+- `[]FeeEstimation`: Fee estimation for each transaction, including gas consumed and prices
+- `error`: Error if the request fails
 
-## BlockID Parameter
+:::note
+This can return `ErrTxnExec` if the transaction execution fails, or `ErrBlockNotFound` if the block doesn't exist.
+:::
 
-The `blockID` parameter specifies which block state to use for estimation. See [BlockID helper functions](../helper-functions.mdx) for available options:
-- `WithBlockTag("latest")` - Latest block
-- `WithBlockTag("pending")` - Pending block
-- `WithBlockNumber(n)` - Specific block number
-- `WithBlockHash(hash)` - Specific block hash
+## Type Definitions
+
+:::tip 
+The fee estimation system uses these related types to build and return fee estimates:
+:::
+1. Input Types (`BroadcastTxn`, `SimulationFlag`, `BlockID`) define what transactions to estimate, how to simulate them, and at which block state.
+2. Result Type (`FeeEstimation`) returned fee estimate that embeds `FeeEstimationCommon` and adds the unit (FRI for L2 transactions).
+3. Common Fee Fields (`FeeEstimationCommon`) shared structure containing all gas consumption and pricing details (L1 gas, L2 gas, data gas, and overall fee)
+
+The method accepts an array of `BroadcastTxn` (any v3 transaction type) with optional `SimulationFlag` values, and returns an array of `FeeEstimation` - one per input transaction. Each `FeeEstimation` contains detailed gas breakdowns through its embedded `FeeEstimationCommon` fields.
+
+
+### BroadcastTxn
+
+```go
+type BroadcastTxn interface{}
+
+var (
+	_ BroadcastTxn = (*BroadcastInvokeTxnV3)(nil)
+	_ BroadcastTxn = (*BroadcastDeclareTxnV3)(nil)
+	_ BroadcastTxn = (*BroadcastDeployAccountTxnV3)(nil)
+)
+```
+
+**Source:** [types_broadcast_transaction.go:L8-L15](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_broadcast_transaction.go#L8-L15)
+
+### SimulationFlag
+
+```go
+type SimulationFlag string
+
+const (
+	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
+	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
+)
+```
+Flags that indicate how to simulate a given transaction. By default, the sequencer behaviour is replicated locally.
+**Source:** [types_trace.go:L20-L26](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L20-L26)
+
+### FeeEstimation
+
+```go
+type FeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be FRI
+	Unit PriceUnitFri `json:"unit"`
+}
+```
+
+**Source:** [types.go:L233-L237](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L233-L237)
+
+### FeeEstimationCommon
+
+```go
+type FeeEstimationCommon struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+}
+```
+
+**Source:** [types.go:L205-L231](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L205-L231)
+
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+	Number *uint64    `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -47,32 +168,40 @@ import (
 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Create RPC client
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Get RPC URL from environment variable
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
+
+	// Initialize provider
+	provider, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
 
 	// Account address
 	senderAddress, err := utils.HexToFelt("0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06")
 	if err != nil {
-		log.Fatal("Failed to parse sender:", err)
+		log.Fatal(err)
 	}
 
 	// Get current nonce
-	nonce, err := client.Nonce(ctx, rpc.WithBlockTag("latest"), senderAddress)
+	nonce, err := provider.Nonce(ctx, rpc.WithBlockTag("latest"), senderAddress)
 	if err != nil {
-		log.Fatal("Failed to get nonce:", err)
+		log.Fatal(err)
 	}
 
 	fmt.Printf("Current nonce: %s\n", nonce)
@@ -121,14 +250,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	result, err := client.EstimateFee(
-		context.Background(),
+	// Estimate fee with SKIP_VALIDATE flag
+	result, err := provider.EstimateFee(
+		ctx,
 		[]rpc.BroadcastTxn{invokeTx},
-		[]rpc.SimulationFlag{rpc.SKIP_VALIDATE},
+		[]rpc.SimulationFlag{rpc.SkipValidate},
 		rpc.WithBlockTag("latest"),
 	)
 	if err != nil {
-		log.Fatal("Failed to estimate fee:", err)
+		log.Fatal(err)
 	}
 
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
@@ -136,37 +266,33 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-Current nonce: 0x57
-Fee estimate:
-[
-  {
-    "l1_gas_consumed": "0x0",
-    "l1_gas_price": "0x1bdb18dc85e8",
-    "l2_gas_consumed": "0xf49c0",
-    "l2_gas_price": "0xb2d05e00",
-    "l1_data_gas_consumed": "0x140",
-    "l1_data_gas_price": "0x77a3",
-    "overall_fee": "0xaadb909aa0bc0",
-    "unit": "FRI"
-  }
-]
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-result, err := client.EstimateFee(ctx, []rpc.BroadcastTxn{invokeTx}, []rpc.SimulationFlag{rpc.SKIP_VALIDATE}, rpc.WithBlockTag("latest"))
+result, err := provider.EstimateFee(ctx, []rpc.BroadcastTxn{invokeTx}, []rpc.SimulationFlag{rpc.SkipValidate}, rpc.WithBlockTag("latest"))
 if err != nil {
-	// Handle errors like invalid transaction, execution errors, etc.
-	return err
+	if errors.Is(err, rpc.ErrTxnExec) {
+		log.Printf("Transaction execution failed during estimation")
+		return
+	}
+	if errors.Is(err, rpc.ErrBlockNotFound) {
+		log.Printf("Block not found")
+		return
+	}
+	log.Printf("Error estimating fee: %v", err)
+	return
 }
+
+fmt.Printf("Overall fee: %s FRI\n", result[0].OverallFee)
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [Nonce](./get-nonce.mdx) - Get current nonce for fee estimation
-- [EstimateMessageFee](./estimate-message-fee.mdx) - Estimate L1->L2 message fees
-- [SimulateTransactions](./simulate-transaction.mdx) - Simulate transaction execution
+- Estimating transaction fees before sending to determine if the account has sufficient balance.
+- Comparing fee estimates across different blocks to optimize transaction timing.
+- Using simulation flags to skip validation when estimating fees for unsigned transactions.
+

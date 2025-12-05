@@ -1,6 +1,6 @@
 # TransactionHashDeployAccountV3
 
-Calculates the transaction hash for a Deploy Account V3 transaction with resource bounds using the Poseidon hash algorithm.
+Calculates the transaction hash for a Deploy Account V3 transaction using the Poseidon hash algorithm. V3 introduces resource bounds, data availability modes, and paymaster support for account deployments.
 
 ## Function Signature
 
@@ -12,40 +12,119 @@ func TransactionHashDeployAccountV3(
 ) (*felt.Felt, error)
 ```
 
+**Source:** [hash.go:L714-L756](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L714-L756)
+
 ## Parameters
 
-- `txn` - The Deploy Account V3 transaction containing:
-  - `Version` - Transaction version string
-  - `ClassHash` - Hash of the account contract class
-  - `ContractAddressSalt` - Salt used in address calculation
-  - `ConstructorCalldata` - Constructor parameters
-  - `Nonce` - Account nonce (usually 0 for deployment)
-  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
-  - `Tip` - Additional fee tip
-  - `PayMasterData` - Optional paymaster data
-  - `FeeMode` - Fee data availability mode
-  - `NonceDataMode` - Nonce data availability mode
-- `contractAddress` - The precomputed contract address
-- `chainID` - The Starknet chain ID
+- `txn` (*rpc.DeployAccountTxnV3): The Deploy Account V3 transaction containing Version, ClassHash, ContractAddressSalt, ConstructorCalldata, Nonce, ResourceBounds, Tip, PayMasterData, FeeMode, and NonceDataMode
+- `contractAddress` (*felt.Felt): The precomputed contract address
+- `chainID` (*felt.Felt): The Starknet chain ID
 
 ## Returns
 
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
+- `*felt.Felt`: The calculated transaction hash
+- `error`: Error if required parameters are missing
 
-## Description
+## Usage Example
 
-This function calculates the transaction hash for Deploy Account V3 transactions using the Poseidon hash algorithm. V3 introduces resource bounds, data availability modes, and paymaster support.
+```go
+package main
 
-Internally uses:
-- [TipAndResourcesHash](./tip-and-resources-hash) - For tip and resource bounds hashing
-- [DataAvailabilityModeConc](./data-availability-mode-conc) - For DA mode concatenation
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-## Specification
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
 
-Follows the [V3 Deploy Account hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3).
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
 
-## Related Functions
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	salt := new(felt.Felt).SetUint64(12345)
+	nonce := new(felt.Felt).SetUint64(0)
 
-- [TransactionHashDeployAccountV1](./transaction-hash-deploy-account-v1) - Deprecated V1 variant
-- [PrecomputeAddress](/docs/contracts/) - Calculate contract addresses before deployment
+	publicKey, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x10c388d00",
+		},
+	}
+
+	txn := &rpc.DeployAccountTxnV3{
+		Type:                rpc.TransactionTypeDeployAccount,
+		Version:             rpc.TransactionV3,
+		ClassHash:           classHash,
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		Nonce:               nonce,
+		ResourceBounds:      resourceBounds,
+		Tip:                 "0x0",
+		PayMasterData:       []*felt.Felt{},
+		NonceDataMode:       rpc.DAModeL1,
+		FeeMode:             rpc.DAModeL1,
+		Signature:           []*felt.Felt{},
+	}
+
+	contractAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+	txHash, err := hash.TransactionHashDeployAccountV3(txn, contractAddress, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
+}
+```
+
+## Common Use Cases
+
+This function is commonly used for:
+
+- Computing transaction hashes for modern account deployments in wallet applications that create new Starknet accounts with resource bounds. See [Transaction Hash - Deploy Account V3 example](/docs/hash/examples#transaction-hash---deploy-account-v3).
+- Implementing account creation workflows in SDKs and wallets that need to sign deploy account transactions before broadcasting to the network.
+- Building account factory contracts and services that deploy multiple accounts and need to track deployment transaction hashes.
+- Creating account deployment tools that utilize paymaster services for gasless account creation by computing proper transaction hashes.
+- Developing testing frameworks that simulate V3 account deployment scenarios to ensure proper handling of resource bounds and data availability modes.
+

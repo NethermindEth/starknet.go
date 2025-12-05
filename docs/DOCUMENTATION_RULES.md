@@ -146,30 +146,59 @@ func main() {
    - List each return value with type and description
    - Format: `- Type: Description`
 
-5. **Usage Example**
+5. **Type Structure** (REQUIRED if method returns a custom type/struct)
+   - Add section IMMEDIATELY after Returns section
+   - MUST include GitHub source link to type definition
+   - Show complete struct/type definition
+   - Explain all fields with comments
+   - Provide example showing what a created instance contains
+   - Show how to access fields
+   - Format:
+     ```markdown
+     ## TypeName Structure
+
+     **Source:** [file.go:LX-LY](github-link)
+
+     The returned TypeName instance contains:
+
+     ```go
+     type TypeName struct {
+         Field1 Type1  // Description
+         Field2 Type2  // Description
+     }
+     ```
+
+     **Example of a created instance:**
+
+     ```go
+     result, err := SomeMethod(...)
+     // result.Field1 -> value
+     // result.Field2 -> value
+     ```
+     ```
+
+6. **Usage Example**
    - ONE complete, runnable code example
    - MUST use godotenv pattern for environment variables
    - MUST include `.env` file setup instructions
    - MUST include package installation instructions
 
-6. **Error Handling**
+7. **Error Handling**
    - Show proper error handling with actual errors from source code
    - Use switch statement for multiple error types
 
-7. **Common Use Cases**
+8. **Common Use Cases**
    - Bullet list of common scenarios where this method is used
    - Each bullet should link to examples page: `See [example](/docs/rpc/examples#method-name)`
    - Include final link to full examples: `For complete examples, see [RPC Examples - MethodName](/docs/rpc/examples#method-name)`
-
-8. **Related Methods**
-   - Links to other related methods
-   - Format: `- [MethodName](/docs/rpc/methods/method-name) - Brief description`
 
 **FORBIDDEN SECTIONS:**
 - ❌ NO "RPC Specification" section
 - ❌ NO "Important Notes" section (put in description paragraph instead)
 - ❌ NO inline code examples in "Common Use Cases" (link to examples page)
 - ❌ NO type definitions in method pages (only in dedicated type pages)
+- ❌ NO "Expected Output" section (examples should be self-documenting)
+- ❌ NO "Related Methods" or "Related Functions" section
 
 **Example Structure:**
 ```markdown

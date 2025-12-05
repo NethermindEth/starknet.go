@@ -8,17 +8,18 @@ import (
 )
 
 func main() {
-	fmt.Println("BigToHex:")
-	
-	bigValues := []*big.Int{
-		big.NewInt(123),
-		big.NewInt(11259375),
-		new(big.Int).SetUint64(1234567890),
-	}
-	
-	for _, bigInt := range bigValues {
-		hex := utils.BigToHex(bigInt)
-		fmt.Printf("  Input: %s\n", bigInt.String())
-		fmt.Printf("  Output: %s\n\n", hex)
-	}
+	// Convert small BigInt
+	hex := utils.BigToHex(big.NewInt(123))
+	fmt.Printf("123 = %s\n", hex)
+	// Output: 0x7b
+
+	// Convert larger BigInt
+	hex2 := utils.BigToHex(big.NewInt(11259375))
+	fmt.Printf("11259375 = %s\n", hex2)
+	// Output: 0xabcdef
+
+	// Convert large BigInt
+	hex3 := utils.BigToHex(new(big.Int).SetUint64(1234567890))
+	fmt.Printf("1234567890 = %s\n", hex3)
+	// Output: 0x499602d2
 }

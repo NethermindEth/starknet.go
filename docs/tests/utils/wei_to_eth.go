@@ -3,29 +3,19 @@ package main
 import (
 	"fmt"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
 func main() {
-	// Create Wei amounts
-	wei1, _ := new(felt.Felt).SetString("1000000000000000000") // 1 ETH
-	wei2, _ := new(felt.Felt).SetString("500000000000000000")  // 0.5 ETH
-	wei3, _ := new(felt.Felt).SetString("1000000000000000")    // 0.001 ETH
+	// Convert 1 ETH in Wei to ETH
+	wei, _ := utils.HexToFelt("0xde0b6b3a7640000")
+	eth := utils.WeiToETH(wei)
+	fmt.Printf("%s Wei = %v ETH\n", wei.String(), eth)
+	// Output: 1 ETH
 
-	fmt.Println("WeiToETH:")
-	
-	eth1 := utils.WeiToETH(wei1)
-	fmt.Printf("  Wei: %s\n", wei1.String())
-	fmt.Printf("  ETH: %.18f\n", eth1)
-	fmt.Println()
-	
+	// Convert 0.5 ETH in Wei to ETH
+	wei2, _ := utils.HexToFelt("0x6f05b59d3b20000")
 	eth2 := utils.WeiToETH(wei2)
-	fmt.Printf("  Wei: %s\n", wei2.String())
-	fmt.Printf("  ETH: %.18f\n", eth2)
-	fmt.Println()
-	
-	eth3 := utils.WeiToETH(wei3)
-	fmt.Printf("  Wei: %s\n", wei3.String())
-	fmt.Printf("  ETH: %.18f\n", eth3)
+	fmt.Printf("%s Wei = %v ETH\n", wei2.String(), eth2)
+	// Output: 0.5 ETH
 }

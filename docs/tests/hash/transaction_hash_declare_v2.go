@@ -13,22 +13,54 @@ import (
 )
 
 func main() {
-	godotenv.Load("../.env")
-	
-	ctx := context.Background()
-	client, _ := rpc.NewProvider(ctx, os.Getenv("STARKNET_RPC_URL"))
-	chainID, _ := client.ChainID(ctx)
-
-	txn := &rpc.DeclareTxnV2{
-		SenderAddress:     new(felt.Felt).SetUint64(123),
-		CompiledClassHash: new(felt.Felt).SetUint64(456),
-		MaxFee:            new(felt.Felt).SetUint64(1000),
-		Version:           rpc.TransactionV2,
-		Signature:         []*felt.Felt{},
-		Nonce:             new(felt.Felt).SetUint64(0),
-		ClassHash:         new(felt.Felt).SetUint64(789),
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
 	}
 
-	txHash, _ := hash.TransactionHashDeclareV2(txn, chainID)
-	fmt.Printf("TransactionHashDeclareV2: %s\n", txHash.String())
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	senderAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	compiledClassHash, _ := new(felt.Felt).SetString("0x0fedcba9876543210fedcba9876543210fedcba9876543210fedcba98765432")
+	nonce := new(felt.Felt).SetUint64(12)
+	maxFee := new(felt.Felt).SetUint64(3500000000000000)
+
+	txn := &rpc.DeclareTxnV2{
+		Type:              rpc.TransactionTypeDeclare,
+		Version:           rpc.TransactionV2,
+		SenderAddress:     senderAddress,
+		ClassHash:         classHash,
+		CompiledClassHash: compiledClassHash,
+		MaxFee:            maxFee,
+		Nonce:             nonce,
+		Signature:         []*felt.Felt{},
+	}
+
+	txHash, err := hash.TransactionHashDeclareV2(txn, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
 }

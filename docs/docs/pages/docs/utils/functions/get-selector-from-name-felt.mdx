@@ -8,6 +8,8 @@ Calculates the function selector from a function name as a Felt.
 func GetSelectorFromNameFelt(name string) *felt.Felt
 ```
 
+**Source:** [keccak.go:L140-L142](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L140-L142)
+
 ## Parameters
 
 - `name` (string): Function name (e.g., "transfer", "balanceOf")
@@ -15,10 +17,6 @@ func GetSelectorFromNameFelt(name string) *felt.Felt
 ## Returns
 
 - `*felt.Felt`: The function selector
-
-## Description
-
-Calculates the Starknet function selector by taking the Starknet Keccak hash of the function name. This is used to identify functions in contract calls.
 
 ## Usage Example
 
@@ -56,11 +54,12 @@ func main() {
 
 ## Use Cases
 
-- Building transaction calldata
-- Contract function calls
-- Event filtering by selector
+- Building transaction calldata.
+- Contract function calls.
+- Event filtering by selector.
 
-## Related Functions
+## See Also
 
-- [Keccak256](/docs/utils/functions/keccak256)
-- [GetSelectorFromName](/docs/utils/functions/get-selector-from-name)
+- [Smart Contract Integration](/docs/utils/examples#smart-contract-integration) shows how to use function selectors in practice
+- [Transaction Construction](/docs/utils/examples#transaction-construction) for building transactions with selectors
+

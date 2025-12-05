@@ -1,0 +1,155 @@
+# ClassHashAt
+
+Retrieves the class hash associated with a specific contract address at a given block. This is a lightweight method that returns only the class hash identifier, which can then be used with the Class method to retrieve the full class definition. This is useful for verifying which implementation a contract is using or detecting contract upgrades.
+
+## Method Signature
+
+```go
+func (provider *Provider) ClassHashAt(
+    ctx context.Context,
+    blockID BlockID,
+    contractAddress *felt.Felt,
+) (*felt.Felt, error)
+```
+
+**Source:** [contract.go:L104-L117](https://github.com/NethermindEth/starknet.go/blob/main/rpc/contract.go#L104-L117)
+
+## Parameters
+
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier (number, hash, or tag)
+- `contractAddress` (*felt.Felt): The address of the deployed contract
+
+## Returns
+
+- `*felt.Felt`: The class hash associated with the contract
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrContractNotFound` if the contract address doesn't exist, or `ErrBlockNotFound` if the block doesn't exist.
+:::
+
+## Type Definitions
+
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
+
+## Usage Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "os"
+
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+    "github.com/joho/godotenv"
+)
+
+func main() {
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    ctx := context.Background()
+
+    // ETH contract address on Sepolia
+    contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Get class hash at the contract address
+    blockID := rpc.WithBlockTag("latest")
+    classHash, err := provider.ClassHashAt(ctx, blockID, contractAddress)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Class hash at contract address: %s\n", classHash)
+}
+```
+
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
+
+## Error Handling
+
+```go
+classHash, err := provider.ClassHashAt(ctx, blockID, contractAddress)
+if err != nil {
+    if errors.Is(err, rpc.ErrContractNotFound) {
+        log.Printf("Contract not found at address: %s", contractAddress)
+        return
+    }
+    if errors.Is(err, rpc.ErrBlockNotFound) {
+        log.Printf("Block not found")
+        return
+    }
+    log.Printf("Error retrieving class hash: %v", err)
+    return
+}
+
+fmt.Printf("Contract uses class hash: %s\n", classHash)
+```
+
+## Common Use Cases
+
+- Track when a contract's implementation changes by monitoring its class hash over time. See [example](/docs/rpc/examples#contract-upgrade-detection).
+- Verify that a contract is using the expected implementation class. See [example](/docs/rpc/examples#implementation-verification).
+- Efficiently check class hashes for multiple contracts without fetching full class definitions.

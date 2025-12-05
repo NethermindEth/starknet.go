@@ -1,6 +1,6 @@
 # TransactionHashDeployAccount
 
-Calculates the transaction hash for a deploy account transaction.
+Calculates the transaction hash for a deploy account transaction. This method computes the hash based on the deploy account transaction version (V1 or V3) using the precomputed contract address. The computed hash is used for signing the transaction.
 
 ## Method Signature
 
@@ -11,9 +11,11 @@ func (account *Account) TransactionHashDeployAccount(
 ) (*felt.Felt, error)
 ```
 
+**Source:** [txn_hash.go:L22-L46](https://github.com/NethermindEth/starknet.go/blob/main/account/txn_hash.go#L22-L46)
+
 ## Parameters
 
-- `tx` - Deploy account transaction
+- `tx` - Deploy account transaction (V1 or V3)
 - `contractAddress` - Precomputed contract address
 
 ## Returns
@@ -23,79 +25,154 @@ func (account *Account) TransactionHashDeployAccount(
 
 ## Usage Example
 
-> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
-
 ```go
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance
-	var acc *account.Account
-	// acc = ... (already initialized)
+	ctx := context.Background()
 
-	// Create a deploy account transaction V1
-	classHash, _ := new(felt.Felt).SetString("0x04c6d6cf894f8bc96bb9c525e6853e5483177841f7388f74a46cfda6f028c755")
-	contractAddressSalt, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
-	pubKey, _ := new(felt.Felt).SetString("0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2")
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
+	}
 
-	deployAccountTx := rpc.DeployAccountTxnV1{
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set")
+	}
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("Account credentials not set in .env")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(provider, accountAddressFelt, publicKey, ks, account.CairoV2)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	classHash, _ := utils.HexToFelt("0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
+	salt := new(felt.Felt).SetUint64(12345)
+	newAccountPubKey, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	constructorCalldata := []*felt.Felt{newAccountPubKey}
+
+	precomputedAddress := contracts.PrecomputeAddress(
+		new(felt.Felt).SetUint64(0),
+		salt,
+		classHash,
+		constructorCalldata,
+	)
+
+	fmt.Printf("ClassHash:           %s\n", classHash.String())
+	fmt.Printf("Salt:                %s\n", salt.String())
+	fmt.Printf("PublicKey:           %s\n", newAccountPubKey.String())
+	fmt.Printf("Precomputed Address: %s\n\n", precomputedAddress.String())
+
+	deployTxnV3 := &rpc.DeployAccountTxnV3{
 		Type:                rpc.TransactionTypeDeployAccount,
-		MaxFee:              new(felt.Felt).SetUint64(1000000000000),
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{},
+		Version:             rpc.TransactionV3,
 		Nonce:               new(felt.Felt).SetUint64(0),
 		ClassHash:           classHash,
-		ContractAddressSalt: contractAddressSalt,
-		ConstructorCalldata: []*felt.Felt{pubKey},
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		ResourceBounds: &rpc.ResourceBoundsMapping{
+			L1Gas:     rpc.ResourceBounds{MaxAmount: "0x186a0", MaxPricePerUnit: "0x5f5e100"},
+			L2Gas:     rpc.ResourceBounds{MaxAmount: "0x186a0", MaxPricePerUnit: "0x5f5e100"},
+			L1DataGas: rpc.ResourceBounds{MaxAmount: "0x186a0", MaxPricePerUnit: "0x5f5e100"},
+		},
+		Tip:           "0x0",
+		PayMasterData: []*felt.Felt{},
+		NonceDataMode: rpc.DAModeL1,
+		FeeMode:       rpc.DAModeL1,
+		Signature:     []*felt.Felt{},
 	}
 
-	// Precompute the contract address (required for deploy account hash)
-	precomputedAddress, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
-
-	// Calculate transaction hash
-	txHash, err := acc.TransactionHashDeployAccount(&deployAccountTx, precomputedAddress)
+	txHashV3, err := accnt.TransactionHashDeployAccount(deployTxnV3, precomputedAddress)
 	if err != nil {
-		log.Fatalf("Error calculating hash: %v", err)
+		log.Fatal("Failed to compute V3 hash:", err)
 	}
 
-	fmt.Printf("Transaction hash: %s\n", txHash)
+	fmt.Printf("V3 Transaction:\n")
+	fmt.Printf("  Nonce:     %d\n", deployTxnV3.Nonce.Uint64())
+	fmt.Printf("  ClassHash: %s\n", deployTxnV3.ClassHash.String())
+	fmt.Printf("  Salt:      %s\n", deployTxnV3.ContractAddressSalt.String())
+	fmt.Printf("  Hash:      %s\n\n", txHashV3.String())
+
+	deployTxnV1 := &rpc.DeployAccountTxnV1{
+		Type:                rpc.TransactionTypeDeployAccount,
+		Version:             rpc.TransactionV1,
+		Nonce:               new(felt.Felt).SetUint64(0),
+		ClassHash:           classHash,
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		MaxFee:              new(felt.Felt).SetUint64(1000000000000000),
+		Signature:           []*felt.Felt{},
+	}
+
+	txHashV1, err := accnt.TransactionHashDeployAccount(deployTxnV1, precomputedAddress)
+	if err != nil {
+		log.Fatal("Failed to compute V1 hash:", err)
+	}
+
+	fmt.Printf("V1 Transaction:\n")
+	fmt.Printf("  Nonce:  %d\n", deployTxnV1.Nonce.Uint64())
+	fmt.Printf("  MaxFee: %s\n", deployTxnV1.MaxFee.String())
+	fmt.Printf("  Hash:   %s\n", txHashV1.String())
 }
 ```
 
-## Expected Output
-
-```
-Transaction hash: 0x30404dd09741e3e8450579b3f992dbb20cf1d13207defa89a3549f7305bd97f
-```
-
-## Description
-
-TransactionHashDeployAccount calculates the hash for deploy account transactions using the precomputed address.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
 ```go
-hash, err := acc.TransactionHashDeployAccount(tx, contractAddress)
+txHash, err := accnt.TransactionHashDeployAccount(deployTx, precomputedAddress)
 if err != nil {
-	// Handle errors like:
-	// - Invalid transaction type
-	// - Hash calculation failure
+	// Handle hash calculation errors
 	return err
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [SignDeployAccountTransaction](./sign-deploy-account-transaction.mdx) - Uses this for signing
-- [PrecomputeAccountAddress](../functions/precompute-account-address.mdx) - Calculate address
-- [TransactionHashInvoke](./transaction-hash-invoke.mdx) - For invoke transactions
-- [TransactionHashDeclare](./transaction-hash-declare.mdx) - For declare transactions
+- Computing transaction hash before signing deploy account transactions
+- Verifying transaction hash matches expected value
+- Low-level transaction hash computation for debugging
+- Manual signing workflows requiring separate hash calculation
+- Usually handled automatically by SignDeployAccountTransaction method

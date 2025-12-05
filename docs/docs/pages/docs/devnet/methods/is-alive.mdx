@@ -8,6 +8,8 @@ Checks if the DevNet server is running and responding to requests.
 func (devnet *DevNet) IsAlive() bool
 ```
 
+**Source:** [devnet.go:L109-L124](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L109-L124)
+
 ## Parameters
 
 None
@@ -46,12 +48,6 @@ func main() {
 		log.Fatal("Please start DevNet with: starknet-devnet")
 	}
 }
-```
-
-## Expected Output
-
-```
-DevNet Status: Running ✓
 ```
 
 ## Use Cases
@@ -111,8 +107,3 @@ func main() {
 - Returns `false` on any error (network, timeout, etc.)
 - No exceptions thrown - safe to call without error handling
 
-## Related Methods
-
-- [NewDevNet](./new-devnet.mdx) - Create DevNet instance
-- [Accounts](./accounts.mdx) - Get test accounts after verifying DevNet is alive
-- [Mint](./mint.mdx) - Mint tokens (requires DevNet to be alive)

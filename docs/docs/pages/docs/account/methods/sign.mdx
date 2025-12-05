@@ -1,12 +1,14 @@
 # Sign
 
-Signs a felt message using the account's private key.
+Signs a felt message using the account's private key from the keystore. The signature is compatible with Starknet's signature verification scheme and returns two felt components (r, s).
 
 ## Method Signature
 
 ```go
 func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 ```
+
+**Source:** [signature.go:L23-L34](https://github.com/NethermindEth/starknet.go/blob/main/account/signature.go#L23-L34)
 
 ## Parameters
 
@@ -20,8 +22,6 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 
 ## Usage Example
 
-> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
-
 ```go
 package main
 
@@ -29,48 +29,129 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance
-	var acc *account.Account
-	// acc = ... (already initialized)
-
-	// Create a message to sign
-	message, _ := new(felt.Felt).SetString("0x4d7920746573742073747277742073747277742073747277742053696d706c65206d657373616765")
-
-	// Sign the message
 	ctx := context.Background()
-	signature, err := acc.Sign(ctx, message)
-	if err != nil {
-		log.Fatalf("Error signing: %v", err)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	fmt.Printf("Message: %s\n", message)
-	fmt.Println("Signature components:")
-	for i, sig := range signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
-	fmt.Printf("Total components: %d\n", len(signature))
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	message := new(felt.Felt).SetUint64(12345)
+	fmt.Printf("Message to sign: %s\n", message.String())
+	fmt.Printf("Message (decimal): %d\n", message.Uint64())
+
+	signature, err := accnt.Sign(ctx, message)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
+	}
+
+	fmt.Printf("Signature components:\n")
+	fmt.Printf("  r: %s\n", signature[0].String())
+	fmt.Printf("  s: %s\n", signature[1].String())
+
+	pubKeyFelt, _ := utils.HexToFelt(publicKey)
+	isValid, err := curve.Verify(message.BigInt(new(big.Int)), signature[0].BigInt(new(big.Int)), signature[1].BigInt(new(big.Int)), pubKeyFelt.BigInt(new(big.Int)))
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("Signature verification: %v\n", isValid)
+
+	messageStr := "Hello Starknet!"
+	fmt.Printf("Original message: \"%s\"\n", messageStr)
+
+	messageFelt := new(felt.Felt).SetBigInt(utils.UTF8StrToBig(messageStr))
+	fmt.Printf("Message as felt: %s\n", messageFelt.String())
+
+	signature2, err := accnt.Sign(ctx, messageFelt)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
+	}
+
+	fmt.Printf("Signature:\n")
+	fmt.Printf("  r: %s\n", signature2[0].String())
+	fmt.Printf("  s: %s\n", signature2[1].String())
+
+	isValid2, err := curve.Verify(messageFelt.BigInt(new(big.Int)), signature2[0].BigInt(new(big.Int)), signature2[1].BigInt(new(big.Int)), pubKeyFelt.BigInt(new(big.Int)))
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("Signature valid: %v\n", isValid2)
+
+	txHash, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	fmt.Printf("Transaction hash: %s\n", txHash.String())
+
+	signature3, err := accnt.Sign(ctx, txHash)
+	if err != nil {
+		log.Fatal("Failed to sign transaction hash:", err)
+	}
+
+	fmt.Printf("Transaction signature:\n")
+	fmt.Printf("  r: %s\n", signature3[0].String())
+	fmt.Printf("  s: %s\n", signature3[1].String())
+
+	isValid3, err := curve.Verify(txHash.BigInt(new(big.Int)), signature3[0].BigInt(new(big.Int)), signature3[1].BigInt(new(big.Int)), pubKeyFelt.BigInt(new(big.Int)))
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("Signature valid: %v\n", isValid3)
 }
 ```
 
-## Expected Output
-
-```
-Message: 0x4d7920746573742073747277742073747277742073747277742053696d706c65206d657373616765
-Signature components:
-Signature[0]: 0x43177e5821ad945f9ac31106d11c058542091b47dcfa72d78e84964c00fb166
-Signature[1]: 0x9a380b4b67dd5a75837a934081432ab7a3486a687404f444a3fd92db6eecaa
-Total components: 2
-```
-
-## Description
-
-Sign uses the account's private key from the keystore to sign a message. The signature is compatible with Starknet's signature verification scheme and returns two felt components (r, s).
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
@@ -84,8 +165,10 @@ if err != nil {
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [Verify](./verify.mdx) - Verify signatures
-- [SignInvokeTransaction](./sign-invoke-transaction.mdx) - Sign invoke transactions
-- [SignDeclareTransaction](./sign-declare-transaction.mdx) - Sign declare transactions
+- Sign arbitrary messages for off-chain verification
+- Create signatures for custom authentication schemes
+- Sign data for cross-chain message passing
+- Generate proofs of ownership or authorization
+- Low-level signing operations (most users should use transaction-specific signing methods)

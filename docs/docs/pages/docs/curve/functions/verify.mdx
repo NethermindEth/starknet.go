@@ -1,12 +1,14 @@
 # Verify
 
-Verifies a signature for a given message hash using the Stark curve.
+Verifies a signature for a given message hash using the Stark curve. This function validates that a signature was created by the holder of the private key corresponding to the provided public key.
 
 ## Function Signature
 
 ```go
 func Verify(msgHash, r, s, pubX *big.Int) (bool, error)
 ```
+
+**Source:** [curve.go:L17-L37](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L17-L37)
 
 ## Parameters
 
@@ -65,54 +67,10 @@ func main() {
 }
 ```
 
-## Expected Output
+## Common Use Cases
 
-```
-Verify:
-  Message Hash: 0x1234567890abcdef
-  Public Key X: 0x55ee8b9fe765b75772260106a65c8f644bb6e44ae6871a513b2f69f48ea21d5
-  Signature R: 0x2f3405619c1d177588837cbeba7ed4a4346f64e81153d909432f2a32fcf36dd
-  Signature S: 0x6b87ab91d0d689f11203092666d11bb88ad5d28a08f32ffc93f1c7def2c41bc
-  Valid: true
-```
+- Verify transaction signatures to ensure they were signed by the account owner before execution.
+- Validate message signatures for authentication and authorization workflows.
+- Check signatures in multi-signature setups where multiple parties must sign transactions.
+- Use when working with big.Int types for interoperability with other Go libraries, otherwise prefer [VerifyFelts](/docs/curve/functions/verify-felts).
 
-## Use Cases
-
-### 1. Verify Transaction Signature
-```go
-valid, err := curve.Verify(txHash, sigR, sigS, senderPubKey)
-if !valid {
-    return errors.New("invalid transaction signature")
-}
-```
-
-### 2. Verify Account Ownership
-```go
-challengeHash := new(big.Int).SetString("0x123...", 0)
-valid, _ := curve.Verify(challengeHash, r, s, claimedPubKey)
-if valid {
-    fmt.Println("Account ownership verified")
-}
-```
-
-### 3. Multi-signature Verification
-```go
-allValid := true
-for i, sig := range signatures {
-    valid, _ := curve.Verify(msgHash, sig.R, sig.S, pubKeys[i])
-    allValid = allValid && valid
-}
-```
-
-## Notes
-
-- Returns `false` if signature is invalid (no error thrown)
-- The public key X coordinate is sufficient for verification
-- Use [VerifyFelts](/docs/curve/functions/verify-felts) for felt.Felt parameters
-- Verification is faster than signing
-
-## Related Functions
-
-- [VerifyFelts](/docs/curve/functions/verify-felts) - Verify with felt.Felt parameters
-- [Sign](/docs/curve/functions/sign) - Create a signature
-- [GetYCoordinate](/docs/curve/functions/get-y-coordinate) - Get Y from X if needed

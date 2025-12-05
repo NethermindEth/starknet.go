@@ -1,72 +1,80 @@
-# Utils
+# Utils Package
 
-import { Callout } from 'vocs/components'
-
-The utils package provides essential utility functions for Starknet development, including data conversions, transaction builders, cryptographic operations, and unit conversions.
-
-<Callout type="warning">
-  **Dependency Requirement**: The utils package requires `github.com/NethermindEth/juno v0.15.10` or later. In juno v0.15.10, the `SetRandom()` method signature changed from returning `(*Felt, error)` to returning `*Felt` (now panics on error instead). Ensure your `go.mod` has the correct juno version to avoid compilation errors.
-</Callout>
+The Utils package provides essential utility functions and helpers for Starknet development. This comprehensive toolkit simplifies common operations including data type conversions, transaction building, cryptographic operations, and unit conversions.
 
 ## Overview
 
-The utils package is designed to simplify common operations when working with Starknet, offering utilities for:
+The Utils package is designed to streamline Starknet development by providing battle-tested utilities for everyday tasks. Whether you're converting hex strings to Felt values, building complex transactions, or performing cryptographic operations, the utils package offers a consistent and intuitive API.
 
-- Converting between different data types (hex, felt, big.Int)
-- Building and managing transactions
-- Cryptographic operations and hashing
-- Currency and unit conversions
-- Universal Deployer Contract (UDC) operations
+Key capabilities include:
 
-## Main Categories
+- **Type Conversions**: Seamlessly convert between hex strings, Felt values, big.Int, and other data types
+- **Transaction Building**: Construct invoke, declare, and deploy account transactions with proper formatting
+- **Cryptographic Operations**: Generate function selectors, compute Keccak256 hashes, and perform hash operations
+- **Unit Conversions**: Convert between ETH/Wei and STRK/FRI with precision
+- **Universal Deployer Contract**: Deploy contracts using Starknet's UDC with flexible configuration
+
+:::note
+Dependency Requirement is that 
+the utils package requires `github.com/NethermindEth/juno v0.15.10` or later. In juno v0.15.10, the `SetRandom()` method signature changed from returning `(*Felt, error)` to returning `*Felt` (now panics on error instead). Ensure your `go.mod` has the correct juno version to avoid compilation errors.
+:::
+
+## Key Components
 
 ### Conversion Functions
 
-Functions for converting between different data representations:
-- Hex to Felt and vice versa
-- Big.Int to Felt conversions
-- String to ByteArray conversions
-- U256 conversions
+Essential functions for converting between different data representations:
 
-See [Conversion Functions](./conversions.mdx) for detailed documentation.
+- [HexToFelt](/docs/utils/functions/hex-to-felt) - Convert hexadecimal strings to Felt values
+- [FeltToBigInt](/docs/utils/functions/felt-to-big-int) - Convert Felt values to big integers
+- [BigIntToFelt](/docs/utils/functions/big-int-to-felt) - Convert big integers to Felt values
+- [Uint64ToFelt](/docs/utils/functions/uint64-to-felt) - Convert uint64 numbers to Felt values
+- [HexArrToFelt](/docs/utils/functions/hex-arr-to-felt) - Convert hex string arrays to Felt arrays
+- [FeltArrToBigIntArr](/docs/utils/functions/felt-arr-to-big-int-arr) - Convert Felt arrays to big integer arrays
 
 ### Transaction Builders
 
-Helper functions for building Starknet transactions:
-- Invoke transactions
-- Declare transactions
-- Deploy account transactions
-- UDC deployments
-- Fee estimation utilities
+Helper functions for constructing Starknet transactions:
 
-See [Transaction Builders](./transaction-builders.mdx) for detailed documentation.
+- [BuildInvokeTxn](/docs/utils/functions/build-invoke-txn) - Build invoke transactions for contract calls
+- [BuildDeclareTxn](/docs/utils/functions/build-declare-txn) - Build declare transactions for new contract classes
+- [BuildDeployAccountTxn](/docs/utils/functions/build-deploy-account-txn) - Build deploy account transactions
 
 ### Cryptographic Utilities
 
-Cryptographic and hashing functions:
-- Function selector generation
-- Keccak256 hashing
-- Fact computation
-- Bit masking operations
+Functions for hashing, selector generation, and cryptographic operations:
 
-See [Cryptographic Utilities](./cryptographic.mdx) for detailed documentation.
+- [GetSelectorFromName](/docs/utils/functions/get-selector-from-name) - Generate function selectors from names (returns big.Int)
+- [GetSelectorFromNameFelt](/docs/utils/functions/get-selector-from-name-felt) - Generate function selectors (returns Felt)
+- [Keccak256](/docs/utils/functions/keccak256) - Compute Keccak-256 hashes
+- [StrToHex](/docs/utils/functions/str-to-hex) - Convert strings to hexadecimal
+- [HexToShortStr](/docs/utils/functions/hex-to-short-str) - Convert hex to short strings
 
 ### Unit Conversions
 
-Currency and unit conversion utilities:
-- ETH to Wei conversions
-- STRK to FRI conversions
+Currency and unit conversion utilities for Starknet tokens:
 
-See [Unit Conversions](./unit-conversions.mdx) for detailed documentation.
+- [WeiToETH](/docs/utils/functions/wei-to-eth) - Convert Wei amounts to ETH
+- [ETHToWei](/docs/utils/functions/eth-to-wei) - Convert ETH amounts to Wei
+- [FRIToSTRK](/docs/utils/functions/fri-to-strk) - Convert FRI amounts to STRK
+- [STRKToFRI](/docs/utils/functions/strk-to-fri) - Convert STRK amounts to FRI
 
-### Types
+### Type Definitions
 
-Type definitions and structures used throughout the utils package:
-- TxnOptions for transaction configuration
-- UDCOptions for Universal Deployer Contract
-- KeccakState for hashing operations
+Core types used throughout the utils package:
 
-See [Types](./types.mdx) for detailed documentation.
+- [TxnOptions](/docs/utils/types#txnoptions) - Optional settings for transaction building
+- [UDCOptions](/docs/utils/types#udcoptions) - Options for Universal Deployer Contract
+- [UDCVersion](/docs/utils/types#udcversion) - Enum for UDC version selection
+- [KeccakState](/docs/utils/types#keccakstate) - Interface for Keccak hashing operations
+
+## Getting Started
+
+To use the Utils package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/utils"
+```
 
 ## Quick Example
 
@@ -76,7 +84,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/big"
 
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -86,19 +97,156 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to convert hex to felt:", err)
 	}
+	fmt.Printf("Contract Address: %s\n", contractAddress)
 
 	// Get selector from function name
-	selector := utils.GetSelectorFromNameFelt("transfer")
+	transferSelector := utils.GetSelectorFromNameFelt("transfer")
+	fmt.Printf("Transfer Selector: %s\n", transferSelector)
 
 	// Convert ETH to Wei
 	weiAmount := utils.ETHToWei(1.5)
+	fmt.Printf("1.5 ETH = %s Wei\n", weiAmount)
 
-	fmt.Printf("Contract Address: %s\n", contractAddress)
-	fmt.Printf("Transfer Selector: %s\n", selector)
-	fmt.Printf("Wei Amount: %s\n", weiAmount)
+	// Convert Wei back to ETH
+	ethAmount := utils.WeiToETH(weiAmount)
+	fmt.Printf("%s Wei = %.2f ETH\n", weiAmount, ethAmount)
+
+	// Build a simple invoke transaction
+	senderAddress, _ := utils.HexToFelt("0x123...")
+	nonce := new(felt.Felt).SetUint64(1)
+	calldata := []*felt.Felt{contractAddress, transferSelector}
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x2710"), // 10000
+			MaxPricePerUnit: rpc.U128("0x64"),  // 100
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x0"),
+			MaxPricePerUnit: rpc.U128("0x0"),
+		},
+	}
+
+	tx := utils.BuildInvokeTxn(senderAddress, nonce, calldata, resourceBounds, nil)
+	fmt.Printf("Transaction Type: %s\n", tx.Type)
+	fmt.Printf("Transaction Version: %s\n", tx.Version)
 }
 ```
 
-## Package Reference
+## How Utils Work in Starknet
 
-For complete API reference, see the [pkg.go.dev documentation](https://pkg.go.dev/github.com/NethermindEth/starknet.go/utils).
+### Data Type Conversions
+
+Starknet uses the Felt (Field Element) type as its fundamental data unit. Felts are integers modulo a large prime number (p = 2^251 + 17 * 2^192 + 1). The utils package provides seamless conversion between:
+
+- **Hexadecimal strings** → Used in API responses and user input
+- **Felt values** → Native Starknet data type for on-chain operations
+- **big.Int** → Go's arbitrary-precision integer type for calculations
+- **uint64** → For small numbers and counters
+
+Understanding these conversions is crucial for working with contract addresses, function selectors, calldata, and return values.
+
+### Transaction Building
+
+Starknet transactions (v3) require careful construction with multiple fields:
+
+1. **Sender Address**: The account contract initiating the transaction
+2. **Calldata**: The function calls and their parameters
+3. **Nonce**: Sequential counter to prevent replay attacks
+4. **Resource Bounds**: Gas limits for L1, L2, and data availability
+5. **Signature**: Cryptographic signature from the account
+6. **Fee Configuration**: Tip amount and data availability mode
+
+The transaction builder functions handle the complexity of proper field formatting, version selection, and default value initialization, allowing you to focus on the transaction logic.
+
+### Resource Bounds
+
+Starknet v3 transactions use a three-dimensional gas system:
+
+- **L1 Gas**: Cost of settling the transaction on Ethereum L1
+- **L1 Data Gas**: Cost of publishing calldata to L1 for data availability
+- **L2 Gas**: Cost of executing the transaction on Starknet L2
+
+The `FeeEstToResBoundsMap` function converts fee estimations into properly formatted resource bounds with safety multipliers to account for price fluctuations.
+
+### Universal Deployer Contract (UDC)
+
+The UDC is a special contract on Starknet that deploys other contracts. It offers two deployment modes:
+
+- **Origin-Dependent**: Contract address includes the deployer's address (prevents address squatting)
+- **Origin-Independent**: Contract address is deterministic without deployer info (enables CREATE2-like behavior)
+
+The utils package provides helpers for building UDC calldata and precomputing deployment addresses.
+
+## Common Use Cases
+
+The utils package is essential for:
+
+- **Contract Integration**: Generate function selectors and format calldata for contract calls
+- **Transaction Building**: Construct properly formatted invoke, declare, and deploy transactions
+- **Fee Management**: Estimate fees and convert to resource bounds with safety multipliers
+- **Token Operations**: Convert between Wei/ETH and FRI/STRK for user-friendly displays
+- **Contract Deployment**: Deploy contracts via UDC with address precomputation
+- **Data Formatting**: Convert between hex strings, Felt values, and big integers
+
+For comprehensive examples covering all these scenarios, see the [Examples page](/docs/utils/examples).
+
+## Choosing the Right Conversion Function
+
+### Hex String Conversions
+
+- **Use HexToFelt** when: Converting contract addresses, transaction hashes, or any hex value from APIs
+- **Use FeltToHex** when: Preparing Felt values for display or API submission
+
+### Numeric Conversions
+
+- **Use Uint64ToFelt** when: Converting small integers like counters, indices, or enum values
+- **Use BigIntToFelt** when: Converting large numbers like token amounts or computed values
+- **Use FeltToBigInt** when: Need to perform mathematical operations on Felt values
+
+### Array Conversions
+
+- **Use HexArrToFelt** when: Converting multiple hex values from JSON responses
+- **Use FeltArrToBigIntArr** when: Need to process multiple Felt values mathematically
+
+## Best Practices
+
+:::tip
+**Type Safety**
+- Always check errors from conversion functions (HexToFelt, HexToBytes, etc.)
+- Validate hex strings before conversion to catch malformed input early
+- Use the appropriate conversion function for your data size (Uint64ToFelt vs BigIntToFelt)
+:::
+
+:::tip
+**Transaction Building**
+- Always estimate fees before building transactions
+- Apply a multiplier (1.5x recommended) to resource bounds for safety
+- Use `UseQueryBit: true` for fee estimation, `false` for actual transactions
+- Verify resource bounds don't exceed network limits
+:::
+
+:::tip
+**Resource Management**
+- Reuse KeccakState instances when computing multiple hashes
+- Use batch conversion functions (HexArrToFelt) for better performance
+- Cache commonly used selectors instead of recomputing them
+:::
+
+:::tip
+**UDC Deployments**
+- Use origin-independent deployments for deterministic addresses
+- Store deployment salts to enable address precomputation
+- Verify precomputed addresses match actual deployment addresses
+- Choose the correct UDC version (v2 for Cairo 2 contracts)
+:::
+
+:::note 
+Advanced Features
+The [Examples page](/docs/utils/examples) includes advanced patterns such as:
+- Custom resource bounds with fine-grained control
+- Transaction version selection for estimation vs execution
+- Keccak state for incremental hashing
+- Complete UDC deployment workflows with address precomputation
+:::
+

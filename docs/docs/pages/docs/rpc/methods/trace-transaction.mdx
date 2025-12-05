@@ -1,22 +1,129 @@
 # TraceTransaction
 
-Gets the execution trace of a specific transaction showing detailed call flow and resource usage.
+Retrieves the detailed execution trace of a specific transaction, showing the complete call flow, events, messages, and resource usage. This method is essential for debugging transaction execution and understanding complex contract interactions.
 
 ## Method Signature
 
 ```go
-func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
+func (provider *Provider) TraceTransaction(
+	ctx context.Context,
+	transactionHash *felt.Felt,
+) (TxnTrace, error)
 ```
+
+**Source:** [trace.go:L20-L61](https://github.com/NethermindEth/starknet.go/blob/main/rpc/trace.go#L20-L61)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `transactionHash` - Hash of the transaction to trace
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `transactionHash` (*felt.Felt): Hash of the transaction to trace
 
 ## Returns
 
-- `TxnTrace` - Detailed execution trace of the transaction
-- `error` - Error if the request fails
+- `TxnTrace`: Detailed execution trace (can be InvokeTxnTrace, DeclareTxnTrace, or DeployAccountTxnTrace)
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrHashNotFound` if the transaction hash doesn't exist, or `ErrNoTraceAvailable` if trace data is not available for the transaction.
+:::
+
+## Type Definitions
+
+:::tip
+The transaction trace system uses these related types to represent execution details:
+:::
+1. Trace Type (`TxnTrace`) interface that can be `InvokeTxnTrace`, `DeclareTxnTrace`, `DeployAccountTxnTrace`, or `L1HandlerTxnTrace` depending on transaction type.
+2. Invocation Types (`FnInvocation`, `ExecInvocation`) represent individual function calls with their parameters, results, nested calls, events, and messages.
+3. Resource Types (`ExecutionResources`) track L1 gas, L2 gas, and L1 data gas consumption.
+4. Supporting Types (`FunctionCall`, `OrderedEvent`, `MsgToL1`) provide details about calls, events, and cross-layer messages.
+
+The method accepts a transaction hash and returns the appropriate `TxnTrace` type based on the transaction, with complete execution details including validation, execution, and fee transfer invocations.
+
+
+### TxnTrace
+
+```go
+type TxnTrace interface{}
+
+var (
+	_ TxnTrace = (*InvokeTxnTrace)(nil)
+	_ TxnTrace = (*DeclareTxnTrace)(nil)
+	_ TxnTrace = (*DeployAccountTxnTrace)(nil)
+	_ TxnTrace = (*L1HandlerTxnTrace)(nil)
+)
+```
+
+**Source:** [types_trace.go:L34-L41](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L34-L41)
+
+### InvokeTxnTrace
+
+```go
+type InvokeTxnTrace struct {
+	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
+	// the trace of the __execute__ call
+	ExecuteInvocation     ExecInvocation     `json:"execute_invocation"`
+	FeeTransferInvocation *FnInvocation      `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff         `json:"state_diff,omitempty"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
+}
+```
+
+**Source:** [types_trace.go:L44-L52](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L44-L52)
+
+### FnInvocation
+
+```go
+type FnInvocation struct {
+	FunctionCall
+
+	// The address of the invoking contract. 0 for the root invocation
+	CallerAddress *felt.Felt `json:"caller_address"`
+
+	// The hash of the class being called
+	ClassHash *felt.Felt `json:"class_hash"`
+
+	EntryPointType EntryPointType `json:"entry_point_type"`
+
+	CallType CallType `json:"call_type"`
+
+	// The value returned from the function invocation
+	Result []*felt.Felt `json:"result"`
+
+	// The calls made by this invocation
+	NestedCalls []FnInvocation `json:"calls"`
+
+	// The events emitted in this invocation
+	InvocationEvents []OrderedEvent `json:"events"`
+
+	// The messages sent by this invocation to L1
+	L1Messages []OrderedMsg `json:"messages"`
+
+	// Resources consumed by the internal call
+	ExecutionResources InnerCallExecutionResources `json:"execution_resources"`
+
+	// True if this inner call panicked
+	IsReverted bool `json:"is_reverted"`
+}
+```
+
+**Source:** [types_trace.go:L99-L126](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L99-L126)
+
+### ExecutionResources
+
+```go
+type ExecutionResources struct {
+	// l1 gas consumed by this transaction, used for l2-->l1 messages and state
+	// updates if blobs are not used
+	L1Gas uint `json:"l1_gas"`
+	// data gas consumed by this transaction, 0 if blobs are not used
+	L1DataGas uint `json:"l1_data_gas"`
+	// l2 gas consumed by this transaction, used for computation and calldata
+	L2Gas uint `json:"l2_gas"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L211-L219](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L211-L219)
 
 ## Usage Example
 
@@ -24,184 +131,105 @@ func (provider *Provider) TraceTransaction(ctx context.Context, transactionHash 
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
 	"os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
-    "github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Get RPC URL from environment variable
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
+
+	// Initialize provider
+	provider, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
 
-    // Use a real transaction hash from our previous testing
-    txHash, _ := new(felt.Felt).SetString("0x0487bcdd78ea9f9512ba1c772114f851dc1dc057a23b27d6f2ffe2c84f97140d")
+	// Transaction hash to trace
+	txHash, err := new(felt.Felt).SetString("0x0487bcdd78ea9f9512ba1c772114f851dc1dc057a23b27d6f2ffe2c84f97140d")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Trace the transaction
-    trace, err := client.TraceTransaction(ctx, txHash)
-    if err != nil {
-        log.Fatal("Failed to trace transaction:", err)
-    }
+	// Get transaction trace
+	trace, err := provider.TraceTransaction(ctx, txHash)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Pretty print the trace
-    traceJSON, _ := json.MarshalIndent(trace, "", "  ")
-    fmt.Printf("Transaction Trace:\n%s\n", traceJSON)
+	// Print full trace as JSON
+	traceJSON, _ := json.MarshalIndent(trace, "", "  ")
+	fmt.Printf("Transaction Trace:\n%s\n", traceJSON)
+
+	// Type assert to InvokeTxnTrace for detailed analysis
+	if invokeTrace, ok := trace.(rpc.InvokeTxnTrace); ok {
+		fmt.Printf("\nTransaction Type: %s\n", invokeTrace.Type)
+		fmt.Printf("Total L2 Gas: %d\n", invokeTrace.ExecutionResources.L2Gas)
+		fmt.Printf("Total L1 Data Gas: %d\n", invokeTrace.ExecutionResources.L1DataGas)
+
+		// Analyze execute invocation
+		fmt.Printf("\nExecute Invocation:\n")
+		fmt.Printf("  Contract: %s\n", invokeTrace.ExecuteInvocation.ContractAddress)
+		fmt.Printf("  Nested Calls: %d\n", len(invokeTrace.ExecuteInvocation.NestedCalls))
+		fmt.Printf("  Events Emitted: %d\n", len(invokeTrace.ExecuteInvocation.InvocationEvents))
+	}
 }
 ```
 
-## Expected Output
-
-```
-Transaction Trace:
-{
-  "validate_invocation": {
-    "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-    "entry_point_selector": "0x162da33a4585851fe8d3af3c2a9c60b557814e221e0d4f30ff0b2189d9c7775",
-    "calldata": [
-      "0x1",
-      "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-      "0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b",
-      "0x0"
-    ],
-    "caller_address": "0x0",
-    "class_hash": "0x5b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
-    "entry_point_type": "EXTERNAL",
-    "call_type": "CALL",
-    "result": [
-      "0x56414c4944"
-    ],
-    "calls": [],
-    "events": [],
-    "messages": [],
-    "execution_resources": {
-      "l1_gas": 0,
-      "l2_gas": 320000
-    },
-    "is_reverted": false
-  },
-  "execute_invocation": {
-    "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-    "entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
-    "calldata": [
-      "0x1",
-      "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-      "0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b",
-      "0x0"
-    ],
-    "caller_address": "0x0",
-    "class_hash": "0x5b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
-    "entry_point_type": "EXTERNAL",
-    "call_type": "CALL",
-    "result": [
-      "0x1",
-      "0x1",
-      "0x79e27ef8b5e0a716b77dd2015329ce74b4b9b1628b546fe89298bc42db08808"
-    ],
-    "calls": [
-      {
-        "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-        "entry_point_selector": "0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b",
-        "calldata": [],
-        "caller_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-        "class_hash": "0x5b4b537eaa2399e3aa99c4e2e0208ebd6c71bc1467938cd52c798c601e43564",
-        "entry_point_type": "EXTERNAL",
-        "call_type": "CALL",
-        "result": [
-          "0x79e27ef8b5e0a716b77dd2015329ce74b4b9b1628b546fe89298bc42db08808"
-        ],
-        "calls": [],
-        "events": [],
-        "messages": [],
-        "execution_resources": {
-          "l1_gas": 0,
-          "l2_gas": 40000
-        },
-        "is_reverted": false
-      }
-    ],
-    "events": [],
-    "messages": [],
-    "execution_resources": {
-      "l1_gas": 0,
-      "l2_gas": 280000
-    },
-    "is_reverted": false
-  },
-  "fee_transfer_invocation": {
-    "contract_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-    "entry_point_selector": "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
-    "calldata": [
-      "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-      "0xa22063feda080",
-      "0x0"
-    ],
-    "caller_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-    "class_hash": "0x9524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f",
-    "entry_point_type": "EXTERNAL",
-    "call_type": "CALL",
-    "result": [
-      "0x1"
-    ],
-    "calls": [],
-    "events": [
-      {
-        "order": 0,
-        "keys": [
-          "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-        ],
-        "data": [
-          "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-          "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-          "0xa22063feda080",
-          "0x0"
-        ]
-      }
-    ],
-    "messages": [],
-    "execution_resources": {
-      "l1_gas": 0,
-      "l2_gas": 189030
-    },
-    "is_reverted": false
-  },
-  "type": "INVOKE",
-  "execution_resources": {
-    "l1_gas": 0,
-    "l1_data_gas": 128,
-    "l2_gas": 950720
-  }
-}
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
-Common errors include network timeouts and invalid transaction hashes. Always check the error before using the returned value.
-
 ```go
-trace, err := client.TraceTransaction(ctx, txHash)
+trace, err := provider.TraceTransaction(ctx, txHash)
 if err != nil {
-    log.Printf("Error tracing transaction: %v", err)
-    return
+	if errors.Is(err, rpc.ErrHashNotFound) {
+		log.Printf("Transaction not found")
+		return
+	}
+	if errors.Is(err, rpc.ErrNoTraceAvailable) {
+		log.Printf("Trace data not available for this transaction")
+		return
+	}
+	log.Printf("Error retrieving trace: %v", err)
+	return
 }
-// Safe to use trace
+
+// Analyze trace based on type
+switch t := trace.(type) {
+case rpc.InvokeTxnTrace:
+	fmt.Printf("Invoke transaction trace with %d L2 gas\n", t.ExecutionResources.L2Gas)
+case rpc.DeclareTxnTrace:
+	fmt.Printf("Declare transaction trace\n")
+case rpc.DeployAccountTxnTrace:
+	fmt.Printf("Deploy account transaction trace\n")
+}
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Simulate transactions before sending them
-- [TraceBlockTransactions](/docs/rpc/methods/trace-block-transactions) - Trace all transactions in a block
-- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Get transaction execution results
+- Debugging failed transactions by examining the execution trace and identifying where reverts occur.
+- Analyzing gas consumption patterns across validate, execute, and fee transfer phases.
+- Understanding complex contract interactions through nested call traces.
+- Monitoring events and L1 messages emitted during transaction execution.
+

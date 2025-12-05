@@ -1,7 +1,10 @@
 # StorageProof
 
-Get merkle paths in one of the state tries: global state, classes, or individual contract storage. A single request can query for any mix of the three types of storage proofs (classes, contracts, and storage).
+Get merkle paths in one of the state tries: global state, classes, or individual contract storage. A single request can query for any mix of the three types of storage proofs (classes, contracts, and storage). This is useful for verifying state without trusting the RPC provider.
 
+:::tip
+Not all Starknet nodes support storage proofs - if unsupported, the method returns `ErrStorageProofNotSupported`. The method does not support the `pre_confirmed` block tag.
+:::
 ## Method Signature
 
 ```go
@@ -16,14 +19,30 @@ func (provider *Provider) StorageProof(
 ## Parameters
 
 - `ctx` (context.Context): Context for request cancellation and timeouts
-- `storageProofInput` (StorageProofInput): Input containing optional and required fields for the request
+- `storageProofInput` (StorageProofInput): Input containing the block ID and optional proof requests for classes, contracts, and storage
 
 ## Returns
 
-- `*StorageProofResult`: The requested storage proofs. Note that if a requested leaf has the default value, the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership
-- `error`: Error if the block is not found or storage proofs are not supported
+- `*StorageProofResult`: The requested storage proofs with merkle paths and global roots
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrBlockNotFound` if the block doesn't exist, or `ErrStorageProofNotSupported` if the node doesn't support storage proofs. Note that if a requested leaf has the default value, the path may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership.
+:::
 
 ## Type Definitions
+
+:::tip 
+it is important to understadn the relation between different types involved in the storage proof system which uses a hierarchical structure of Merkle-Patricia trie.
+:::
+1. **Input Layer** (`StorageProofInput`) - Specifies what you want to prove: class hashes, contract addresses, or storage keys
+2. **Result Layer** (`StorageProofResult`) - Contains the actual proofs organized by type: classes, contracts, and storage
+3. **Merkle Tree Layer** (`NodeHashToNode`, `MerkleNode`) - The cryptographic proof nodes that form the verification path
+4. **Node Types** (`EdgeNode`, `BinaryNode`) - Two types of nodes in the Merkle-Patricia tree structure
+5. **Verification Data** (`GlobalRoots`, `ContractLeavesData`) - Root hashes and leaf data needed to verify the proofs
+
+Each proof traces a path from the leaf (your requested data) through intermediate nodes up to the global root, allowing you to verify state without trusting the RPC provider.
+
 
 ### StorageProofInput
 
@@ -48,6 +67,48 @@ type StorageProofInput struct {
 
 **Source:** [types_contract.go:L66-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L66-L78)
 
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
+
+:::note
+Cannot use `"pending"` block tag for storage proofs as proofs require finalized state.
+:::
+
 ### ContractStorageKeys
 
 ```go
@@ -61,8 +122,6 @@ type ContractStorageKeys struct {
 
 ### StorageProofResult
 
-The requested storage proofs. Note that if a requested leaf has the default value, the path to it may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership.
-
 ```go
 type StorageProofResult struct {
     ClassesProof           []NodeHashToNode   `json:"classes_proof"`
@@ -73,6 +132,47 @@ type StorageProofResult struct {
 ```
 
 **Source:** [types_contract.go:L88-L93](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L88-L93)
+
+### ContractsProof
+
+```go
+type ContractsProof struct {
+    // The nodes in the union of the paths from the contracts tree root to the
+    // requested leaves
+    Nodes              []NodeHashToNode     `json:"nodes"`
+    ContractLeavesData []ContractLeavesData `json:"contract_leaves_data"`
+}
+```
+
+**Source:** [types_contract.go:L95-L100](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L95-L100)
+
+### ContractLeavesData
+
+The nonce and class hash for each requested contract address, in the order in which they appear in the request. These values are needed to construct the associated leaf node.
+
+```go
+type ContractLeavesData struct {
+    Nonce       *felt.Felt `json:"nonce"`
+    ClassHash   *felt.Felt `json:"class_hash"`
+    StorageRoot *felt.Felt `json:"storage_root,omitempty"`
+}
+```
+
+**Source:** [types_contract.go:L105-L109](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L105-L109)
+
+### GlobalRoots
+
+```go
+type GlobalRoots struct {
+    ContractsTreeRoot *felt.Felt `json:"contracts_tree_root"`
+    ClassesTreeRoot   *felt.Felt `json:"classes_tree_root"`
+    // the associated block hash (needed in case the caller used a block tag
+    // for the block_id parameter)
+    BlockHash *felt.Felt `json:"block_hash"`
+}
+```
+
+**Source:** [types_contract.go:L111-L117](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L111-L117)
 
 ### NodeHashToNode
 
@@ -111,10 +211,8 @@ type EdgeNode struct {
     // an unsigned integer whose binary representation represents the path from
     // the current node to its highest non-zero descendant (bounded by 2^251)
     Path NumAsHex `json:"path"`
-
     // the length of the path (bounded by 251)
     Length uint `json:"length"`
-
     // the hash of the unique non-zero maximal-height descendant node
     Child *felt.Felt `json:"child"`
 }
@@ -130,7 +228,6 @@ An internal node whose both children are non-zero.
 type BinaryNode struct {
     // the hash of the left child
     Left *felt.Felt `json:"left"`
-
     // the hash of the right child
     Right *felt.Felt `json:"right"`
 }
@@ -138,50 +235,7 @@ type BinaryNode struct {
 
 **Source:** [types_contract.go:L186-L191](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L186-L191)
 
-### ContractsProof
-
-```go
-type ContractsProof struct {
-    // The nodes in the union of the paths from the contracts tree root to the
-    // requested leaves
-    Nodes []NodeHashToNode `json:"nodes"`
-
-    ContractLeavesData []ContractLeavesData `json:"contract_leaves_data"`
-}
-```
-
-**Source:** [types_contract.go:L95-L100](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L95-L100)
-
-### ContractLeavesData
-
-The nonce and class hash for each requested contract address, in the order in which they appear in the request. These values are needed to construct the associated leaf node.
-
-```go
-type ContractLeavesData struct {
-    Nonce       *felt.Felt `json:"nonce"`
-    ClassHash   *felt.Felt `json:"class_hash"`
-    StorageRoot *felt.Felt `json:"storage_root,omitempty"`
-}
-```
-
-**Source:** [types_contract.go:L105-L109](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L105-L109)
-
-### GlobalRoots
-
-```go
-type GlobalRoots struct {
-    ContractsTreeRoot *felt.Felt `json:"contracts_tree_root"`
-    ClassesTreeRoot   *felt.Felt `json:"classes_tree_root"`
-
-    // the associated block hash (needed in case the caller used a block tag
-    // for the block_id parameter)
-    BlockHash *felt.Felt `json:"block_hash"`
-}
-```
-
-**Source:** [types_contract.go:L111-L117](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L111-L117)
-
-## Basic Usage
+## Usage Example
 
 ```go
 package main
@@ -199,12 +253,15 @@ import (
 
 func main() {
     // Load environment variables from .env file
-    godotenv.Load()
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
     // Get RPC URL from environment variable
     rpcURL := os.Getenv("STARKNET_RPC_URL")
     if rpcURL == "" {
-        log.Fatal("STARKNET_RPC_URL environment variable is not set")
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
     }
 
     // Initialize provider
@@ -212,6 +269,8 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+
+    ctx := context.Background()
 
     // Contract address to get storage proof for
     contractAddr, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
@@ -222,7 +281,7 @@ func main() {
 
     // Create storage proof input
     input := rpc.StorageProofInput{
-        BlockID: rpc.BlockID{Tag: "latest"},
+        BlockID: rpc.WithBlockTag("latest"),
         ContractsStorageKeys: []rpc.ContractStorageKeys{
             {
                 ContractAddress: contractAddr,
@@ -232,7 +291,7 @@ func main() {
     }
 
     // Get storage proof
-    proof, err := provider.StorageProof(context.Background(), input)
+    proof, err := provider.StorageProof(ctx, input)
     if err != nil {
         log.Fatal(err)
     }
@@ -246,31 +305,41 @@ func main() {
 }
 ```
 
-For more comprehensive examples including proving class membership, proving contract existence, mixed proof requests, processing Merkle nodes, and historical state proofs, see [RPC Examples - StorageProof](/docs/rpc/examples#storage-proof).
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
-## Important Notes
+## Error Handling
 
-1. **Non-membership Proofs**: If a requested leaf has the default value, the path may end in an edge node whose path is not a prefix of the requested leaf, thus effectively proving non-membership.
+```go
+proof, err := provider.StorageProof(ctx, input)
+if err != nil {
+    if errors.Is(err, rpc.ErrBlockNotFound) {
+        log.Printf("Block not found")
+        return
+    }
+    if errors.Is(err, rpc.ErrStorageProofNotSupported) {
+        log.Printf("Node doesn't support storage proofs")
+        return
+    }
+    log.Printf("Error retrieving storage proof: %v", err)
+    return
+}
 
-2. **Node Support**: Not all Starknet nodes support storage proofs. Make sure your RPC endpoint implements `starknet_getStorageProof`.
+// Verify proof has expected data
+if len(proof.ContractsStorageProofs) == 0 {
+    log.Printf("Warning: No storage proofs returned")
+}
+```
 
-3. **Block Limitations**:
-   - Cannot use pending blocks (proofs require finalized state)
-   - Historical proofs may not be available for very old blocks
-   - When using block tags, the `GlobalRoots.BlockHash` field contains the actual block hash
+## Common Use Cases
 
-4. **Performance**: Storage proofs can be large for deep Merkle trees. Consider:
-   - Batching multiple keys in a single request
-   - Caching proofs for frequently verified values
-   - Using recent blocks when possible (faster to generate)
-
-## RPC Specification
-
-- **Method**: `starknet_getStorageProof`
-- **Version**: RPC v0.9.0+
+- **Trustless State Verification** - Verify contract storage values without trusting the RPC provider. See [example](/docs/rpc/examples#storage-proof-verification).
+- **Light Client Implementation** - Build light clients that can verify state independently. See [example](/docs/rpc/examples#storage-proof-light-client).
+- **Cross-Chain Bridges** - Prove contract state for cross-chain communication. See [example](/docs/rpc/examples#storage-proof-bridge).
 
 ## Related Methods
 
-- [StorageAt](/docs/rpc/methods/get-storage-at) - Get storage value without proof
+- [StorageAt](/docs/rpc/methods/storage-at) - Get storage value without proof
 - [StateUpdate](/docs/rpc/methods/state-update) - Get all state changes in a block
-- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get block details
+- [ClassAt](/docs/rpc/methods/class-at) - Get class definition at a contract address

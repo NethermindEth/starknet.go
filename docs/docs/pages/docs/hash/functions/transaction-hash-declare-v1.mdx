@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Note**: V1 transactions are deprecated. For new applications, use [TransactionHashDeclareV3](./transaction-hash-declare-v3) for V3 transactions.
 </Callout>
 
-Calculates the transaction hash for a Declare V1 transaction using the deprecated Pedersen-based hash calculation.
+Calculates the transaction hash for a Declare V1 transaction using the deprecated Pedersen-based hash calculation. This function is maintained for compatibility with historical transactions.
 
 ## Function Signature
 
@@ -17,31 +17,94 @@ func TransactionHashDeclareV1(
 ) (*felt.Felt, error)
 ```
 
+**Source:** [hash.go:L478-L514](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L478-L514)
+
 ## Parameters
 
-- `txn` - The Declare V1 transaction containing:
-  - `Version` - Transaction version string
-  - `SenderAddress` - Address of the account declaring the class
-  - `ClassHash` - Hash of the contract class being declared
-  - `MaxFee` - Maximum fee willing to pay
-  - `Nonce` - Account nonce
-- `chainID` - The Starknet chain ID
+- `txn` (*rpc.DeclareTxnV1): The Declare V1 transaction containing Version, SenderAddress, ClassHash, MaxFee, and Nonce
+- `chainID` (*felt.Felt): The Starknet chain ID
 
 ## Returns
 
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
+- `*felt.Felt`: The calculated transaction hash
+- `error`: Error if required parameters are missing
 
-## Description
+## Usage Example
 
-This function calculates the transaction hash for deprecated Declare V1 transactions. It uses the Pedersen hash algorithm and is maintained for compatibility with historical transactions. Internally calls [CalculateDeprecatedTransactionHashCommon](./calculate-deprecated-transaction-hash-common).
+```go
+package main
 
-## Specification
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-Follows the [V1 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2).
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
 
-## Related Functions
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
 
-- [TransactionHashDeclareV2](./transaction-hash-declare-v2) - V2 variant with compiled class hash
-- [TransactionHashDeclareV3](./transaction-hash-declare-v3) - Current V3 standard
-- [ClassHash](./class-hash) - Calculate class hashes
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	senderAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	nonce := new(felt.Felt).SetUint64(10)
+	maxFee := new(felt.Felt).SetUint64(3000000000000000)
+
+	txn := &rpc.DeclareTxnV1{
+		Type:          rpc.TransactionTypeDeclare,
+		Version:       rpc.TransactionV1,
+		SenderAddress: senderAddress,
+		Nonce:         nonce,
+		MaxFee:        maxFee,
+		ClassHash:     classHash,
+		Signature:     []*felt.Felt{},
+	}
+
+	txHash, err := hash.TransactionHashDeclareV1(txn, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
+}
+```
+
+## Common Use Cases
+
+This function is commonly used for:
+
+- Processing historical Starknet declare transactions when building blockchain explorers that need to display and verify legacy contract declarations.
+- Implementing contract verification systems that validate historical contract class declarations by recalculating and comparing transaction hashes.
+- Building migration tools that analyze legacy contract deployments to understand the evolution of contracts on the Starknet network over time.
+- Creating audit systems that verify the integrity of historical contract declaration data by independently computing transaction hashes.
+- Developing testing frameworks that simulate legacy declare transaction scenarios to ensure backward compatibility with older transaction formats.
+

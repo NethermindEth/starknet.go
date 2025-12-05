@@ -8,13 +8,13 @@ import (
 )
 
 func main() {
-	// Sample x-coordinate on the curve
-	xCoord, _ := new(felt.Felt).SetString("0x5f1614a304f6a40630792a4f6562eee36805f52e94f777d6a78463ae541229b")
+	// Known X-coordinate
+	x, _ := new(felt.Felt).SetString("0x5f1614a304f6a40630792a4f6562eee36805f52e94f777d6a78463ae541229b")
 
-	// Get the y-coordinate
-	yCoord := curve.GetYCoordinate(xCoord)
+	// Derive Y-coordinate
+	y := curve.GetYCoordinate(x)
 
 	fmt.Println("GetYCoordinate:")
-	fmt.Printf("  X-Coordinate: %s\n", xCoord.String())
-	fmt.Printf("  Y-Coordinate: %s\n", yCoord.String())
+	fmt.Printf("  X-Coordinate: %s\n", x.String())
+	fmt.Printf("  Y-Coordinate: %s\n", y.String())
 }

@@ -1,51 +1,155 @@
 # SimulateTransactions
 
-Simulates a given sequence of transactions on the requested state and generates execution traces. Each transaction is simulated on the state resulting from applying all the previous ones.
+Simulates a sequence of transactions on a specified state and generates execution traces and fee estimates without submitting the transactions to the network. Each transaction is simulated on the state resulting from applying all previous transactions in the sequence.
+
+:::tip
+Transactions that revert during simulation do **not** throw errors. Instead, revert details are captured in the trace, and the simulation continues. Check the `is_reverted` field and `revert_reason` in the `ExecuteInvocation` to detect reverted transactions.
+:::
 
 ## Method Signature
 
 ```go
-func (provider *Provider) SimulateTransactions(ctx context.Context, blockID BlockID, txns []BroadcastTxn, simulationFlags []SimulationFlag) ([]SimulatedTransaction, error)
+func (provider *Provider) SimulateTransactions(
+	ctx context.Context,
+	blockID BlockID,
+	txns []BroadcastTxn,
+	simulationFlags []SimulationFlag,
+) ([]SimulatedTransaction, error)
 ```
+
+**Source:** [trace.go:L124-L138](https://github.com/NethermindEth/starknet.go/blob/main/rpc/trace.go#L124-L138)
 
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `blockID` - Block identifier to simulate against (number, hash, or tag)
-- `txns` - Array of transactions to simulate
-- `simulationFlags` - Flags describing what parts of the transaction should be executed
-
-## Transaction Reverts and Error Handling
-
-**Important:** SimulateTransactions has special error handling behavior:
-
-### Reverted Transactions
-- **No error is thrown** when transactions revert during simulation
-- Revert details are captured in the `revert_error` property of the trace
-- The simulation continues and returns results with revert information
-- Check the `is_reverted` field and `revert_reason` in execution traces
-
-### Error Types
-1. **Transaction Reverts**: Included in results with revert details
-2. **Validation Failures**: Result in `TRANSACTION_EXECUTION_ERROR` 
-3. **Unexpected Errors**: Result in `TRANSACTION_EXECUTION_ERROR`
-
-### Sequential Simulation
-When simulating multiple transactions, each transaction runs on the state resulting from applying all previous ones in the array.
-
-## Simulation Flags
-
-```go
-const (
-    SKIP_FEE_CHARGE SimulationFlag = "SKIP_FEE_CHARGE"  // Skip fee charging
-    SKIP_VALIDATE   SimulationFlag = "SKIP_VALIDATE"    // Skip signature validation
-)
-```
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `blockID` (BlockID): Block identifier specifying the state to simulate against
+- `txns` ([]BroadcastTxn): Array of transactions to simulate sequentially
+- `simulationFlags` ([]SimulationFlag): Flags controlling simulation behavior (e.g., skip validation, skip fee charging)
 
 ## Returns
 
-- `[]SimulatedTransaction` - Array of simulation results containing traces and fee estimates
-- `error` - Error if the request fails
+- `[]SimulatedTransaction`: Array of simulation results with traces and fee estimates for each transaction
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrTxnExec` if validation failures (e.g., invalid nonce) or unexpected execution errors occur, or `ErrBlockNotFound` if the block doesn't exist. Transaction reverts during normal execution are not returned as errors but are captured in the simulation results with `is_reverted` and `revert_reason` fields.
+:::
+
+## Type Definitions
+
+:::tip
+The transaction simulation system uses these related types to return execution results:
+:::
+1. Result Type (`SimulatedTransaction`) embeds both `TxnTrace` (execution details) and `FeeEstimation` (gas and fee information) for each simulated transaction.
+2. Trace Types (`TxnTrace`) can be `InvokeTxnTrace`, `DeclareTxnTrace`, `DeployAccountTxnTrace`, or `L1HandlerTxnTrace` with complete call flow and revert information.
+3. Input Types (`BroadcastTxn`, `SimulationFlag`, `BlockID`) define the transactions to simulate, simulation behavior, and the state to simulate against.
+4. Fee Estimation (`FeeEstimation`) provides detailed gas consumption and pricing for each simulated transaction.
+
+The method accepts an array of `BroadcastTxn` and returns an array of `SimulatedTransaction`, each containing both the execution trace and fee estimate without actually submitting transactions to the network.
+
+
+### SimulatedTransaction
+
+```go
+type SimulatedTransaction struct {
+	TxnTrace      `json:"transaction_trace"`
+	FeeEstimation `json:"fee_estimation"`
+}
+```
+
+**Source:** [types_trace.go:L29-L32](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L29-L32)
+
+### TxnTrace
+
+```go
+type TxnTrace interface{}
+
+var (
+	_ TxnTrace = (*InvokeTxnTrace)(nil)
+	_ TxnTrace = (*DeclareTxnTrace)(nil)
+	_ TxnTrace = (*DeployAccountTxnTrace)(nil)
+	_ TxnTrace = (*L1HandlerTxnTrace)(nil)
+)
+```
+
+**Source:** [types_trace.go:L34-L41](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L34-L41)
+
+### BroadcastTxn
+
+```go
+type BroadcastTxn interface{}
+
+var (
+	_ BroadcastTxn = (*BroadcastInvokeTxnV3)(nil)
+	_ BroadcastTxn = (*BroadcastDeclareTxnV3)(nil)
+	_ BroadcastTxn = (*BroadcastDeployAccountTxnV3)(nil)
+)
+```
+
+**Source:** [types_broadcast_transaction.go:L8-L15](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_broadcast_transaction.go#L8-L15)
+
+### SimulationFlag
+
+```go
+type SimulationFlag string
+
+const (
+	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
+	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
+)
+```
+
+**Source:** [types_trace.go:L20-L26](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_trace.go#L20-L26)
+
+### FeeEstimation
+
+```go
+type FeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be FRI
+	Unit PriceUnitFri `json:"unit"`
+}
+```
+
+**Source:** [types.go:L233-L237](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L233-L237)
+
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+	Number *uint64    `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -53,179 +157,156 @@ const (
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
 	"os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
-    "github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Get RPC URL from environment variable
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
+
+	// Initialize provider
+	provider, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
 
-    // Create transaction for simulation
-    contractAddress, _ := new(felt.Felt).SetString("0x07065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a")
-    selectorFelt, _ := new(felt.Felt).SetString("0x1a35984e05126dbecb7c3bb9929e7dd9106d460c59b1633739a5c733a5fb13b")
-    
-    invokeTxn := rpc.InvokeTxnV3{
-        Type:          rpc.TransactionType_Invoke,
-        SenderAddress: contractAddress,
-        Calldata: []*felt.Felt{
-            new(felt.Felt).SetUint64(1),
-            contractAddress,
-            selectorFelt,
-            new(felt.Felt).SetUint64(0),
-        },
-        Version: rpc.TransactionV3,
-        Nonce:   new(felt.Felt).SetUint64(3),
-        ResourceBounds: &rpc.ResourceBoundsMapping{
-            L1Gas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0x0"),
-                MaxPricePerUnit: rpc.U128("0x51ecf881cce4"),
-            },
-            L2Gas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0x15c2a0"),
-                MaxPricePerUnit: rpc.U128("0x10c388d00"),
-            },
-            L1DataGas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0xc0"),
-                MaxPricePerUnit: rpc.U128("0xdb61"),
-            },
-        },
-        Tip:                     rpc.U64("0x0"),
-        PayMasterData:           []*felt.Felt{},
-        AccountDeploymentData:   []*felt.Felt{},
-        NonceDataMode:           rpc.DAModeL1,
-        FeeMode:                 rpc.DAModeL1,
-        Signature:               []*felt.Felt{},
-    }
+	// Get account address and current nonce
+	accountAddress, _ := new(felt.Felt).SetString("0x36d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06")
+	nonce, err := provider.Nonce(ctx, rpc.WithBlockTag(rpc.BlockTagLatest), accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Simulate transaction with SKIP_VALIDATE flag
-    simResult, err := client.SimulateTransactions(
-        context.Background(),
-        rpc.WithBlockTag("latest"),
-        []rpc.BroadcastTxn{invokeTxn},
-        []rpc.SimulationFlag{rpc.SKIP_VALIDATE},
-    )
-    if err != nil {
-        log.Fatal("Failed to simulate transaction:", err)
-    }
+	// Build an invoke transaction
+	contractAddress, _ := new(felt.Felt).SetString("0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54")
+	entrypoint, _ := new(felt.Felt).SetString("0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354")
 
-    // Print simulation results
-    resultJSON, _ := json.MarshalIndent(simResult, "", "  ")
-    fmt.Printf("Simulation Result:\n%s\n", resultJSON)
+	invokeTx := rpc.BroadcastInvokeTxnV3{
+		Type:          rpc.TransactionTypeInvoke,
+		Version:       rpc.TransactionV3,
+		Nonce:         nonce,
+		SenderAddress: accountAddress,
+		Signature:     []*felt.Felt{},
+		Calldata: []*felt.Felt{
+			new(felt.Felt).SetUint64(1),
+			contractAddress,
+			entrypoint,
+			new(felt.Felt).SetUint64(2),
+			new(felt.Felt).SetUint64(256),
+			new(felt.Felt).SetUint64(0),
+		},
+		ResourceBounds: &rpc.ResourceBoundsMapping{
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x1e0",
+				MaxPricePerUnit: "0x922",
+			},
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0xfbfdefe2186",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x16eea0",
+				MaxPricePerUnit: "0x1830e58f7",
+			},
+		},
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
+	}
+
+	// Simulate with SKIP_VALIDATE and SKIP_FEE_CHARGE flags
+	// SKIP_VALIDATE skips signature and nonce validation
+	// SKIP_FEE_CHARGE skips fee charging, useful when resource bounds may be outdated
+	simulationFlags := []rpc.SimulationFlag{rpc.SkipValidate, rpc.SkipFeeCharge}
+	results, err := provider.SimulateTransactions(
+		ctx,
+		rpc.WithBlockTag(rpc.BlockTagLatest),
+		[]rpc.BroadcastTxn{&invokeTx},
+		simulationFlags,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Analyze simulation results
+	for i, result := range results {
+		fmt.Printf("\nTransaction %d:\n", i+1)
+
+		// Check fee estimate
+		fmt.Printf("Fee Estimate:\n")
+		fmt.Printf("  Overall Fee: %s FRI\n", result.FeeEstimation.OverallFee)
+		fmt.Printf("  L2 Gas Consumed: %s\n", result.FeeEstimation.L2GasConsumed)
+		fmt.Printf("  L2 Gas Price: %s\n", result.FeeEstimation.L2GasPrice)
+
+		// Check for reverts
+		if invokeTrace, ok := result.TxnTrace.(rpc.InvokeTxnTrace); ok {
+			if invokeTrace.ExecuteInvocation.IsReverted {
+				fmt.Printf("  Status: REVERTED\n")
+				fmt.Printf("  Revert Reason: %s\n", invokeTrace.ExecuteInvocation.RevertReason)
+			} else {
+				fmt.Printf("  Status: SUCCESS\n")
+				fmt.Printf("  Nested Calls: %d\n", len(invokeTrace.ExecuteInvocation.NestedCalls))
+			}
+		}
+	}
 }
 ```
 
-## Expected Output Structure
-
-The response contains an array of `SimulatedTransaction` objects, each with:
-
-### Transaction Trace
-Detailed execution flow of the transaction:
-
-```json
-{
-  "transaction_trace": {
-    "execute_invocation": {
-      "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-      "entry_point_selector": "0x15d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad",
-      "calldata": [...],
-      "result": ["0x1", "0x1", "0x79e27ef8b5e0a716b77dd2015329ce74b4b9b1628b546fe89298bc42db08808"],
-      "calls": [...],
-      "execution_resources": {
-        "l1_gas": 0,
-        "l2_gas": 280000
-      },
-      "is_reverted": false
-    },
-    "fee_transfer_invocation": {
-      "contract_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "calldata": ["0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8", "0x8beaaa91c9c00", "0x0"],
-      "execution_resources": {
-        "l1_gas": 0,
-        "l2_gas": 189030
-      }
-    },
-    "state_diff": {
-      "storage_diffs": [...],
-      "nonces": [
-        {
-          "contract_address": "0x7065cf1a38963beb3ae30198a9aea599c29eed2078130bbab45470ad876f48a",
-          "nonce": "0x4"
-        }
-      ]
-    },
-    "execution_resources": {
-      "l1_gas": 0,
-      "l1_data_gas": 128,
-      "l2_gas": 820480
-    }
-  }
-}
-```
-
-### Fee Estimation
-Comprehensive fee breakdown:
-
-```json
-{
-  "fee_estimation": {
-    "l1_gas_consumed": "0x0",
-    "l1_gas_price": "0x35955904c193",
-    "l2_gas_consumed": "0xc8500",
-    "l2_gas_price": "0xb2d05e00",
-    "l1_data_gas_consumed": "0x80",
-    "l1_data_gas_price": "0x8d38",
-    "overall_fee": "0x8beaaa91c9c00",
-    "unit": "FRI"
-  }
-}
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
-SimulateTransactions has unique error handling behavior:
-
-**Transaction Reverts:**
 ```go
-// Reverted transactions don't cause method errors
-simResult, err := client.SimulateTransactions(ctx, blockID, txns, flags)
+results, err := provider.SimulateTransactions(ctx, blockID, []rpc.BroadcastTxn{tx}, flags)
 if err != nil {
-    // Only validation failures or unexpected errors reach here
-    log.Printf("Simulation failed: %v", err)
-    return
+	if errors.Is(err, rpc.ErrTxnExec) {
+		log.Printf("Unexpected execution error during simulation")
+		return
+	}
+	if errors.Is(err, rpc.ErrBlockNotFound) {
+		log.Printf("Block not found")
+		return
+	}
+	log.Printf("Error simulating transactions: %v", err)
+	return
 }
 
-// Check individual transactions for reverts
-for i, result := range simResult {
-    if result.TxnTrace.ExecuteInvocation.IsReverted {
-        fmt.Printf("Transaction %d reverted: %s\n", i, result.TxnTrace.ExecuteInvocation.RevertReason)
-    }
+// Check for reverted transactions in results
+for i, result := range results {
+	if invokeTrace, ok := result.TxnTrace.(rpc.InvokeTxnTrace); ok {
+		if invokeTrace.ExecuteInvocation.IsReverted {
+			fmt.Printf("Transaction %d reverted: %s\n", i, invokeTrace.ExecuteInvocation.RevertReason)
+		}
+	}
 }
 ```
 
-**Error Categories:**
-- **Method errors** (`err != nil`): Validation failures, unexpected errors
-- **Transaction reverts**: Captured in trace with `is_reverted: true` and `revert_reason`
-- **Execution success**: Normal completion with `is_reverted: false`
+## Common Use Cases
 
-## Related Methods
+- Testing transactions before submitting them to the network to avoid failures and wasted fees.
+- Estimating gas costs for transactions with accurate fee calculations.
+- Debugging transaction execution by examining detailed traces and identifying revert reasons.
+- Simulating sequential transactions to verify state transitions across multiple operations.
 
-- [TraceTransaction](/docs/rpc/methods/trace-transaction) - Get execution trace of a submitted transaction
-- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate fees for transactions
-- [AddInvokeTransaction](/docs/rpc/methods/add-invoke-transaction) - Submit transactions to the network

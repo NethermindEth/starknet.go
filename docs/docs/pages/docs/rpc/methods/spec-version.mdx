@@ -1,6 +1,6 @@
 # SpecVersion
 
-Returns the version of the Starknet JSON-RPC specification being used.
+Returns the version of the Starknet JSON-RPC specification being implemented by the node. This is useful for ensuring compatibility between your application and the RPC provider, as different specification versions may have different method signatures or behaviors.
 
 ## Method Signature
 
@@ -8,14 +8,16 @@ Returns the version of the Starknet JSON-RPC specification being used.
 func (provider *Provider) SpecVersion(ctx context.Context) (string, error)
 ```
 
+**Source:** [version.go:L19-L27](https://github.com/NethermindEth/starknet.go/blob/main/rpc/version.go#L19-L27)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
+- `ctx` (context.Context): Context for request cancellation and timeout
 
 ## Returns
 
-- `string` - The specification version (e.g., "0.8.1")
-- `error` - Error if the request fails
+- `string`: The specification version (e.g., "0.7.0", "0.8.0", "0.9.0")
+- `error`: Error if the request fails
 
 ## Usage Example
 
@@ -23,54 +25,66 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error)
 package main
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"os"
+    "context"
+    "fmt"
+    "log"
+    "os"
 
-	"github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
 
-	// Get spec version
-	specVersion, err := client.SpecVersion(ctx)
-	if err != nil {
-		log.Fatal("Failed to get spec version:", err)
-	}
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	fmt.Printf("Spec Version: %s\n", specVersion)
+    ctx := context.Background()
+
+    // Get RPC specification version
+    specVersion, err := provider.SpecVersion(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("RPC Spec Version: %s\n", specVersion)
 }
 ```
 
-## Expected Output
-
-```
-Spec Version: 0.9.0
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-specVersion, err := client.SpecVersion(ctx)
+specVersion, err := provider.SpecVersion(ctx)
 if err != nil {
-	// Handle error
-	return err
+    log.Printf("Failed to get spec version: %v", err)
+    return
 }
+
+fmt.Printf("Node implements RPC spec version: %s\n", specVersion)
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [ChainID](./chain-ID.mdx) - Get chain ID
-- [Syncing](./syncing.mdx) - Get node sync status
+- Verifying your application is compatible with the node's RPC specification version. 
+- Determining which RPC methods and features are available based on the spec version. 
+- Logging specification version for debugging and support purposes. 
+
+

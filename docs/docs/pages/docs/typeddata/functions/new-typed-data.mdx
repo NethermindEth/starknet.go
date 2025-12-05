@@ -1,0 +1,94 @@
+# NewTypedData
+
+Creates a new TypedData instance from type definitions, domain, and message data.
+
+## Function Signature
+
+```go
+func NewTypedData(
+	types []TypeDefinition,
+	primaryType string,
+	domain Domain,
+	message []byte,
+) (td *TypedData, err error)
+```
+
+**Source:** [typedData.go:L68-L127](https://github.com/NethermindEth/starknet.go/blob/main/typeddata/typedData.go#L68-L127)
+
+## Parameters
+
+- `types` ([]TypeDefinition): Array of type definitions for the structured data
+- `primaryType` (string): The main type being signed (e.g., "Mail", "Permit")
+- `domain` (Domain): Domain separation object (name, version, chainId, revision)
+- `message` ([]byte): JSON-encoded message data
+
+## Returns
+
+- `*TypedData`: Pointer to the created TypedData instance
+- `error`: Error if type validation fails or message is invalid
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Define types (must include StarknetDomain)
+	types := []typeddata.TypeDefinition{
+		{
+			Name: "StarknetDomain",
+			Parameters: []typeddata.TypeParameter{
+				{Name: "name", Type: "felt"},
+				{Name: "version", Type: "felt"},
+				{Name: "chainId", Type: "felt"},
+			},
+		},
+		{
+			Name: "Mail",
+			Parameters: []typeddata.TypeParameter{
+				{Name: "from", Type: "felt"},
+				{Name: "to", Type: "felt"},
+				{Name: "contents", Type: "felt"},
+			},
+		},
+	}
+
+	// Define domain
+	domain := typeddata.Domain{
+		Name:     "StarkNet Mail",
+		Version:  "1",
+		ChainID:  "SN_SEPOLIA",
+		Revision: 1,
+	}
+
+	// Message data
+	message := []byte(`{
+		"from": "0x1234",
+		"to": "0x5678",
+		"contents": "Hello!"
+	}`)
+
+	// Create TypedData
+	td, err := typeddata.NewTypedData(types, "Mail", domain, message)
+	if err != nil {
+		log.Fatalf("Failed to create TypedData: %v", err)
+	}
+
+	fmt.Printf("Primary Type: %s\n", td.PrimaryType)
+	fmt.Printf("Domain: %s v%s\n", td.Domain.Name, td.Domain.Version)
+}
+```
+
+## Common Use Cases
+
+- Build typed data messages dynamically in Go applications for programmatic message creation. See [Basic Message Signing example](/docs/typeddata/examples#basic-message-signing).
+- Define application-specific message structures with validation using custom type definitions. See [Nested Structures example](/docs/typeddata/examples#nested-structures).
+- Construct typed data from separate components (types, domain, message) for multi-step workflows.
+- NewTypedData validates all types and ensures the primary type exists before creating the instance.

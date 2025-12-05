@@ -1,12 +1,14 @@
 # Sign
 
-Signs a message hash using the Stark curve ECDSA algorithm.
+Signs a message hash using the Stark curve ECDSA algorithm. This function produces a deterministic signature with R and S components that can be verified using the corresponding public key.
 
 ## Function Signature
 
 ```go
 func Sign(msgHash, privKey *big.Int) (r, s *big.Int, err error)
 ```
+
+**Source:** [curve.go:L59-L98](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L59-L98)
 
 ## Parameters
 
@@ -58,50 +60,10 @@ func main() {
 }
 ```
 
-## Expected Output
+## Common Use Cases
 
-```
-Sign:
-  Message Hash: 0x1234567890abcdef
-  Private Key: 0x23f36d87b2eda5fd50005c20237d0e27fffaebd97a7eb4e2de46b6d3ebd4661
-  Public Key X: 0x22f22bba1a0ad2687fa10ea944993498da09bc565eb77a51aed6e70f91135fa
-  Signature R: 0x27da56d08ac35e37c892a94ec7f99b94f6a12eb453f673b7439f6835564e615
-  Signature S: 0x46a23aae9e2a44bee73582f7d397c792296255692f53870461d4d3479d070cd
-```
+- Sign transaction hashes to authorize operations on Starknet accounts.
+- Create message signatures for authentication and verification workflows.
+- Generate signatures for multi-signature setups where multiple parties sign the same message.
+- Use when working with big.Int types for interoperability with other Go libraries, otherwise prefer [SignFelts](/docs/curve/functions/sign-felts).
 
-## Use Cases
-
-### 1. Sign Transaction
-```go
-txHash := new(big.Int).SetString("0xabc...", 0)
-r, s, err := curve.Sign(txHash, privateKey)
-// Use r, s in transaction signature field
-```
-
-### 2. Sign Message
-```go
-messageHash := new(big.Int).SetString("0xdef...", 0)
-r, s, _ := curve.Sign(messageHash, privateKey)
-```
-
-### 3. Multi-signature Setup
-```go
-// Each signer signs the same message
-for _, privKey := range signerKeys {
-    r, s, _ := curve.Sign(msgHash, privKey)
-    signatures = append(signatures, Signature{R: r, S: s})
-}
-```
-
-## Notes
-
-- The signature is deterministic for the same input
-- Both R and S components are required for verification
-- Use [SignFelts](/docs/curve/functions/sign-felts) for felt.Felt parameters
-- The signature can be verified using [Verify](/docs/curve/functions/verify)
-
-## Related Functions
-
-- [SignFelts](/docs/curve/functions/sign-felts) - Sign with felt.Felt parameters
-- [Verify](/docs/curve/functions/verify) - Verify a signature
-- [GetRandomKeys](/docs/curve/functions/get-random-keys) - Generate key pair

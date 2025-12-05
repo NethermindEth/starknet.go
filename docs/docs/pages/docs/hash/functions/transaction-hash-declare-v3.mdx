@@ -1,6 +1,6 @@
 # TransactionHashDeclareV3
 
-Calculates the transaction hash for a Declare V3 transaction with resource bounds using the Poseidon hash algorithm.
+Calculates the transaction hash for a Declare V3 transaction using the Poseidon hash algorithm. V3 introduces resource bounds, data availability modes, and paymaster support for more efficient fee management.
 
 ## Function Signature
 
@@ -11,42 +11,115 @@ func TransactionHashDeclareV3(
 ) (*felt.Felt, error)
 ```
 
+**Source:** [hash.go:L557-L615](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L557-L615)
+
 ## Parameters
 
-- `txn` - The Declare V3 transaction containing:
-  - `Version` - Transaction version string
-  - `SenderAddress` - Address of the account declaring the class
-  - `ClassHash` - Hash of the Sierra contract class
-  - `CompiledClassHash` - Hash of the compiled (CASM) class
-  - `Nonce` - Account nonce
-  - `ResourceBounds` - Resource bounds for L1 gas, L2 gas, and L1 data gas
-  - `Tip` - Additional fee tip
-  - `PayMasterData` - Optional paymaster data
-  - `AccountDeploymentData` - Optional account deployment data
-  - `FeeMode` - Fee data availability mode
-  - `NonceDataMode` - Nonce data availability mode
-- `chainID` - The Starknet chain ID
+- `txn` (*rpc.DeclareTxnV3): The Declare V3 transaction containing Version, SenderAddress, ClassHash, CompiledClassHash, Nonce, ResourceBounds, Tip, PayMasterData, AccountDeploymentData, FeeMode, and NonceDataMode
+- `chainID` (*felt.Felt): The Starknet chain ID
 
 ## Returns
 
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
+- `*felt.Felt`: The calculated transaction hash
+- `error`: Error if required parameters are missing
 
-## Description
+## Usage Example
 
-This function calculates the transaction hash for Declare V3 transactions using the Poseidon hash algorithm. V3 introduces resource bounds, data availability modes, and paymaster support.
+```go
+package main
 
-Internally uses:
-- [TipAndResourcesHash](./tip-and-resources-hash) - For tip and resource bounds hashing
-- [DataAvailabilityModeConc](./data-availability-mode-conc) - For DA mode concatenation
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-## Specification
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
 
-Follows the [V3 Declare hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2) and [SNIP-8](https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md).
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
 
-## Related Functions
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	senderAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	compiledClassHash, _ := new(felt.Felt).SetString("0x0fedcba9876543210fedcba9876543210fedcba9876543210fedcba98765432")
+	nonce := new(felt.Felt).SetUint64(15)
 
-- [TransactionHashDeclareV1](./transaction-hash-declare-v1) - Deprecated V1 variant
-- [TransactionHashDeclareV2](./transaction-hash-declare-v2) - Deprecated V2 variant
-- [TransactionHashBroadcastDeclareV3](./transaction-hash-broadcast-declare-v3) - Broadcast variant
-- [CompiledClassHash](./compiled-class-hash) - Calculate compiled class hashes
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x10c388d00",
+		},
+	}
+
+	txn := &rpc.DeclareTxnV3{
+		Type:                  rpc.TransactionTypeDeclare,
+		Version:               rpc.TransactionV3,
+		SenderAddress:         senderAddress,
+		ClassHash:             classHash,
+		CompiledClassHash:     compiledClassHash,
+		Nonce:                 nonce,
+		ResourceBounds:        resourceBounds,
+		Tip:                   "0x0",
+		PayMasterData:         []*felt.Felt{},
+		AccountDeploymentData: []*felt.Felt{},
+		NonceDataMode:         rpc.DAModeL1,
+		FeeMode:               rpc.DAModeL1,
+		Signature:             []*felt.Felt{},
+	}
+
+	txHash, err := hash.TransactionHashDeclareV3(txn, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
+}
+```
+
+## Common Use Cases
+
+This function is commonly used for:
+
+- Computing transaction hashes for modern contract declarations when deploying new Cairo contracts to the Starknet network with resource bounds. See [Transaction Hash - Declare V3 example](/docs/hash/examples#transaction-hash---declare-v3).
+- Implementing contract deployment tools that need to sign and broadcast declare transactions with proper transaction hash calculation for V3 transactions.
+- Building blockchain explorers that process and display current contract declarations with detailed resource usage and fee information from V3 transactions.
+- Creating contract verification systems that validate both Sierra and CASM class hashes while also tracking resource bounds and paymaster data.
+- Developing testing frameworks that simulate V3 declare scenarios to ensure proper handling of resource bounds and data availability modes in contract deployment workflows.
+

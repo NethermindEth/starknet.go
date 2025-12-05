@@ -12,6 +12,8 @@ func PrecomputeAccountAddress(
 ) *felt.Felt
 ```
 
+**Source:** [account.go:L144-L149](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L144-L149)
+
 ## Parameters
 
 - `salt` - Random value for address generation
@@ -61,29 +63,6 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-Precomputed account address: 0x24704c7725da38273659643fd01b9daa6b3811bfbf9ded39f05c02b6fa68a1f
-
-With empty constructor calldata:
-Precomputed account address: 0x50486d52f752622fce6cc467812a33151c1fe19d80dbaac5997c692a8dc5ed2
-
-With different salt (0x87654321):
-Precomputed account address: 0x597c5caf6ef950f84aa0af703352969b88ba10bf0e2d63342622b7c06a33862
-```
-
-## Description
-
-PrecomputeAccountAddress calculates the deterministic address where an account contract will be deployed. This is essential for the account deployment flow:
-
-1. Precompute the account address
-2. Fund that address with tokens (for fees)
-3. Deploy the account contract
-4. The contract deploys to the precomputed address
-
-The address is calculated using the same algorithm as Starknet's contract address computation.
-
 ## Error Handling
 
 This function does not return errors. It always produces a valid address from the provided parameters.
@@ -98,7 +77,10 @@ address := account.PrecomputeAccountAddress(salt, classHash, constructorCalldata
 // Safe to use address
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndEstimateDeployAccountTxn](/docs/account/methods/build-and-estimate-deploy-account-txn) - Uses this function internally
-- [NewAccount](/docs/account/methods/new-account) - Create account instance after deployment
+- Calculate the address where an account contract will be deployed before deployment
+- Fund a precomputed address with tokens to pay for deployment fees
+- Verify that an account will deploy to the expected address
+- Essential for the counterfactual deployment pattern where you interact with an address before deploying the contract
+

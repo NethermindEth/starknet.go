@@ -1,12 +1,14 @@
 # GetRandomKeys
 
-Generates a random key pair for testing and development.
+Generates a cryptographically random key pair using the Starknet curve. The private key is automatically stored in a MemKeystore indexed by the public key. This function is intended for testing, development, examples, and temporary accounts.
 
 ## Function Signature
 
 ```go
 func GetRandomKeys() (ks *MemKeystore, pubKey, privKey *felt.Felt)
 ```
+
+**Source:** [keystore.go](https://github.com/NethermindEth/starknet.go/blob/main/account/keystore.go)
 
 ## Parameters
 
@@ -65,42 +67,13 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-Random keys generated:
-Public Key:  0x68ab6bede5d0d19e91a7e08103ef5b473be1b60496c8ade7c1feef767fe4b6
-Private Key: 0x4018388719f3a4e75b53c192fe559a7890a2a9f1f887b084552ecef866c72f8
-
-Verifying keystore contains the key:
-Retrieved key from keystore: 1811926048687811693773218878414096663361903231379212933171229578164471362296
-Keys stored successfully: true
-
-Generating another set of random keys:
-Public Key 2:  0x27940ce5d0deacca17157ea90ef8d6520237894adc27119500185ecde43bacb
-Private Key 2: 0x7fdbd39e2648fb036c534e8b090aba26883bfc4b7bb6a93dee4731144b624b5
-
-Keys are different: true
-Keystore 1 has key 2: false
-Keystore 2 has key 1: false
-```
-
-## Description
-
-GetRandomKeys generates a cryptographically random key pair using the Starknet curve. The private key is automatically stored in a MemKeystore indexed by the public key.
-
-This function is intended for:
-- Testing and development
-- Examples and tutorials
-- Temporary accounts
-
-For production use, implement a secure Keystore that persists keys safely.
-
 ## Error Handling
 
-If key generation fails, the function prints an error message and exits. This is acceptable for testing code but should be handled differently in production.
+If key generation fails internally, the function will panic. This is acceptable for testing and development code.
 
-## Related Functions
+## Common Use Cases
 
-- [NewMemKeystore](./new-mem-keystore.mdx) - Create empty keystore
-- [SetNewMemKeystore](./set-new-mem-keystore.mdx) - Create keystore with specific keys
+- Generating temporary key pairs for testing and development
+- Creating test accounts for integration tests
+- Examples and tutorials requiring random accounts
+- Quick prototyping without managing persistent keys

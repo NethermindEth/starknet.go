@@ -2,11 +2,31 @@
 
 Retrieves information about the fee token used on the DevNet.
 
+:::danger 
+
+This method is **permanently broken** and cannot work with any available DevNet version.
+
+**Why it's broken:**
+- Designed for deprecated Python starknet-devnet (no longer available)
+- Expects `/fee_token` endpoint which doesn't exist in starknet-devnet-rs
+
+**Workaround:** DevNet logs show fee token addresses at startup:
+```bash
+docker logs starknet-devnet | grep "FeeToken" -A3
+```
+
+Typical addresses:
+- ETH: `0x49D36570D4E46F48E99674BD3FCC84644DDD6B96F7C741B1562B82F9E004DC7`
+- STRK: `0x4718F5A0FC34CC1AF16A1CDEE98FFB20C31F5CD61D6AB07201858F4287C938D`
+:::
+
 ## Method Signature
 
 ```go
 func (devnet *DevNet) FeeToken() (*FeeToken, error)
 ```
+
+**Source:** [devnet.go:L189-L205](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L189-L205)
 
 ## Parameters
 
@@ -25,6 +45,8 @@ type FeeToken struct {
     Address *felt.Felt
 }
 ```
+
+**Source:** [devnet.go:L172-L175](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L172-L175)
 
 ## Usage Example
 
@@ -58,14 +80,6 @@ func main() {
 	fmt.Printf("  Symbol:  %s\n", feeToken.Symbol)
 	fmt.Printf("  Address: %s\n", feeToken.Address.String())
 }
-```
-
-## Expected Output
-
-```
-Fee Token Information:
-  Symbol:  ETH
-  Address: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
 ```
 
 ## Use Cases
@@ -181,8 +195,3 @@ fmt.Printf("Minted %s %s\n", response.NewBalance, response.Unit)
 - Used for paying transaction fees on DevNet
 - Can be queried and transferred like any ERC-20 token
 
-## Related Methods
-
-- [Mint](./mint.mdx) - Mint fee tokens to an address
-- [Accounts](./accounts.mdx) - Get accounts that hold fee tokens
-- [IsAlive](./is-alive.mdx) - Verify DevNet is running

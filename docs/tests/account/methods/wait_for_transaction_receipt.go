@@ -1,5 +1,5 @@
 package main
-
+ 
 import (
 	"context"
 	"fmt"
@@ -7,90 +7,80 @@ import (
 	"math/big"
 	"os"
 	"time"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	testAccountAddress := os.Getenv("TEST_ACCOUNT_ADDRESS")
-	testAccountPrivateKey := os.Getenv("TEST_ACCOUNT_PRIVATE_KEY")
-	testAccountPublicKey := os.Getenv("TEST_ACCOUNT_PUBLIC_KEY")
-
-	if rpcURL == "" || testAccountAddress == "" || testAccountPrivateKey == "" || testAccountPublicKey == "" {
-		log.Fatal("Required environment variables not set")
-	}
-
 	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
+	}
+ 
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set")
+	}
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	// Parse account details
-	accountAddress, _ := new(felt.Felt).SetString(testAccountAddress)
-	privateKeyFelt, _ := new(felt.Felt).SetString(testAccountPrivateKey)
-	privateKey := privateKeyFelt.BigInt(new(big.Int))
-
-	// Create account (Cairo v2)
-	ks := account.SetNewMemKeystore(testAccountPublicKey, privateKey)
-	acc, err := account.NewAccount(provider, accountAddress, testAccountPublicKey, ks, account.CairoV2)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("Account credentials not set in .env")
+	}
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse account address:", err)
 	}
-
-	fmt.Println("=== TESTING WaitForTransactionReceipt ===")
-	fmt.Println()
-
-	// First, send a transaction
-	ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	functionCall := rpc.InvokeFunctionCall{
-		ContractAddress: ethContract,
+ 
+	accnt, err := account.NewAccount(provider, accountAddressFelt, publicKey, ks, account.CairoV2)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+ 
+	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	recipient := accountAddressFelt
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+	u256Amount, _ := utils.HexToU256Felt(amount.String())
+ 
+	invokeFnCall := rpc.InvokeFunctionCall{
+		ContractAddress: strkContract,
 		FunctionName:    "transfer",
-		CallData: []*felt.Felt{
-			accountAddress,              // recipient (self)
-			new(felt.Felt).SetUint64(1), // amount (u256 low)
-			new(felt.Felt).SetUint64(0), // amount (u256 high)
-		},
+		CallData:        append([]*felt.Felt{recipient}, u256Amount...),
 	}
-
-	fmt.Println("Sending a transaction...")
-	response, err := acc.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{functionCall}, nil)
+ 
+	tx, err := accnt.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{invokeFnCall}, nil)
 	if err != nil {
-		log.Fatalf("Error sending transaction: %v", err)
+		log.Fatal("Failed to send transaction:", err)
 	}
-
-	fmt.Printf("Transaction Hash: %s\n", response.Hash)
-	fmt.Println()
-
-	// Now wait for the transaction receipt
-	fmt.Println("Waiting for transaction receipt (polling every 2 seconds)...")
-	fmt.Println()
-
-	receipt, err := acc.WaitForTransactionReceipt(
-		ctx,
-		response.Hash,
-		2*time.Second, // Poll every 2 seconds
-	)
+ 
+	fmt.Printf("Transaction sent: %s\n", tx.Hash.String())
+ 
+	receipt, err := accnt.WaitForTransactionReceipt(ctx, tx.Hash, 3*time.Second)
 	if err != nil {
-		log.Fatalf("Error waiting for receipt: %v", err)
+		log.Fatal("Failed to get receipt:", err)
 	}
-
-	fmt.Println("✅ Transaction confirmed!")
-	fmt.Println()
-	fmt.Printf("Block Hash: %s\n", receipt.BlockHash)
+ 
+	fmt.Printf("Block Hash: %s\n", receipt.BlockHash.String())
 	fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
-	fmt.Printf("Execution Status: %s\n", receipt.ExecutionStatus)
-	fmt.Printf("Finality Status: %s\n", receipt.FinalityStatus)
-	fmt.Println()
-	fmt.Printf("View on Voyager: https://sepolia.voyager.online/tx/%s\n", response.Hash)
+	fmt.Printf("Status: %s\n", receipt.FinalityStatus)
 }

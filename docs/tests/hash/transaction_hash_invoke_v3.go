@@ -13,60 +13,82 @@ import (
 )
 
 func main() {
-	godotenv.Load("../.env")
-
-	// Get chain ID
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
 	}
 
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create RPC provider:", err)
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	senderAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	nonce := new(felt.Felt).SetUint64(5)
+
+	ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	transferSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
+
+	calldata := []*felt.Felt{
+		new(felt.Felt).SetUint64(1),
+		ethContract,
+		transferSelector,
+		new(felt.Felt).SetUint64(2),
+		new(felt.Felt).SetUint64(1),
+		new(felt.Felt).SetUint64(2),
 	}
 
-	chainID, err := client.ChainID(ctx)
-	if err != nil {
-		log.Fatal("Failed to get chain ID:", err)
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x33a937098d80",
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       "0x5000",
+			MaxPricePerUnit: "0x10c388d00",
+		},
 	}
-
-	// Create a sample InvokeTxnV3
-	senderAddress, _ := new(felt.Felt).SetString("0x1234567890abcdef")
 
 	txn := &rpc.InvokeTxnV3{
-		SenderAddress: senderAddress,
-		Calldata:      []*felt.Felt{new(felt.Felt).SetUint64(1)},
-		Version:       rpc.TransactionV3,
-		Signature:     []*felt.Felt{},
-		Nonce:         new(felt.Felt).SetUint64(0),
-		ResourceBounds: rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(10000),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
-			},
-			L2Gas: rpc.ResourceBounds{
-				MaxAmount:       new(felt.Felt).SetUint64(10000),
-				MaxPricePerUnit: new(felt.Felt).SetUint64(100),
-			},
-		},
-		Tip:                   0,
+		Type:                  rpc.TransactionTypeInvoke,
+		Version:               rpc.TransactionV3,
+		SenderAddress:         senderAddress,
+		Nonce:                 nonce,
+		Calldata:              calldata,
+		Signature:             []*felt.Felt{},
+		ResourceBounds:        resourceBounds,
+		Tip:                   "0x0",
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
 		FeeMode:               rpc.DAModeL1,
 	}
 
-	// Calculate transaction hash
 	txHash, err := hash.TransactionHashInvokeV3(txn, chainID)
 	if err != nil {
-		log.Fatal("Failed to calculate transaction hash:", err)
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
 	}
 
-	fmt.Println("TransactionHashInvokeV3:")
-	fmt.Printf("  Chain ID: %s\n", chainID)
-	fmt.Printf("  Sender: %s\n", txn.SenderAddress.String())
-	fmt.Printf("  Nonce: %s\n", txn.Nonce.String())
-	fmt.Printf("  Transaction Hash: %s\n", txHash.String())
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
 }

@@ -1,0 +1,27 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Convert 1 STRK in FRI to STRK
+	fri, _ := utils.HexToFelt("0xde0b6b3a7640000")
+	strk := utils.FRIToSTRK(fri)
+	fmt.Printf("%s FRI = %v STRK\n", fri.String(), strk)
+	// Output: 1 STRK
+
+	// Convert 0.5 STRK in FRI to STRK
+	fri2, _ := utils.HexToFelt("0x6f05b59d3b20000")
+	strk2 := utils.FRIToSTRK(fri2)
+	fmt.Printf("%s FRI = %v STRK\n", fri2.String(), strk2)
+	// Output: 0.5 STRK
+
+	// Convert 10 STRK in FRI to STRK
+	fri3, _ := utils.HexToFelt("0x8ac7230489e80000")
+	strk3 := utils.FRIToSTRK(fri3)
+	fmt.Printf("%s FRI = %v STRK\n", fri3.String(), strk3)
+	// Output: 10 STRK
+}

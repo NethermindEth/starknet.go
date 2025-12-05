@@ -1,12 +1,14 @@
 # New
 
-Creates a new Paymaster client instance for interacting with a SNIP-29 compliant paymaster service.
+Creates a new Paymaster client instance for interacting with a SNIP-29 compliant paymaster service. The paymaster service sponsors transaction fees, allowing users to pay with alternative tokens or have their fees covered entirely. The client automatically maintains cookies for session management.
 
 ## Function Signature
 
 ```go
 func New(ctx context.Context, url string, options ...client.ClientOption) (*Paymaster, error)
 ```
+
+**Source:** [paymaster.go:L64-L80](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/paymaster.go#L64-L80)
 
 ## Parameters
 
@@ -19,10 +21,6 @@ func New(ctx context.Context, url string, options ...client.ClientOption) (*Paym
 - `*Paymaster`: New paymaster client instance
 - `error`: Error if client creation fails
 
-## Description
-
-Creates a paymaster client that implements the SNIP-29 paymaster API. The paymaster service sponsors transaction fees, allowing users to pay with alternative tokens or have their fees covered entirely.
-
 ## Usage Example
 
 ```go
@@ -30,57 +28,41 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/NethermindEth/starknet.go/paymaster"
 )
 
 func main() {
-	paymasterURL := "https://paymaster.example.com/rpc"
+	// Using AVNU's public SNIP-29 compliant paymaster on Sepolia testnet
+	paymasterURL := "https://sepolia.paymaster.avnu.fi"
 	ctx := context.Background()
-	
+
+	// Create a new paymaster client
 	pm, err := paymaster.New(ctx, paymasterURL)
 	if err != nil {
 		log.Fatal(err)
 	}
-	
-	// Use the paymaster client
-	available, _ := pm.IsAvailable(ctx)
+
+	fmt.Println("Paymaster client created successfully")
+
+	// Check if the paymaster service is available
+	available, err := pm.IsAvailable(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if available {
-		log.Println("Paymaster service is ready")
+		fmt.Println("Paymaster service is ready")
 	}
 }
 ```
 
-## Use Cases
+## Common Use Cases
 
-### 1. Gasless Transactions
-```go
-// Users don't need ETH/STRK for gas
-pm, _ := paymaster.New(ctx, paymasterURL)
-```
-
-### 2. Alternative Fee Tokens
-```go
-// Pay fees with USDC, DAI, etc.
-pm, _ := paymaster.New(ctx, paymasterURL)
-tokens, _ := pm.GetSupportedTokens(ctx)
-```
-
-### 3. Sponsored dApps
-```go
-// dApp sponsors user transaction fees
-pm, _ := paymaster.New(ctx, sponsorURL)
-```
-
-## Notes
-
-- Requires a SNIP-29 compliant paymaster service
-- The service URL should point to the JSON-RPC endpoint
-- Client maintains cookies for session management
-
-## Related Methods
-
-- [IsAvailable](/docs/paymaster/methods/is-available)
-- [GetSupportedTokens](/docs/paymaster/methods/get-supported-tokens)
-- [BuildTransaction](/docs/paymaster/methods/build-transaction)
+- Create a paymaster client for gasless transactions where users don't need ETH/STRK for gas.
+- Enable alternative fee token payments with USDC, DAI, or other supported ERC-20 tokens.
+- Build sponsored dApps where the application covers user transaction fees.
+- Requires a SNIP-29 compliant paymaster service with the URL pointing to the JSON-RPC endpoint.
+- Client automatically maintains cookies for session management.

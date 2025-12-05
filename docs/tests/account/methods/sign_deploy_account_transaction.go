@@ -1,76 +1,121 @@
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
-
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
-
-	ctx := context.Background()
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
-	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
-
-	acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
-	if err != nil {
-		log.Fatal(err)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
 	}
-
-	// Create a deploy account transaction V1
-	classHash, _ := new(felt.Felt).SetString("0x04c6d6cf894f8bc96bb9c525e6853e5483177841f7388f74a46cfda6f028c755")
-	contractAddressSalt, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
-	pubKey, _ := new(felt.Felt).SetString("0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2")
-
-	deployAccountTx := &rpc.DeployAccountTxnV1{
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	classHash, _ := utils.HexToFelt("0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
+	salt := new(felt.Felt).SetUint64(12345)
+	newAccountPubKey, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	constructorCalldata := []*felt.Felt{newAccountPubKey}
+ 
+	precomputedAddress := contracts.PrecomputeAddress(
+		new(felt.Felt).SetUint64(0),
+		salt,
+		classHash,
+		constructorCalldata,
+	)
+ 
+	fmt.Printf("Class Hash:       %s\n", classHash.String())
+	fmt.Printf("Salt:             %s\n", salt.String())
+	fmt.Printf("Public Key:       %s\n", newAccountPubKey.String())
+	fmt.Printf("Precomputed Addr: %s\n\n", precomputedAddress.String())
+ 
+	deployTxn := &rpc.DeployAccountTxnV3{
 		Type:                rpc.TransactionTypeDeployAccount,
-		MaxFee:              new(felt.Felt).SetUint64(1000000000000),
-		Version:             rpc.TransactionV1,
-		Signature:           []*felt.Felt{}, // Empty before signing
+		Version:             rpc.TransactionV3,
 		Nonce:               new(felt.Felt).SetUint64(0),
 		ClassHash:           classHash,
-		ContractAddressSalt: contractAddressSalt,
-		ConstructorCalldata: []*felt.Felt{pubKey},
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		ResourceBounds: &rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+		},
+		Tip:           "0x0",
+		PayMasterData: []*felt.Felt{},
+		NonceDataMode: rpc.DAModeL1,
+		FeeMode:       rpc.DAModeL1,
+		Signature:     []*felt.Felt{},
 	}
-
-	// Precompute the contract address (required for signing)
-	precomputedAddress, _ := new(felt.Felt).SetString("0x04a7a67901e7f64e7d4f46fa17a0c57aefb0e91b3ec31e83feb758ae56b6e29e")
-
-	fmt.Printf("Before signing - Signature length: %d\n", len(deployAccountTx.Signature))
-
-	// Sign the transaction
-	err = acc.SignDeployAccountTransaction(ctx, deployAccountTx, precomputedAddress)
+ 
+	fmt.Printf("Nonce:            %d\n", deployTxn.Nonce.Uint64())
+	fmt.Printf("Signature (before): %v\n\n", deployTxn.Signature)
+ 
+	newAcctKs := account.NewMemKeystore()
+	newPrivKey := new(big.Int).SetBytes([]byte("temp_private_key_for_demo"))
+	newAcctKs.Put(newAccountPubKey.String(), newPrivKey)
+ 
+	newAcct, err := account.NewAccount(
+		provider,
+		precomputedAddress,
+		newAccountPubKey.String(),
+		newAcctKs,
+		account.CairoV2,
+	)
 	if err != nil {
-		fmt.Printf("Error signing transaction: %v\n", err)
-		return
+		log.Fatal("Failed to create new account instance:", err)
 	}
-
-	fmt.Printf("After signing - Signature length: %d\n", len(deployAccountTx.Signature))
-	for i, sig := range deployAccountTx.Signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+ 
+	err = newAcct.SignDeployAccountTransaction(ctx, deployTxn, precomputedAddress)
+	if err != nil {
+		log.Fatal("Failed to sign deploy account transaction:", err)
 	}
+ 
+	fmt.Printf("Signature components:\n")
+	fmt.Printf("  r: %s\n", deployTxn.Signature[0].String())
+	fmt.Printf("  s: %s\n", deployTxn.Signature[1].String())
 }

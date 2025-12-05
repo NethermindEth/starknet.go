@@ -1,0 +1,668 @@
+# TypedData Examples
+
+This page provides comprehensive examples for working with TypedData (SNIP-12) in Starknet, covering common patterns and real-world use cases.
+
+## Basic Message Signing
+
+Sign a simple mail message using TypedData. This demonstrates the fundamental structure of typed data including domain, types, and message.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Define a simple mail message structure
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Person": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "wallet", "type": "felt" }
+			],
+			"Mail": [
+				{ "name": "from", "type": "Person" },
+				{ "name": "to", "type": "Person" },
+				{ "name": "contents", "type": "felt" }
+			]
+		},
+		"primaryType": "Mail",
+		"domain": {
+			"name": "StarkNet Mail",
+			"version": "1",
+			"chainId": 1
+		},
+		"message": {
+			"from": {
+				"name": "Alice",
+				"wallet": "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+			},
+			"to": {
+				"name": "Bob",
+				"wallet": "0x69b49c2cc8b16e80e86bfc5b0614a59aa8c9b601569c7b80dde04d3f3151b79"
+			},
+			"contents": "Hello Bob!"
+		}
+	}`)
+
+	// Parse the typed data
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Calculate the message hash for signing
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Basic Mail Signing Example")
+	fmt.Printf("From: Alice (%s)\n", td.Message["from"].(map[string]interface{})["wallet"])
+	fmt.Printf("To: Bob (%s)\n", td.Message["to"].(map[string]interface{})["wallet"])
+	fmt.Printf("Message Hash: %s\n", messageHash.String())
+	fmt.Println("\nThis hash can now be signed with your private key")
+}
+```
+
+## Working with Revision 1
+
+Use Revision 1 which implements Poseidon hashing for improved performance. Revision 1 requires the `revision` field in the domain.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Revision 1 uses Poseidon hashing and requires "revision": "1" in domain
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Transfer": [
+				{ "name": "recipient", "type": "ContractAddress" },
+				{ "name": "amount", "type": "u256" }
+			]
+		},
+		"primaryType": "Transfer",
+		"domain": {
+			"name": "MyToken",
+			"version": "1",
+			"chainId": "SN_SEPOLIA",
+			"revision": "1"
+		},
+		"message": {
+			"recipient": "0x69b49c2cc8b16e80e86bfc5b0614a59aa8c9b601569c7b80dde04d3f3151b79",
+			"amount": {
+				"low": "1000",
+				"high": "0"
+			}
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Calculate message hash using Poseidon (Revision 1)
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Revision 1 Example (Poseidon Hashing)")
+	fmt.Printf("Revision: %d\n", td.Domain.Revision)
+	fmt.Printf("Hash Method: Poseidon\n")
+	fmt.Printf("Message Hash: %s\n", messageHash.String())
+	fmt.Println("\nRevision 1 uses Poseidon hashing for better performance")
+}
+```
+
+## Domain Separation
+
+Prevent replay attacks by using different domains for different networks. The same message with different domains produces completely different hashes.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Same message structure, different domains produce different hashes
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+
+	// Domain 1: Mainnet
+	mainnetData := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Action": [
+				{ "name": "action", "type": "felt" },
+				{ "name": "timestamp", "type": "felt" }
+			]
+		},
+		"primaryType": "Action",
+		"domain": {
+			"name": "MyDapp",
+			"version": "1",
+			"chainId": "SN_MAIN"
+		},
+		"message": {
+			"action": "approve",
+			"timestamp": "1234567890"
+		}
+	}`)
+
+	// Domain 2: Sepolia (testnet)
+	sepoliaData := []byte(`{
+		"types": {
+			"StarkNetDomain": [
+				{ "name": "name", "type": "felt" },
+				{ "name": "version", "type": "felt" },
+				{ "name": "chainId", "type": "felt" }
+			],
+			"Action": [
+				{ "name": "action", "type": "felt" },
+				{ "name": "timestamp", "type": "felt" }
+			]
+		},
+		"primaryType": "Action",
+		"domain": {
+			"name": "MyDapp",
+			"version": "1",
+			"chainId": "SN_SEPOLIA"
+		},
+		"message": {
+			"action": "approve",
+			"timestamp": "1234567890"
+		}
+	}`)
+
+	// Parse and hash mainnet message
+	var mainnetTD typeddata.TypedData
+	if err := json.Unmarshal(mainnetData, &mainnetTD); err != nil {
+		log.Fatal(err)
+	}
+	mainnetHash, err := mainnetTD.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Parse and hash sepolia message
+	var sepoliaTD typeddata.TypedData
+	if err := json.Unmarshal(sepoliaData, &sepoliaTD); err != nil {
+		log.Fatal(err)
+	}
+	sepoliaHash, err := sepoliaTD.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Domain Separation Example")
+	fmt.Println("\nMainnet Domain:")
+	fmt.Printf("  Chain ID: %s\n", mainnetTD.Domain.ChainID)
+	fmt.Printf("  Message Hash: %s\n", mainnetHash.String())
+
+	fmt.Println("\nSepolia Domain:")
+	fmt.Printf("  Chain ID: %s\n", sepoliaTD.Domain.ChainID)
+	fmt.Printf("  Message Hash: %s\n", sepoliaHash.String())
+
+	fmt.Println("\nNote: Same message, different domains produce different hashes")
+	fmt.Println("This prevents replay attacks across networks")
+}
+```
+
+## Nested Structures
+
+Work with complex nested data structures. This example demonstrates how to model real-world entities with multiple levels of nesting.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Complex nested structure example
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "string" },
+				{ "name": "chainId", "type": "felt" },
+				{ "name": "version", "type": "string" }
+			],
+			"Address": [
+				{ "name": "street", "type": "string" },
+				{ "name": "city", "type": "string" },
+				{ "name": "country", "type": "string" }
+			],
+			"Person": [
+				{ "name": "name", "type": "string" },
+				{ "name": "age", "type": "felt" },
+				{ "name": "address", "type": "Address" }
+			],
+			"Transfer": [
+				{ "name": "from", "type": "Person" },
+				{ "name": "to", "type": "Person" },
+				{ "name": "amount", "type": "felt" }
+			]
+		},
+		"primaryType": "Transfer",
+		"domain": {
+			"name": "Payment System",
+			"chainId": "0x534e5f5345504f4c4941",
+			"version": "1.0.0",
+			"revision": "1"
+		},
+		"message": {
+			"from": {
+				"name": "Alice",
+				"age": "30",
+				"address": {
+					"street": "123 Main St",
+					"city": "New York",
+					"country": "USA"
+				}
+			},
+			"to": {
+				"name": "Bob",
+				"age": "25",
+				"address": {
+					"street": "456 Oak Ave",
+					"city": "Los Angeles",
+					"country": "USA"
+				}
+			},
+			"amount": "1000"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Calculate message hash
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get struct hash for nested Address type
+	addressHash, err := td.GetStructHash("Address", "from", "address")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Nested Structs Example")
+	fmt.Printf("Primary Type: %s\n", td.PrimaryType)
+	fmt.Printf("Number of Custom Types: %d\n", len(td.Types))
+	fmt.Printf("\nNested Address Hash: %s\n", addressHash.String())
+	fmt.Printf("Full Message Hash: %s\n", messageHash.String())
+	fmt.Println("\nNested structures allow complex data modeling")
+}
+```
+
+## Array Types
+
+Handle messages with array fields. Arrays are denoted with the `*` suffix (e.g., `u128*`, `ContractAddress*`).
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Example with array fields
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Batch": [
+				{ "name": "description", "type": "string" },
+				{ "name": "recipients", "type": "ContractAddress*" },
+				{ "name": "amounts", "type": "u128*" }
+			]
+		},
+		"primaryType": "Batch",
+		"domain": {
+			"name": "BatchTransfer",
+			"version": "1",
+			"chainId": "SN_SEPOLIA",
+			"revision": "1"
+		},
+		"message": {
+			"description": "Monthly payments",
+			"recipients": [
+				"0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
+				"0x69b49c2cc8b16e80e86bfc5b0614a59aa8c9b601569c7b80dde04d3f3151b79",
+				"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+			],
+			"amounts": [100, 200, 300]
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Calculate message hash
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	recipients := td.Message["recipients"].([]interface{})
+	amounts := td.Message["amounts"].([]interface{})
+
+	fmt.Println("Array Types Example")
+	fmt.Printf("Description: %s\n", td.Message["description"])
+	fmt.Printf("Number of recipients: %d\n", len(recipients))
+	fmt.Printf("Number of amounts: %d\n", len(amounts))
+	fmt.Printf("\nMessage Hash: %s\n", messageHash.String())
+	fmt.Println("\nArrays are denoted with * suffix (e.g., u128*, ContractAddress*)")
+}
+```
+
+## Preset Types
+
+Use built-in preset types like `u256`, `TokenAmount`, and `NftId` for common Starknet data structures.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Example using preset types: u256, TokenAmount, NftId
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Transfer": [
+				{ "name": "token", "type": "TokenAmount" },
+				{ "name": "nft", "type": "NftId" }
+			]
+		},
+		"primaryType": "Transfer",
+		"domain": {
+			"name": "NFT Marketplace",
+			"version": "1",
+			"chainId": "SN_MAIN",
+			"revision": "1"
+		},
+		"message": {
+			"token": {
+				"token_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+				"amount": {
+					"low": "1000",
+					"high": "0"
+				}
+			},
+			"nft": {
+				"collection_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+				"token_id": {
+					"low": "42",
+					"high": "0"
+				}
+			}
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Calculate message hash
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get type hashes for preset types
+	u256Hash, _ := td.GetTypeHash("u256")
+	tokenAmountHash, _ := td.GetTypeHash("TokenAmount")
+	nftIdHash, _ := td.GetTypeHash("NftId")
+
+	fmt.Println("Preset Types Example")
+	fmt.Println("\nPreset Type Hashes:")
+	fmt.Printf("  u256: %s\n", u256Hash.String())
+	fmt.Printf("  TokenAmount: %s\n", tokenAmountHash.String())
+	fmt.Printf("  NftId: %s\n", nftIdHash.String())
+	fmt.Printf("\nMessage Hash: %s\n", messageHash.String())
+	fmt.Println("\nPreset types: u256, TokenAmount, NftId are built-in")
+}
+```
+
+## Authentication Flow
+
+Implement a login/authentication flow using typed data signatures. This pattern is commonly used for wallet-based authentication.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// Authentication flow example - login message signing
+	timestamp := time.Now().Unix()
+
+	typedDataJSON := []byte(fmt.Sprintf(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "shortstring" },
+				{ "name": "version", "type": "shortstring" },
+				{ "name": "chainId", "type": "shortstring" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Login": [
+				{ "name": "action", "type": "string" },
+				{ "name": "timestamp", "type": "timestamp" },
+				{ "name": "nonce", "type": "felt" }
+			]
+		},
+		"primaryType": "Login",
+		"domain": {
+			"name": "MyDapp Auth",
+			"version": "1.0",
+			"chainId": "SN_MAIN",
+			"revision": "1"
+		},
+		"message": {
+			"action": "Sign in to MyDapp",
+			"timestamp": "%d",
+			"nonce": "123456789"
+		}
+	}`, timestamp))
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// User's account address
+	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+
+	// Calculate message hash for signing
+	messageHash, err := td.GetMessageHash(accountAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Authentication Flow Example")
+	fmt.Printf("Action: %s\n", td.Message["action"])
+	fmt.Printf("Timestamp: %s\n", td.Message["timestamp"])
+	fmt.Printf("Nonce: %s\n", td.Message["nonce"])
+	fmt.Printf("Account: %s\n", accountAddress)
+	fmt.Printf("\nMessage Hash: %s\n", messageHash.String())
+	fmt.Println("\nAuthentication flow:")
+	fmt.Println("1. User requests to sign in")
+	fmt.Println("2. Frontend creates typed data with current timestamp and nonce")
+	fmt.Println("3. User signs the message hash")
+	fmt.Println("4. Backend verifies signature and establishes session")
+}
+```
+
+## Permit (Gasless Approval)
+
+Implement ERC20 permit functionality for gasless token approvals. Users sign a message off-chain, and the spender submits it on-chain.
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/typeddata"
+)
+
+func main() {
+	// ERC20 Permit example - gasless token approval via signature
+	typedDataJSON := []byte(`{
+		"types": {
+			"StarknetDomain": [
+				{ "name": "name", "type": "string" },
+				{ "name": "version", "type": "string" },
+				{ "name": "chainId", "type": "felt" },
+				{ "name": "revision", "type": "shortstring" }
+			],
+			"Permit": [
+				{ "name": "owner", "type": "ContractAddress" },
+				{ "name": "spender", "type": "ContractAddress" },
+				{ "name": "value", "type": "u256" },
+				{ "name": "nonce", "type": "felt" },
+				{ "name": "deadline", "type": "felt" }
+			]
+		},
+		"primaryType": "Permit",
+		"domain": {
+			"name": "MyToken",
+			"version": "1",
+			"chainId": "0x534e5f4d41494e",
+			"revision": "1"
+		},
+		"message": {
+			"owner": "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
+			"spender": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+			"value": {
+				"low": "1000000000000000000",
+				"high": "0"
+			},
+			"nonce": "0",
+			"deadline": "1735689600"
+		}
+	}`)
+
+	var td typeddata.TypedData
+	err := json.Unmarshal(typedDataJSON, &td)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Owner account address
+	ownerAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+
+	// Calculate message hash for signing
+	messageHash, err := td.GetMessageHash(ownerAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("ERC20 Permit Example (Gasless Approval)")
+	fmt.Printf("Token: %s\n", td.Domain.Name)
+	fmt.Printf("Owner: %s\n", td.Message["owner"])
+	fmt.Printf("Spender: %s\n", td.Message["spender"])
+
+	value := td.Message["value"].(map[string]interface{})
+	fmt.Printf("Amount: %s (low: %s, high: %s)\n", "1 ETH", value["low"], value["high"])
+	fmt.Printf("Nonce: %s\n", td.Message["nonce"])
+	fmt.Printf("Deadline: %s\n", td.Message["deadline"])
+
+	fmt.Printf("\nMessage Hash: %s\n", messageHash.String())
+
+	fmt.Println("\nPermit workflow:")
+	fmt.Println("1. User signs permit message (no gas cost)")
+	fmt.Println("2. Spender submits permit signature on-chain")
+	fmt.Println("3. Contract verifies signature and grants approval")
+	fmt.Println("4. Spender can now spend tokens on behalf of owner")
+}
+```
+

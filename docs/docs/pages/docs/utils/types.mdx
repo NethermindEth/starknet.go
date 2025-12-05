@@ -23,6 +23,8 @@ type TxnOptions struct {
 }
 ```
 
+**Source:** [transactions.go:L46-L55](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L46-L55)
+
 **Fields:**
 
 - `Tip` - Tip amount in FRI for the transaction (default: "0x0"). Note: only ready to be used after Starknet v0.14.0 upgrade
@@ -38,6 +40,8 @@ Returns the appropriate transaction version based on the UseQueryBit flag.
 func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion
 ```
 
+**Source:** [transactions.go:L59-L65](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L59-L65)
+
 **Returns:**
 - `rpc.TransactionVersion` - Returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and `rpc.TransactionV3` if false
 
@@ -48,6 +52,8 @@ Returns the tip amount in FRI for the transaction. If the tip is not set or inva
 ```go
 func (opts *TxnOptions) SafeTip() rpc.U64
 ```
+
+**Source:** [transactions.go:L69-L79](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L69-L79)
 
 **Returns:**
 - `rpc.U64` - The tip amount, or "0x0" if not set or invalid
@@ -139,6 +145,8 @@ type UDCOptions struct {
 	UDCVersion UDCVersion
 }
 ```
+
+**Source:** [udc.go:L33-L52](https://github.com/NethermindEth/starknet.go/blob/main/utils/udc.go#L33-L52)
 
 **Fields:**
 
@@ -259,6 +267,8 @@ const (
 )
 ```
 
+**Source:** [udc.go:L55-L64](https://github.com/NethermindEth/starknet.go/blob/main/utils/udc.go#L55-L64)
+
 **Values:**
 
 - `UDCCairoV0` - UDC with Cairo v0 code
@@ -309,6 +319,8 @@ type KeccakState interface {
 	Read([]byte) (int, error)
 }
 ```
+
+**Source:** [keccak.go:L14-L17](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L14-L17)
 
 **Methods:**
 
@@ -387,10 +399,7 @@ Block size: 136 bytes
 state := utils.NewKeccakState()
 ```
 
-See [NewKeccakState](./cryptographic.mdx#newkeccakstate) in Cryptographic Utilities for more details.
-
 ## Related
 
-- [Transaction Builders](./transaction-builders.mdx) - Functions that use TxnOptions and UDCOptions
-- [Cryptographic Utilities](./cryptographic.mdx) - Functions that use KeccakState
-- [Conversion Functions](./conversions.mdx) - General data type conversions
+- [Examples](/docs/utils/examples) - Comprehensive examples using all utils types
+- [Overview](/docs/utils/) - Complete utils package overview

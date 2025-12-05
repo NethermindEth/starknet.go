@@ -11,6 +11,8 @@ func PrecomputeAddress(
 ) *felt.Felt
 ```
 
+**Source:** [contracts.go:L46-L57](https://github.com/NethermindEth/starknet.go/blob/main/contracts/contracts.go#L46-L57)
+
 ## Parameters
 
 - `deployerAddress` (*felt.Felt): The address deploying the contract
@@ -21,15 +23,6 @@ func PrecomputeAddress(
 ## Returns
 
 - `*felt.Felt`: The precomputed contract address
-
-## Description
-
-PrecomputeAddress calculates the deterministic address where a contract will be deployed. This allows you to know the contract address before actually deploying it, which is useful for counterfactual deployments and CREATE2-style patterns.
-
-The address is computed using the formula:
-```
-address = hash(deployer_address, salt, class_hash, constructor_calldata_hash)
-```
 
 ## Usage Example
 
@@ -67,68 +60,10 @@ func main() {
 }
 ```
 
-## Expected Output
+## Common Use Cases
 
-```
-PrecomputeAddress:
-  Deployer Address: 0x1234567890abcdef
-  Salt: 0x12345
-  Class Hash: 0x7e2e0ba00c247e6c2c7e38e8cadfcc59f828bb94c182e69bd8ea667bcbb65e7
-  Constructor Calldata: [0x64, 0xc8]
-  Computed Contract Address: 0x7df26639abcd252784d8f89a3cbfc5951321e25b286423c2b48baaae97cda17
-```
-
-## Use Cases
-
-### 1. Counterfactual Deployment
-```go
-// Know the address before deploying
-predictedAddress := contracts.PrecomputeAddress(
-    deployerAddr, salt, classHash, calldata,
-)
-// Can send funds or setup permissions before deployment
-```
-
-### 2. Universal Deployer Contract (UDC)
-```go
-// Calculate address for UDC deployment
-udcAddress, _ := new(felt.Felt).SetString("0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf")
-contractAddr := contracts.PrecomputeAddress(
-    udcAddress, salt, classHash, constructorCalldata,
-)
-```
-
-### 3. Account Abstraction
-```go
-// Precompute account address before deployment
-accountAddress := contracts.PrecomputeAddress(
-    deployerAddress,
-    userSalt,
-    accountClassHash,
-    []*felt.Felt{publicKey},
-)
-```
-
-### 4. Factory Pattern
-```go
-// Factory contract calculating child addresses
-for i := 0; i < 10; i++ {
-    salt := new(felt.Felt).SetUint64(uint64(i))
-    childAddr := contracts.PrecomputeAddress(
-        factoryAddr, salt, childClassHash, nil,
-    )
-    fmt.Printf("Child %d: %s\n", i, childAddr.String())
-}
-```
-
-## Notes
-
-- The address is deterministic - same inputs always produce same address
-- Changing any parameter (deployer, salt, class hash, or calldata) produces a different address
-- The salt allows deploying multiple instances of the same class from the same deployer
-- Empty constructor calldata should be passed as empty slice, not nil
-
-## Related Functions
-
-- Account.DeployAccount - Deploy an account contract
-- Account.DeployContractWithUDC - Deploy via Universal Deployer Contract
+- Knowing the contract address before deployment, allowing you to fund the address or set up permissions in advance. See [Counterfactual Deployment Pattern](/docs/contracts/examples#counterfactual-deployment-pattern).
+- Precomputing addresses for multiple child contracts deployed by a factory. See [Factory Contract Pattern](/docs/contracts/examples#factory-contract-pattern).
+- Calculating deployment addresses when using UDC, where the deployer is the UDC address itself. See [Universal Deployer Contract](/docs/contracts/examples#universal-deployer-contract-udc).
+- Determining account contract addresses before deployment for account abstraction implementations. See [Account Abstraction Address Calculation](/docs/contracts/examples#account-abstraction-address-calculation).
+- The address is deterministic - same inputs always produce the same address, enabling CREATE2-style deployment patterns on Starknet.

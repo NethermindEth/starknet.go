@@ -1,6 +1,6 @@
 # ExecuteTransaction
 
-Executes a sponsored transaction through the paymaster service.
+Executes a sponsored transaction through the paymaster service. Submits the sponsored transaction to the Starknet network, with transaction fees paid by the paymaster service according to the terms established in BuildTransaction.
 
 ## Method Signature
 
@@ -11,21 +11,23 @@ func (pm *Paymaster) ExecuteTransaction(
 ) (ExecuteTransactionResponse, error)
 ```
 
+**Source:** [execute_txn.go:L21-L45](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/execute_txn.go#L21-L45)
+
 ## Parameters
 
 - `ctx` (context.Context): Context for the operation
-- `request` (*ExecuteTransactionRequest): Transaction execution request
+- `request` (*ExecuteTransactionRequest): Transaction execution request containing signed typed data
 
-## ExecuteTransactionRequest Structure
+## Returns
 
-```go
-type ExecuteTransactionRequest struct {
-    Transaction ExecutableUserTransaction `json:"transaction"`
-    Parameters  UserParameters             `json:"parameters"`
-}
-```
+- `ExecuteTransactionResponse`: Response containing tracking ID and transaction hash
+- `error`: Error if execution fails
 
-## ExecuteTransactionResponse Structure
+## Type Definitions
+
+### ExecuteTransactionResponse
+
+**Source:** [execute_txn.go:L85-L92](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/execute_txn.go#L85-L92)
 
 ```go
 type ExecuteTransactionResponse struct {
@@ -34,77 +36,16 @@ type ExecuteTransactionResponse struct {
 }
 ```
 
-## Description
-
-ExecuteTransaction submits the sponsored transaction to the Starknet network through the paymaster. The transaction fees are paid by the paymaster service according to the terms established in BuildTransaction.
+**Fields:**
+- `TrackingID` (*felt.Felt): A unique identifier used to track an execution request of a user. Its purpose is to track possibly different transactions sent by the paymaster and which are associated with a same user request
+- `TransactionHash` (*felt.Felt): Hash of the transaction broadcasted by the paymaster
 
 ## Usage Example
 
-```go
-// First, build the transaction
-buildResp, _ := pm.BuildTransaction(ctx, buildRequest)
+- Submit sponsored transactions to the Starknet network after building with BuildTransaction.
+- Execute gasless transactions where the paymaster covers all fees according to the terms established earlier.
+- Monitor transaction submission by using the returned transaction hash with WaitForTransaction.
+- Must call BuildTransaction first to get the properly formatted calls and paymaster data.
+- Returns immediately after submission - use RPC provider's WaitForTransaction to wait for confirmation.
+- TrackingID links the build and execute operations for the paymaster service to track the full flow.
 
-// Then execute it
-execRequest := &paymaster.ExecuteTransactionRequest{
-    Calls: buildResp.CallsWithPaymaster,
-    PaymasterData: buildResp.PaymasterData,
-    TrackingID: buildResp.TrackingID,
-}
-
-execResp, err := pm.ExecuteTransaction(ctx, execRequest)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Transaction submitted: %s\n", execResp.TransactionHash)
-```
-
-## Complete Flow Example
-
-```go
-// 1. Build transaction
-buildResp, err := pm.BuildTransaction(ctx, &paymaster.BuildTransactionRequest{
-    Calls: calls,
-    FeeToken: feeToken,
-})
-
-// 2. Execute transaction
-execResp, err := pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
-    Calls: buildResp.CallsWithPaymaster,
-    PaymasterData: buildResp.PaymasterData,
-    TrackingID: buildResp.TrackingID,
-})
-
-// 3. Monitor transaction
-fmt.Printf("Transaction: %s\n", execResp.TransactionHash)
-```
-
-## Use Cases
-
-### 1. Complete Sponsored Flow
-```go
-buildResp, _ := pm.BuildTransaction(ctx, buildReq)
-execResp, _ := pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
-    Calls: buildResp.CallsWithPaymaster,
-    PaymasterData: buildResp.PaymasterData,
-    TrackingID: buildResp.TrackingID,
-})
-```
-
-### 2. Transaction Monitoring
-```go
-execResp, _ := pm.ExecuteTransaction(ctx, execReq)
-receipt, _ := rpcProvider.WaitForTransaction(ctx, execResp.TransactionHash)
-```
-
-## Notes
-
-- Must call BuildTransaction first
-- Uses calls and data from BuildTransactionResponse
-- Returns immediately after submission (use WaitForTransaction to wait)
-- TrackingID links the build and execute operations
-
-## Related Methods
-
-- [BuildTransaction](/docs/paymaster/methods/build-transaction)
-- [TrackingIDToLatestHash](/docs/paymaster/methods/tracking-id-to-latest-hash)

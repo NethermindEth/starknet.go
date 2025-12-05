@@ -1,6 +1,6 @@
 # BuildTransaction
 
-Prepares a transaction with paymaster sponsorship details.
+Prepares a transaction with paymaster sponsorship details. Takes the user's intended transaction calls and returns typed data that includes paymaster sponsorship, along with fee estimates and a tracking ID for monitoring.
 
 ## Method Signature
 
@@ -11,21 +11,23 @@ func (pm *Paymaster) BuildTransaction(
 ) (BuildTransactionResponse, error)
 ```
 
+**Source:** [build_txn.go:L24-L45](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L24-L45)
+
 ## Parameters
 
 - `ctx` (context.Context): Context for the operation
-- `request` (*BuildTransactionRequest): Transaction build request
+- `request` (*BuildTransactionRequest): Transaction build request containing the transaction and execution parameters
 
-## BuildTransactionRequest Structure
+## Returns
 
-```go
-type BuildTransactionRequest struct {
-    Transaction UserTransaction `json:"transaction"`
-    Parameters  UserParameters  `json:"parameters"`
-}
-```
+- `BuildTransactionResponse`: Response containing typed data, fee estimates, and tracking ID
+- `error`: Error if build fails
 
-## BuildTransactionResponse Structure
+## Type Definitions
+
+### BuildTransactionResponse
+
+**Source:** [build_txn.go:L382-L395](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L382-L395)
 
 ```go
 type BuildTransactionResponse struct {
@@ -37,66 +39,38 @@ type BuildTransactionResponse struct {
 }
 ```
 
-## Description
+**Fields:**
+- `Type` (UserTxnType): The type of the transaction
+- `Deployment` (*AccountDeploymentData): Deployment data for deploy and deploy_and_invoke transactions (nil for invoke)
+- `Parameters` (*UserParameters): Execution parameters to be used when executing the transaction
+- `TypedData` (*typeddata.TypedData): Typed data for signing (nil for deploy transactions)
+- `Fee` (*FeeEstimate): The fee estimation for the transaction
 
-BuildTransaction takes the user's intended transaction calls and returns modified calls that include paymaster sponsorship. The paymaster calculates fees, adds necessary paymaster data, and returns a tracking ID for monitoring.
+### FeeEstimate
+
+**Source:** [build_txn.go:L371-L377](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/build_txn.go#L371-L377)
+
+```go
+type FeeEstimate struct {
+    GasTokenPriceInStrk       *felt.Felt `json:"gas_token_price_in_strk"`
+    EstimatedFeeInStrk        *felt.Felt `json:"estimated_fee_in_strk"`
+    EstimatedFeeInGasToken    *felt.Felt `json:"estimated_fee_in_gas_token"`
+    SuggestedMaxFeeInStrk     *felt.Felt `json:"suggested_max_fee_in_strk"`
+    SuggestedMaxFeeInGasToken *felt.Felt `json:"suggested_max_fee_in_gas_token"`
+}
+```
+
+**Fields:**
+- `GasTokenPriceInStrk` (*felt.Felt): Price of the gas token in STRK
+- `EstimatedFeeInStrk` (*felt.Felt): Estimated transaction fee in STRK
+- `EstimatedFeeInGasToken` (*felt.Felt): Estimated transaction fee in the gas token
+- `SuggestedMaxFeeInStrk` (*felt.Felt): Suggested maximum fee in STRK to ensure execution
+- `SuggestedMaxFeeInGasToken` (*felt.Felt): Suggested maximum fee in gas token to ensure execution
 
 ## Usage Example
 
-```go
-request := &paymaster.BuildTransactionRequest{
-    Calls: []rpc.FunctionCall{
-        {
-            ContractAddress: targetContract,
-            EntryPointSelector: transferSelector,
-            Calldata: transferCalldata,
-        },
-    },
-    FeeToken: ethTokenAddress,
-}
-
-response, err := pm.BuildTransaction(ctx, request)
-if err != nil {
-    log.Fatal(err)
-}
-
-// Use response.CallsWithPaymaster in transaction
-// Store response.TrackingID for tracking
-```
-
-## Use Cases
-
-### 1. Gasless Transaction
-```go
-response, _ := pm.BuildTransaction(ctx, &paymaster.BuildTransactionRequest{
-    Calls: userCalls,
-    FeeToken: preferredToken,
-})
-
-// Execute with paymaster data
-pm.ExecuteTransaction(ctx, &paymaster.ExecuteTransactionRequest{
-    Calls: response.CallsWithPaymaster,
-    PaymasterData: response.PaymasterData,
-    TrackingID: response.TrackingID,
-})
-```
-
-### 2. Fee Estimation
-```go
-response, _ := pm.BuildTransaction(ctx, request)
-// Response includes fee calculation
-fmt.Printf("Tracking ID: %s\n", response.TrackingID)
-```
-
-## Notes
-
-- Must be called before ExecuteTransaction
-- TrackingID is used for monitoring transaction status
-- PaymasterData must be included in the final transaction
-- Fee calculation handled by paymaster service
-
-## Related Methods
-
-- [ExecuteTransaction](/docs/paymaster/methods/execute-transaction)
-- [GetSupportedTokens](/docs/paymaster/methods/get-supported-tokens)
-- [TrackingIDToLatestHash](/docs/paymaster/methods/tracking-id-to-latest-hash)
+- Build gasless transactions with paymaster sponsorship by including the returned typed data and fee estimates.
+- Obtain fee calculations and estimates before executing transactions to display to users.
+- Generate tracking IDs for monitoring transaction status through the paymaster service.
+- Must be called before ExecuteTransaction to get the properly formatted typed data for signing.
+- PaymasterData and tracking ID from the response are required for successful transaction execution.

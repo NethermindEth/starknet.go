@@ -1,12 +1,14 @@
 # IsAvailable
 
-Checks if the paymaster service is running and accepting requests.
+Checks if the paymaster service is running and accepting requests. This performs a health check to determine if the service is operational and ready to process transactions. This should be called before attempting to build or execute transactions.
 
 ## Method Signature
 
 ```go
 func (pm *Paymaster) IsAvailable(ctx context.Context) (bool, error)
 ```
+
+**Source:** [is_available.go:L14-L21](https://github.com/NethermindEth/starknet.go/blob/main/paymaster/is_available.go#L14-L21)
 
 ## Parameters
 
@@ -17,61 +19,60 @@ func (pm *Paymaster) IsAvailable(ctx context.Context) (bool, error)
 - `bool`: True if service is available, false otherwise
 - `error`: Error if the check fails
 
-## Description
-
-IsAvailable performs a health check on the paymaster service to determine if it's operational and ready to process transactions. This should be called before attempting to build or execute transactions.
-
 ## Usage Example
 
 ```go
-available, err := pm.IsAvailable(ctx)
-if err != nil {
-    log.Fatal("Health check failed:", err)
-}
+package main
 
-if available {
-    fmt.Println("Paymaster service is ready")
-} else {
-    fmt.Println("Paymaster service is unavailable")
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/paymaster"
+)
+
+func main() {
+	// Connect to AVNU's public paymaster service on Sepolia testnet
+	paymasterURL := "https://sepolia.paymaster.avnu.fi"
+	ctx := context.Background()
+
+	fmt.Printf("Paymaster Health Check Example\n")
+
+	// Create paymaster client
+	pm, err := paymaster.New(ctx, paymasterURL)
+	if err != nil {
+		log.Fatalf("Failed to create paymaster client: %v", err)
+	}
+
+	fmt.Println("Paymaster client created")
+	fmt.Println("\nPerforming health check...")
+
+	// Check if paymaster service is available and operational
+	available, err := pm.IsAvailable(ctx)
+	if err != nil {
+		log.Fatalf("Health check failed: %v", err)
+	}
+
+	// Display results
+	fmt.Println()
+	if available {
+		fmt.Println("Paymaster service is AVAILABLE")
+		fmt.Println("\nService Status: OPERATIONAL")
+		fmt.Println("Ready to process transactions")
+	} else {
+		fmt.Println("Paymaster service is UNAVAILABLE")
+		fmt.Println("\nService Status: DOWN")
+		fmt.Println("The service is temporarily unavailable")
+	}
 }
 ```
 
-## Use Cases
+## Common Use Cases
 
-### 1. Startup Health Check
-```go
-pm, _ := paymaster.New(ctx, url)
-if available, _ := pm.IsAvailable(ctx); !available {
-    return errors.New("paymaster not ready")
-}
-```
+- Perform startup health checks before attempting to build or execute transactions.
+- Implement retry logic with exponential backoff when the service is temporarily unavailable.
+- Monitor service availability for operational metrics and alerting systems.
+- Returns false (not error) if service is temporarily unavailable, while errors indicate network or communication issues.
+- Lightweight operation suitable for frequent health checks.
 
-### 2. Retry Logic
-```go
-for i := 0; i < 3; i++ {
-    if available, _ := pm.IsAvailable(ctx); available {
-        break
-    }
-    time.Sleep(time.Second)
-}
-```
-
-### 3. Service Monitoring
-```go
-ticker := time.NewTicker(30 * time.Second)
-for range ticker.C {
-    available, _ := pm.IsAvailable(ctx)
-    metrics.RecordPaymasterStatus(available)
-}
-```
-
-## Notes
-
-- Returns false (not error) if service is temporarily unavailable
-- Error indicates network or communication issues
-- Lightweight operation suitable for frequent checks
-
-## Related Methods
-
-- [New](/docs/paymaster/methods/new)
-- [BuildTransaction](/docs/paymaster/methods/build-transaction)

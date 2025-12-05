@@ -1,6 +1,6 @@
 # Sign
 
-Signs a message hash using a stored private key.
+Signs a message hash using a stored private key. This method retrieves the private key for the given identifier and uses it to sign the message hash using ECDSA on the Starknet curve. The method is thread-safe and respects context cancellation.
 
 ## Method Signature
 
@@ -11,6 +11,8 @@ func (ks *MemKeystore) Sign(
 	msgHash *big.Int,
 ) (r, s *big.Int, err error)
 ```
+
+**Source:** [keystore.go:L104](https://github.com/NethermindEth/starknet.go/blob/main/account/keystore.go#L104)
 
 ## Parameters
 
@@ -32,183 +34,57 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"math/big"
 
 	"github.com/NethermindEth/starknet.go/account"
 )
 
 func main() {
-	// Create a keystore with keys
-	ks := account.NewMemKeystore()
-
-	// Use simple test keys
-	pubKey1 := "0xabc123def456789"
-	privKey1 := new(big.Int).SetUint64(123456)
-	ks.Put(pubKey1, privKey1)
-
-	fmt.Printf("Stored key pair:\n")
-	fmt.Printf("Public Key:  %s\n", pubKey1)
-	fmt.Printf("Private Key: %s\n", privKey1)
-
-	// Create a message to sign (as big.Int)
-	fmt.Println("\nSigning a simple message:")
-	msgHash := new(big.Int).SetUint64(42)
-	fmt.Printf("Message hash: %d\n", msgHash)
-
-	// Sign the message
 	ctx := context.Background()
-	r, s, err := ks.Sign(ctx, pubKey1, msgHash)
+
+	pubKey := "0x3b8abf14ab2632589812dd0ca906cc314afe293e8d69a5852af0178859ab053"
+	privKey, _ := new(big.Int).SetString("0x1e7fcb94882a17e2313ddb9d5f037c33cc17601703f7e41c47bbbcc426d0b10", 0)
+
+	ks := account.NewMemKeystore()
+	ks.Put(pubKey, privKey)
+	fmt.Printf("Put: Added key to keystore\n")
+	fmt.Printf("  Public Key:  %s\n\n", pubKey)
+
+	retrievedKey, err := ks.Get(pubKey)
 	if err != nil {
-		fmt.Printf("Error signing: %v\n", err)
-		return
+		log.Fatal("Get failed:", err)
+	}
+	fmt.Printf("Get: Retrieved private key\n")
+	fmt.Printf("  Match: %v\n\n", retrievedKey.Cmp(privKey) == 0)
+
+	msgHash := new(big.Int).SetUint64(12345)
+	r, s, err := ks.Sign(ctx, pubKey, msgHash)
+	if err != nil {
+		log.Fatal("Sign failed:", err)
 	}
 
-	fmt.Printf("Signature R: %s\n", r)
-	fmt.Printf("Signature S: %s\n", s)
-
-	// Note: In Starknet, signatures may include a random nonce component,
-	// so consecutive signatures might differ even for the same message.
-	// This is a security feature, not a bug.
-	fmt.Println("\nNote: Starknet signatures may include randomness for security.")
-	fmt.Println("Multiple signatures of the same message may differ - this is expected behavior.")
-
-	// Sign a different message
-	fmt.Println("\nSigning a different message:")
-	msgHash2 := new(big.Int).SetUint64(999)
-	fmt.Printf("Message hash 2: %d\n", msgHash2)
-
-	r3, s3, err := ks.Sign(ctx, pubKey1, msgHash2)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Signature R: %s\n", r3)
-	fmt.Printf("Signature S: %s\n", s3)
-
-	diffSig := r.String() != r3.String() || s.String() != s3.String()
-	fmt.Printf("Different signature for different message: %v\n", diffSig)
-
-	// Try to sign with a non-existent key
-	fmt.Println("\nAttempting to sign with non-existent key:")
-	_, _, err = ks.Sign(ctx, "0xnonexistent", msgHash)
-	if err != nil {
-		fmt.Printf("Error (expected): %v\n", err)
-	}
-
-	// Sign with another key
-	fmt.Println("\nAdding and signing with another key:")
-	pubKey2 := "0xfedcba9876543210"
-	privKey2 := new(big.Int).SetUint64(654321)
-	ks.Put(pubKey2, privKey2)
-
-	fmt.Printf("Added second key with public: %s\n", pubKey2)
-
-	r4, s4, err := ks.Sign(ctx, pubKey2, msgHash)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Signature from key 2 - R: %s\n", r4)
-	fmt.Printf("Signature from key 2 - S: %s\n", s4)
-
-	// Verify different keys produce different signatures for same message
-	diffKeys := r.String() != r4.String() || s.String() != s4.String()
-	fmt.Printf("Different keys produce different signatures: %v\n", diffKeys)
-
-	// Sign a larger message hash
-	fmt.Println("\nSigning with large message hash:")
-	largeMsgHash := new(big.Int)
-	largeMsgHash.SetString("123456789012345678901234567890123456789012345678901234567890", 10)
-	fmt.Printf("Large message hash: %s\n", largeMsgHash)
-
-	rLarge, sLarge, err := ks.Sign(ctx, pubKey1, largeMsgHash)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Signature R: %s\n", rLarge)
-	fmt.Printf("Signature S: %s\n", sLarge)
-	fmt.Println("Successfully signed large message hash")
-
-	// Test with zero message
-	fmt.Println("\nSigning zero message:")
-	zeroMsg := new(big.Int).SetUint64(0)
-	rZero, sZero, err := ks.Sign(ctx, pubKey1, zeroMsg)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Zero message signature R: %s\n", rZero)
-	fmt.Printf("Zero message signature S: %s\n", sZero)
-	fmt.Println("Successfully signed zero message")
+	fmt.Printf("Sign: Signed message hash\n")
+	fmt.Printf("  Message: %s\n", msgHash.String())
+	fmt.Printf("  Signature r: %s\n", r.String())
+	fmt.Printf("  Signature s: %s\n", s.String())
 }
 ```
-
-## Expected Output
-
-```
-Stored key pair:
-Public Key:  0xabc123def456789
-Private Key: 123456
-
-Signing a simple message:
-Message hash: 42
-Signature R: 350363698744514202016596156652529272146312782472185297641155919123890195017
-Signature S: 1136077181137289796417253397844796064472716637152827049360996051469560431158
-
-Note: Starknet signatures may include randomness for security.
-Multiple signatures of the same message may differ - this is expected behavior.
-
-Signing a different message:
-Message hash 2: 999
-Signature R: 1736365541321367122816357901054995873699313682125155373054428716510585654869
-Signature S: 2084249067964098487100353618615176900001234111843826180138347451423234285961
-Different signature for different message: true
-
-Attempting to sign with non-existent key:
-Error (expected): error getting key for sender 0xnonexistent: sender does not exist
-
-Adding and signing with another key:
-Added second key with public: 0xfedcba9876543210
-Signature from key 2 - R: 1029479647647729092220824335274876135520449145876594273096441874620016545989
-Signature from key 2 - S: 434638878563242991244618224841604684737714407539215907505315878466101298584
-Different keys produce different signatures: true
-
-Signing with large message hash:
-Large message hash: 123456789012345678901234567890123456789012345678901234567890
-Signature R: 2232426504623317383893977183996594994473055636645183038345148484870852780850
-Signature S: 3604508386811491507657261658418621879396365229714043403744608049000890444981
-Successfully signed large message hash
-
-Signing zero message:
-Zero message signature R: 952538782479164887216841984139180509490833921846972892507017292090768852286
-Zero message signature S: 561335298835723713488277599279511567212141586280880298810698678065918642398
-Successfully signed zero message
-```
-
-## Description
-
-Sign retrieves the private key for the given identifier and uses it to sign the message hash using ECDSA on the Starknet curve. The method is thread-safe and respects context cancellation.
 
 ## Error Handling
 
 ```go
 r, s, err := ks.Sign(ctx, id, msgHash)
 if err != nil {
-	// Handle errors like:
-	// - Key not found (ErrSenderNoExist)
-	// - Context cancelled
-	// - Signing failure
+	// Handle errors (key not found, context cancelled, signing failure)
 	return err
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [Get](./get.mdx) - Retrieve keys from keystore
-- [Put](./put.mdx) - Store keys in keystore
-- [Account.Sign](../methods/sign.mdx) - Higher-level signing method
+- Signing transaction hashes for blockchain submission
+- Creating ECDSA signatures for message authentication
+- Implementing custom signing workflows with keystore
+- Low-level signature generation for off-chain verification
+- Multi-key signing operations from a single keystore

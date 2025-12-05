@@ -1,12 +1,14 @@
 # ClassHash
 
-Calculates the hash of a Sierra contract class.
+Calculates the hash of a Sierra contract class by combining the contract class version, entry points, ABI, and Sierra program using the Poseidon hash function.
 
 ## Function Signature
 
 ```go
 func ClassHash(contract *contracts.ContractClass) *felt.Felt
 ```
+
+**Source:** [hash.go:L88-L118](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L88-L118)
 
 ## Parameters
 
@@ -16,27 +18,101 @@ func ClassHash(contract *contracts.ContractClass) *felt.Felt
 
 - `*felt.Felt`: The calculated class hash
 
-## Description
-
-Calculates the hash of a contract class by combining the contract class version, entry points, ABI, and Sierra program using the Poseidon hash function.
-
 ## Usage Example
 
 ```go
-var contractClass contracts.ContractClass
-json.Unmarshal(data, &contractClass)
+package main
 
-classHash := hash.ClassHash(&contractClass)
-fmt.Printf("Class Hash: %s\n", classHash.String())
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
+
+// main demonstrates how to calculate and verify contract class hashes
+// using starknet.go v0.17.0
+func main() {
+	// Define paths to compiled contract artifacts
+	sierraPath := "counter_contract/target/dev/counter_Counter.contract_class.json"
+	casmPath := "counter_contract/target/dev/counter_Counter.compiled_contract_class.json"
+
+	// Load and parse Sierra contract class
+	sierraData, err := os.ReadFile(sierraPath)
+	if err != nil {
+		log.Fatalf("Failed to read Sierra file: %v", err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(sierraData, &contractClass); err != nil {
+		log.Fatalf("Failed to parse Sierra JSON: %v", err)
+	}
+
+	// Calculate class hash from Sierra representation
+	// This hash uniquely identifies the contract code on Starknet
+	classHash := hash.ClassHash(&contractClass)
+	fmt.Printf("Class Hash: %s\n", classHash.String())
+
+	// Load and parse CASM (Cairo Assembly) compiled contract
+	casmData, err := os.ReadFile(casmPath)
+	if err != nil {
+		log.Fatalf("Failed to read CASM file: %v", err)
+	}
+
+	var casmClass contracts.CasmClass
+	if err := json.Unmarshal(casmData, &casmClass); err != nil {
+		log.Fatalf("Failed to parse CASM JSON: %v", err)
+	}
+
+	// Calculate compiled class hash from CASM bytecode
+	// This hash is required for declare transactions
+	compiledHash, err := hash.CompiledClassHash(&casmClass)
+	if err != nil {
+		log.Fatalf("Failed to calculate compiled class hash: %v", err)
+	}
+	fmt.Printf("Compiled Class Hash: %s\n", compiledHash.String())
+
+	// Optional: Verify contract declaration on-chain
+	if err := godotenv.Load(); err == nil {
+		if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+			verifyOnChain(classHash, rpcURL)
+		}
+	}
+}
+
+// verifyOnChain checks if the contract is declared on the Starknet network
+func verifyOnChain(classHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	_, err = client.Class(ctx, rpc.WithBlockTag(rpc.BlockTagLatest), classHash)
+
+	if err == nil {
+		fmt.Printf("\nContract Status: DECLARED on-chain\n")
+	} else {
+		fmt.Printf("\nContract Status: NOT DECLARED on-chain\n")
+	}
+}
 ```
 
-## Use Cases
+## Common Use Cases
 
-- Contract deployment (class hash required for declaring)
-- Contract verification
-- Class hash registry
+This function is commonly used for:
 
-## Related Functions
+- Computing the class hash before declaring a new contract class on the Starknet network, which is required for the declare transaction. See [Class Hash Calculation example](/docs/hash/examples#class-hash-calculation).
+- Verifying that a contract class matches its expected hash when validating downloaded or received contract artifacts from external sources.
+- Building contract registries and indexing systems that track deployed contract classes and their corresponding class hashes across the network.
+- Implementing contract upgrade verification tools that compare class hashes to ensure contracts are being upgraded to the intended implementation.
+- Creating development tools that automatically compute and display class hashes during the contract compilation and deployment workflow.
 
-- [CompiledClassHash](/docs/hash/functions/compiled-class-hash)
-- [TransactionHashDeclareV2](/docs/hash/functions/transaction-hash-declare-v2)

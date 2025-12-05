@@ -1,6 +1,6 @@
 # BuildAndEstimateDeployAccountTxn
 
-Builds and estimates a deploy account transaction without sending it.
+Builds and estimates a deploy account transaction without sending it to the network. This method precomputes the account address, builds the deploy transaction, signs it, estimates fees, updates the transaction with the estimated fees, and signs again. The returned transaction is ready to be sent, but you must fund the precomputed address with tokens before broadcasting the transaction.
 
 ## Method Signature
 
@@ -14,19 +14,49 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 ) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 ```
 
+**Source:** [transaction.go:L220-L282](https://github.com/NethermindEth/starknet.go/blob/main/account/transaction.go#L220-L282)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation
-- `salt` - Random value for address generation
-- `classHash` - Class hash of account contract
-- `constructorCalldata` - Constructor parameters
-- `opts` - Transaction options. Pass `nil` for defaults
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `salt` (*felt.Felt): Random value used for deterministic address generation
+- `classHash` (*felt.Felt): Class hash of the account contract to deploy
+- `constructorCalldata` ([]*felt.Felt): Parameters passed to the account contract constructor
+- `opts` (*TxnOptions): Transaction options for fee estimation and execution. Pass `nil` to use default values
 
 ## Returns
 
-- `*rpc.BroadcastDeployAccountTxnV3` - Signed transaction ready to send
-- `*felt.Felt` - Precomputed account address (needs funding)
-- `error` - Error if estimation fails
+- `*rpc.BroadcastDeployAccountTxnV3`: Signed deploy account transaction ready to broadcast
+- `*felt.Felt`: Precomputed account address (must be funded before sending transaction)
+- `error`: Error if building or estimation fails
+
+## BroadcastDeployAccountTxnV3 Structure
+
+**Source:** [types_transaction.go:L234-L250](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L234-L250)
+
+The returned transaction contains:
+
+```go
+type DeployAccountTxnV3 struct {
+	Type                TransactionType        `json:"type"`
+	Version             TransactionVersion     `json:"version"`
+	Signature           []*felt.Felt           `json:"signature"`
+	Nonce               *felt.Felt             `json:"nonce"`
+	ContractAddressSalt *felt.Felt             `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
+	ClassHash           *felt.Felt             `json:"class_hash"`
+	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip                 U64                    `json:"tip"`
+	PayMasterData       []*felt.Felt           `json:"paymaster_data"`
+	NonceDataMode       DataAvailabilityMode   `json:"nonce_data_availability_mode"`
+	FeeMode             DataAvailabilityMode   `json:"fee_data_availability_mode"`
+}
+```
+
+:::tip
+ `BroadcastDeployAccountTxnV3` is an alias for `DeployAccountTxnV3`
+:::
+
 
 ## Usage Example
 
@@ -37,74 +67,136 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assume acc is already created with temporary keys
-	var acc *account.Account
+	ctx := context.Background()
 
-	// Generate deployment parameters
-	salt := new(felt.Felt).SetUint64(12345)
-	classHash, _ := utils.HexToFelt("0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
+	}
 
-	// Constructor calldata (public key)
-	ks, pubKey, _ := account.GetRandomKeys()
-	constructorCalldata := []*felt.Felt{pubKey}
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
+	}
 
-	// Build and estimate
-	tx, precomputedAddress, err := acc.BuildAndEstimateDeployAccountTxn(
-		context.Background(),
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	ks, publicKey, privateKey := account.GetRandomKeys()
+	fmt.Printf("Generated keys:\n")
+	fmt.Printf("  Public Key:  %s\n", publicKey.String())
+	fmt.Printf("  Private Key: %s\n\n", privateKey)
+
+	accnt, err := account.NewAccount(
+		provider,
+		publicKey,
+		publicKey.String(),
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	classHash, err := utils.HexToFelt("0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f")
+	if err != nil {
+		log.Fatal("Failed to parse class hash:", err)
+	}
+
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	salt := publicKey
+
+	opts := &account.TxnOptions{
+		FeeMultiplier: 1.5,
+		TipMultiplier: 1.0,
+	}
+
+	deployTxn, precomputedAddress, err := accnt.BuildAndEstimateDeployAccountTxn(
+		ctx,
 		salt,
 		classHash,
 		constructorCalldata,
-		nil,
+		opts,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to build and estimate deploy account transaction:", err)
 	}
 
-	fmt.Printf("Precomputed address: %s\n", precomputedAddress.String())
-	fmt.Printf("Required fee: %v\n", tx.ResourceBounds)
-	fmt.Println("Fund this address before deploying!")
+	fmt.Printf("\nDeploy Account Transaction:\n")
+	fmt.Printf("Type:                %s\n", deployTxn.Type)
+	fmt.Printf("Version:             %s\n", deployTxn.Version)
+	fmt.Printf("Precomputed Address: %s\n", precomputedAddress.String())
+	fmt.Printf("Class Hash:          %s\n", deployTxn.ClassHash.String())
+	fmt.Printf("Salt:                %s\n", deployTxn.ContractAddressSalt.String())
+	fmt.Printf("Nonce:               %s\n", deployTxn.Nonce.String())
+	fmt.Printf("Signature Length:    %d\n", len(deployTxn.Signature))
 
-	// After funding, send the transaction:
-	// response, err := acc.SendTransaction(context.Background(), tx)
+	fmt.Printf("\nResource Bounds:\n")
+	fmt.Printf("L1 Gas:\n")
+	fmt.Printf("  Max Amount:         %s\n", deployTxn.ResourceBounds.L1Gas.MaxAmount)
+	fmt.Printf("  Max Price Per Unit: %s\n", deployTxn.ResourceBounds.L1Gas.MaxPricePerUnit)
+	fmt.Printf("L2 Gas:\n")
+	fmt.Printf("  Max Amount:         %s\n", deployTxn.ResourceBounds.L2Gas.MaxAmount)
+	fmt.Printf("  Max Price Per Unit: %s\n", deployTxn.ResourceBounds.L2Gas.MaxPricePerUnit)
+	fmt.Printf("Tip:                  %s\n\n", deployTxn.Tip)
+
+	overallFee, err := utils.ResBoundsMapToOverallFee(
+		deployTxn.ResourceBounds,
+		1,
+		deployTxn.Tip,
+	)
+	if err != nil {
+		log.Fatal("Failed to calculate overall fee:", err)
+	}
+
+	fmt.Printf("Estimated Fee: %s STRK\n\n", overallFee.String())
+
+	fmt.Printf("Fund the precomputed address with STRK tokens:\n")
+	fmt.Printf("   Address: %s\n", precomputedAddress.String())
+	fmt.Printf("   Amount:  At least %s STRK\n\n", overallFee.String())
 }
 ```
 
-## Description
-
-This method prepares a deploy account transaction but doesn't send it. The workflow is:
-
-1. Precompute the account address
-2. Build transaction with zero fees
-3. Sign transaction
-4. Estimate fees
-5. Update transaction with estimated fees
-6. Sign again
-7. Return transaction and address
-
-You must fund the precomputed address with tokens before sending the transaction.
+:::note
+Create a `.env` file in your project root and add a `STARKNET_RPC_URL` variable and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
 ```go
 tx, addr, err := acc.BuildAndEstimateDeployAccountTxn(ctx, salt, classHash, calldata, opts)
 if err != nil {
-	// Handle errors like:
-	// - Invalid class hash
-	// - Network errors
-	// - Fee estimation failure
-	return err
+	switch {
+	case errors.Is(err, account.ErrInvalidClassHash):
+		log.Println("Invalid class hash provided")
+	case errors.Is(err, rpc.ErrContractNotFound):
+		log.Println("Class hash not found on network")
+	default:
+		log.Printf("Failed to build transaction: %v", err)
+	}
+	return
 }
+
+// Verify address before funding
+fmt.Printf("Fund this address: %s\n", addr.String())
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [PrecomputeAccountAddress](../functions/precompute-account-address.mdx) - Calculate address
-- [SendTransaction](./send-transaction.mdx) - Send the prepared transaction
-- [NewAccount](./new-account.mdx) - Create account instance after deployment
+- Calculate the account address before deployment and fund it with tokens
+- Estimate deployment fees before committing to deploy an account
+- Prepare a deploy account transaction that can be sent later after funding
+- Deploy new account contracts using standard account classes (OpenZeppelin, Argent, Braavos)
+- Essential first step in the account deployment workflow before calling SendTransaction

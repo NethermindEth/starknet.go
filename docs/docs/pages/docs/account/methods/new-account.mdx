@@ -14,6 +14,8 @@ func NewAccount(
 ) (*Account, error)
 ```
 
+**Source:** [account.go:L104-L126](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L104-L126)
+
 ## Parameters
 
 - `provider` - RPC provider for blockchain interaction
@@ -26,6 +28,23 @@ func NewAccount(
 
 - `*Account` - Newly created Account instance
 - `error` - Error if account creation fails
+
+## Account Structure
+
+**Source:** [account.go:L72-L79](https://github.com/NethermindEth/starknet.go/blob/main/account/account.go#L72-L79)
+
+The created Account instance contains the following fields:
+
+```go
+type Account struct {
+    Provider     rpc.RPCProvider  // RPC provider for blockchain interaction
+    ChainID      *felt.Felt       // Chain ID (e.g., SN_SEPOLIA)
+    Address      *felt.Felt       // Account contract address
+    publicKey    string           // Public key (private field)
+    CairoVersion CairoVersion     // Cairo version (CairoV0 or CairoV2)
+    ks           Keystore         // Keystore for signing (private field)
+}
+```
 
 ## Usage Example
 
@@ -121,34 +140,9 @@ func main() {
 }
 ```
 
-## Expected Output
-
-```
-Provider created successfully
-
-Creating Cairo v2 account:
-Account created successfully
-Account address: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-Cairo version: 2
-Chain ID: SN_SEPOLIA
-
-Creating Cairo v0 account:
-Account created successfully
-Account address: 0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-Cairo version: 0
-
-Creating account with different address:
-Account created successfully
-Account address: 0x6fbd460228d843b7fbef670ff15607bf72e19fa94de21e29811ada167b4ca39
-
-Available Cairo versions:
-Cairo v0: 0
-Cairo v2: 2
-```
-
-## Description
-
-NewAccount creates an Account instance that can interact with an already deployed account contract on Starknet. It automatically fetches the chain ID from the provider.
+:::note
+Create a `.env` file in your project root and add a `STARKNET_RPC_URL` variable and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
@@ -162,8 +156,9 @@ if err != nil {
 }
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [GetRandomKeys](../keystore/get-random-keys.mdx) - Generate keys for testing
-- [PrecomputeAccountAddress](../functions/precompute-account-address.mdx) - Calculate address before deployment
-- [BuildAndEstimateDeployAccountTxn](./build-and-estimate-deploy-account-txn.mdx) - Deploy new account
+- Connect to an existing deployed account contract on Starknet.
+- Initialize an account instance for sending transactions.
+- Automatically fetches and stores the chain ID for transaction signing.
+

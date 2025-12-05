@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Note**: V1 transactions are deprecated. For new applications, use [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) for V3 transactions.
 </Callout>
 
-Calculates the transaction hash for a Deploy Account V1 transaction using the deprecated Pedersen-based hash calculation.
+Calculates the transaction hash for a Deploy Account V1 transaction using the deprecated Pedersen-based hash calculation. This function is maintained for compatibility with historical account deployments.
 
 ## Function Signature
 
@@ -18,32 +18,101 @@ func TransactionHashDeployAccountV1(
 ) (*felt.Felt, error)
 ```
 
+**Source:** [hash.go:L676-L713](https://github.com/NethermindEth/starknet.go/blob/main/hash/hash.go#L676-L713)
+
 ## Parameters
 
-- `txn` - The Deploy Account V1 transaction containing:
-  - `Version` - Transaction version string
-  - `ClassHash` - Hash of the account contract class
-  - `ContractAddressSalt` - Salt used in address calculation
-  - `ConstructorCalldata` - Constructor parameters
-  - `MaxFee` - Maximum fee willing to pay
-  - `Nonce` - Account nonce (usually 0 for deployment)
-- `contractAddress` - The precomputed contract address
-- `chainID` - The Starknet chain ID
+- `txn` (*rpc.DeployAccountTxnV1): The Deploy Account V1 transaction containing Version, ClassHash, ContractAddressSalt, ConstructorCalldata, MaxFee, and Nonce
+- `contractAddress` (*felt.Felt): The precomputed contract address
+- `chainID` (*felt.Felt): The Starknet chain ID
 
 ## Returns
 
-- `*felt.Felt` - The calculated transaction hash
-- `error` - Error if required parameters are missing
+- `*felt.Felt`: The calculated transaction hash
+- `error`: Error if required parameters are missing
 
-## Description
+## Usage Example
 
-This function calculates the transaction hash for deprecated Deploy Account V1 transactions. It uses the Pedersen hash algorithm and is maintained for compatibility with historical transactions. Internally calls [CalculateDeprecatedTransactionHashCommon](./calculate-deprecated-transaction-hash-common).
+```go
+package main
 
-## Specification
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
 
-Follows the [V1 Deploy Account hash calculation specification](https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3).
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/hash"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
+)
 
-## Related Functions
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: .env file not found: %v", err)
+	}
 
-- [TransactionHashDeployAccountV3](./transaction-hash-deploy-account-v3) - Current V3 standard
-- [PrecomputeAddress](/docs/contracts/) - Calculate contract addresses
+	chainID, _ := new(felt.Felt).SetString("0x534e5f5345504f4c4941")
+	classHash, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	salt := new(felt.Felt).SetUint64(12345)
+	maxFee := new(felt.Felt).SetUint64(2500000000000000)
+	nonce := new(felt.Felt).SetUint64(0)
+
+	publicKey, _ := new(felt.Felt).SetString("0x01234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd")
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	txn := &rpc.DeployAccountTxnV1{
+		Type:                rpc.TransactionTypeDeployAccount,
+		Version:             rpc.TransactionV1,
+		ClassHash:           classHash,
+		ContractAddressSalt: salt,
+		ConstructorCalldata: constructorCalldata,
+		MaxFee:              maxFee,
+		Nonce:               nonce,
+		Signature:           []*felt.Felt{},
+	}
+
+	contractAddress, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+	txHash, err := hash.TransactionHashDeployAccountV1(txn, contractAddress, chainID)
+	if err != nil {
+		log.Fatalf("Failed to calculate transaction hash: %v", err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash.String())
+
+	if rpcURL := os.Getenv("STARKNET_RPC_URL"); rpcURL != "" {
+		verifyTransaction(txHash, rpcURL)
+	}
+}
+
+func verifyTransaction(txHash *felt.Felt, rpcURL string) {
+	client, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Printf("Warning: Could not connect to RPC: %v", err)
+		return
+	}
+
+	ctx := context.Background()
+	tx, err := client.TransactionByHash(ctx, txHash)
+
+	if err == nil {
+		fmt.Printf("\nVerification: FOUND on-chain\n")
+		fmt.Printf("Type: %T\n", tx)
+	} else {
+		fmt.Printf("\nVerification: NOT FOUND\n")
+	}
+}
+```
+
+## Common Use Cases
+
+This function is commonly used for:
+
+- Processing historical account deployment transactions when building blockchain explorers that need to verify legacy account creation hashes.
+- Implementing account recovery tools that analyze historical deployment transactions to reconstruct account creation patterns and ownership chains.
+- Building migration utilities that help users transition from V1 account deployments to V3 by analyzing and verifying legacy deployment transaction data.
+- Creating audit systems that verify the integrity of historical account deployment records by independently computing and validating transaction hashes.
+- Developing testing frameworks that simulate legacy account deployment scenarios to ensure backward compatibility in wallet and account management systems.
+
