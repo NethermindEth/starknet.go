@@ -65,11 +65,16 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		testConfig.Base = base
 	}
 
-	client, err := NewProvider(t.Context(), testConfig.Base)
+	provider, err := NewProvider(t.Context(), testConfig.Base)
 	if err != nil {
 		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
 	}
-	testConfig.Provider = client
+
+	spy := tests.NewJSONRPCSpy(provider.c)
+	testConfig.Spy = spy
+	provider.c = spy
+
+	testConfig.Provider = provider
 	t.Cleanup(func() {
 		testConfig.Provider.c.Close()
 	})
