@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
@@ -38,10 +37,7 @@ func TestBlockNumber(t *testing.T) {
 			DoAndReturn(
 				func(_, result, _ any, _ ...any) error {
 					rawResp := result.(*json.RawMessage)
-					rawBlockNumber, err := json.Marshal(uint64(1234))
-					if err != nil {
-						return err
-					}
+					rawBlockNumber := json.RawMessage("1234")
 					*rawResp = rawBlockNumber
 
 					return nil
@@ -59,33 +55,50 @@ func TestBlockNumber(t *testing.T) {
 	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
 }
 
-// TestBlockHashAndNumber is a test function that tests the BlockHashAndNumber function and check if there is no errors.
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestBlockHashAndNumber tests the BlockHashAndNumber function.
 func TestBlockHashAndNumber(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
-
-	testConfig := BeforeEach(t, false)
-
-	blockHashAndNumber, err := testConfig.Provider.BlockHashAndNumber(context.Background())
-	require.NoError(t, err, "BlockHashAndNumber should not return an error")
-	require.True(
-		t,
-		strings.HasPrefix(blockHashAndNumber.Hash.String(), "0x"),
-		"current block hash should return a string starting with 0x",
+	tests.RunTestOn(t,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
 	)
 
+	testConfig := BeforeEach(t, false)
+	provider := testConfig.Provider
+
 	if tests.TEST_ENV == tests.MockEnv {
-		require.Equal(
-			t,
-			&BlockHashAndNumberOutput{Number: 1234, Hash: internalUtils.DeadBeef},
-			blockHashAndNumber,
-		)
+		testConfig.MockClient.EXPECT().
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.Any(),
+				"starknet_blockHashAndNumber",
+			).
+			DoAndReturn(
+				func(_, result, _ any, _ ...any) error {
+					rawResp := result.(*json.RawMessage)
+					rawBlockHashAndNumber := json.RawMessage(
+						`{
+							"block_hash": "0x7fcc97a2e4e4a328582326254baca628cad2a82b17a711e7a8e5c9edd8022e6",
+							"block_number": 3640605
+						}`,
+					)
+					*rawResp = rawBlockHashAndNumber
+
+					return nil
+				},
+			).
+			Times(1)
 	}
+
+	blockHashAndNumber, err := provider.BlockHashAndNumber(t.Context())
+	require.NoError(t, err, "BlockHashAndNumber should not return an error")
+
+	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawActualResp, err := json.Marshal(blockHashAndNumber)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
 }
 
 // TestBlockWithTxHashes tests the functionality of the BlockWithTxHashes function.
