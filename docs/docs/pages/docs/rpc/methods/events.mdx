@@ -1,6 +1,6 @@
 # Events
 
-Gets events matching the specified filter criteria with pagination support.
+Retrieves events from the blockchain matching specified filter criteria with pagination support. Events are emitted by smart contracts during transaction execution and can be filtered by contract address, event keys, and block range.
 
 ## Method Signature
 
@@ -8,15 +8,162 @@ Gets events matching the specified filter criteria with pagination support.
 func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 ```
 
+**Source:** [events.go:L20-L33](https://github.com/NethermindEth/starknet.go/blob/main/rpc/events.go#L20-L33)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `input` - EventsInput containing filter parameters and pagination settings
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `input` (EventsInput): Filter parameters and pagination settings for event retrieval
 
 ## Returns
 
-- `*EventChunk` - Chunk of events matching the filter with optional continuation token
-- `error` - Error if the request fails
+- `*EventChunk`: Chunk of events matching the filter with optional continuation token for pagination
+- `error`: Error if the request fails
+
+:::note
+This can return `ErrPageSizeTooBig` if chunk size exceeds limits, `ErrInvalidContinuationToken` if the pagination token is invalid, `ErrBlockNotFound` if the specified block doesn't exist, or `ErrTooManyKeysInFilter` if too many event keys are specified.
+:::
+
+## Type Definitions
+
+:::tip
+The event retrieval system uses these related types to filter and paginate events:
+:::
+1. Input Type (`EventsInput`) embeds `EventFilter` for filtering criteria and `ResultPageRequest` for pagination controls.
+2. Result Type (`EventChunk`) contains an array of `EmittedEvent` and an optional continuation token for fetching more results.
+3. Filter Types (`EventFilter`, `ResultPageRequest`) define block range, contract address, event keys, chunk size, and continuation token.
+4. Event Types (`EmittedEvent`, `Event`, `EventContent`) represent the actual event data with contract address, keys, data, block information, and transaction hash.
+
+The method accepts an `EventsInput` with embedded filter and pagination settings, returning an `EventChunk` with events and a continuation token if more results are available.
+
+
+### EventsInput
+
+```go
+type EventsInput struct {
+	EventFilter
+	ResultPageRequest
+}
+```
+
+**Source:** [types_event.go:L50-L53](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_event.go#L50-L53)
+
+### EventFilter
+
+```go
+type EventFilter struct {
+	// FromBlock from block
+	FromBlock BlockID `json:"from_block,omitempty"`
+	// ToBlock to block
+	ToBlock BlockID `json:"to_block,omitempty"`
+	// Address from contract
+	Address *felt.Felt `json:"address,omitempty"`
+	// Keys the values used to filter the events
+	Keys [][]*felt.Felt `json:"keys,omitempty"`
+}
+```
+
+**Source:** [types_event.go:L37-L46](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_event.go#L37-L46)
+
+### ResultPageRequest
+
+```go
+type ResultPageRequest struct {
+	// a pointer to the last element of the delivered page, use this token in a
+	// subsequent query to obtain the next page
+	ContinuationToken string `json:"continuation_token,omitempty"`
+	ChunkSize         int    `json:"chunk_size"`
+}
+```
+
+**Source:** [types.go:L11-L16](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L11-L16)
+
+### EventChunk
+
+```go
+type EventChunk struct {
+	Events            []EmittedEvent `json:"events"`
+	ContinuationToken string         `json:"continuation_token,omitempty"`
+}
+```
+
+**Source:** [types_event.go:L21-L24](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_event.go#L21-L24)
+
+### EmittedEvent
+
+```go
+type EmittedEvent struct {
+	Event
+	// BlockHash the hash of the block in which the event was emitted
+	BlockHash *felt.Felt `json:"block_hash,omitempty"`
+	// BlockNumber the number of the block in which the event was emitted
+	BlockNumber uint64 `json:"block_number,omitempty"`
+	// TransactionHash the transaction that emitted the event
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+**Source:** [types_event.go:L27-L35](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_event.go#L27-L35)
+
+### Event
+
+```go
+type Event struct {
+	FromAddress *felt.Felt `json:"from_address"`
+	EventContent
+}
+```
+
+**Source:** [types_event.go:L11-L14](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_event.go#L11-L14)
+
+### EventContent
+
+```go
+type EventContent struct {
+	Keys []*felt.Felt `json:"keys"`
+	Data []*felt.Felt `json:"data"`
+}
+```
+
+**Source:** [types_event.go:L16-L19](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_event.go#L16-L19)
+
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+	Number *uint64    `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -24,160 +171,116 @@ func (provider *Provider) Events(ctx context.Context, input EventsInput) (*Event
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
 	"os"
 
-    "github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Get RPC URL from environment variable
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
+
+	// Initialize provider
+	provider, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
 
-    // Create events input with basic filter
-    eventsInput := rpc.EventsInput{
-        EventFilter: rpc.EventFilter{
-            FromBlock: rpc.WithBlockNumber(1676500), // Starting from block
-            ToBlock:   rpc.WithBlockNumber(1676510), // Small range for testing
-        },
-        ResultPageRequest: rpc.ResultPageRequest{
-            ChunkSize: 5, // Limit to 5 events for testing
-        },
-    }
+	// Query events from a specific block range
+	eventsInput := rpc.EventsInput{
+		EventFilter: rpc.EventFilter{
+			FromBlock: rpc.WithBlockNumber(1676500),
+			ToBlock:   rpc.WithBlockNumber(1676510),
+		},
+		ResultPageRequest: rpc.ResultPageRequest{
+			ChunkSize: 10,
+		},
+	}
 
-    // Get events
-    eventChunk, err := client.Events(ctx, eventsInput)
-    if err != nil {
-        log.Fatal("Failed to get events:", err)
-    }
+	// Get first page of events
+	eventChunk, err := provider.Events(ctx, eventsInput)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    // Pretty print the events
-    eventsJSON, _ := json.MarshalIndent(eventChunk, "", "  ")
-    fmt.Printf("Events:\n%s\n", eventsJSON)
+	fmt.Printf("Found %d events\n", len(eventChunk.Events))
 
-    fmt.Printf("Found %d events\n", len(eventChunk.Events))
-    if eventChunk.ContinuationToken != "" {
-        fmt.Printf("More events available with token: %s\n", eventChunk.ContinuationToken)
-    }
+	// Display event details
+	for i, event := range eventChunk.Events {
+		fmt.Printf("\nEvent %d:\n", i+1)
+		fmt.Printf("  From Contract: %s\n", event.FromAddress)
+		fmt.Printf("  Block Number: %d\n", event.BlockNumber)
+		fmt.Printf("  Transaction Hash: %s\n", event.TransactionHash)
+		fmt.Printf("  Number of Keys: %d\n", len(event.Keys))
+		fmt.Printf("  Number of Data Fields: %d\n", len(event.Data))
+	}
+
+	// Fetch next page if available
+	if eventChunk.ContinuationToken != "" {
+		fmt.Printf("\nMore events available. Continuation token: %s\n", eventChunk.ContinuationToken)
+
+		// Use continuation token for next page
+		eventsInput.ContinuationToken = eventChunk.ContinuationToken
+		nextPage, err := provider.Events(ctx, eventsInput)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Next page has %d events\n", len(nextPage.Events))
+	}
 }
 ```
 
-## Expected Output
-
-```
-Events:
-{
-  "events": [
-    {
-      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "keys": [
-        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-      ],
-      "data": [
-        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-        "0x627bebf0c7a880",
-        "0x0"
-      ],
-      "block_hash": "0x6c383681fb7329fce83a59f93580eb0752a77d697231d99ef1a5744810a47ca",
-      "block_number": 1676500,
-      "transaction_hash": "0x5f517bab35dde643b2e9d89f167b39d0466866947e9a7486019eb4216ff4094"
-    },
-    {
-      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "keys": [
-        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-      ],
-      "data": [
-        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-        "0x627bebf0c7a880",
-        "0x0"
-      ],
-      "block_hash": "0x2d66543a7ca9aeb50318aad5176bbf8fb33e3b685e3f3aa94bdf660d713fcb1",
-      "block_number": 1676502,
-      "transaction_hash": "0x65ca3a5d27642fe873417dd707d5e723e7de9c4690ea675b11594e3433bbacc"
-    },
-    {
-      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "keys": [
-        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-      ],
-      "data": [
-        "0x324b04e5a4270605007334372ce455c47581e51cdd091559df2739d1c4e2677",
-        "0x517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802",
-        "0x821ab0d4414980000",
-        "0x0"
-      ],
-      "block_hash": "0x5bb74eb0e28807cdee96dd47ccbcf8d154851db4a759c59ad54ced22ea7ea41",
-      "block_number": 1676503,
-      "transaction_hash": "0x5a8a9b5f9bface71749fb018fcb17931c93d5a284c8a0014f0e999ee0a1d0a4"
-    },
-    {
-      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "keys": [
-        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-      ],
-      "data": [
-        "0x324b04e5a4270605007334372ce455c47581e51cdd091559df2739d1c4e2677",
-        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-        "0xee32587f77560",
-        "0x0"
-      ],
-      "block_hash": "0x5bb74eb0e28807cdee96dd47ccbcf8d154851db4a759c59ad54ced22ea7ea41",
-      "block_number": 1676503,
-      "transaction_hash": "0x5a8a9b5f9bface71749fb018fcb17931c93d5a284c8a0014f0e999ee0a1d0a4"
-    },
-    {
-      "from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
-      "keys": [
-        "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
-      ],
-      "data": [
-        "0x19ec96d4aea6fdc6f0b5f393fec3f186aefa8f0b8356f43d07b921ff48aa5da",
-        "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
-        "0x627bebf0c7a880",
-        "0x0"
-      ],
-      "block_hash": "0x23a2ebdb716354400ec435322744cfa10cdb4c1b4fec64ef715ad1b89c3d5ad",
-      "block_number": 1676504,
-      "transaction_hash": "0x70652ed7789fc66be2de7e31075dd3e9a0e66fe8854778c08f3b20001a723fc"
-    }
-  ],
-  "continuation_token": "1676505-0"
-}
-Found 5 events
-More events available with token: 1676505-0
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
-Common errors include network timeouts and invalid filter parameters. Always check the error before using the returned value.
-
 ```go
-eventChunk, err := client.Events(ctx, eventsInput)
+eventChunk, err := provider.Events(ctx, eventsInput)
 if err != nil {
-    log.Printf("Error getting events: %v", err)
-    return
+	if errors.Is(err, rpc.ErrPageSizeTooBig) {
+		log.Printf("Chunk size too large, reduce ChunkSize")
+		return
+	}
+	if errors.Is(err, rpc.ErrInvalidContinuationToken) {
+		log.Printf("Invalid continuation token")
+		return
+	}
+	if errors.Is(err, rpc.ErrBlockNotFound) {
+		log.Printf("Block not found")
+		return
+	}
+	if errors.Is(err, rpc.ErrTooManyKeysInFilter) {
+		log.Printf("Too many keys in filter, reduce filter complexity")
+		return
+	}
+	log.Printf("Error retrieving events: %v", err)
+	return
 }
-// Safe to use eventChunk
+
+fmt.Printf("Retrieved %d events\n", len(eventChunk.Events))
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [BlockWithTxs](/docs/rpc/methods/block-with-txs) - Get blocks containing the transactions that emitted events
-- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Get detailed information about transactions including their events
-- [TransactionByHash](/docs/rpc/methods/transaction-by-hash) - Get transaction details for event sources
+- Monitoring token transfers by filtering Transfer events from ERC20 contracts.
+- Tracking contract state changes by querying events from specific contract addresses.
+- Building event indexers by paginating through historical events with continuation tokens.
+- Analyzing transaction activity within specific block ranges.
+

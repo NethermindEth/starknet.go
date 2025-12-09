@@ -1,6 +1,6 @@
 # BuildAndSendInvokeTxn
 
-Builds, signs, and sends an invoke transaction to execute contract functions.
+Builds, signs, estimates fees, and sends an invoke transaction to execute contract functions on Starknet. This method handles the complete transaction lifecycle including nonce management, fee estimation, and transaction signing automatically.
 
 ## Method Signature
 
@@ -12,20 +12,35 @@ func (account *Account) BuildAndSendInvokeTxn(
 ) (rpc.AddInvokeTransactionResponse, error)
 ```
 
+**Source:** [transaction.go:L31-L105](https://github.com/NethermindEth/starknet.go/blob/main/account/transaction.go#L31-L105)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `functionCalls` - Slice of function calls to execute
-- `opts` - Transaction options (fee, multiplier, etc.). Pass `nil` for defaults
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `functionCalls` ([]rpc.InvokeFunctionCall): Slice of function calls to execute on target contracts
+- `opts` (*TxnOptions): Transaction options for fee estimation and execution. Pass `nil` to use default values
 
 ## Returns
 
-- `rpc.AddInvokeTransactionResponse` - Transaction response with hash
-- `error` - Error if transaction fails
+- `rpc.AddInvokeTransactionResponse`: Response containing the transaction hash
+- `error`: Error if transaction fails
+
+## AddInvokeTransactionResponse Structure
+
+**Source:** [types_transaction_response.go:L18-L20](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L18-L20)
+
+The returned response contains:
+
+```go
+type AddInvokeTransactionResponse struct {
+	Hash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+**Fields:**
+- `Hash` (*felt.Felt): Transaction hash of the invoke transaction
 
 ## Usage Example
-
-> **Prerequisites**: This example assumes you have a funded and deployed account instance. To learn how to create an account, see [NewAccount](./new-account.mdx).
 
 ```go
 package main
@@ -34,104 +49,146 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance (funded and deployed)
-	var acc *account.Account
-	// acc = ... (already initialized)
-
-	// Example: Transfer 1 wei ETH to ourselves
-	// ETH token contract on Starknet Sepolia
-	ethContract, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	// Get account address as recipient
-	recipient := acc.Address
-
-	functionCall := rpc.InvokeFunctionCall{
-		ContractAddress: ethContract,
-		FunctionName:    "transfer",
-		CallData: []*felt.Felt{
-			recipient,                   // recipient
-			new(felt.Felt).SetUint64(1), // amount (u256 low)
-			new(felt.Felt).SetUint64(0), // amount (u256 high)
-		},
-	}
-
-	// Send transaction with default options
 	ctx := context.Background()
-	response, err := acc.BuildAndSendInvokeTxn(ctx, []rpc.InvokeFunctionCall{functionCall}, nil)
-	if err != nil {
-		log.Fatalf("Error sending transaction: %v", err)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	fmt.Printf("✅ Transaction sent!\n")
-	fmt.Printf("Transaction Hash: %s\n", response.Hash)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
+	}
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set in .env")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	strkContractAddress, err := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	if err != nil {
+		log.Fatal("Failed to parse STRK contract address:", err)
+	}
+
+	recipient := accountAddressFelt
+
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+
+	u256Amount, err := utils.HexToU256Felt(amount.String())
+	if err != nil {
+		log.Fatal("Failed to convert amount to U256:", err)
+	}
+
+	transferCall := rpc.InvokeFunctionCall{
+		ContractAddress: strkContractAddress,
+		FunctionName:    "transfer",
+		CallData:        append([]*felt.Felt{recipient}, u256Amount...),
+	}
+
+	opts := &account.TxnOptions{
+		FeeMultiplier: 1.5,
+		TipMultiplier: 1.0,
+	}
+
+	response, err := accnt.BuildAndSendInvokeTxn(
+		ctx,
+		[]rpc.InvokeFunctionCall{transferCall},
+		opts,
+	)
+	if err != nil {
+		log.Fatal("Failed to send invoke transaction:", err)
+	}
+
+	fmt.Printf("Invoke Transaction Successful:\n")
+	fmt.Printf("Transaction Hash: %s\n", response.Hash.String())
+
+	txReceipt, err := accnt.WaitForTransactionReceipt(
+		ctx,
+		response.Hash,
+		3*time.Second,
+	)
+	if err != nil {
+		log.Fatal("Failed to get transaction receipt:", err)
+	}
+
+	fmt.Printf("Block Number:     %d\n", txReceipt.BlockNumber)
+	fmt.Printf("Execution Status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Finality Status:  %s\n", txReceipt.FinalityStatus)
 }
 ```
 
-## Expected Output
-
-```
-✅ Transaction sent!
-Transaction Hash: 0x637e8d80050fd18192c250b3cac4c84ed0b19234cefe5f952d8e73666e50b13
-```
-
-**View on Explorer:**
-- [Voyager](https://sepolia.voyager.online/tx/0x637e8d80050fd18192c250b3cac4c84ed0b19234cefe5f952d8e73666e50b13) - Starknet block explorer
-- [Starkscan](https://sepolia.starkscan.co/tx/0x637e8d80050fd18192c250b3cac4c84ed0b19234cefe5f952d8e73666e50b13) - Alternative explorer
-
-## Transaction Options
-
-Configure transaction behavior with TxnOptions:
-
-```go
-opts := &account.TxnOptions{
-	Multiplier:     1.5,    // 50% safety margin for fees
-	UseLatest:      false,  // Use pre_confirmed block for estimation
-	UseQueryBit:    false,  // Use normal transaction version
-	SimulationFlag: rpc.SkipValidate, // Skip validation during simulation
-}
-
-response, err := acc.BuildAndSendInvokeTxn(context.Background(), functionCalls, opts)
-```
-
-## Description
-
-BuildAndSendInvokeTxn handles the complete flow of executing a transaction:
-
-1. Fetches current nonce
-2. Formats calldata based on Cairo version
-3. Creates transaction with zero fees
-4. Signs transaction for fee estimation
-5. Estimates fees
-6. Updates transaction with estimated fees (applying multiplier)
-7. Signs transaction again with final fees
-8. Sends transaction to network
-
-All steps are handled automatically.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
 ```go
 response, err := acc.BuildAndSendInvokeTxn(ctx, functionCalls, opts)
 if err != nil {
-	// Handle errors like:
-	// - Insufficient balance
-	// - Invalid function calls
-	// - Network errors
-	// - Fee estimation failure
-	return err
+	switch {
+	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
+		log.Println("Insufficient balance to pay transaction fees")
+	case errors.Is(err, rpc.ErrContractNotFound):
+		log.Println("Target contract not found")
+	case errors.Is(err, rpc.ErrInvalidCallData):
+		log.Println("Invalid function call data")
+	default:
+		log.Printf("Failed to send invoke transaction: %v", err)
+	}
+	return
 }
+
+fmt.Printf("Transaction sent successfully: %s\n", response.Hash.String())
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [SignInvokeTransaction](./sign-invoke-transaction.mdx) - Sign invoke transactions
-- [SendTransaction](./send-transaction.mdx) - Send pre-built transactions
-- [WaitForTransactionReceipt](./wait-for-transaction-receipt.mdx) - Wait for confirmation
-- [FmtCalldata](./fmt-calldata.mdx) - Format calldata for invoke transactions
+- Execute contract functions like token transfers, approvals, or swaps
+- Interact with DeFi protocols (staking, lending, trading)
+- Update contract state by calling state-changing functions
+- Batch multiple function calls into a single transaction for atomic execution
+- Automatically handles nonce management, fee estimation, and signing in one method call

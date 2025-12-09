@@ -1,0 +1,821 @@
+# Utils Examples
+
+This page provides comprehensive examples demonstrating common patterns and use cases for the utils package, from basic type conversions to advanced transaction building and deployment workflows.
+
+## Smart Contract Integration
+
+This example demonstrates the essential operations for integrating with Starknet smart contracts: generating function selectors, converting addresses, and handling token amounts with proper decimal precision.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Get function selector for calling contracts
+	transferSelector := utils.GetSelectorFromNameFelt("transfer")
+	fmt.Printf("Transfer selector: %s\n", transferSelector)
+
+	// Convert recipient address from hex string
+	recipientAddr, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+	if err != nil {
+		fmt.Printf("Error converting address: %v\n", err)
+		return
+	}
+	fmt.Printf("Recipient address: %s\n", recipientAddr)
+
+	// Convert amount (1000 tokens with 18 decimals)
+	amount := new(big.Int)
+	amount.SetString("1000000000000000000000", 10) // 1000 * 10^18
+	amountFelt := utils.BigIntToFelt(amount)
+	fmt.Printf("Amount (as Felt): %s\n", amountFelt)
+
+	// Convert back to verify
+	amountBigInt := utils.FeltToBigInt(amountFelt)
+	fmt.Printf("Amount (as big.Int): %s\n", amountBigInt.String())
+}
+```
+
+## Transaction Construction
+
+This example shows how to build a complete invoke transaction for executing contract calls on Starknet, including proper resource bounds configuration and optional transaction parameters.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Sender account address
+	senderAddress, err := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	if err != nil {
+		log.Fatal("Failed to convert sender address:", err)
+	}
+
+	// Nonce for the transaction
+	nonce := new(felt.Felt).SetUint64(5)
+
+	// Contract address to call
+	contractAddress, _ := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+
+	// Function selector
+	transferSelector := utils.GetSelectorFromNameFelt("transfer")
+
+	// Recipient and amount
+	recipientAddress, _ := utils.HexToFelt("0xabc...")
+	amountLow := new(felt.Felt).SetUint64(1000000000000000000) // 1 ETH in Wei
+	amountHigh := new(felt.Felt).SetUint64(0)
+
+	// Build calldata
+	calldata := []*felt.Felt{
+		contractAddress,
+		transferSelector,
+		new(felt.Felt).SetUint64(3), // calldata length
+		recipientAddress,
+		amountLow,
+		amountHigh,
+	}
+
+	// Define resource bounds
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x2710"),    // 10000
+			MaxPricePerUnit: rpc.U128("0x5f5e100"), // 100000000
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x0"),
+			MaxPricePerUnit: rpc.U128("0x0"),
+		},
+		L1DataGas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x80"),
+			MaxPricePerUnit: rpc.U128("0x1"),
+		},
+	}
+
+	// Build invoke transaction
+	tx := utils.BuildInvokeTxn(
+		senderAddress,
+		nonce,
+		calldata,
+		resourceBounds,
+		&utils.TxnOptions{
+			Tip:         rpc.U64("0x0"),
+			UseQueryBit: false,
+		},
+	)
+
+	fmt.Printf("Transaction built successfully!\n")
+	fmt.Printf("  Type: %s\n", tx.Type)
+	fmt.Printf("  Version: %s\n", tx.Version)
+	fmt.Printf("  Sender: %s\n", tx.SenderAddress)
+	fmt.Printf("  Nonce: %s\n", tx.Nonce)
+	fmt.Printf("  Calldata length: %d\n", len(tx.Calldata))
+}
+```
+
+## Fee Estimation and Resource Bounds
+
+This example demonstrates how to estimate transaction fees and convert them into properly formatted resource bounds with safety multipliers for successful transaction execution.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Create RPC provider
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io")
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	ctx := context.Background()
+
+	// Prepare a sample transaction for fee estimation
+	senderAddress, _ := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	nonce := new(felt.Felt).SetUint64(1)
+	calldata := []*felt.Felt{
+		utils.GetSelectorFromNameFelt("transfer"),
+	}
+
+	// Create estimation request
+	requests := []rpc.BroadcastTxn{
+		rpc.BroadcastInvokeTxnV3{
+			Type:          rpc.TransactionTypeInvoke,
+			SenderAddress: senderAddress,
+			Calldata:      calldata,
+			Version:       rpc.TransactionV3WithQueryBit, // Use query version for estimation
+			Signature:     []*felt.Felt{},
+			Nonce:         nonce,
+			ResourceBounds: &rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       rpc.U64("0x0"),
+					MaxPricePerUnit: rpc.U128("0x0"),
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       rpc.U64("0x0"),
+					MaxPricePerUnit: rpc.U128("0x0"),
+				},
+			},
+		},
+	}
+
+	// Estimate fees
+	blockID := rpc.WithBlockTag("latest")
+	feeEstimate, err := provider.EstimateFee(ctx, requests, []rpc.SimulationFlag{}, blockID)
+	if err != nil {
+		log.Fatal("Failed to estimate fee:", err)
+	}
+
+	fmt.Printf("Fee Estimation Results:\n")
+	fmt.Printf("  L1 Gas consumed: %s\n", feeEstimate[0].L1GasConsumed)
+	fmt.Printf("  L1 Gas price: %s\n", feeEstimate[0].L1GasPrice)
+	fmt.Printf("  L2 Gas consumed: %s\n", feeEstimate[0].L2GasConsumed)
+	fmt.Printf("  L2 Gas price: %s\n", feeEstimate[0].L2GasPrice)
+	fmt.Printf("  Overall fee: %s\n\n", feeEstimate[0].OverallFee)
+
+	// Convert to resource bounds with 1.5x multiplier for safety
+	resourceBounds := utils.FeeEstToResBoundsMap(feeEstimate[0], 1.5)
+
+	fmt.Printf("Resource Bounds (with 1.5x multiplier):\n")
+	fmt.Printf("  L1 Gas MaxAmount: %s\n", resourceBounds.L1Gas.MaxAmount)
+	fmt.Printf("  L1 Gas MaxPricePerUnit: %s\n", resourceBounds.L1Gas.MaxPricePerUnit)
+	fmt.Printf("  L2 Gas MaxAmount: %s\n", resourceBounds.L2Gas.MaxAmount)
+	fmt.Printf("  L2 Gas MaxPricePerUnit: %s\n\n", resourceBounds.L2Gas.MaxPricePerUnit)
+
+	// Calculate overall fee from resource bounds
+	overallFee, err := utils.ResBoundsMapToOverallFee(resourceBounds, 1.0, "0x0")
+	if err != nil {
+		log.Fatal("Failed to calculate overall fee:", err)
+	}
+
+	fmt.Printf("Calculated Overall Fee: %s FRI\n", overallFee)
+
+	// Convert to STRK for display
+	strkFee := utils.FRIToSTRK(overallFee)
+	fmt.Printf("Fee in STRK: %.6f STRK\n", strkFee)
+}
+```
+
+## Token Amount Conversions
+
+This example shows how to convert between different token denominations for user-friendly display and precise on-chain operations.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	fmt.Println("=== ETH/Wei Conversions ===")
+
+	// Convert ETH to Wei
+	ethAmount := 1.5
+	weiAmount := utils.ETHToWei(ethAmount)
+	fmt.Printf("%.2f ETH = %s Wei\n", ethAmount, weiAmount)
+
+	// Convert Wei back to ETH for display
+	displayETH := utils.WeiToETH(weiAmount)
+	fmt.Printf("%s Wei = %.6f ETH\n\n", weiAmount, displayETH)
+
+	fmt.Println("=== STRK/FRI Conversions ===")
+
+	// Convert STRK to FRI
+	strkAmount := 100.0
+	friAmount := utils.STRKToFRI(strkAmount)
+	fmt.Printf("%.2f STRK = %s FRI\n", strkAmount, friAmount)
+
+	// Convert FRI back to STRK for display
+	displaySTRK := utils.FRIToSTRK(friAmount)
+	fmt.Printf("%s FRI = %.6f STRK\n\n", friAmount, displaySTRK)
+
+	fmt.Println("=== User Input Scenario ===")
+
+	// User enters amount in UI (e.g., 0.5 ETH)
+	userInput := 0.5
+
+	// Convert to Wei for contract call
+	weiForContract := utils.ETHToWei(userInput)
+	fmt.Printf("User input: %.2f ETH\n", userInput)
+	fmt.Printf("Contract parameter: %s Wei\n\n", weiForContract)
+
+	fmt.Println("=== Balance Display Scenario ===")
+
+	// Contract returns balance in Wei
+	balanceWei, _ := new(felt.Felt).SetString("2500000000000000000") // 2.5 ETH
+
+	// Convert to ETH for display
+	balanceETH := utils.WeiToETH(balanceWei)
+	fmt.Printf("Contract balance: %s Wei\n", balanceWei)
+	fmt.Printf("Display to user: %.4f ETH\n", balanceETH)
+}
+```
+
+## Contract Deployment with UDC
+
+This example demonstrates deploying contracts using Starknet's Universal Deployer Contract (UDC), including address precomputation and both origin-dependent and origin-independent deployment modes.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	fmt.Println("=== Contract Deployment with UDC ===\n")
+
+	// Class hash of the contract to deploy
+	classHash, err := utils.HexToFelt("0x07aeb292ac3925f3d18f82c77c6e81fa9f8dec3ba77c4f41be61c61b87b011fd")
+	if err != nil {
+		log.Fatal("Failed to parse class hash:", err)
+	}
+
+	// Constructor calldata (e.g., initial_value, owner)
+	initialValue := utils.Uint64ToFelt(100)
+	ownerAddress, _ := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+
+	constructorCalldata := []*felt.Felt{
+		initialValue,
+		ownerAddress,
+	}
+
+	fmt.Println("Example 1: Origin-Independent Deployment (CREATE2-like)")
+	fmt.Println("------------------------------------------------")
+
+	// Origin-independent deployment (deterministic address)
+	opts := &utils.UDCOptions{
+		Salt:              nil, // Random salt will be generated
+		OriginIndependent: true,
+		UDCVersion:        utils.UDCCairoV2,
+	}
+
+	// Build UDC calldata
+	udcCall, salt, err := utils.BuildUDCCalldata(classHash, constructorCalldata, opts)
+	if err != nil {
+		log.Fatal("Failed to build UDC calldata:", err)
+	}
+
+	fmt.Printf("UDC Address: %s\n", udcCall.ContractAddress)
+	fmt.Printf("Function: %s\n", udcCall.FunctionName)
+	fmt.Printf("Generated Salt: %s\n", salt)
+	fmt.Printf("Calldata length: %d\n\n", len(udcCall.CallData))
+
+	// Precompute the deployment address
+	deployAddress := utils.PrecomputeAddressForUDC(
+		classHash,
+		salt,
+		constructorCalldata,
+		utils.UDCCairoV2,
+		nil, // nil for origin-independent
+	)
+
+	fmt.Printf("Precomputed Contract Address: %s\n\n", deployAddress)
+
+	fmt.Println("Example 2: Origin-Dependent Deployment")
+	fmt.Println("---------------------------------------")
+
+	// Custom salt for reproducibility
+	customSalt, _ := utils.HexToFelt("0x123456789")
+
+	// Origin-dependent deployment (includes deployer address)
+	opts2 := &utils.UDCOptions{
+		Salt:              customSalt,
+		OriginIndependent: false, // Include deployer address
+		UDCVersion:        utils.UDCCairoV2,
+	}
+
+	udcCall2, salt2, err := utils.BuildUDCCalldata(classHash, constructorCalldata, opts2)
+	if err != nil {
+		log.Fatal("Failed to build UDC calldata:", err)
+	}
+
+	fmt.Printf("UDC Address: %s\n", udcCall2.ContractAddress)
+	fmt.Printf("Custom Salt: %s\n", salt2)
+
+	// Precompute address (origin-dependent requires deployer address)
+	deployerAddress, _ := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+
+	deployAddress2 := utils.PrecomputeAddressForUDC(
+		classHash,
+		salt2,
+		constructorCalldata,
+		utils.UDCCairoV2,
+		deployerAddress, // Include deployer for origin-dependent
+	)
+
+	fmt.Printf("Precomputed Contract Address (origin-dependent): %s\n\n", deployAddress2)
+
+	fmt.Println("Example 3: Building Complete Invoke Transaction")
+	fmt.Println("-----------------------------------------------")
+
+	// Build the invoke transaction to deploy via UDC
+	accountAddress, _ := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	nonce := new(felt.Felt).SetUint64(1)
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x2710"),
+			MaxPricePerUnit: rpc.U128("0x5f5e100"),
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x0"),
+			MaxPricePerUnit: rpc.U128("0x0"),
+		},
+	}
+
+	// Prepare calldata for account's execute function
+	// Format: [target_contract, selector, calldata_len, ...calldata]
+	executeCalldata := append(
+		[]*felt.Felt{
+			udcCall.ContractAddress,
+			utils.GetSelectorFromNameFelt(udcCall.FunctionName),
+			new(felt.Felt).SetUint64(uint64(len(udcCall.CallData))),
+		},
+		udcCall.CallData...,
+	)
+
+	tx := utils.BuildInvokeTxn(
+		accountAddress,
+		nonce,
+		executeCalldata,
+		resourceBounds,
+		nil,
+	)
+
+	fmt.Printf("Deployment transaction built!\n")
+	fmt.Printf("  Sender: %s\n", tx.SenderAddress)
+	fmt.Printf("  Nonce: %s\n", tx.Nonce)
+	fmt.Printf("  Expected contract address: %s\n", deployAddress)
+}
+```
+
+## Custom Resource Bounds
+
+This example shows how to define custom limits for resource bounds when you need more control over gas limits than the default Starknet limits provide.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	// Create RPC provider for fee estimation
+	provider, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io")
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	ctx := context.Background()
+
+	// Prepare transaction for estimation
+	senderAddress, _ := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	nonce := new(felt.Felt).SetUint64(1)
+	calldata := []*felt.Felt{utils.GetSelectorFromNameFelt("transfer")}
+
+	requests := []rpc.BroadcastTxn{
+		rpc.BroadcastInvokeTxnV3{
+			Type:          rpc.TransactionTypeInvoke,
+			SenderAddress: senderAddress,
+			Calldata:      calldata,
+			Version:       rpc.TransactionV3WithQueryBit,
+			Signature:     []*felt.Felt{},
+			Nonce:         nonce,
+			ResourceBounds: &rpc.ResourceBoundsMapping{
+				L1Gas:     rpc.ResourceBounds{MaxAmount: rpc.U64("0x0"), MaxPricePerUnit: rpc.U128("0x0")},
+				L2Gas:     rpc.ResourceBounds{MaxAmount: rpc.U64("0x0"), MaxPricePerUnit: rpc.U128("0x0")},
+				L1DataGas: rpc.ResourceBounds{MaxAmount: rpc.U64("0x0"), MaxPricePerUnit: rpc.U128("0x0")},
+			},
+		},
+	}
+
+	// Estimate fees
+	feeEstimate, err := provider.EstimateFee(ctx, requests, []rpc.SimulationFlag{}, rpc.WithBlockTag("latest"))
+	if err != nil {
+		log.Fatal("Failed to estimate fee:", err)
+	}
+
+	fmt.Println("=== Default Resource Bounds ===")
+	defaultBounds := utils.FeeEstToResBoundsMap(feeEstimate[0], 1.5)
+	fmt.Printf("L1 Gas MaxAmount: %s\n", defaultBounds.L1Gas.MaxAmount)
+	fmt.Printf("L1 Gas MaxPricePerUnit: %s\n", defaultBounds.L1Gas.MaxPricePerUnit)
+	fmt.Printf("L2 Gas MaxAmount: %s\n", defaultBounds.L2Gas.MaxAmount)
+	fmt.Printf("L2 Gas MaxPricePerUnit: %s\n\n", defaultBounds.L2Gas.MaxPricePerUnit)
+
+	fmt.Println("=== Custom Resource Bounds ===")
+
+	// Define custom limits (more conservative)
+	customLimits := &utils.FeeLimits{
+		L1GasPriceLimit:      "0x1000000000000",  // Custom L1 gas price limit
+		L1GasAmountLimit:     "0x5000",           // 20480 (more conservative than default)
+		L2GasPriceLimit:      "0x1000000000000",
+		L2GasAmountLimit:     "0x186a0",          // 100000
+		L1DataGasPriceLimit:  "0x1000000000000",
+		L1DataGasAmountLimit: "0x2000",           // 8192
+	}
+
+	// Apply custom limits with multiplier
+	customBounds := utils.CustomFeeEstToResBoundsMap(
+		feeEstimate[0],
+		1.5, // multiplier
+		customLimits,
+	)
+
+	fmt.Printf("L1 Gas MaxAmount: %s (capped at %s)\n", customBounds.L1Gas.MaxAmount, customLimits.L1GasAmountLimit)
+	fmt.Printf("L1 Gas MaxPricePerUnit: %s (capped at %s)\n", customBounds.L1Gas.MaxPricePerUnit, customLimits.L1GasPriceLimit)
+	fmt.Printf("L2 Gas MaxAmount: %s (capped at %s)\n", customBounds.L2Gas.MaxAmount, customLimits.L2GasAmountLimit)
+	fmt.Printf("L2 Gas MaxPricePerUnit: %s (capped at %s)\n", customBounds.L2Gas.MaxPricePerUnit, customLimits.L2GasPriceLimit)
+}
+```
+
+## Transaction Version Selection
+
+This example demonstrates when to use query bit transactions for fee estimation versus regular transactions for actual execution.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	fmt.Println("=== Transaction Version Selection ===\n")
+
+	senderAddress, _ := utils.HexToFelt("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	nonce := new(felt.Felt).SetUint64(1)
+	calldata := []*felt.Felt{utils.GetSelectorFromNameFelt("transfer")}
+
+	resourceBounds := &rpc.ResourceBoundsMapping{
+		L1Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x2710"),
+			MaxPricePerUnit: rpc.U128("0x5f5e100"),
+		},
+		L2Gas: rpc.ResourceBounds{
+			MaxAmount:       rpc.U64("0x0"),
+			MaxPricePerUnit: rpc.U128("0x0"),
+		},
+	}
+
+	fmt.Println("1. Query Transaction (for fee estimation)")
+	fmt.Println("------------------------------------------")
+
+	queryOpts := &utils.TxnOptions{
+		UseQueryBit: true,
+		Tip:         rpc.U64("0x0"),
+	}
+
+	queryTx := utils.BuildInvokeTxn(senderAddress, nonce, calldata, resourceBounds, queryOpts)
+
+	fmt.Printf("Transaction Version: %s\n", queryTx.Version)
+	fmt.Printf("Version (hex): 0x%s\n", queryTx.Version)
+	fmt.Printf("Has query bit: true\n")
+	fmt.Printf("Use case: Fee estimation without state changes\n\n")
+
+	fmt.Println("2. Regular Transaction (for execution)")
+	fmt.Println("---------------------------------------")
+
+	regularOpts := &utils.TxnOptions{
+		UseQueryBit: false,
+		Tip:         rpc.U64("0x0"),
+	}
+
+	regularTx := utils.BuildInvokeTxn(senderAddress, nonce, calldata, resourceBounds, regularOpts)
+
+	fmt.Printf("Transaction Version: %s\n", regularTx.Version)
+	fmt.Printf("Version (hex): 0x%s\n", regularTx.Version)
+	fmt.Printf("Has query bit: false\n")
+	fmt.Printf("Use case: Actual transaction execution\n\n")
+
+	fmt.Println("3. Default Options (nil)")
+	fmt.Println("-------------------------")
+
+	defaultTx := utils.BuildInvokeTxn(senderAddress, nonce, calldata, resourceBounds, nil)
+
+	fmt.Printf("Transaction Version: %s\n", defaultTx.Version)
+	fmt.Printf("Tip: %s\n", defaultTx.Tip)
+	fmt.Printf("UseQueryBit defaults to: false\n")
+	fmt.Printf("Tip defaults to: 0x0\n")
+}
+```
+
+## Keccak State for Incremental Hashing
+
+This example shows how to use KeccakState for efficient incremental hashing when processing data in chunks or computing multiple related hashes.
+
+```go
+package main
+
+import (
+	"encoding/hex"
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	fmt.Println("=== Keccak State: Incremental Hashing ===\n")
+
+	fmt.Println("Example 1: Single Hash")
+	fmt.Println("----------------------")
+
+	// Standard single-pass hash
+	data := []byte("Hello, Starknet!")
+	hash := utils.Keccak256(data)
+	fmt.Printf("Data: %s\n", string(data))
+	fmt.Printf("Hash: 0x%s\n\n", hex.EncodeToString(hash))
+
+	fmt.Println("Example 2: Incremental Hashing")
+	fmt.Println("-------------------------------")
+
+	// Create Keccak state for incremental hashing
+	state := utils.NewKeccakState()
+
+	// Write data incrementally
+	state.Write([]byte("Hello, "))
+	state.Write([]byte("Starknet"))
+	state.Write([]byte("!"))
+
+	// Get final hash
+	incrementalHash := state.Sum(nil)
+	fmt.Printf("Parts: ['Hello, ', 'Starknet', '!']\n")
+	fmt.Printf("Hash: 0x%s\n", hex.EncodeToString(incrementalHash))
+	fmt.Printf("Matches single-pass: %v\n\n", hex.EncodeToString(hash) == hex.EncodeToString(incrementalHash))
+
+	fmt.Println("Example 3: Multiple Hashes from Same State")
+	fmt.Println("-------------------------------------------")
+
+	state2 := utils.NewKeccakState()
+	state2.Write([]byte("Base data"))
+
+	// Sum doesn't modify state
+	hash1 := state2.Sum(nil)
+	hash2 := state2.Sum(nil)
+
+	fmt.Printf("Hash 1: 0x%s\n", hex.EncodeToString(hash1))
+	fmt.Printf("Hash 2: 0x%s\n", hex.EncodeToString(hash2))
+	fmt.Printf("Hashes match: %v\n\n", hex.EncodeToString(hash1) == hex.EncodeToString(hash2))
+
+	fmt.Println("Example 4: Reset and Reuse")
+	fmt.Println("--------------------------")
+
+	state3 := utils.NewKeccakState()
+	state3.Write([]byte("First data"))
+	firstHash := state3.Sum(nil)
+
+	// Reset for new hash
+	state3.Reset()
+	state3.Write([]byte("Second data"))
+	secondHash := state3.Sum(nil)
+
+	fmt.Printf("First hash: 0x%s\n", hex.EncodeToString(firstHash))
+	fmt.Printf("Second hash: 0x%s\n", hex.EncodeToString(secondHash))
+	fmt.Printf("Hashes differ: %v\n\n", hex.EncodeToString(firstHash) != hex.EncodeToString(secondHash))
+
+	fmt.Println("Example 5: Read vs Sum")
+	fmt.Println("----------------------")
+
+	state4 := utils.NewKeccakState()
+	state4.Write([]byte("Test data"))
+
+	// Sum doesn't modify internal state
+	sumHash := state4.Sum(nil)
+	sumHash2 := state4.Sum(nil)
+
+	fmt.Printf("Sum() call 1: 0x%s\n", hex.EncodeToString(sumHash))
+	fmt.Printf("Sum() call 2: 0x%s\n", hex.EncodeToString(sumHash2))
+	fmt.Printf("Both calls return same hash: %v\n\n", hex.EncodeToString(sumHash) == hex.EncodeToString(sumHash2))
+
+	// Read modifies internal state (faster but destructive)
+	state5 := utils.NewKeccakState()
+	state5.Write([]byte("Test data"))
+
+	buf := make([]byte, 32)
+	state5.Read(buf)
+	fmt.Printf("Read() result: 0x%s\n", hex.EncodeToString(buf))
+	fmt.Printf("Read() is faster but modifies state\n")
+
+	fmt.Println("\nKeccakState Properties:")
+	fmt.Printf("  Hash size: %d bytes\n", state.Size())
+	fmt.Printf("  Block size: %d bytes\n", state.BlockSize())
+}
+```
+
+## Type Conversions Comprehensive Example
+
+This example demonstrates all major type conversion functions in the utils package for common Starknet development scenarios.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/utils"
+)
+
+func main() {
+	fmt.Println("=== Comprehensive Type Conversions ===\n")
+
+	// 1. Hex to Felt conversions
+	fmt.Println("1. Hex String Conversions")
+	fmt.Println("-------------------------")
+
+	hexAddr := "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+	feltAddr, err := utils.HexToFelt(hexAddr)
+	if err != nil {
+		log.Fatal("HexToFelt failed:", err)
+	}
+	fmt.Printf("Hex: %s\n", hexAddr)
+	fmt.Printf("Felt: %s\n\n", feltAddr)
+
+	// 2. Array conversions
+	fmt.Println("2. Array Conversions")
+	fmt.Println("--------------------")
+
+	hexArray := []string{"0x1", "0x2", "0x3", "0x64", "0xff"}
+	feltArray, err := utils.HexArrToFelt(hexArray)
+	if err != nil {
+		log.Fatal("HexArrToFelt failed:", err)
+	}
+
+	fmt.Printf("Hex array: %v\n", hexArray)
+	fmt.Print("Felt array: [")
+	for i, f := range feltArray {
+		if i > 0 {
+			fmt.Print(", ")
+		}
+		fmt.Print(f.String())
+	}
+	fmt.Print("]\n\n")
+
+	// Convert Felt array to BigInt array
+	bigIntArray := utils.FeltArrToBigIntArr(feltArray)
+	fmt.Print("BigInt array: [")
+	for i, b := range bigIntArray {
+		if i > 0 {
+			fmt.Print(", ")
+		}
+		fmt.Print(b.String())
+	}
+	fmt.Print("]\n\n")
+
+	// 3. Numeric conversions
+	fmt.Println("3. Numeric Conversions")
+	fmt.Println("----------------------")
+
+	// Small numbers: use Uint64ToFelt
+	smallNum := uint64(12345)
+	smallFelt := utils.Uint64ToFelt(smallNum)
+	fmt.Printf("uint64(%d) → Felt: %s\n", smallNum, smallFelt)
+
+	// Large numbers: use BigIntToFelt
+	largeNum := new(big.Int)
+	largeNum.SetString("123456789012345678901234567890", 10)
+	largeFelt := utils.BigIntToFelt(largeNum)
+	fmt.Printf("big.Int → Felt: %s\n", largeFelt)
+
+	// Convert Felt back to BigInt
+	backToBigInt := utils.FeltToBigInt(largeFelt)
+	fmt.Printf("Felt → big.Int: %s\n", backToBigInt.String())
+	fmt.Printf("Round-trip successful: %v\n\n", largeNum.Cmp(backToBigInt) == 0)
+
+	// 4. String conversions
+	fmt.Println("4. String/Hex Conversions")
+	fmt.Println("-------------------------")
+
+	// String to hex
+	name := "MyToken"
+	hexName := utils.StrToHex(name)
+	fmt.Printf("String '%s' → Hex: %s\n", name, hexName)
+
+	// Hex to short string
+	backToStr := utils.HexToShortStr(hexName)
+	fmt.Printf("Hex → String: '%s'\n", backToStr)
+	fmt.Printf("Round-trip successful: %v\n\n", name == backToStr)
+
+	// 5. Hex number conversions
+	fmt.Println("5. Hex Number Conversions")
+	fmt.Println("-------------------------")
+
+	hexNumber := "0x1234abcdef"
+	bigInt := utils.HexToBN(hexNumber)
+	fmt.Printf("Hex: %s\n", hexNumber)
+	fmt.Printf("BigInt: %s\n", bigInt.String())
+
+	// Convert back to hex
+	backToHex := utils.BigToHex(bigInt)
+	fmt.Printf("Back to hex: %s\n\n", backToHex)
+
+	// 6. Bytes conversions
+	fmt.Println("6. Bytes Conversions")
+	fmt.Println("--------------------")
+
+	hexBytes := "0x48656c6c6f"
+	byteData, err := utils.HexToBytes(hexBytes)
+	if err != nil {
+		log.Fatal("HexToBytes failed:", err)
+	}
+	fmt.Printf("Hex: %s\n", hexBytes)
+	fmt.Printf("Bytes: %v\n", byteData)
+	fmt.Printf("String: %s\n", string(byteData))
+
+	// Bytes to BigInt
+	bytesBigInt := utils.BytesToBig(byteData)
+	fmt.Printf("As BigInt: %s\n\n", bytesBigInt.String())
+
+	// 7. String to BigInt (numeric string)
+	fmt.Println("7. String to BigInt")
+	fmt.Println("-------------------")
+
+	numericStr := "999999999999999999999"
+	strBigInt := utils.StrToBig(numericStr)
+	fmt.Printf("String: %s\n", numericStr)
+	fmt.Printf("BigInt: %s\n", strBigInt.String())
+}
+```
+

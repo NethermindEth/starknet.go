@@ -1,0 +1,321 @@
+# Merkle Examples
+
+This page provides comprehensive examples demonstrating how to use the merkle package functions for building Merkle trees, generating proofs, and verifying data integrity.
+
+## Basic Merkle Tree Creation and Verification
+
+This example demonstrates the fundamental workflow of creating a Merkle tree, generating a proof for a specific leaf, and verifying that proof against the tree root. It creates a tree with four leaves, generates a proof for one of the leaves, and then uses `ProofMerklePath` to verify the leaf's membership. This is the most common pattern you'll use when working with Merkle trees in Starknet.go.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create leaves
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+	}
+
+	// Build the tree
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Display tree information
+	fmt.Printf("Merkle Tree Created:\n")
+	fmt.Printf("  Number of leaves: %d\n", len(tree.Leaves))
+	fmt.Printf("  Root: 0x%s\n", tree.Root.Text(16))
+	fmt.Printf("  Branch levels: %d\n\n", len(tree.Branches))
+
+	// Generate proof for leaf value 3
+	targetLeaf := big.NewInt(3)
+	proof, err := tree.Proof(targetLeaf)
+	if err != nil {
+		fmt.Printf("Error generating proof: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Proof for leaf %d:\n", targetLeaf.Int64())
+	fmt.Printf("  Proof size: %d hashes\n", len(proof))
+	for i, hash := range proof {
+		fmt.Printf("  [%d]: 0x%s\n", i, hash.Text(16))
+	}
+
+	// Verify the proof
+	isValid := merkle.ProofMerklePath(tree.Root, targetLeaf, proof)
+	fmt.Printf("\nProof verification: %v\n", isValid)
+}
+```
+
+## Manual Merkle Tree Construction
+
+This example shows how to manually construct a Merkle tree using the `MerkleHash` function to understand the internal tree structure. Instead of using `NewFixedSizeMerkleTree`, we manually hash pairs of leaves to build each level of the tree until reaching the root. This approach helps you understand how Merkle trees work under the hood and is useful when you need fine-grained control over the tree construction process.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Define four leaves
+	leaf1 := big.NewInt(100)
+	leaf2 := big.NewInt(200)
+	leaf3 := big.NewInt(300)
+	leaf4 := big.NewInt(400)
+
+	// Level 1: Hash pairs of leaves
+	hash12 := merkle.MerkleHash(leaf1, leaf2)
+	hash34 := merkle.MerkleHash(leaf3, leaf4)
+
+	fmt.Printf("Level 1 Hashes:\n")
+	fmt.Printf("  Hash(100, 200): 0x%s\n", hash12.Text(16))
+	fmt.Printf("  Hash(300, 400): 0x%s\n\n", hash34.Text(16))
+
+	// Level 2: Hash the two intermediate hashes to get root
+	root := merkle.MerkleHash(hash12, hash34)
+
+	fmt.Printf("Root Hash: 0x%s\n\n", root.Text(16))
+
+	// Manually construct proof for leaf1
+	// Path: [leaf2, hash34]
+	manualProof := []*big.Int{leaf2, hash34}
+
+	// Verify the manual proof
+	isValid := merkle.ProofMerklePath(root, leaf1, manualProof)
+
+	fmt.Printf("Manual Proof for leaf %d:\n", leaf1.Int64())
+	fmt.Printf("  Proof path: [%d, hash34]\n", leaf2.Int64())
+	fmt.Printf("  Proof valid: %v\n", isValid)
+}
+```
+
+## Verifying Multiple Leaves
+
+This example demonstrates how to efficiently verify multiple leaves in a single tree by generating and validating proofs for each leaf. This is useful when you need to verify that several values are all part of the same committed dataset. The example shows how proof sizes remain logarithmic regardless of which leaf you're verifying, making batch verification efficient even for large trees.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree with multiple leaves
+	leaves := []*big.Int{
+		big.NewInt(10),
+		big.NewInt(20),
+		big.NewInt(30),
+		big.NewInt(40),
+		big.NewInt(50),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	fmt.Printf("Tree root: 0x%s\n\n", tree.Root.Text(16))
+
+	// Verify each leaf
+	fmt.Println("Verifying all leaves:")
+	for i, leaf := range leaves {
+		proof, err := tree.Proof(leaf)
+		if err != nil {
+			fmt.Printf("  Leaf %d (value=%d): Error - %v\n", i, leaf.Int64(), err)
+			continue
+		}
+
+		isValid := merkle.ProofMerklePath(tree.Root, leaf, proof)
+		fmt.Printf("  Leaf %d (value=%d): proof_size=%d, valid=%v\n",
+			i, leaf.Int64(), len(proof), isValid)
+	}
+}
+```
+
+## Detecting Invalid Proofs
+
+This example demonstrates the security properties of Merkle proofs by showing various failure scenarios. It shows that you cannot use a valid proof from one leaf to falsely verify a different leaf, and that attempting to generate a proof for a non-existent leaf returns an error. Understanding these failure modes is important for building secure applications that rely on Merkle proofs for data integrity.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+	}
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	// Get a valid proof for leaf 2
+	validLeaf := big.NewInt(2)
+	validProof, _ := tree.Proof(validLeaf)
+
+	// Test 1: Valid proof
+	isValid := merkle.ProofMerklePath(tree.Root, validLeaf, validProof)
+	fmt.Printf("Test 1 - Valid proof for leaf %d: %v\n", validLeaf.Int64(), isValid)
+
+	// Test 2: Try to use the proof with a different leaf (should fail)
+	invalidLeaf := big.NewInt(999)
+	isValid = merkle.ProofMerklePath(tree.Root, invalidLeaf, validProof)
+	fmt.Printf("Test 2 - Using proof from leaf %d for leaf %d: %v (expected: false)\n",
+		validLeaf.Int64(), invalidLeaf.Int64(), isValid)
+
+	// Test 3: Try with a non-existent leaf (proof generation fails)
+	_, err := tree.Proof(invalidLeaf)
+	if err != nil {
+		fmt.Printf("Test 3 - Generating proof for non-existent leaf %d: %v\n",
+			invalidLeaf.Int64(), err)
+	}
+}
+```
+
+## Deterministic Hash Ordering
+
+This example illustrates an important property of `MerkleHash`: it always produces the same result regardless of the order of inputs. The function internally orders the inputs before hashing, ensuring that `MerkleHash(a, b)` always equals `MerkleHash(b, a)`. This deterministic behavior is crucial for Merkle tree consistency and allows different parties to independently verify the same tree structure.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	a := big.NewInt(5)
+	b := big.NewInt(10)
+
+	// Hash in both orders
+	hash1 := merkle.MerkleHash(a, b)
+	hash2 := merkle.MerkleHash(b, a)
+
+	fmt.Printf("Value A: %d\n", a.Int64())
+	fmt.Printf("Value B: %d\n\n", b.Int64())
+
+	fmt.Printf("Hash(A, B): 0x%s\n", hash1.Text(16))
+	fmt.Printf("Hash(B, A): 0x%s\n\n", hash2.Text(16))
+
+	// Verify they are equal
+	fmt.Printf("Hashes are equal: %v\n", hash1.Cmp(hash2) == 0)
+	fmt.Println("\nThis deterministic ordering ensures MerkleHash(a,b) always equals MerkleHash(b,a)")
+}
+```
+
+## Large Tree with Proof Size Analysis
+
+This example demonstrates the scalability of Merkle trees by creating a tree with 100 leaves and analyzing the proof sizes. It shows that even with 100 leaves, the proof size is only around 7 hashes due to the logarithmic nature of the tree structure. This logarithmic scaling (log₂(n)) is what makes Merkle trees efficient for verifying membership in large datasets, a key property used throughout Starknet's state commitment system.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create a tree with 100 leaves
+	var leaves []*big.Int
+	for i := 1; i <= 100; i++ {
+		leaves = append(leaves, big.NewInt(int64(i)))
+	}
+
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	fmt.Printf("Large Tree Statistics:\n")
+	fmt.Printf("  Total leaves: %d\n", len(tree.Leaves))
+	fmt.Printf("  Branch levels: %d\n", len(tree.Branches))
+	fmt.Printf("  Root: 0x%s\n\n", tree.Root.Text(16))
+
+	// Generate proofs for leaves at different positions
+	testLeaves := []*big.Int{
+		big.NewInt(1),   // First leaf
+		big.NewInt(50),  // Middle leaf
+		big.NewInt(100), // Last leaf
+	}
+
+	fmt.Println("Proof sizes for different positions:")
+	for _, leaf := range testLeaves {
+		proof, err := tree.Proof(leaf)
+		if err == nil {
+			fmt.Printf("  Leaf %d: %d hashes\n", leaf.Int64(), len(proof))
+		}
+	}
+
+	fmt.Println("\nNote: For 100 leaves, proof size is ~7 hashes (log2(100) ≈ 6.64)")
+}
+```
+
+## Handling Odd Number of Leaves
+
+This example shows how `NewFixedSizeMerkleTree` handles trees with an odd number of leaves. When there's an unpaired leaf during tree construction, it's automatically paired with zero (0) to maintain the binary tree structure. Understanding this behavior is important when you're working with dynamic datasets where the number of elements may not be a power of two, ensuring your proofs remain valid even with irregular tree sizes.
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/merkle"
+)
+
+func main() {
+	// Create tree with 5 leaves (odd number)
+	leaves := []*big.Int{
+		big.NewInt(1),
+		big.NewInt(2),
+		big.NewInt(3),
+		big.NewInt(4),
+		big.NewInt(5), // Odd leaf
+	}
+
+	tree := merkle.NewFixedSizeMerkleTree(leaves...)
+
+	fmt.Printf("Tree with %d leaves (odd number):\n", len(leaves))
+	fmt.Printf("  Root: 0x%s\n", tree.Root.Text(16))
+	fmt.Printf("  Branch levels: %d\n\n", len(tree.Branches))
+
+	// Generate proof for the last (odd) leaf
+	oddLeaf := big.NewInt(5)
+	proof, err := tree.Proof(oddLeaf)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Proof for odd leaf (value=%d):\n", oddLeaf.Int64())
+	fmt.Printf("  Proof size: %d hashes\n", len(proof))
+
+	// Verify the proof
+	isValid := merkle.ProofMerklePath(tree.Root, oddLeaf, proof)
+	fmt.Printf("  Proof valid: %v\n\n", isValid)
+
+	fmt.Println("Note: The odd leaf is automatically paired with 0 during tree construction")
+}
+```

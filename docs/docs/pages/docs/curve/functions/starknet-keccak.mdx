@@ -1,6 +1,6 @@
 # StarknetKeccak
 
-Computes the Starknet Keccak hash of a byte slice.
+Computes the Starknet Keccak hash of a byte slice. This function is specifically used in Starknet for function selector calculation and event key generation.
 
 ## Function Signature
 
@@ -8,20 +8,41 @@ Computes the Starknet Keccak hash of a byte slice.
 func StarknetKeccak(b []byte) *felt.Felt
 ```
 
-## Expected Output
+**Source:** [curve.go:L287-L297](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L287-L297)
 
+## Parameters
+
+- `b` ([]byte): The byte slice to hash
+
+## Returns
+
+- `*felt.Felt`: The Starknet Keccak hash
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Compute Starknet Keccak hash
+	input := []byte("Hello Starknet")
+	hash := curve.StarknetKeccak(input)
+
+	fmt.Println("StarknetKeccak Hash:")
+	fmt.Printf("  Input: %s\n", string(input))
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
 ```
-StarknetKeccak Hash:
-  Input: Hello Starknet
-  Hash: 0x33f08beeb7fc856bf2304c456db9b24e958b1d7f834f3950e2e4efdbd22653a
-```
 
-## Use Cases
+## Common Use Cases
 
-- Function selector calculation
-- Event key generation
-
-## Related Functions
-
-- [Pedersen](/docs/curve/functions/pedersen)
-- [Poseidon](/docs/curve/functions/poseidon)
+- Calculate function selectors by hashing function names for contract calls and internal dispatching.
+- Generate event keys from event names to enable efficient event filtering and indexing.
+- Hash byte sequences when building Starknet contracts or tools that need Starknet-specific Keccak hashing.
+- Use in contract ABI encoding where Starknet's variant of Keccak is required rather than standard Keccak-256.

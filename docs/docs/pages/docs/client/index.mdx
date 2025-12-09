@@ -1,42 +1,20 @@
 # Client Package
 
-The client package provides JSON-RPC client and server functionality for interacting with Starknet nodes and building RPC services. This package implements the core RPC protocol handling, including request/response management, subscriptions, batch operations, and WebSocket support.
+The Client package provides low-level JSON-RPC communication infrastructure for interacting with Starknet nodes. This is the foundational layer that handles network communication, request/response management, and real-time subscriptions over HTTP and WebSocket connections.
 
 ## Overview
 
-The client package includes:
-- JSON-RPC client for making remote procedure calls
-- Subscription support for real-time event streaming
-- Batch request capabilities for efficient multiple operations
-- Server implementation for building RPC services
-- Context management for request headers and timeouts
-- WebSocket and HTTP transport support
+The client package is the underlying transport layer used by the RPC package to communicate with Starknet nodes. While most developers will use the higher-level RPC package, the client package gives you direct access to JSON-RPC functionality when you need it.
 
-## Main Components
+You get a JSON-RPC client for making remote procedure calls to any RPC server, real-time subscription support for monitoring blockchain events as they happen, batch request capabilities to send multiple operations in a single network call, and full control over connection management including custom headers, timeouts, and WebSocket connections. The package also includes server components if you're building your own RPC services.
 
-### Client
+## Getting Started
 
-The `Client` type is the primary interface for making JSON-RPC calls to Starknet nodes. It supports:
-- Synchronous and context-aware RPC calls
-- Real-time subscriptions via WebSocket
-- Batch requests for multiple operations
-- Automatic connection management
+To use the Client package, import it in your Go code:
 
-### Server
-
-The `Server` type enables building JSON-RPC services with:
-- HTTP and WebSocket handlers
-- Service registration and method routing
-- Subscription management via Notifier
-- Custom codec support
-
-### Subscriptions
-
-The package provides robust subscription handling:
-- `ClientSubscription` for client-side subscriptions
-- `Notifier` for server-side subscription notifications
-- Automatic reorg event handling
-- Channel-based event delivery
+```go
+import "github.com/NethermindEth/starknet.go/client"
+```
 
 ## Quick Example
 
@@ -44,74 +22,103 @@ The package provides robust subscription handling:
 package main
 
 import (
-    "context"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
 
-    "github.com/NethermindEth/starknet.go/client"
+	"github.com/NethermindEth/starknet.go/client"
 )
 
 func main() {
-    // Connect to Starknet node
-    c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer c.Close()
+	c, err := client.DialHTTP("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer c.Close()
 
-    // Make an RPC call
-    var result string
-    err = c.CallContext(context.Background(), &result, "starknet_specVersion")
-    if err != nil {
-        log.Fatal(err)
-    }
+	var result string
+	err = c.CallContext(context.Background(), &result, "starknet_specVersion")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    fmt.Printf("Starknet Spec Version: %s\n", result)
+	fmt.Printf("Starknet Spec Version: %s\n", result)
 }
 ```
+
+## How the Client Works
+
+### JSON-RPC Communication
+
+The client package implements the JSON-RPC 2.0 protocol for remote procedure calls. When you call a method, the client serializes your request into JSON, sends it over the network (HTTP or WebSocket), and deserializes the response back into Go types. This all happens behind the scenes so you can focus on your application logic.
+
+The package handles request IDs, error responses, connection errors, and retry logic automatically. You get type-safe method calls with full context support for cancellation and timeouts.
+
+### Connection Types
+
+You can connect to RPC servers using HTTP or WebSocket protocols. HTTP connections are simple and work well for one-off requests. WebSocket connections stay open and enable real-time subscriptions where the server can push events to your client as they occur.
+
+HTTP connections are created with `DialHTTP` and close after each request-response cycle. WebSocket connections use `Dial` or `DialWebSocket` and maintain a persistent connection that supports bidirectional communication.
+
+### Subscription Model
+
+Subscriptions let you receive real-time updates from the blockchain without polling. You subscribe to a specific event stream (like new blocks or pending transactions), and the client delivers events to a Go channel as they happen on-chain.
+
+The client manages subscription lifecycle, handles reconnection if the connection drops, and buffers events to prevent blocking the network thread. If your application can't keep up with incoming events, the subscription will be dropped to prevent memory issues.
+
+## Choosing the Right Approach
+
+### When to Use the Client Package Directly
+
+Use the client package directly when you need low-level control over JSON-RPC communication, are implementing custom RPC methods not covered by the RPC package, need to connect to non-Starknet JSON-RPC services, or are building your own RPC server with the Server component.
+
+### When to Use the RPC Package Instead
+
+For most Starknet development, use the RPC package which wraps the client and provides typed methods for all Starknet RPC calls. The RPC package handles parameter encoding, response decoding, and provides better type safety for Starknet-specific operations.
+
+### Batch Operations
+
+Batch requests let you send multiple RPC calls in a single network round-trip. This dramatically reduces latency when you need to make several independent calls. Each call in the batch gets its own result or error, and the client processes them in parallel where possible.
+
+Use batches when fetching data for multiple blocks, checking balances for multiple accounts, or making several independent queries that don't depend on each other.
+
+## Common Workflows
+
+### Making Single RPC Calls
+
+Connect to the RPC server using `DialHTTP` or `Dial`. Call `CallContext` with your method name and parameters. The client serializes the request, sends it, and deserializes the response into your result variable. Always pass a context for timeout and cancellation support.
+
+### Setting Up Subscriptions
+
+Connect using a WebSocket connection with `Dial` or `DialWebSocket`. Call `Subscribe` with the subscription namespace and method. The client returns a channel where events will be delivered. Read from the channel in a loop to process events as they arrive. Remember to handle the subscription's error channel to detect connection issues.
+
+### Sending Batch Requests
+
+Create a slice of `BatchElem` where each element specifies a method, arguments, and a pointer to store the result. Call `BatchCall` or `BatchCallContext` with your batch. The client sends all requests together and fills in results and errors for each element. Check each element's Error field to see if that specific call failed.
+
+## Use Cases
+
+The client package is essential for building blockchain monitoring tools that need real-time event notifications, creating custom RPC clients for specialized workflows, implementing middleware that sits between applications and Starknet nodes, building development tools that need raw RPC access, and constructing high-performance applications that benefit from batch operations. It's also useful for testing RPC integrations and debugging network communication.
+
+## Understanding Subscriptions and Reconnection
+
+Subscriptions maintain state on both client and server. If the WebSocket connection drops, subscriptions are lost and must be re-established. The client package doesn't automatically resubscribe because it doesn't know your subscription parameters.
+
+For production applications, implement reconnection logic that detects when a subscription fails, reconnects to the server, and resubscribes with your parameters. Buffer subscription channels appropriately to handle burst traffic without losing events.
 
 ## Available Documentation
 
 - [Client Functions](/docs/client/functions) - Package-level functions for creating clients and managing context
 - [Client Methods](/docs/client/methods) - Client methods for RPC calls, subscriptions, and batch operations
-- [Types](/docs/client/types) - Type definitions for Client, Server, Subscriptions, and options
 
-## Getting Started
+:::note
+Most Starknet developers should use the [RPC Package](/docs/rpc/) which provides a higher-level interface built on top of the client package. The RPC package offers typed methods for all Starknet operations, automatic parameter encoding, and better error handling for Starknet-specific scenarios.
 
-To use the client package, import it in your Go code:
+For WebSocket subscription examples, see the [WebSocket Examples](/docs/examples/websocket) page which demonstrates subscribing to blocks, transactions, and events.
+:::
 
-```go
-import "github.com/NethermindEth/starknet.go/client"
-```
+:::tip
+Best Practices
 
-## Key Features
-
-### Connection Management
-- HTTP and WebSocket transport support
-- Automatic reconnection handling
-- Connection pooling and reuse
-
-### Request Handling
-- Synchronous and asynchronous calls
-- Context-based cancellation and timeouts
-- Custom HTTP headers via context
-
-### Batch Operations
-- Send multiple requests in a single batch
-- Reduces network overhead
-- Parallel request processing
-
-### Subscriptions
-- Real-time event streaming
-- Automatic reorg handling
-- Type-safe channel delivery
-
-## Related Packages
-
-- [RPC Package](/docs/rpc/) - High-level Starknet RPC methods
-- [Account Package](/docs/account/) - Account management and transactions
-- [Examples](/docs/examples/websocket) - WebSocket subscription examples
-
-## Version
-
-This documentation is based on the latest version of the Starknet.go library. 
+Always close clients when done to free network resources. Use contexts with timeouts to prevent hanging requests. Handle subscription errors by monitoring the subscription's error channel. For production systems, implement reconnection logic for WebSocket connections. Use batch requests when making multiple independent calls to reduce network overhead. Set appropriate buffer sizes on subscription channels based on expected event volume.
+:::

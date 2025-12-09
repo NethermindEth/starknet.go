@@ -1,41 +1,65 @@
 # SubscribeTransactionStatus
 
-Subscribe to transaction status updates via WebSocket stream.
+Creates a WebSocket stream which at first fires an event with the current known transaction status, followed by events for every transaction status update. The stream monitors a specific transaction as it progresses through different states until finalization.
 
 import { Callout } from 'vocs/components'
 
 <Callout type="warning">
-  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers may have limited support for transaction status subscriptions. Check your provider's documentation for WebSocket method availability.
+  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers may have limited support for WebSocket subscriptions. Check your provider's documentation for WebSocket method availability, or consider [running your own Juno node](https://www.youtube.com/watch?v=gvdC2XIOibA) for full WebSocket support.
 </Callout>
 
 ## Method Signature
 
 ```go
 func (ws *WsProvider) SubscribeTransactionStatus(
-    ctx context.Context,
-    newStatus chan<- *NewTxnStatus,
-    transactionHash *felt.Felt,
+	ctx context.Context,
+	newStatus chan<- *NewTxnStatus,
+	transactionHash *felt.Felt,
 ) (*client.ClientSubscription, error)
 ```
 
+**Source:** [websocket.go:L163-L180](https://github.com/NethermindEth/starknet.go/blob/main/rpc/websocket.go#L163-L180)
+
 ## Parameters
 
-- `ctx` - The context.Context object for controlling the function call
-- `newStatus` - The channel to send transaction status updates to
-- `transactionHash` - The hash of the transaction to monitor
+- `ctx` (context.Context): The context for controlling the function call
+- `newStatus` (chan&lt;- \*NewTxnStatus): The channel to send the new transaction status to
+- `transactionHash` (\*felt.Felt): The transaction hash to fetch status updates for
 
 ## Returns
 
-- `*client.ClientSubscription` - The client subscription object, used to unsubscribe from the stream and to get errors
-- `error` - An error, if any
+- `*client.ClientSubscription`: The client subscription object, used to unsubscribe from the stream and to get errors
+- `error`: An error if any occurred
 
-## Description
+## Type Definitions
 
-SubscribeTransactionStatus creates a WebSocket stream that monitors a specific transaction's status changes. The stream first fires an event with the current known status, then continues to send updates as the transaction progresses through different states (received → pending → accepted → finalized).
+### NewTxnStatus
 
-This is particularly useful for waiting for transaction confirmations and tracking transaction lifecycle.
+The transaction status notification received from the server.
 
-The subscription will continue to send status updates until the transaction is finalized, unsubscribed, or the connection is closed.
+```go
+type NewTxnStatus struct {
+	TransactionHash *felt.Felt      `json:"transaction_hash"`
+	Status          TxnStatusResult `json:"status"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L240-L243](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L240-L243)
+
+### TxnStatusResult
+
+The detailed status information for a transaction.
+
+```go
+type TxnStatusResult struct {
+	FinalityStatus  TxnStatus          `json:"finality_status"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	// the failure reason, only appears if execution_status is REVERTED
+	FailureReason string `json:"failure_reason,omitempty"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L232-L237](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L232-L237)
 
 ## Usage Example
 
@@ -46,23 +70,40 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Connect to WebSocket endpoint
-	wsProvider, err := rpc.NewProvider("wss://starknet-sepolia.public.blastapi.io/rpc/v0_7")
+	// Load environment variables
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error loading .env file")
+	}
+
+	wsURL := os.Getenv("STARKNET_WS_URL")
+	if wsURL == "" {
+		log.Fatal("STARKNET_WS_URL not found in .env file")
 	}
 
 	ctx := context.Background()
 
-	// Transaction hash to monitor
-	txHash, _ := new(felt.Felt).SetString("0x1234567890abcdef...")
+	// Connect to WebSocket endpoint
+	wsProvider, err := rpc.NewWebsocketProvider(ctx, wsURL)
+	if err != nil {
+		log.Fatal("Failed to connect:", err)
+	}
+	defer wsProvider.Close()
+
+	// Transaction hash to monitor (replace with actual transaction hash)
+	txHash, err := new(felt.Felt).SetString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+	if err != nil {
+		log.Fatal("Invalid transaction hash:", err)
+	}
 
 	// Create channel to receive status updates
 	statusChan := make(chan *rpc.NewTxnStatus)
@@ -74,92 +115,64 @@ func main() {
 	}
 	defer sub.Unsubscribe()
 
-	fmt.Printf("Monitoring transaction: %s\n", txHash)
+	fmt.Printf("Successfully subscribed to transaction status\n")
+	fmt.Printf("Monitoring transaction: %s\n\n", txHash)
 
-	// Listen for status updates
+	// Listen for status updates with timeout
+	timeout := time.After(60 * time.Second)
+	updateCount := 0
+
 	for {
 		select {
 		case status := <-statusChan:
-			fmt.Printf("\nStatus Update:\n")
+			updateCount++
+			fmt.Printf("Status Update #%d:\n", updateCount)
 			fmt.Printf("  Transaction Hash: %s\n", status.TransactionHash)
-			fmt.Printf("  Execution Status: %s\n", status.ExecutionStatus)
-			fmt.Printf("  Finality Status: %s\n", status.FinalityStatus)
+			fmt.Printf("  Execution Status: %s\n", status.Status.ExecutionStatus)
+			fmt.Printf("  Finality Status: %s\n", status.Status.FinalityStatus)
+
+			if status.Status.ExecutionStatus == "REVERTED" {
+				fmt.Printf("  Failure Reason: %s\n", status.Status.FailureReason)
+			}
+			fmt.Println()
 
 			// Check if transaction is finalized
-			if status.FinalityStatus == "ACCEPTED_ON_L1" ||
-			   status.FinalityStatus == "ACCEPTED_ON_L2" {
-				fmt.Println("✅ Transaction finalized!")
-
-				if status.ExecutionStatus == "SUCCEEDED" {
-					fmt.Println("✅ Transaction executed successfully")
-				} else if status.ExecutionStatus == "REVERTED" {
-					fmt.Printf("❌ Transaction reverted: %s\n", status.RevertReason)
+			if status.Status.FinalityStatus == "ACCEPTED_ON_L1" ||
+				status.Status.FinalityStatus == "ACCEPTED_ON_L2" {
+				fmt.Println("Transaction finalized!")
+				if status.Status.ExecutionStatus == "SUCCEEDED" {
+					fmt.Println("Transaction executed successfully")
+				} else if status.Status.ExecutionStatus == "REVERTED" {
+					fmt.Printf("Transaction reverted: %s\n", status.Status.FailureReason)
 				}
+				fmt.Printf("\nTest completed - received %d status update(s)\n", updateCount)
 				return
 			}
 		case err := <-sub.Err():
 			log.Fatal("Subscription error:", err)
-		case <-time.After(5 * time.Minute):
-			fmt.Println("Timeout waiting for finalization")
+		case <-timeout:
+			if updateCount > 0 {
+				fmt.Printf("Test completed - received %d status update(s)\n", updateCount)
+			} else {
+				fmt.Println("Timeout - no updates received (transaction hash may not exist)")
+			}
 			return
 		}
 	}
 }
 ```
 
-## Status Information
-
-The `NewTxnStatus` struct contains:
-
-- **TransactionHash** - Hash of the monitored transaction
-- **ExecutionStatus** - Execution outcome: "SUCCEEDED" or "REVERTED"
-- **FinalityStatus** - Finality state: "RECEIVED", "ACCEPTED_ON_L2", or "ACCEPTED_ON_L1"
-- **RevertReason** - Error message if transaction reverted
-
-## Transaction Status Flow
-
-A transaction typically progresses through these states:
-
-1. **RECEIVED** - Transaction received by sequencer
-2. **PENDING** - Transaction included in pending block (may be seen in mempool)
-3. **ACCEPTED_ON_L2** - Transaction included in L2 block
-4. **ACCEPTED_ON_L1** - Transaction finalized on L1 (Ethereum)
-
-**Execution Status**:
-- **SUCCEEDED** - Transaction executed successfully
-- **REVERTED** - Transaction failed during execution
-
-## Common Use Cases
-
-1. **Transaction Confirmation Waiting**: Wait for specific confirmation levels
-2. **User Feedback**: Provide real-time transaction status to users
-3. **Automated Workflows**: Trigger actions when transactions are confirmed
-4. **Error Handling**: Detect and handle transaction failures immediately
-5. **Multi-Step Processes**: Coordinate dependent transactions
-
-## Confirmation Levels
-
-Different applications may require different finality guarantees:
-
-```go
-// Wait for L2 acceptance (faster, ~10-30 seconds)
-if status.FinalityStatus == "ACCEPTED_ON_L2" {
-	// Transaction is in an L2 block
-}
-
-// Wait for L1 finality (slower, ~2-4 hours, but more secure)
-if status.FinalityStatus == "ACCEPTED_ON_L1" {
-	// Transaction is finalized on Ethereum
-}
-```
+:::note
+Create a `.env` file in your project root with `STARKNET_WS_URL` and install the godotenv package to run the code snippet. Replace the placeholder transaction hash with an actual pending or recent transaction hash.
+:::
 
 ## Error Handling
 
 ```go
 sub, err := wsProvider.SubscribeTransactionStatus(ctx, statusChan, txHash)
 if err != nil {
-	// Handle subscription errors
-	log.Fatal("Failed to subscribe:", err)
+	log.Printf("Subscription error: %v", err)
+	return
 }
 
 // Listen for stream errors
@@ -172,25 +185,15 @@ go func() {
 
 // Handle transaction failures
 status := <-statusChan
-if status.ExecutionStatus == "REVERTED" {
-	log.Printf("Transaction failed: %s", status.RevertReason)
+if status.Status.ExecutionStatus == "REVERTED" {
+	log.Printf("Transaction failed: %s", status.Status.FailureReason)
 }
 ```
 
-## Possible Errors
+## Common Use Cases
 
-- `ErrTxnHashNotFound` - Transaction hash does not exist
-- Connection errors - WebSocket connection issues
-- Transaction not found errors
+- Waiting for specific confirmation levels before considering transactions final.
+- Providing real-time transaction status updates to users in applications.
+- Triggering follow-up actions when transactions are confirmed or finalized.
+- Immediately detecting and handling transaction failures with detailed failure reasons.
 
-## Related Methods
-
-- [SubscribeEvents](./subscribe-events) - Subscribe to contract events
-- [SubscribeNewTransactions](./subscribe-new-transactions) - Subscribe to new transactions
-- [SubscribeNewTransactionReceipts](./subscribe-new-transaction-receipts) - Subscribe to transaction receipts
-- [GetTransactionStatus](../methods/get-transaction-status) - Query status by hash (non-streaming)
-- [TransactionReceipt](../methods/transaction-receipt) - Get transaction receipt
-
-## Specification
-
-Follows the Starknet WebSocket RPC specification for `starknet_subscribeTransactionStatus`.

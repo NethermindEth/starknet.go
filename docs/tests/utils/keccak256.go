@@ -7,16 +7,13 @@ import (
 )
 
 func main() {
-	fmt.Println("Keccak256:")
-	
-	// Test with simple strings
-	data1 := []byte("hello")
-	hash1 := utils.Keccak256(data1)
-	fmt.Printf("  Input: %s\n", string(data1))
-	fmt.Printf("  Output: %x\n\n", hash1)
-	
-	data2 := []byte("transfer")
-	hash2 := utils.Keccak256(data2)
-	fmt.Printf("  Input: %s\n", string(data2))
-	fmt.Printf("  Output: %x\n\n", hash2)
+	// Hash simple string
+	hash := utils.Keccak256([]byte("hello"))
+	fmt.Printf("keccak256('hello') = %x\n", hash)
+	// Output: 1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
+
+	// Hash function name (used for selectors)
+	hash2 := utils.Keccak256([]byte("transfer"))
+	fmt.Printf("keccak256('transfer') = %x\n", hash2)
+	// Output: b483afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e
 }
