@@ -165,7 +165,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
-					"./testData/blockWithHashes/sepoliaBlockWithHashes3100000.json", "result",
+					"./testData/blockWithHashes/sepolia3100000.json", "result",
 				)
 
 				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
