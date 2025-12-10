@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -9,6 +9,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 // TestCall tests the Call function.
@@ -171,15 +172,33 @@ func TestCall(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run("Test: "+test.name, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_call",
+						test.FunctionCall,
+						test.BlockID,
+					).
+					DoAndReturn(
+						func(_, result, _ any, _ ...any) error {
+							rawResp := result.(*json.RawMessage)
+							*rawResp = json.RawMessage("[\"0xdeadbeef\"]")
+
+							return nil
+						},
+					).
+					Times(1)
+			}
 			output, err := testConfig.Provider.Call(
-				context.Background(),
+				t.Context(),
 				test.FunctionCall,
 				test.BlockID,
 			)
 			if test.ExpectedError != nil {
-				rpcErr, ok := err.(*RPCError)
-				require.True(t, ok)
-				assert.ErrorContains(t, test.ExpectedError, rpcErr.Message)
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, output, "should return an output")

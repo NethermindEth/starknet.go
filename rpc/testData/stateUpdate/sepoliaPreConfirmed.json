@@ -1,7 +1,6 @@
 {
 	"jsonrpc": "2.0",
 	"result": {
-		"old_root": null,
 		"state_diff": {
 			"storage_diffs": [
 				{
