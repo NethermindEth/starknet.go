@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -9,37 +10,49 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-// TestChainID is a function that tests the ChainID function in the Go test file.
+// TestChainID is a function that tests the ChainID function.
 func TestChainID(t *testing.T) {
 	tests.RunTestOn(
 		t,
-		tests.MockEnv,
-		tests.TestnetEnv,
-		tests.MainnetEnv,
 		tests.DevnetEnv,
 		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
 	)
 
 	testConfig := BeforeEach(t, false)
 
-	type testSetType struct {
-		ChainID string
-	}
-	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv:      {{ChainID: "SN_SEPOLIA"}},
-		tests.MainnetEnv:     {{ChainID: "SN_MAIN"}},
-		tests.MockEnv:        {{ChainID: "SN_SEPOLIA"}},
-		tests.TestnetEnv:     {{ChainID: "SN_SEPOLIA"}},
-		tests.IntegrationEnv: {{ChainID: "SN_INTEGRATION_SEPOLIA"}},
+	testCase := map[tests.TestEnv]string{
+		tests.DevnetEnv:      "SN_SEPOLIA",
+		tests.IntegrationEnv: "SN_INTEGRATION_SEPOLIA",
+		tests.MainnetEnv:     "SN_MAIN",
+		tests.MockEnv:        "SN_SEPOLIA",
+		tests.TestnetEnv:     "SN_SEPOLIA",
 	}[tests.TEST_ENV]
 
-	for _, test := range testSet {
-		chain, err := testConfig.Provider.ChainID(context.Background())
-		require.NoError(t, err)
-		require.Equal(t, test.ChainID, chain)
+	if tests.TEST_ENV == tests.MockEnv {
+		testConfig.MockClient.EXPECT().
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.Any(),
+				"starknet_chainId",
+			).
+			DoAndReturn(func(_, result, _ any, _ ...any) error {
+				rawResp := result.(*json.RawMessage)
+				*rawResp = json.RawMessage("\"0x534e5f5345504f4c4941\"") // "SN_SEPOLIA"
+
+				return nil
+			}).
+			Times(1)
 	}
+
+	chain, err := testConfig.Provider.ChainID(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, testCase, chain)
 }
 
 // TestSyncing is a test function that tests the syncing functionality of the provider.
