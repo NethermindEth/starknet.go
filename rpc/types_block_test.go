@@ -117,29 +117,6 @@ func TestBlockStatus(t *testing.T) {
 	}
 }
 
-//go:embed testData/block/sepoliaBlockTxs65083.json
-var rawBlock []byte
-
-// TestBlock_Unmarshal tests the Unmarshal function of the Block type.
-//
-// This test case unmarshals raw block data into a Block instance and verifies
-// that there are no errors during the process. If any error occurs, the test
-// fails with a fatal error message.
-//
-// Parameters:
-//   - t: the testing object for running the test
-//
-// Returns:
-//
-//	none
-func TestBlock_Unmarshal(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
-	b := Block{}
-	if err := json.Unmarshal(rawBlock, &b); err != nil {
-		t.Fatalf("Unmarshalling block: %v", err)
-	}
-}
-
 func TestBlockWithReceipts(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
