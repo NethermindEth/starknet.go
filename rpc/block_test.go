@@ -1,10 +1,8 @@
 package rpc
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
@@ -480,148 +478,124 @@ func TestBlockTransactionCount(t *testing.T) {
 
 // TestStateUpdate is a test function for the StateUpdate method.
 func TestStateUpdate(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
+	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID                       BlockID
-		ExpectedStateUpdateOutputPath string
+		BlockID     BlockID
+		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:                       WithBlockNumber(30000),
-				ExpectedStateUpdateOutputPath: "testData/stateUpdate/sepolia_30000.json",
-			},
-		},
-		tests.TestnetEnv: {
-			{
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
-			},
-			{
-				BlockID:                       WithBlockNumber(30000),
-				ExpectedStateUpdateOutputPath: "testData/stateUpdate/sepolia_30000.json",
-			},
-			{
-				BlockID:                       WithBlockNumber(1060000),
-				ExpectedStateUpdateOutputPath: "testData/stateUpdate/sepolia_1_060_000.json",
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
+		},
+		tests.MainnetEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
+		},
+		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
-			},
-			{
-				BlockID:                       WithBlockNumber(30000),
-				ExpectedStateUpdateOutputPath: "testData/stateUpdate/integration_30000.json",
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
+
+	if tests.TEST_ENV != tests.MockEnv {
+		// add the common block IDs to the test set of network tests
+		blockIDs := GetCommonBlockIDs(t, provider)
+		for _, blockID := range blockIDs {
+			testSet = append(testSet, testSetType{
+				BlockID: blockID,
+			})
+		}
+	}
+
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("BlockID: %v", test.BlockID), func(t *testing.T) {
-			stateUpdate, err := testConfig.Provider.StateUpdate(context.Background(), test.BlockID)
-			require.NoError(t, err, "Unable to fetch the given block.")
+		blockID, _ := test.BlockID.MarshalJSON()
+		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/stateUpdate/sepolia3100000.json", "result",
+				)
 
-			if test.ExpectedStateUpdateOutputPath != "" {
-				rawExpectedCasmClass, err := os.ReadFile(test.ExpectedStateUpdateOutputPath)
-				require.NoError(t, err)
+				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/stateUpdate/sepoliaPreConfirmed.json", "result",
+				)
 
-				rawActualCasmClass, err := json.Marshal(stateUpdate)
-				require.NoError(t, err)
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getStateUpdate",
+						test.BlockID,
+					).
+					DoAndReturn(
+						func(_, result, _ any, args ...any) error {
+							rawResp := result.(*json.RawMessage)
+							blockID := args[0].(BlockID)
 
-				assertStateUpdateJSONEquality(t, "result", rawExpectedCasmClass, rawActualCasmClass)
+							switch blockID.Tag {
+							case BlockTagPreConfirmed:
+								*rawResp = blockSepoliaPreConfirmed
+							case BlockTagLatest:
+								*rawResp = blockSepolia3100000
+							}
+
+							if blockID.Number != nil && *blockID.Number == 99999999999999999 {
+								return RPCError{
+									Code:    24,
+									Message: "Block not found",
+								}
+							}
+
+							return nil
+						},
+					).
+					Times(1)
+			}
+
+			stateUpdate, err := provider.StateUpdate(t.Context(), test.BlockID)
+			if test.ExpectedErr != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedErr.Error())
 
 				return
 			}
-			assert.NotEmpty(t, stateUpdate)
+			require.NoError(t, err)
+
+			rawExpectedStateUpdate := testConfig.Spy.LastResponse()
+
+			rawStateUpdate, err := json.Marshal(stateUpdate)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedStateUpdate), string(rawStateUpdate))
 		})
 	}
-}
-
-func assertStateUpdateJSONEquality(t *testing.T, subfield string, expectedResult, result []byte) {
-	// unmarshal to map[string]any
-	var expectedResultMap, resultMap map[string]any
-	require.NoError(t, json.Unmarshal(expectedResult, &expectedResultMap))
-	require.NoError(t, json.Unmarshal(result, &resultMap))
-
-	if subfield != "" {
-		var ok bool
-		expectedResultMap, ok = expectedResultMap[subfield].(map[string]any)
-		require.True(t, ok, "expected result map should have a subfield %s", subfield)
-	}
-
-	assert.Equal(t, expectedResultMap["block_hash"], resultMap["block_hash"])
-	assert.Equal(t, expectedResultMap["new_root"], resultMap["new_root"])
-	assert.Equal(t, expectedResultMap["old_root"], resultMap["old_root"])
-
-	// ********** compare 'state_diff' **********
-	expectedStateDiff, ok := expectedResultMap["state_diff"].(map[string]any)
-	require.True(t, ok)
-	resultStateDiff, ok := resultMap["state_diff"].(map[string]any)
-	require.True(t, ok)
-
-	// compare 'state_diff.storage_diffs'
-	expectedStorageDiffs, ok := expectedStateDiff["storage_diffs"].([]any)
-	require.True(t, ok)
-	resultStorageDiffs, ok := resultStateDiff["storage_diffs"].([]any)
-	require.True(t, ok)
-
-	expectedStorageDiffsMap := make(map[string]any)
-	resultStorageDiffsMap := make(map[string]any)
-
-	for i, expectedStorageDiff := range expectedStorageDiffs {
-		expectedStorageDiffMap, ok := expectedStorageDiff.(map[string]any)
-		require.True(t, ok)
-		address, ok := expectedStorageDiffMap["address"].(string)
-		require.True(t, ok)
-		storageEntries, ok := expectedStorageDiffMap["storage_entries"].([]any)
-		require.True(t, ok)
-
-		expectedStorageDiffsMap[address] = storageEntries
-
-		resultStorageDiffMap, ok := resultStorageDiffs[i].(map[string]any)
-		require.True(t, ok)
-		address2, ok := resultStorageDiffMap["address"].(string)
-		require.True(t, ok)
-		storageEntries2, ok := resultStorageDiffMap["storage_entries"].([]any)
-		require.True(t, ok)
-
-		resultStorageDiffsMap[address2] = storageEntries2
-	}
-
-	assert.Len(t, resultStorageDiffsMap, len(expectedStorageDiffsMap))
-	for address, expectedStorageEntries := range expectedStorageDiffsMap {
-		resultStorageEntries, ok := resultStorageDiffsMap[address]
-		require.True(t, ok, "address %s not found in resultStorageDiffsMap", address)
-		assert.ElementsMatch(t, expectedStorageEntries, resultStorageEntries)
-	}
-
-	// other state diff fields
-	assert.ElementsMatch(t, expectedResultMap["nonces"], resultMap["nonces"])
-	assert.ElementsMatch(
-		t,
-		expectedResultMap["deployed_contracts"],
-		resultMap["deployed_contracts"],
-	)
-	assert.ElementsMatch(
-		t,
-		expectedResultMap["deprecated_declared_classes"],
-		resultMap["deprecated_declared_classes"],
-	)
-	assert.ElementsMatch(t, expectedResultMap["declared_classes"], resultMap["declared_classes"])
-	assert.ElementsMatch(t, expectedResultMap["replaced_classes"], resultMap["replaced_classes"])
 }
