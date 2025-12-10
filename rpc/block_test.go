@@ -234,98 +234,124 @@ func TestBlockWithTxHashes(t *testing.T) {
 }
 
 // TestBlockWithTxs tests the BlockWithTxs function.
-//
-// The function tests the BlockWithTxs function by setting up a test configuration and a test set type.
-// It then initialises Block type variables and invokes the BlockWithTxs function with different test scenarios.
-// The function checks if the BlockWithTxs function returns the correct block data.
-// It also verifies the block hash, the number of transactions in the block, and the details of a specific transaction.
-//
-// Parameters:
-//   - t: The t testing object
-//
-// Returns:
-//
-//	none
 func TestBlockWithTxs(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 	provider := testConfig.Provider
-	spy := tests.NewJSONRPCSpy(provider.c)
-	provider.c = spy
 
 	type testSetType struct {
-		BlockID BlockID
+		BlockID     BlockID
+		ExpectedErr error
 	}
-
-	// TODO: use these blocks for mock tests
-	// fullBlockSepolia65083 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs65083.json", "result")
-	// fullBlockSepolia122476 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/sepoliaBlockTxs122476.json", "result")
-	// fullBlockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[Block](t, "./testData/block/integration1_300_000.json", "result")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
-			},
-			{
 				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
-				BlockID: WithBlockNumber(65083),
-			},
-			{
-				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x549770b5b74df90276277ff7a11af881c998dffa452f4156f14446db6005174")),
-			},
-		},
-		tests.TestnetEnv: {
-			{
-				BlockID: WithBlockTag(BlockTagLatest),
-			},
-			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
-			},
-			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
-			},
-			{
-				BlockID: WithBlockNumber(65083),
-			},
-			{
-				BlockID: WithBlockNumber(3100000),
-			},
-			{
-				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x56a71e0443d2fbfaa91b1000e830b516ca0d4a424abb9c970d23801957dbfa3")),
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
+		},
+		tests.MainnetEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
+		},
+		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
-			},
-			{
-				BlockID: WithBlockNumber(1300000),
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 
+	if tests.TEST_ENV != tests.MockEnv {
+		// add the common block IDs to the test set of network tests
+		blockIDs := GetCommonBlockIDs(t, provider)
+		for _, blockID := range blockIDs {
+			testSet = append(testSet, testSetType{
+				BlockID: blockID,
+			})
+		}
+	}
+
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/blockWithTxns/sepolia3100000.json", "result",
+				)
+
+				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/blockWithTxns/sepoliaPreConfirmed.json", "result",
+				)
+
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getBlockWithTxs",
+						test.BlockID,
+					).
+					DoAndReturn(
+						func(_, result, _ any, args ...any) error {
+							rawResp := result.(*json.RawMessage)
+							blockID := args[0].(BlockID)
+
+							switch blockID.Tag {
+							case BlockTagPreConfirmed:
+								*rawResp = blockSepoliaPreConfirmed
+							case BlockTagL1Accepted:
+								*rawResp = blockSepolia3100000
+							}
+
+							if blockID.Number != nil && *blockID.Number == 99999999999999999 {
+								return RPCError{
+									Code:    24,
+									Message: "Block not found",
+								}
+							}
+
+							return nil
+						},
+					).
+					Times(1)
+			}
+
 			blockWithTxsInterface, err := provider.BlockWithTxs(
-				context.Background(),
+				t.Context(),
 				test.BlockID,
 			)
-			require.NoError(t, err, "Unable to fetch the given block.")
-			rawExpectedBlock := spy.LastResponse()
+			if test.ExpectedErr != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedErr.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedBlock := testConfig.Spy.LastResponse()
 
 			switch block := blockWithTxsInterface.(type) {
 			case *PreConfirmedBlock:
