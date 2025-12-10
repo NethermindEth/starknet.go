@@ -261,7 +261,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 	}
 }
 
-//nolint:dupl,tparallel // The tests are similar, but they are testing different things. // Run sequentially to avoid race conditions with the `tests` variable.
+//nolint:tparallel // Run sequentially to avoid race conditions with the `tests` variable.
 func TestFeeEstToResBoundsMap(t *testing.T) {
 	t.Parallel()
 

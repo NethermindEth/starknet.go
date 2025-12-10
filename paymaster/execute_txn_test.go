@@ -236,7 +236,6 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
-		//nolint:dupl // A function just to wrap the test body is overkill
 		t.Run("execute invoke transaction", func(t *testing.T) {
 			t.Parallel()
 			t.Log("building invoke request")
@@ -282,7 +281,6 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
-		//nolint:dupl // A function just to wrap the test body is overkill
 		t.Run("execute deploy_and_invoke transaction", func(t *testing.T) {
 			t.Parallel()
 			t.Log("building deploy_and_invoke request")
@@ -369,7 +367,7 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccountDeploymentDat
 
 // buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
 //
-//nolint:dupl // It is similar to buildInvokeTxn, but it has small differences
+
 func buildDeployTxn(
 	t *testing.T,
 	pm *Paymaster,
@@ -429,7 +427,7 @@ func createInvokeData(t *testing.T, accAdd *felt.Felt) *UserInvoke {
 
 // buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
 //
-//nolint:dupl // It is similar to buildDeployTxn, but it has small differences
+
 func buildInvokeTxn(
 	t *testing.T,
 	pm *Paymaster,
