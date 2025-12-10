@@ -1,0 +1,29 @@
+{
+	"jsonrpc": "2.0",
+	"result": {
+		"block_number": 3819723,
+		"timestamp": 1765372181,
+		"sequencer_address": "0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+		"l1_gas_price": {
+			"price_in_fri": "0x1b90b824c872",
+			"price_in_wei": "0x3b9aca08"
+		},
+		"l1_data_gas_price": {
+			"price_in_fri": "0x7664",
+			"price_in_wei": "0x1"
+		},
+		"l1_da_mode": "BLOB",
+		"starknet_version": "0.14.1",
+		"l2_gas_price": {
+			"price_in_fri": "0x1dcd65000",
+			"price_in_wei": "0x40711"
+		},
+		"transactions": [
+			"0x7dc38212e52fe0d655c7be56d8ba904717c08260db21a12208099a8d4a5159",
+			"0x60279badf0deb4d775b755d96f9bef094dd1a84e9dd08a830a6bbfa62adf715",
+			"0x32a6d69e023d25c7f3e873816ba807d3e5b03de4670d6710453aaf8ba892189",
+			"0x64e606c48d24c81c3a9bf7f4702f22c561203d2dab84d4b067592065e355c5a"
+		]
+	},
+	"id": 1
+}

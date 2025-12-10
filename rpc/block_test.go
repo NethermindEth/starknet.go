@@ -101,114 +101,113 @@ func TestBlockHashAndNumber(t *testing.T) {
 	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
 }
 
-// TestBlockWithTxHashes tests the functionality of the BlockWithTxHashes function.
-//
-// The function takes a testing.T object as a parameter and initialises a testConfig object.
-// It defines a testSetType struct that contains several fields including BlockID, ExpectedError, ExpectedBlockWithTxHashes, and ExpectedPre_confirmedBlockWithTxHashes.
-// The function then initialises a blockSepolia64159 variable of type BlockTxHashes with a predefined set of values.
-// It also initialises a txHashes variable of type []felt.Felt and a blockHash variable of type felt.Felt.
-//
-// The function defines a testSet map that has three keys: "mock", "testnet", and "mainnet".
-// Each key corresponds to a slice of testSetType objects.
-// The "mock" key has two testSetType objects with different field values.
-// The "testnet" key has three testSetType objects with different field values.
-// The "mainnet" key does not have any testSetType objects.
-//
-// The function then iterates over the testSet map and performs the following steps for each testSetType object:
-//   - It creates a new Spy object and assigns it to the testConfig.provider.c field.
-//   - It calls the BlockWithTxHashes function with the provided BlockID and stores the result in the result variable.
-//   - It checks if the returned error matches the expected error. If not, it calls the Fatal function of the testing.T object with an error message.
-//   - It checks the type of the result variable and performs specific assertions based on the type.
-//   - If the result is of type *BlockTxHashes, it checks various fields of the BlockTxHashes object against the expected values.
-//   - If the result is of type *Pre_confirmedBlockTxHashes, it checks various fields of the Pre_confirmedBlockTxHashes object against the expected values.
-//   - If the result is of any other type, it calls the Fatal function of the testing.T object with an error message.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestBlockWithTxHashes tests the BlockWithTxHashes function.
 func TestBlockWithTxHashes(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 	provider := testConfig.Provider
-	spy := tests.NewJSONRPCSpy(provider.c)
-	provider.c = spy
 
 	type testSetType struct {
 		BlockID     BlockID
 		ExpectedErr error
 	}
 
-	// TODO: use these blocks for mock tests
-	// blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/sepoliaBlockWithHashes3100000.json", "result")
-	// blockIntegration1300000 := *internalUtils.TestUnmarshalJSONFileToType[BlockTxHashes](t, "./testData/blockWithHashes/integration1_300_000.json", "result")
-
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:     BlockID{Tag: BlockTagPreConfirmed},
-				ExpectedErr: nil,
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
-				BlockID: BlockID{Hash: internalUtils.DeadBeef},
+				BlockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
-				BlockID: BlockID{Tag: BlockTagL1Accepted},
-			},
-		},
-		tests.TestnetEnv: {
-			{
-				BlockID:     WithBlockTag(BlockTagLatest),
-				ExpectedErr: nil,
-			},
-			{
-				BlockID:     WithBlockTag(BlockTagPreConfirmed),
-				ExpectedErr: nil,
-			},
-			{
-				BlockID:     WithBlockTag(BlockTagL1Accepted),
-				ExpectedErr: nil,
-			},
-			{
-				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x1640b846e71502526539c32c8420cd7cb0f28d83ece2e6e71aeaf7c97960bb2")),
-				ExpectedErr: nil,
-			},
-			{
-				BlockID:     WithBlockNumber(3100000),
-				ExpectedErr: nil,
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockTag(BlockTagLatest),
-				ExpectedErr: nil,
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
+		},
+		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockTag(BlockTagPreConfirmed),
-				ExpectedErr: nil,
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
+		},
+		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockTag(BlockTagL1Accepted),
-				ExpectedErr: nil,
-			},
-			{
-				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x503e44c7d47a2e17022c52092e7dadd338b79df84f844b9f26dbdd1598a23e")),
-				ExpectedErr: nil,
-			},
-			{
-				BlockID:     WithBlockNumber(1300000),
-				ExpectedErr: nil,
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 
+	if tests.TEST_ENV != tests.MockEnv {
+		// add the common block IDs to the test set of network tests
+		blockIDs := GetCommonBlockIDs(t, provider)
+		for _, blockID := range blockIDs {
+			testSet = append(testSet, testSetType{
+				BlockID: blockID,
+			})
+		}
+	}
+
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
-			result, err := provider.BlockWithTxHashes(context.Background(), test.BlockID)
+			if tests.TEST_ENV == tests.MockEnv {
+				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/blockWithHashes/sepoliaBlockWithHashes3100000.json", "result",
+				)
+
+				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/blockWithHashes/sepoliaPreConfirmed.json", "result",
+				)
+
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getBlockWithTxHashes",
+						test.BlockID,
+					).
+					DoAndReturn(
+						func(_, result, _ any, args ...any) error {
+							rawResp := result.(*json.RawMessage)
+							blockID := args[0].(BlockID)
+
+							switch blockID.Tag {
+							case BlockTagPreConfirmed:
+								*rawResp = blockSepoliaPreConfirmed
+							case BlockTagL1Accepted:
+								*rawResp = blockSepolia3100000
+							}
+
+							if blockID.Number != nil && *blockID.Number == 99999999999999999 {
+								return RPCError{
+									Code:    24,
+									Message: "Block not found",
+								}
+							}
+
+							return nil
+						},
+					).
+					Times(1)
+			}
+
+			result, err := provider.BlockWithTxHashes(t.Context(), test.BlockID)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedErr.Error())
@@ -216,7 +215,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			rawExpectedBlock := spy.LastResponse()
+			rawExpectedBlock := testConfig.Spy.LastResponse()
 
 			switch block := result.(type) {
 			case *BlockTxHashes:
