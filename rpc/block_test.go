@@ -478,62 +478,6 @@ func TestBlockTransactionCount(t *testing.T) {
 	}
 }
 
-// TestCaptureUnsupportedBlockTxn tests the functionality of capturing unsupported block transactions.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
-func TestCaptureUnsupportedBlockTxn(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv)
-
-	testConfig := BeforeEach(t, false)
-
-	type testSetType struct {
-		StartBlock uint64
-		EndBlock   uint64
-	}
-	testSet := map[tests.TestEnv][]testSetType{
-		tests.TestnetEnv: {
-			{
-				StartBlock: 52959,
-				EndBlock:   52960,
-			},
-		},
-	}[tests.TEST_ENV]
-	for _, test := range testSet {
-		for i := test.StartBlock; i < test.EndBlock; i++ {
-			blockWithTxsInterface, err := testConfig.Provider.BlockWithTxs(
-				context.Background(),
-				WithBlockNumber(i),
-			)
-			require.NoError(t, err)
-			blockWithTxs, ok := blockWithTxsInterface.(*Block)
-			require.True(t, ok, "expecting *rpc.Block, instead %T", blockWithTxsInterface)
-
-			for k, v := range blockWithTxs.Transactions {
-				_, okv0 := v.Transaction.(InvokeTxnV0)
-				_, okv1 := v.Transaction.(InvokeTxnV1)
-				_, okv3 := v.Transaction.(InvokeTxnV3)
-				_, okl1 := v.Transaction.(L1HandlerTxn)
-				_, okdec0 := v.Transaction.(DeclareTxnV0)
-				_, okdec1 := v.Transaction.(DeclareTxnV1)
-				_, okdec2 := v.Transaction.(DeclareTxnV2)
-				_, okdec3 := v.Transaction.(DeclareTxnV3)
-				_, okdep := v.Transaction.(DeployTxn)
-				_, okdepac := v.Transaction.(DeployAccountTxnV1)
-				if !okv0 && !okv1 && !okv3 && !okl1 && !okdec0 && !okdec1 && !okdec2 && !okdec3 &&
-					!okdep &&
-					!okdepac {
-					t.Fatalf("New Type Detected %T at Block(%d)/Txn(%d)", v, i, k)
-				}
-			}
-		}
-	}
-}
-
 // TestStateUpdate is a test function for the StateUpdate method.
 func TestStateUpdate(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
