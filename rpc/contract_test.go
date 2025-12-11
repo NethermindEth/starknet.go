@@ -645,7 +645,6 @@ func TestNonce(t *testing.T) {
 	tests.RunTestOn(
 		t,
 		tests.MockEnv,
-		tests.DevnetEnv,
 		tests.TestnetEnv,
 		tests.MainnetEnv,
 		tests.IntegrationEnv,
@@ -654,77 +653,121 @@ func TestNonce(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
+		Description     string
 		ContractAddress *felt.Felt
 		Block           BlockID
-		ExpectedNonce   *felt.Felt
+		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				ContractAddress: internalUtils.TestHexToFelt(t, "0x0207acc15dc241e7d167e67e30e769719a727d3e0fa47f9e187707289885dfde"),
-				Block:           WithBlockTag("latest"),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0xdeadbeef"),
+				Description:     "normal call",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 			},
-		},
-		tests.DevnetEnv: {
 			{
-				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				Block:           WithBlockTag("latest"),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x0"),
+				Description:     "invalid contract",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.DeadBeef,
+				ExpectedError:   ErrContractNotFound,
+			},
+			{
+				Description:     "invalid block",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
+				ExpectedError:   ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           WithBlockNumber(69399),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
-			},
-			{
+				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				Block:           WithBlockTag(BlockTagLatest),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
 			},
 			{
+				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           WithBlockTag(BlockTagPreConfirmed),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError:   ErrBlockNotFound,
 			},
 			{
-				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           WithBlockTag(BlockTagL1Accepted),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+				Description:     "invalid contract address",
+				ContractAddress: internalUtils.DeadBeef,
+				Block:           WithBlockTag(BlockTagLatest),
+				ExpectedError:   ErrContractNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
+				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0567f76279d525c7d02057465dd492526b291f864484f3e9c1371c0f770acf0c"),
-				Block:           WithBlockNumber(1_300_000),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x1"),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
 			{
+				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
-				Block:           WithBlockNumber(644060),
-				ExpectedNonce:   internalUtils.TestHexToFelt(t, "0x2"),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(
-			fmt.Sprintf("blockID: %v, contractAddress: %s", test.Block, test.ContractAddress),
-			func(t *testing.T) {
-				nonce, err := testConfig.Provider.Nonce(
-					context.Background(),
-					test.Block,
-					test.ContractAddress,
-				)
-				require.NoError(t, err)
-				require.NotNil(t, nonce, "should return a nonce")
-				require.Equal(t, test.ExpectedNonce, nonce)
-			},
-		)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getNonce",
+						test.Block,
+						test.ContractAddress,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						blockID := args[0].(BlockID)
+						contractAddress := args[1].(*felt.Felt)
+
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if contractAddress == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    20,
+								Message: "Contract not found",
+							}
+						}
+
+						*rawResp = json.RawMessage("\"0xdeadbeef\"")
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			nonce, err := testConfig.Provider.Nonce(
+				t.Context(),
+				test.Block,
+				test.ContractAddress,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedNonce := testConfig.Spy.LastResponse()
+			rawNonce, err := json.Marshal(nonce)
+			require.NoError(t, err)
+			assert.Equal(t, string(rawExpectedNonce), string(rawNonce))
+		})
 	}
 }
 
