@@ -771,24 +771,15 @@ func TestNonce(t *testing.T) {
 	}
 }
 
-// TestEstimateMessageFee is a test function to test the EstimateMessageFee function.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestEstimateMessageFee tests the EstimateMessageFee function.
 func TestEstimateMessageFee(t *testing.T) {
 	// TODO: add integration testcase
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
-	provider := testConfig.Provider
-	spy := tests.NewJSONRPCSpy(provider.c)
-	provider.c = spy
 
 	type testSetType struct {
+		Description string
 		MsgFromL1
 		BlockID
 		ExpectedError *RPCError
@@ -814,73 +805,141 @@ func TestEstimateMessageFee(t *testing.T) {
 		}),
 	}
 
+	l1HandlerInvalidSelector := l1Handler
+	l1HandlerInvalidSelector.Selector = internalUtils.DeadBeef
+
+	l1HandlerInvalidToAddress := l1Handler
+	l1HandlerInvalidToAddress.ToAddress = internalUtils.DeadBeef
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
-				BlockID:   BlockID{Tag: "latest"},
+				Description: "normal call",
+				MsgFromL1:   l1Handler,
+				BlockID:     WithBlockTag(BlockTagLatest),
+			},
+			{
+				Description:   "contract error",
+				MsgFromL1:     l1HandlerInvalidSelector,
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedError: ErrContractError,
+			},
+			{
+				Description:   "contract not found",
+				MsgFromL1:     l1HandlerInvalidToAddress,
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedError: ErrContractNotFound,
+			},
+			{
+				Description:   "invalid block",
+				MsgFromL1:     l1Handler,
+				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				MsgFromL1: l1Handler,
-				BlockID:   WithBlockNumber(523066),
+				Description: "normal call",
+				MsgFromL1:   l1Handler,
+				BlockID:     WithBlockTag(BlockTagLatest),
 			},
 			{
-				MsgFromL1: l1Handler,
-				BlockID:   WithBlockTag(BlockTagLatest),
+				Description:   "contract error",
+				MsgFromL1:     l1HandlerInvalidSelector,
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedError: ErrContractError,
 			},
 			{
-				MsgFromL1: l1Handler,
-				BlockID:   WithBlockTag(BlockTagPreConfirmed),
-			},
-			{
-				MsgFromL1: l1Handler,
-				BlockID:   WithBlockTag(BlockTagL1Accepted),
-			},
-			{ // invalid msg data
-				MsgFromL1: MsgFromL1{
-					FromAddress: "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc",
-					ToAddress:   internalUtils.DeadBeef,
-					Selector:    internalUtils.DeadBeef,
-					Payload:     []*felt.Felt{},
-				},
-				BlockID:       WithBlockNumber(523066),
+				Description:   "contract not found",
+				MsgFromL1:     l1HandlerInvalidToAddress,
+				BlockID:       WithBlockTag(BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
-			{ // invalid block number
+			{
+				Description:   "invalid block",
 				MsgFromL1:     l1Handler,
-				BlockID:       WithBlockNumber(999999999999999),
+				BlockID:       WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		blockID, _ := json.MarshalIndent(test.BlockID, "", "  ")
-		t.Run(
-			fmt.Sprintf("blockID: %v, fromAddress: %v", string(blockID), test.FromAddress),
-			func(t *testing.T) {
-				resp, err := testConfig.Provider.EstimateMessageFee(
-					context.Background(),
-					test.MsgFromL1,
-					test.BlockID,
-				)
-				if test.ExpectedError != nil {
-					rpcErr, ok := err.(*RPCError)
-					require.True(t, ok)
-					assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-					assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_estimateMessageFee",
+						test.MsgFromL1,
+						test.BlockID,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						msgFromL1 := args[0].(MsgFromL1)
+						blockID := args[1].(BlockID)
 
-					return
-				}
-				require.NoError(t, err)
-				rawExpectedFeeEst := spy.LastResponse()
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
 
-				rawFeeEst, err := json.Marshal(resp)
-				require.NoError(t, err)
-				assert.JSONEq(t, string(rawExpectedFeeEst), string(rawFeeEst))
-			},
+						if msgFromL1.ToAddress == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    20,
+								Message: "Contract not found",
+							}
+						}
+
+						if msgFromL1.Selector == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    40,
+								Message: "Contract error",
+								Data:    &ContractErrData{},
+							}
+						}
+
+						*rawResp = json.RawMessage(`
+							{
+								"l1_gas_consumed": "0x4ed3",
+								"l1_gas_price": "0x7e15d2b5",
+								"l2_gas_consumed": "0x0",
+								"l2_gas_price": "0x1",
+								"l1_data_gas_consumed": "0x80",
+								"l1_data_gas_price": "0x1",
+								"overall_fee": "0x26d2922fd1af",
+								"unit": "WEI"
+							}
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.EstimateMessageFee(
+				t.Context(),
+				test.MsgFromL1,
+				test.BlockID,
+			)
+			if test.ExpectedError != nil {
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
+				return
+			}
+			require.NoError(t, err)
+			rawExpectedFeeEst := testConfig.Spy.LastResponse()
+
+			rawFeeEst, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedFeeEst), string(rawFeeEst))
+		},
 		)
 	}
 }
