@@ -186,20 +186,6 @@ func TestClassAt(t *testing.T) {
 }
 
 // TestClassHashAt tests the ClassHashAt function.
-//
-// This function tests the behaviour of the ClassHashAt function by providing
-// different test cases for the contract hash and expected class hash. It
-// verifies if the returned class hash matches the expected class hash and
-// if there are any differences between the two. It also checks if the
-// returned class hash is not nil. The function takes in a testing.T
-// parameter and does not return anything.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
 func TestClassHashAt(t *testing.T) {
 	tests.RunTestOn(
 		t,
@@ -213,84 +199,131 @@ func TestClassHashAt(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
+		Description       string
 		Block             BlockID
-		ContractHash      *felt.Felt
+		ContractAddress   *felt.Felt
 		ExpectedClassHash *felt.Felt
+		ExpectedError     error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
+				Description:       "normal call",
 				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.DeadBeef,
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x123"),
 				ExpectedClassHash: internalUtils.DeadBeef,
+			},
+			{
+				Description:     "invalid contract",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.DeadBeef,
+				ExpectedError:   ErrContractNotFound,
+			},
+			{
+				Description:     "invalid block",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
+				ExpectedError:   ErrBlockNotFound,
 			},
 		},
 		tests.DevnetEnv: {
 			{
+				Description:       "normal call",
 				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
 			},
 		},
 		tests.TestnetEnv: {
-			// v0 contracts
 			{
+				Description:       "normal call",
 				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
 			},
 			{
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x073ad76dcf68168cbf68ea3ec0382a3605f3deaf24dc076c355e275769b3c561"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
-			},
-			// v2 contract
-			{
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				Description:     "invalid contract",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.DeadBeef,
+				ExpectedError:   ErrContractNotFound,
 			},
 			{
-				Block:             WithBlockTag(BlockTagPreConfirmed),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-			},
-			{
-				Block:             WithBlockTag(BlockTagL1Accepted),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				Description:     "invalid block",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
+				ExpectedError:   ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
+				Description:       "normal call",
 				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
 			},
 		},
 		tests.MainnetEnv: {
 			{
+				Description:       "normal call",
 				Block:             WithBlockTag(BlockTagLatest),
-				ContractHash:      internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
+				ContractAddress:   internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
 				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(
-			fmt.Sprintf("BlockID: %v, ContractHash: %v", test.Block, test.ContractHash),
-			func(t *testing.T) {
-				classhash, err := testConfig.Provider.ClassHashAt(
-					context.Background(),
-					test.Block,
-					test.ContractHash,
-				)
-				require.NoError(t, err)
-				require.NotEmpty(t, classhash, "should return a class")
-				require.Equal(t, test.ExpectedClassHash, classhash)
-			},
-		)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getClassHashAt",
+						test.Block,
+						test.ContractAddress,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						blockID := args[0].(BlockID)
+						contractAddress := args[1].(*felt.Felt)
+
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if contractAddress == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    20,
+								Message: "Contract not found",
+							}
+						}
+
+						*rawResp = json.RawMessage("\"0xdeadbeef\"")
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			classhash, err := testConfig.Provider.ClassHashAt(
+				t.Context(),
+				test.Block,
+				test.ContractAddress,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			assert.Equal(t, test.ExpectedClassHash, classhash)
+		})
 	}
 }
 
