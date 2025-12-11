@@ -489,136 +489,158 @@ func TestClass(t *testing.T) {
 }
 
 // TestStorageAt tests the StorageAt function.
-//
-// It tests the StorageAt function by creating a test environment and executing
-// a series of test cases. Each test case represents a different scenario, such
-// as different contract hashes, storage keys, and expected values. The function
-// checks if the actual value returned by the StorageAt function matches the
-// expected value. If there is a mismatch, the test fails and an error is
-// reported.
-//
-// Parameters:
-//   - t: The testing.T instance used for reporting test failures and logging
-//
-// Returns:
-//
-//	none
 func TestStorageAt(t *testing.T) {
 	tests.RunTestOn(
 		t,
-		tests.MockEnv,
 		tests.DevnetEnv,
-		tests.TestnetEnv,
-		tests.MainnetEnv,
 		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
 	)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		ContractHash  *felt.Felt
-		StorageKey    string
-		Block         BlockID
-		ExpectedValue string
+		Description     string
+		ContractAddress *felt.Felt
+		StorageKey      string
+		Block           BlockID
+		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				ContractHash:  internalUtils.DeadBeef,
-				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagPreConfirmed),
-				ExpectedValue: internalUtils.DeadBeef.String(),
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
-				ContractHash:  internalUtils.DeadBeef,
-				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagLatest),
-				ExpectedValue: internalUtils.DeadBeef.String(),
+				Description:     "invalid block",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
+				StorageKey:      "_signer",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError:   ErrBlockNotFound,
 			},
 			{
-				ContractHash:  internalUtils.DeadBeef,
-				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagL1Accepted),
-				ExpectedValue: internalUtils.DeadBeef.String(),
+				Description:     "invalid contract address",
+				ContractAddress: internalUtils.DeadBeef,
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+				ExpectedError:   ErrContractNotFound,
 			},
 		},
 		tests.DevnetEnv: {
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				StorageKey:    "ERC20_name",
-				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0x537461726b4e657420546f6b656e",
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:      "ERC20_name",
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				StorageKey:    "_signer",
-				Block:         WithBlockNumber(69399),
-				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagPreConfirmed),
-				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+				Description:     "invalid block",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:      "_signer",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError:   ErrBlockNotFound,
 			},
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagL1Accepted),
-				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
-			},
-			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				StorageKey:    "_signer",
-				Block:         WithBlockTag(BlockTagLatest),
-				ExpectedValue: "0x38bd4cad8706e3a5d167ef7af12e28268c6122df3e0e909839a103039871b9e",
+				Description:     "invalid contract address",
+				ContractAddress: internalUtils.DeadBeef,
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+				ExpectedError:   ErrContractNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				StorageKey:    "ERC20_decimals",
-				Block:         WithBlockNumber(1_000_000),
-				ExpectedValue: "0x12",
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:      "ERC20_decimals",
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				ContractHash:  internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
-				StorageKey:    "_signer",
-				Block:         WithBlockTag("latest"),
-				ExpectedValue: "0x7f72660ca40b8ca85f9c0dd38db773f17da7a52f5fc0521cb8b8d8d44e224b8",
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		value, err := testConfig.Provider.StorageAt(
-			context.Background(),
-			test.ContractHash,
-			test.StorageKey,
-			test.Block,
-		)
-		require.NoError(t, err)
-		require.EqualValues(t, test.ExpectedValue, value)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getStorageAt",
+						test.ContractAddress,
+						// the StorateAt function is not compliant with the spec
+						fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(test.StorageKey)),
+						test.Block,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						contractAddress := args[0].(*felt.Felt)
+						blockID := args[2].(BlockID)
+
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if contractAddress == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    20,
+								Message: "Contract not found",
+							}
+						}
+
+						*rawResp = json.RawMessage("\"0xdeadbeef\"")
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			value, err := testConfig.Provider.StorageAt(
+				t.Context(),
+				test.ContractAddress,
+				test.StorageKey,
+				test.Block,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedValue := testConfig.Spy.LastResponse()
+			rawValue, err := json.Marshal(value)
+			require.NoError(t, err)
+			assert.Equal(t, string(rawExpectedValue), string(rawValue))
+		})
 	}
 }
 
-// TestNonce is a test function for testing the Nonce functionality.
-//
-// It initialises a test configuration, sets up a test data set, and then performs a series of tests.
-// The tests involve calling the Nonce function.
-// The expected result is a successful response from the Nonce function and a matching value with the expected nonce.
-// If any errors occur during the tests, the function will fail and display an error message.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestNonce tests the Nonce function.
 func TestNonce(t *testing.T) {
 	tests.RunTestOn(
 		t,
