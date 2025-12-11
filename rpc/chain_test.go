@@ -1,13 +1,10 @@
 package rpc
 
 import (
-	"context"
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
-	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -55,50 +52,46 @@ func TestChainID(t *testing.T) {
 	require.Equal(t, testCase, chain)
 }
 
-// TestSyncing is a test function that tests the syncing functionality of the provider.
-//
-// It checks the synchronisation status and verifies the values returned by the provider.
-// The test is performed for different test environments, such as devnet, mainnet, mock, and testnet.
-// For each test environment, it retrieves the synchronisation status from the provider and performs the necessary assertions.
-// If the test environment is "mock", it verifies that the returned values match the expected values.
-// Otherwise, it checks that the synchronisation status is false and verifies the values returned by the provider.
-// The function uses the testing.T type for assertions and the context.Background() function for the context.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestSyncing tests the Syncing function.
 func TestSyncing(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.MockEnv,
+		tests.MainnetEnv,
+		tests.IntegrationEnv,
+		tests.TestnetEnv,
+	)
 
 	testConfig := BeforeEach(t, false)
 
-	sync, err := testConfig.Provider.Syncing(context.Background())
-	require.NoError(t, err)
-
 	if tests.TEST_ENV == tests.MockEnv {
-		value := SyncStatus{
-			IsSyncing:         true,
-			StartingBlockHash: internalUtils.DeadBeef,
-			StartingBlockNum:  1234,
-			CurrentBlockHash:  internalUtils.DeadBeef,
-			CurrentBlockNum:   1234,
-			HighestBlockHash:  internalUtils.DeadBeef,
-			HighestBlockNum:   1234,
-		}
-		assert.Exactly(t, value, sync)
+		testConfig.MockClient.EXPECT().
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.Any(),
+				"starknet_syncing",
+			).
+			DoAndReturn(func(_, result, _ any, _ ...any) error {
+				rawResp := result.(*json.RawMessage)
+				*rawResp = json.RawMessage(`
+					{
+						"starting_block_hash": "0x3be8e2915ffdb103cc0b999d7247e759b62c79d725634b943727bd4f7788c48",
+						"starting_block_num": 3838962,
+						"current_block_hash": "0x3be8e2915ffdb103cc0b999d7247e759b62c79d725634b943727bd4f7788c48",
+						"current_block_num": 3838962,
+						"highest_block_hash": "0x57d29828fad5bc1870c88b42685603fb9dab08c51118b9bf2e9474901b07501",
+						"highest_block_num": 3839002
+					}
+				`)
 
-		return
+				return nil
+			}).
+			Times(1)
 	}
 
+	sync, err := testConfig.Provider.Syncing(t.Context())
+	require.NoError(t, err)
+
 	if sync.IsSyncing {
-		require.True(
-			t,
-			strings.HasPrefix(sync.CurrentBlockHash.String(), "0x"),
-			"current block hash should return a string starting with 0x",
-		)
 		assert.NotZero(t, sync.StartingBlockHash)
 		assert.NotZero(t, sync.StartingBlockNum)
 		assert.NotZero(t, sync.CurrentBlockHash)
@@ -106,7 +99,6 @@ func TestSyncing(t *testing.T) {
 		assert.NotZero(t, sync.HighestBlockHash)
 		assert.NotZero(t, sync.HighestBlockNum)
 	} else {
-		assert.False(t, sync.IsSyncing)
 		assert.Zero(t, sync.StartingBlockHash)
 		assert.Zero(t, sync.StartingBlockNum)
 		assert.Zero(t, sync.CurrentBlockHash)
@@ -114,4 +106,9 @@ func TestSyncing(t *testing.T) {
 		assert.Zero(t, sync.HighestBlockHash)
 		assert.Zero(t, sync.HighestBlockNum)
 	}
+
+	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawActualResp, err := json.Marshal(sync)
+	require.NoError(t, err)
+	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
 }
