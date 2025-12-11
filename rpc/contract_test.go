@@ -199,19 +199,17 @@ func TestClassHashAt(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		Description       string
-		Block             BlockID
-		ContractAddress   *felt.Felt
-		ExpectedClassHash *felt.Felt
-		ExpectedError     error
+		Description     string
+		Block           BlockID
+		ContractAddress *felt.Felt
+		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				Description:       "normal call",
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractAddress:   internalUtils.TestHexToFelt(t, "0x123"),
-				ExpectedClassHash: internalUtils.DeadBeef,
+				Description:     "normal call",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 			},
 			{
 				Description:     "invalid contract",
@@ -228,18 +226,16 @@ func TestClassHashAt(t *testing.T) {
 		},
 		tests.DevnetEnv: {
 			{
-				Description:       "normal call",
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractAddress:   internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x7B3E05F48F0C69E4A65CE5E076A66271A527AFF2C34CE1083EC6E1526997A69"),
+				Description:     "normal call",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				Description:       "normal call",
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractAddress:   internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x054328a1075b8820eb43caf0caa233923148c983742402dcfc38541dd843d01a"),
+				Description:     "normal call",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
 			},
 			{
 				Description:     "invalid contract",
@@ -256,18 +252,16 @@ func TestClassHashAt(t *testing.T) {
 		},
 		tests.IntegrationEnv: {
 			{
-				Description:       "normal call",
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractAddress:   internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
+				Description:     "normal call",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				Description:       "normal call",
-				Block:             WithBlockTag(BlockTagLatest),
-				ContractAddress:   internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
-				ExpectedClassHash: internalUtils.TestHexToFelt(t, "0x4c53698c9a42341e4123632e87b752d6ae470ddedeb8b0063eaa2deea387eeb"),
+				Description:     "normal call",
+				Block:           WithBlockTag(BlockTagLatest),
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -322,7 +316,10 @@ func TestClassHashAt(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			assert.Equal(t, test.ExpectedClassHash, classhash)
+			rawExpectedClassHash := testConfig.Spy.LastResponse()
+			rawClassHash, err := json.Marshal(classhash)
+			require.NoError(t, err)
+			assert.Equal(t, string(rawExpectedClassHash), string(rawClassHash))
 		})
 	}
 }
