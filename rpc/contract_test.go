@@ -52,7 +52,7 @@ func TestClassAt(t *testing.T) {
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
-				Description:     "invalid class hash",
+				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
 				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
@@ -327,198 +327,167 @@ func TestClassHashAt(t *testing.T) {
 	}
 }
 
-// TestClass is a test function that tests the behaviour of the Class function.
-//
-// It creates a test configuration and defines a testSet containing different scenarios
-// for testing the Class function. The testSet is a map where the keys represent the
-// test environment and the values are an array of testSetType structs. Each struct in
-// the array represents a specific test case with properties such as BlockID,
-// ClassHash, ExpectedProgram, and ExpectedEntryPointConstructor.
-//
-// The function iterates over each test case in the testSet and performs the following steps:
-//   - Calls the Class function with the appropriate parameters.
-//   - Handles the response based on its type:
-//   - If the response is of type DeprecatedContractClass:
-//   - Checks if the class program starts with the expected program.
-//   - If not, it reports an error.
-//   - If the response is of type ContractClass:
-//   - Checks if the class program ends with the expected program.
-//   - Compares the constructor entry point with the expected entry point constructor.
-//   - If they are not equal, it reports an error.
-//
-// The function is used for testing the behaviour of the Class function in different scenarios.
-//
-// Parameters:
-//   - t: A *testing.T object used for reporting test failures and logging
-//
-// Returns:
-//
-//	none
+// TestClass tests the Class function.
 func TestClass(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.MainnetEnv, tests.IntegrationEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID                       BlockID
-		ClassHash                     *felt.Felt
-		ExpectedClass                 json.RawMessage
-		ExpectedEntryPointConstructor contracts.SierraEntryPoint
+		Description   string
+		BlockID       BlockID
+		ClassHash     *felt.Felt
+		ExpectedError error
 	}
-
-	// sepolia
-	class0x36c := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-		t,
-		"testData/class/sepolia/0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9.json",
-		"result",
-	)
-	class0x008 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-		t,
-		"testData/class/sepolia/0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253.json",
-		"result",
-	)
-	class0x01f := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-		t,
-		"testData/class/sepolia/0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855.json",
-		"result",
-	)
-
-	// mainnet
-	class0x0299 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-		t,
-		"testData/class/mainnet/0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b.json",
-		"result",
-	)
-
-	// integration
-	class0x941a := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-		t,
-		"testData/class/integration/0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040.json",
-		"result",
-	)
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:       WithBlockTag(BlockTagPreConfirmed),
+				Description: "deprecated class",
+				ClassHash:   internalUtils.TestHexToFelt(t, "0x123"),
+				BlockID:     WithBlockTag(BlockTagLatest),
+			},
+			{
+				Description: "sierra class",
+				ClassHash:   internalUtils.TestHexToFelt(t, "0x456"),
+				BlockID:     WithBlockTag(BlockTagLatest),
+			},
+			{
+				Description:   "invalid block",
+				ClassHash:     internalUtils.TestHexToFelt(t, "0x789"),
+				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError: ErrBlockNotFound,
+			},
+			{
+				Description:   "invalid class hash",
 				ClassHash:     internalUtils.DeadBeef,
-				ExpectedClass: class0x36c,
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedError: ErrClassHashNotFound,
 			},
 		},
 		tests.TestnetEnv: {
-			// v0 class
 			{
-				BlockID:       WithBlockTag(BlockTagLatest),
-				ClassHash:     internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
-				ExpectedClass: class0x36c,
-			},
-			// v2 classes
-			{
-				BlockID:       WithBlockTag(BlockTagLatest),
-				ClassHash:     internalUtils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
-				ExpectedClass: class0x008,
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
-					FunctionIdx: 34,
-					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
-				},
+				Description: "deprecated class",
+				BlockID:     WithBlockTag(BlockTagLatest),
+				ClassHash:   internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 			},
 			{
-				BlockID:       WithBlockTag(BlockTagLatest),
+				Description: "sierra class",
+				BlockID:     WithBlockTag(BlockTagLatest),
+				ClassHash:   internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+			},
+			{
+				Description:   "invalid block",
 				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedClass: class0x01f,
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
-					FunctionIdx: 2,
-					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
-				},
+				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError: ErrBlockNotFound,
 			},
 			{
-				BlockID:       WithBlockTag(BlockTagPreConfirmed),
-				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedClass: class0x01f,
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
-					FunctionIdx: 2,
-					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
-				},
-			},
-			{
-				BlockID:       WithBlockTag(BlockTagL1Accepted),
-				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedClass: class0x01f,
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
-					FunctionIdx: 2,
-					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
-				},
+				Description:   "invalid class hash",
+				ClassHash:     internalUtils.DeadBeef,
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ExpectedError: ErrClassHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
-			// v2 class
 			{
-				BlockID:                       WithBlockTag(BlockTagLatest),
-				ClassHash:                     internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
-				ExpectedClass:                 class0x941a,
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 38, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				Description: "sierra class",
+				BlockID:     WithBlockTag(BlockTagLatest),
+				ClassHash:   internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
 			},
 		},
 		tests.MainnetEnv: {
-			// v2 class
 			{
-				BlockID:                       WithBlockTag(BlockTagLatest),
-				ClassHash:                     internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
-				ExpectedClass:                 class0x0299,
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				Description: "sierra class",
+				BlockID:     WithBlockTag(BlockTagLatest),
+				ClassHash:   internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(
-			fmt.Sprintf("BlockID: %v, ClassHash: %v", test.BlockID, test.ClassHash),
-			func(t *testing.T) {
-				resp, err := testConfig.Provider.Class(
-					context.Background(),
-					test.BlockID,
-					test.ClassHash,
-				)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getClass",
+						test.BlockID,
+						test.ClassHash,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						blockID := args[0].(BlockID)
+						classHash := args[1].(*felt.Felt)
+
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if classHash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    28,
+								Message: "Class hash not found",
+							}
+						}
+
+						var class json.RawMessage
+						if classHash.String() == "0x123" {
+							// deprecated class
+							class = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"testData/class/0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9.json",
+								"result",
+							)
+						}
+						if classHash.String() == "0x456" {
+							// sierra class
+							class = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"testData/class/0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855.json",
+								"result",
+							)
+						}
+
+						*rawResp = class
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.Class(
+				t.Context(),
+				test.BlockID,
+				test.ClassHash,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedClass := testConfig.Spy.LastResponse()
+
+			switch class := resp.(type) {
+			case *contracts.DeprecatedContractClass:
+				rawClass, err := json.Marshal(class)
 				require.NoError(t, err)
-
-				switch class := resp.(type) {
-				case *contracts.DeprecatedContractClass:
-					var expectedDepClass contracts.DeprecatedContractClass
-					require.NoError(t, expectedDepClass.UnmarshalJSON(test.ExpectedClass))
-
-					// juno and pathfinder use different compression formats, so we can't compare them,
-					// so we just check the value is not empty
-					assert.NotEmpty(t, class.Program)
-
-					assert.ElementsMatch(t, *expectedDepClass.ABI, *class.ABI)
-
-					// entry points
-					assert.ElementsMatch(t, expectedDepClass.DeprecatedEntryPointsByType.Constructor, class.DeprecatedEntryPointsByType.Constructor)
-					assert.ElementsMatch(t, expectedDepClass.DeprecatedEntryPointsByType.External, class.DeprecatedEntryPointsByType.External)
-					assert.ElementsMatch(t, expectedDepClass.DeprecatedEntryPointsByType.L1Handler, class.DeprecatedEntryPointsByType.L1Handler)
-				case *contracts.ContractClass:
-					var expectedClass contracts.ContractClass
-					require.NoError(t, json.Unmarshal(test.ExpectedClass, &expectedClass))
-
-					assert.ElementsMatch(t, expectedClass.SierraProgram, class.SierraProgram)
-					assert.Equal(t, expectedClass.ContractClassVersion, class.ContractClassVersion)
-
-					// abi
-					rawExpectedABI, err := json.Marshal(expectedClass.ABI)
-					require.NoError(t, err)
-					rawClassABI, err := json.Marshal(class.ABI)
-					require.NoError(t, err)
-					assert.Equal(t, string(rawExpectedABI), string(rawClassABI))
-
-					// entry points
-					assert.ElementsMatch(t, expectedClass.EntryPointsByType.Constructor, class.EntryPointsByType.Constructor)
-					assert.ElementsMatch(t, expectedClass.EntryPointsByType.External, class.EntryPointsByType.External)
-					assert.ElementsMatch(t, expectedClass.EntryPointsByType.L1Handler, class.EntryPointsByType.L1Handler)
-				default:
-					t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
-				}
-			},
-		)
+				assert.JSONEq(t, string(rawExpectedClass), string(rawClass))
+			case *contracts.ContractClass:
+				rawClass, err := json.Marshal(class)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedClass), string(rawClass))
+			default:
+				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+			}
+		})
 	}
 }
 
