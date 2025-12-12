@@ -944,6 +944,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	}
 }
 
+// TestEstimateFee tests the EstimateFee function.
 func TestEstimateFee(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -954,189 +955,117 @@ func TestEstimateFee(t *testing.T) {
 		txs           []BroadcastTxn
 		simFlags      []SimulationFlag
 		blockID       BlockID
-		expectedResp  []FeeEstimation
 		expectedError *RPCError
 	}
 
-	bradcastInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json", "")
-	integrationInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](t, "./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "")
+	sepoliaInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+		t,
+		"./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json",
+		"",
+	)
+	invalidSepoliaInvokeV3 := sepoliaInvokeV3
+	invalidSepoliaInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}
 
-	// we use for this test a random txn. If the sender address nonce is updated, we need to update the nonce here too
-	bradcastInvokeV3WithNewNonce := bradcastInvokeV3
-	bradcastInvokeV3WithNewNonce.Nonce = internalUtils.TestHexToFelt(t, "0x57")
+	integrationInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+		t,
+		"./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
+		"",
+	)
+	invalidIntegrationInvokeV3 := integrationInvokeV3
+	invalidIntegrationInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				description: "without flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV3,
+					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockTag("latest"),
-				expectedError: nil,
-				expectedResp: []FeeEstimation{
-					{
-						FeeEstimationCommon: FeeEstimationCommon{
-							L1GasConsumed:     internalUtils.DeadBeef,
-							L1GasPrice:        internalUtils.DeadBeef,
-							L2GasConsumed:     internalUtils.DeadBeef,
-							L2GasPrice:        internalUtils.DeadBeef,
-							L1DataGasConsumed: internalUtils.DeadBeef,
-							L1DataGasPrice:    internalUtils.DeadBeef,
-							OverallFee:        internalUtils.DeadBeef,
-						},
-						Unit: FriUnit,
-					},
-				},
+				simFlags: []SimulationFlag{},
+				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
 				description: "with flag",
 				txs: []BroadcastTxn{
-					bradcastInvokeV3,
+					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockTag("latest"),
-				expectedError: nil,
-				expectedResp: []FeeEstimation{
-					{
-						FeeEstimationCommon: FeeEstimationCommon{
-							L1GasConsumed:     new(felt.Felt).SetUint64(1234),
-							L1GasPrice:        new(felt.Felt).SetUint64(1234),
-							L2GasConsumed:     new(felt.Felt).SetUint64(1234),
-							L2GasPrice:        new(felt.Felt).SetUint64(1234),
-							L1DataGasConsumed: new(felt.Felt).SetUint64(1234),
-							L1DataGasPrice:    new(felt.Felt).SetUint64(1234),
-							OverallFee:        new(felt.Felt).SetUint64(1234),
-						},
-						Unit: FriUnit,
-					},
-				},
-			},
-		},
-		tests.TestnetEnv: {
-			{
-				description: "without flag",
-				txs: []BroadcastTxn{
-					bradcastInvokeV3,
-				},
-				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(574447),
-				expectedError: nil,
-				expectedResp: []FeeEstimation{
-					{
-						FeeEstimationCommon: FeeEstimationCommon{
-							L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-							L1GasPrice:        internalUtils.TestHexToFelt(t, "0xa7fe9fec104"),
-							L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xf49c0"),
-							L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1020990a5"),
-							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
-							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
-							OverallFee:        internalUtils.TestHexToFelt(t, "0xf68e5bb1e2580"),
-						},
-						Unit: FriUnit,
-					},
-				},
-			},
-			{
-				description: "with flag",
-				txs: []BroadcastTxn{
-					bradcastInvokeV3,
-				},
-				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockNumber(574447),
-				expectedError: nil,
-				expectedResp: []FeeEstimation{
-					{
-						FeeEstimationCommon: FeeEstimationCommon{
-							L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-							L1GasPrice:        internalUtils.TestHexToFelt(t, "0xa7fe9fec104"),
-							L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xe1140"),
-							L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1020990a5"),
-							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x140"),
-							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x617"),
-							OverallFee:        internalUtils.TestHexToFelt(t, "0xe2de90e0cbb00"),
-						},
-						Unit: FriUnit,
-					},
-				},
-			},
-			{
-				description: "with flag - latest block tag",
-				txs: []BroadcastTxn{
-					bradcastInvokeV3WithNewNonce,
-				},
-				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockTag(BlockTagLatest),
-				expectedError: nil,
-				expectedResp:  nil,
-			},
-			{
-				description: "with flag - pre_confirmed block tag",
-				txs: []BroadcastTxn{
-					bradcastInvokeV3WithNewNonce,
-				},
-				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockTag(BlockTagPreConfirmed),
-				expectedError: nil,
-				expectedResp:  nil,
-			},
-			{
-				description: "with flag - l1_accepted block tag",
-				txs: []BroadcastTxn{
-					bradcastInvokeV3WithNewNonce,
-				},
-				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockTag(BlockTagL1Accepted),
-				expectedError: nil,
-				expectedResp:  nil,
+				simFlags: []SimulationFlag{SkipValidate},
+				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
 				description: "invalid transaction",
 				txs: []BroadcastTxn{
-					InvokeTxnV3{
-						ResourceBounds: &ResourceBoundsMapping{
-							L1Gas: ResourceBounds{
-								MaxAmount:       "0x0",
-								MaxPricePerUnit: "0x4305031628668",
-							},
-							L1DataGas: ResourceBounds{
-								MaxAmount:       "0x210",
-								MaxPricePerUnit: "0x948",
-							},
-							L2Gas: ResourceBounds{
-								MaxAmount:       "0x15cde0",
-								MaxPricePerUnit: "0x18955dc56",
-							},
-						},
-						Type:                  TransactionTypeInvoke,
-						Version:               TransactionV3,
-						SenderAddress:         internalUtils.DeadBeef,
-						Nonce:                 &felt.Zero,
-						Calldata:              []*felt.Felt{},
-						Signature:             []*felt.Felt{},
-						Tip:                   "0x0",
-						PayMasterData:         []*felt.Felt{},
-						AccountDeploymentData: []*felt.Felt{},
-						NonceDataMode:         DAModeL1,
-						FeeMode:               DAModeL1,
-					},
+					invalidSepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
 				description: "invalid block",
 				txs: []BroadcastTxn{
-					bradcastInvokeV3,
+					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(999999999999999),
+				blockID:       WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
+		tests.TestnetEnv: {
+			{
+				description: "normal call - without flag",
+				txs: []BroadcastTxn{
+					sepoliaInvokeV3,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(574447),
+				expectedError: nil,
+			},
+			{
+				description: "normal call - two transactions",
+				txs: []BroadcastTxn{
+					sepoliaInvokeV3,
+					sepoliaInvokeV3,
+				},
+				blockID:       WithBlockNumber(574447),
+				expectedError: nil,
+			},
+			{
+				description: "normal call - with skip validate flag",
+				txs: []BroadcastTxn{
+					sepoliaInvokeV3,
+				},
+				simFlags:      []SimulationFlag{SkipValidate},
+				blockID:       WithBlockNumber(574447),
+				expectedError: nil,
+			},
+			{
+				description: "invalid transaction",
+				txs: []BroadcastTxn{
+					invalidSepoliaInvokeV3,
+				},
+				blockID:       WithBlockNumber(100000),
+				expectedError: ErrTxnExec,
+			},
+			{
+				description: "invalid block",
+				txs: []BroadcastTxn{
+					sepoliaInvokeV3,
+				},
+				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				expectedError: ErrBlockNotFound,
+			},
+			// the contract_not_found error will not be tested since it's still not clear
+			// when it should be returned (Pathfinder and Juno behave differently)
+		},
 		tests.IntegrationEnv: {
+			{
+				description: "without flag",
+				txs: []BroadcastTxn{
+					integrationInvokeV3,
+				},
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(1_300_000),
+				expectedError: nil,
+			},
 			{
 				description: "with flag",
 				txs: []BroadcastTxn{
@@ -1145,63 +1074,21 @@ func TestEstimateFee(t *testing.T) {
 				simFlags:      []SimulationFlag{SkipValidate},
 				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
-				expectedResp: []FeeEstimation{
-					{
-						FeeEstimationCommon: FeeEstimationCommon{
-							L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-							L1GasPrice:        internalUtils.TestHexToFelt(t, "0x883068d9d050"),
-							L2GasConsumed:     internalUtils.TestHexToFelt(t, "0xc25b1"),
-							L2GasPrice:        internalUtils.TestHexToFelt(t, "0xb2d05e00"),
-							L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
-							L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x5a41"),
-							OverallFee:        internalUtils.TestHexToFelt(t, "0x7f873c855a280"),
-						},
-						Unit: FriUnit,
-					},
-				},
 			},
 			{
 				description: "invalid transaction",
 				txs: []BroadcastTxn{
-					InvokeTxnV3{
-						ResourceBounds: &ResourceBoundsMapping{
-							L1Gas: ResourceBounds{
-								MaxAmount:       "0x0",
-								MaxPricePerUnit: "0x4305031628668",
-							},
-							L1DataGas: ResourceBounds{
-								MaxAmount:       "0x210",
-								MaxPricePerUnit: "0x948",
-							},
-							L2Gas: ResourceBounds{
-								MaxAmount:       "0x15cde0",
-								MaxPricePerUnit: "0x18955dc56",
-							},
-						},
-						Type:                  TransactionTypeInvoke,
-						Version:               TransactionV3,
-						SenderAddress:         internalUtils.DeadBeef,
-						Nonce:                 &felt.Zero,
-						Calldata:              []*felt.Felt{},
-						Signature:             []*felt.Felt{},
-						Tip:                   "0x0",
-						PayMasterData:         []*felt.Felt{},
-						AccountDeploymentData: []*felt.Felt{},
-						NonceDataMode:         DAModeL1,
-						FeeMode:               DAModeL1,
-					},
+					invalidIntegrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
 				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
 				description: "invalid block",
 				txs: []BroadcastTxn{
-					bradcastInvokeV3,
+					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(999999999999999),
+				blockID:       WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -1209,8 +1096,58 @@ func TestEstimateFee(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_estimateFee",
+						test.txs,
+						test.simFlags,
+						test.blockID,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						txs := args[0].([]BroadcastTxn)
+						blockID := args[2].(BlockID)
+
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if txs[0].(BroadcastInvokeTxnV3).Calldata[0] == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    41,
+								Message: "Transaction execution error",
+								Data:    &TransactionExecErrData{},
+							}
+						}
+
+						*rawResp = json.RawMessage(`
+							[
+								{
+									"l1_data_gas_consumed": "0x80",
+									"l1_data_gas_price": "0x75da",
+									"l1_gas_consumed": "0x0",
+									"l1_gas_price": "0x1b709d15a1c6",
+									"l2_gas_consumed": "0xc25b1",
+									"l2_gas_price": "0xb2d05e00",
+									"overall_fee": "0x87c1827e1eb00",
+									"unit": "FRI"
+								}
+							]
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
+
 			resp, err := testConfig.Provider.EstimateFee(
-				context.Background(),
+				t.Context(),
 				test.txs,
 				test.simFlags,
 				test.blockID,
@@ -1222,13 +1159,15 @@ func TestEstimateFee(t *testing.T) {
 				assert.Equal(t, test.expectedError.Code, rpcErr.Code)
 				assert.Equal(t, test.expectedError.Message, rpcErr.Message)
 				assert.IsType(t, rpcErr.Data, rpcErr.Data)
-			} else {
-				require.NoError(t, err)
-			}
 
-			if test.expectedResp != nil {
-				assert.Exactly(t, test.expectedResp, resp)
+				return
 			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
 		})
 	}
 }
