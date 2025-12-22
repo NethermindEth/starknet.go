@@ -129,119 +129,155 @@ func TestTransactionTrace(t *testing.T) {
 	}
 }
 
-// TestSimulateTransaction is a function that tests the SimulateTransaction function in the codebase.
-//
-// It sets up the necessary test configuration and variables, and then performs a series of tests based on the test environment.
-// The function reads input data from JSON files and performs JSON unmarshalling to set the values of the simulateTxIn and expectedResp variables.
-// It then iterates over the testSet map, calling the SimulateTransactions function with the appropriate parameters and checking the response against the expected response.
-// The function uses the testing.T type to report any errors or failures during the test execution.
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-//
-//	none
+// TestSimulateTransaction tests the SimulateTransaction function.
 func TestSimulateTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 	testConfig := BeforeEach(t, false)
 
-	type testSetType struct {
-		SimulateTxnInputFile string
-		ExpectedRespFile     string
+	type simulateTxnInput struct {
+		BlockID         BlockID          `json:"block_id"`
+		Txns            []BroadcastTxn   `json:"transactions"`
+		SimulationFlags []SimulationFlag `json:"simulation_flags"`
+	}
+	input := *internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
+		t, "./testData/trace/sepoliaSimulateInvokeTx.json", "params")
 
-		// quick fix for calls with other block ID than the one in the input file
-		AnotherBlockID *BlockID
+	type testSetType struct {
+		Description     string
+		BlockID         BlockID
+		Txns            []BroadcastTxn
+		SimulationFlags []SimulationFlag
+		ExpectedError   *RPCError
 	}
 
-	expectedInputFile := "./testData/trace/sepoliaSimulateInvokeTx.json"
-	expectedRespFile := "./testData/trace/sepoliaSimulateInvokeTxResp.json"
-
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.DevnetEnv: {},
-		tests.MockEnv: {testSetType{
-			SimulateTxnInputFile: expectedInputFile,
-			ExpectedRespFile:     expectedRespFile,
-		}},
-		tests.TestnetEnv: {
+		tests.MockEnv: {
 			{
-				SimulateTxnInputFile: expectedInputFile,
-				ExpectedRespFile:     expectedRespFile,
+				Description:     "valid call, all flags",
+				BlockID:         input.BlockID,
+				Txns:            input.Txns,
+				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
 			},
 			{
-				SimulateTxnInputFile: expectedInputFile,
-				ExpectedRespFile:     expectedRespFile,
-				AnotherBlockID:       &BlockID{Tag: BlockTagLatest},
+				Description:     "block not found",
+				BlockID:         WithBlockHash(internalUtils.DeadBeef),
+				Txns:            input.Txns,
+				SimulationFlags: input.SimulationFlags,
+				ExpectedError:   ErrBlockNotFound,
 			},
 			{
-				SimulateTxnInputFile: expectedInputFile,
-				ExpectedRespFile:     expectedRespFile,
-				AnotherBlockID:       &BlockID{Tag: BlockTagPreConfirmed},
-			},
-			{
-				SimulateTxnInputFile: expectedInputFile,
-				ExpectedRespFile:     expectedRespFile,
-				AnotherBlockID:       &BlockID{Tag: BlockTagL1Accepted},
+				Description:     "exec error, pre confirmed",
+				BlockID:         WithBlockTag(BlockTagPreConfirmed),
+				Txns:            input.Txns,
+				SimulationFlags: []SimulationFlag{},
+				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 		},
-		// TODO: add mainnet test cases. I couldn't find a valid v3 transaction on mainnet with all resource bounds fields filled
-		tests.MainnetEnv: {},
+		tests.TestnetEnv: {
+			{
+				Description:     "valid call, no flags",
+				BlockID:         input.BlockID,
+				Txns:            input.Txns,
+				SimulationFlags: input.SimulationFlags,
+			},
+			{
+				Description:     "valid call, skip fee charge",
+				BlockID:         input.BlockID,
+				Txns:            input.Txns,
+				SimulationFlags: []SimulationFlag{SkipFeeCharge},
+			},
+			{
+				Description:     "valid call, latest + skip validate + skip fee charge",
+				BlockID:         WithBlockTag(BlockTagLatest),
+				Txns:            input.Txns,
+				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+			},
+			{
+				Description:     "valid call, l1 accepted + skip validate",
+				BlockID:         WithBlockTag(BlockTagL1Accepted),
+				Txns:            input.Txns,
+				SimulationFlags: []SimulationFlag{SkipValidate},
+			},
+			{
+				Description:     "exec error, pre confirmed",
+				BlockID:         WithBlockTag(BlockTagPreConfirmed),
+				Txns:            input.Txns,
+				SimulationFlags: []SimulationFlag{},
+				ExpectedError:   ErrTxnExec, // due to invalid nonce
+			},
+			{
+				Description:     "block not found",
+				BlockID:         WithBlockHash(internalUtils.DeadBeef),
+				Txns:            input.Txns,
+				SimulationFlags: input.SimulationFlags,
+				ExpectedError:   ErrBlockNotFound,
+			},
+		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("blockID: %v", test.AnotherBlockID), func(t *testing.T) {
-			simulateTxIn := *internalUtils.TestUnmarshalJSONFileToType[SimulateTransactionInput](t, test.SimulateTxnInputFile, "params")
-			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[[]SimulatedTransaction](t, test.ExpectedRespFile, "result")
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_simulateTransactions",
+						test.BlockID,
+						test.Txns,
+						test.SimulationFlags,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						blockID := args[0].(BlockID)
 
-			if test.AnotherBlockID != nil {
-				simulateTxIn.BlockID = *test.AnotherBlockID
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if blockID.Tag == BlockTagPreConfirmed {
+							return RPCError{
+								Code:    41,
+								Message: "Transaction execution error",
+								Data:    &TransactionExecErrData{},
+							}
+						}
+						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							t,
+							"./testData/trace/sepoliaSimulateInvokeTxResp.json",
+							"result",
+						)
+
+						return nil
+					}).
+					Times(1)
 			}
 
 			resp, err := testConfig.Provider.SimulateTransactions(
-				context.Background(),
-				simulateTxIn.BlockID,
-				simulateTxIn.Txns,
-				simulateTxIn.SimulationFlags)
-			require.NoError(t, err)
+				t.Context(),
+				test.BlockID,
+				test.Txns,
+				test.SimulationFlags)
 
-			if test.AnotherBlockID != nil {
-				// since the block ID is not the same as the one in the input file, we only check that the response is not empty
-				assert.NotEmpty(t, resp)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
 
 				return
 			}
-
-			// read file to compare JSONs
-			expectedRespArr := *internalUtils.TestUnmarshalJSONFileToType[[]any](t, test.ExpectedRespFile, "result")
-
-			for i, trace := range resp {
-				assert.Equal(t, expectedResp[i].FeeEstimation, trace.FeeEstimation)
-				compareTraceTxs(t, expectedResp[i].TxnTrace, trace.TxnTrace)
-
-				// compare JSONs
-				// get fee_estimation and transaction_trace from expected response JSON file
-				expectedRespMap, ok := expectedRespArr[i].(map[string]any)
-				require.True(t, ok)
-				expectedFeeEstimation, ok := expectedRespMap["fee_estimation"]
-				require.True(t, ok)
-				expectedTxnTrace, ok := expectedRespMap["transaction_trace"]
-				require.True(t, ok)
-
-				// compare fee_estimation
-				rawExpectedFeeEstimation, err := json.Marshal(expectedFeeEstimation)
-				require.NoError(t, err)
-				rawActualFeeEstimation, err := json.Marshal(trace.FeeEstimation)
 				require.NoError(t, err)
 
-				assert.JSONEq(t, string(rawExpectedFeeEstimation), string(rawActualFeeEstimation))
-
-				// compare transaction_trace
-				rawExpectedTxnTrace, err := json.Marshal(expectedTxnTrace)
+			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawResp, err := json.Marshal(resp)
 				require.NoError(t, err)
-				rawActualTxnTrace, err := json.Marshal(trace.TxnTrace)
-				require.NoError(t, err)
-
-				compareTraceTxnsJSON(t, rawExpectedTxnTrace, rawActualTxnTrace)
-			}
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
 		})
 	}
 }

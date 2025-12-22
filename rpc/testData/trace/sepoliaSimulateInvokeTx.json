@@ -6,32 +6,36 @@
       {
         "type": "INVOKE",
         "version": "0x3",
-        "nonce": "0x3",
-        "sender_address": "0x5f88badf1b74fc2c68112dc8996ebd337f21978dca93ce57f3b2f7dfbb025bd",
+        "nonce": "0x24",
+        "sender_address": "0x2ebfc73ce0f8d88d15bc3b64663712963c7ab3326e4ae2211b28e76032511fd",
         "signature": [
-          "0x3f1d36fedc367051ca7ad1b7501a19e24c65e6fa28e8f6f9e0745a185f093cd",
-          "0x2084828bfd5859ee10a36c70b68912bc3ad2dc139c29c5242592b46d75e54e5"
+          "0x1",
+          "0x0",
+          "0x61251d0374dcba50a18de88549ebf6f62a4739bbf9ad1dfd9a91d642325b1a6",
+          "0x2a7cca90c9ce01772c421b09e06e582f77e457880b0b9d32e26b9baab48d288",
+          "0x30cc4bfb726d9b2da11f683a8f3b76538a47723704213501c569d59e7d6499f"
         ],
         "calldata": [
           "0x1",
-          "0x669e24364ce0ae7ec2864fb03eedbe60cfbc9d1c74438d10fa4b86552907d54",
-          "0x2f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354",
-          "0x2",
-          "0xffffffff",
+          "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+          "0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e",
+          "0x3",
+          "0x7ed889c4ec834c13f30ce186a77b4cf17153764180d86e990014e5c4781e4db",
+          "0x1550f7dca70000",
           "0x0"
         ],
         "resource_bounds": {
           "l1_gas": {
             "max_amount": "0x0",
-            "max_price_per_unit": "0xff35ae605ff2b"
+            "max_price_per_unit": "0x309d2c23311f"
           },
           "l2_gas": {
-            "max_amount": "0x18c360",
-            "max_price_per_unit": "0xf10c388d00"
+            "max_amount": "0x1dfb00",
+            "max_price_per_unit": "0x165a0bc00"
           },
           "l1_data_gas": {
-            "max_amount": "0x1e0",
-            "max_price_per_unit": "0xfffffffff92d6"
+            "max_amount": "0x1c0",
+            "max_price_per_unit": "0x151b727d90"
           }
         },
         "tip": "0x0",
@@ -41,11 +45,9 @@
         "fee_data_availability_mode": "L1"
       }
     ],
-    "simulation_flags": [
-      "SKIP_VALIDATE"
-    ],
+    "simulation_flags": [],
     "block_id": {
-      "block_number": 1130000
+      "block_number": 2700000
     }
   },
   "id": 0

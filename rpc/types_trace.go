@@ -9,21 +9,16 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
-type SimulateTransactionInput struct {
-	// a sequence of transactions to simulate, running each transaction on the
-	// state resulting from applying all the previous ones
-	Txns            []BroadcastTxn   `json:"transactions"`
-	BlockID         BlockID          `json:"block_id"`
-	SimulationFlags []SimulationFlag `json:"simulation_flags"`
-}
-
+// Flags that indicate how to simulate a given transaction. By default, the
+// sequencer behavior is replicated locally (enough funds are expected to be
+// in the account, and fee will be deducted from the balance before the
+// simulation of the next transaction). To skip the fee charge, use
+// the SKIP_FEE_CHARGE flag.
 type SimulationFlag string
 
 const (
 	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
-	// Flags that indicate how to simulate a given transaction. By default, the
-	// sequencer behaviour is replicated locally
-	SkipValidate SimulationFlag = "SKIP_VALIDATE"
+	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
 )
 
 type SimulatedTransaction struct {
