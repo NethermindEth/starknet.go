@@ -33,7 +33,7 @@ func TestDeclareTransaction(t *testing.T) {
 
 	declareTxn := internalUtils.TestUnmarshalJSONFileToType[BroadcastDeclareTxnV3](
 		t,
-		"./testData/addTxn/declare.json",
+		"./testData/addTxn/sepoliaDeclare.json",
 		"",
 	)
 
@@ -134,7 +134,7 @@ func TestDeclareTransaction(t *testing.T) {
 				DeclareTxn:  declareTxn,
 				// this test sends an already sent transaction, and this is the error
 				// returned by the node for this case.
-				// We do this because it's not feasible to declare a new contract each time.
+				// We do this because it's not feasible to create a new transaction each time.
 				// But with this test, we can assure our txn is correctly received by the node.
 				ExpectedError: ErrInvalidTransactionNonce,
 			},
@@ -263,74 +263,208 @@ func TestDeclareTransaction(t *testing.T) {
 	}
 }
 
+// TestAddInvokeTransaction tests the AddInvokeTransaction function.
 func TestAddInvokeTransaction(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		InvokeTx      BroadcastInvokeTxnV3
-		ExpectedResp  AddInvokeTransactionResponse
+		Description   string
+		InvokeTxn     *BroadcastInvokeTxnV3
 		ExpectedError *RPCError
+
+		// there are multiple errors that could be returned by the function, and
+		// this is a way to specify which error we want to test in the Mock environment.
+		// It's better than modifying the `DeclareTxn`, having to create a new variable
+		// for each error variant, and compare inside the mock `DoAndReturn` function.
+		ErrorIndex int
 	}
+
+	invokeTxn := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+		t,
+		"./testData/addTxn/sepoliaInvoke.json",
+		"",
+	)
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				InvokeTx: BroadcastInvokeTxnV3{
-					Type:    TransactionTypeInvoke,
-					Version: TransactionV3,
-					Signature: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x71a9b2cd8a8a6a4ca284dcddcdefc6c4fd20b92c1b201bd9836e4ce376fad16"),
-						internalUtils.TestHexToFelt(t, "0x6bef4745194c9447fdc8dd3aec4fc738ab0a560b0d2c7bf62fbf58aef3abfc5"),
-					},
-					Nonce:         internalUtils.TestHexToFelt(t, "0xe97"),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: &ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
+				Description: "normal call",
+				InvokeTxn:   invokeTxn,
+			},
+			{
+				Description:   "error - insufficient account balance",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrInsufficientAccountBalance,
+				ErrorIndex:    1,
+			},
+			{
+				Description:   "error - insufficient resources for validate",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrInsufficientResourcesForValidate,
+				ErrorIndex:    2,
+			},
+			{
+				Description:   "error - invalid transaction nonce",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrInvalidTransactionNonce,
+				ErrorIndex:    3,
+			},
+			{
+				Description:   "error - replacement transaction underpriced",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrReplacementTransactionUnderpriced,
+				ErrorIndex:    4,
 						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
+			{
+				Description:   "error - fee below minimum",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrFeeBelowMinimum,
+				ErrorIndex:    5,
 						},
-					},
-					Tip:           "",
-					PayMasterData: []*felt.Felt{},
-					SenderAddress: internalUtils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
-					Calldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x2"),
-						internalUtils.TestHexToFelt(t, "0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684"),
-						internalUtils.TestHexToFelt(t, "0x27c3334165536f239cfd400ed956eabff55fc60de4fb56728b6a4f6b87db01c"),
-						internalUtils.TestHexToFelt(t, "0x0"),
-						internalUtils.TestHexToFelt(t, "0x4"),
-						internalUtils.TestHexToFelt(t, "0x4c312760dfd17a954cdd09e76aa9f149f806d88ec3e402ffaf5c4926f568a42"),
-						internalUtils.TestHexToFelt(t, "0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf"),
-						internalUtils.TestHexToFelt(t, "0x4"),
-						internalUtils.TestHexToFelt(t, "0x1"),
-						internalUtils.TestHexToFelt(t, "0x5"),
-						internalUtils.TestHexToFelt(t, "0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684"),
-						internalUtils.TestHexToFelt(t, "0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf"),
-						internalUtils.TestHexToFelt(t, "0x1"),
-						internalUtils.TestHexToFelt(t, "0x7fe4fd616c7fece1244b3616bb516562e230be8c9f29668b46ce0369d5ca829"),
-						internalUtils.TestHexToFelt(t, "0x287acddb27a2f9ba7f2612d72788dc96a5b30e401fc1e8072250940e024a587"),
-					},
-					AccountDeploymentData: []*felt.Felt{},
-				},
-				ExpectedResp:  AddInvokeTransactionResponse{internalUtils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")},
-				ExpectedError: nil,
+			{
+				Description:   "error - validation failure",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrValidationFailure,
+				ErrorIndex:    6,
+			},
+			{
+				Description:   "error - non account",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrNonAccount,
+				ErrorIndex:    7,
+			},
+			{
+				Description:   "error - duplicate tx",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrDuplicateTx,
+				ErrorIndex:    8,
+			},
+			{
+				Description:   "error - unsupported tx version",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrUnsupportedTxVersion,
+				ErrorIndex:    9,
+			},
+			{
+				Description:   "error - unexpected error",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrUnexpectedError,
+				ErrorIndex:    10,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "normal call - with error",
+				InvokeTxn:   invokeTxn,
+				// this test sends an already sent transaction, and this is the error
+				// returned by the node for this case.
+				// We do this because it's not feasible to create a new transaction each time.
+				// But with this test, we can assure our txn is correctly received by the node.
+				ExpectedError: ErrInvalidTransactionNonce,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
+		t.Run(test.Description, func(t *testing.T) {
+			testConfig.MockClient.EXPECT().
+				CallContextWithSliceArgs(
+					t.Context(),
+					gomock.Any(),
+					"starknet_addInvokeTransaction",
+					test.InvokeTxn,
+				).
+				DoAndReturn(func(_, result, _ any, _ ...any) error {
+					rawResp := result.(*json.RawMessage)
+
+					switch test.ErrorIndex {
+					case 1:
+						return RPCError{
+							Code:    54,
+							Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+						}
+					case 2:
+						return RPCError{
+							Code:    53,
+							Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+						}
+					case 3:
+						return RPCError{
+							Code:    52,
+							Message: "Invalid transaction nonce",
+							Data:    StringErrData(""),
+						}
+					case 4:
+						return RPCError{
+							Code:    64,
+							Message: "Replacement transaction is underpriced",
+						}
+					case 5:
+						return RPCError{
+							Code:    65,
+							Message: "Transaction fee below minimum",
+						}
+					case 6:
+						return RPCError{
+							Code:    55,
+							Message: "Account validation failed",
+							Data:    StringErrData(""),
+						}
+					case 7:
+						return RPCError{
+							Code:    58,
+							Message: "Sender address is not an account contract",
+						}
+					case 8:
+						return RPCError{
+							Code:    59,
+							Message: "A transaction with the same hash already exists in the mempool",
+						}
+					case 9:
+						return RPCError{
+							Code:    61,
+							Message: "The transaction version is not supported",
+						}
+					case 10:
+						return RPCError{
+							Code:    63,
+							Message: "An unexpected error occurred",
+							Data:    StringErrData(""),
+						}
+					}
+
+					*rawResp = json.RawMessage(`
+						{
+							"transaction_hash": "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"
+						}
+					`)
+
+					return nil
+				}).
+				Times(1)
+
+			resp, err := testConfig.Provider.AddInvokeTransaction(
+				t.Context(),
+				test.InvokeTxn,
+			)
 		if test.ExpectedError != nil {
-			require.Equal(t, test.ExpectedError, err)
-		} else {
-			require.Equal(t, resp, test.ExpectedResp)
-		}
+				require.Error(t, err)
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }
 
