@@ -108,7 +108,7 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 	return testConfig
 }
 
-// GetCommonBlockIDs returns a list of common block IDs to use in the RPC tests.
+// GetCommonBlockIDs returns a list of common block IDs to use in some RPC tests.
 // It includes all block tags, a range of block numbers and the latest block hash.
 func GetCommonBlockIDs(t *testing.T, provider *Provider) []BlockID {
 	t.Helper()
