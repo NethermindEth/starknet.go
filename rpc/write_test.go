@@ -11,8 +11,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-// TestDeclareTransaction tests the AddDeclareTransaction function.
-func TestDeclareTransaction(t *testing.T) {
+// TestAddDeclareTransaction tests the AddDeclareTransaction function.
+func TestAddDeclareTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
