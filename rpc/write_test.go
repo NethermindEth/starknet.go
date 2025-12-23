@@ -1,11 +1,9 @@
 package rpc
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -240,20 +238,20 @@ func TestDeclareTransaction(t *testing.T) {
 				}).
 				Times(1)
 
-		resp, err := testConfig.Provider.AddDeclareTransaction(
+			resp, err := testConfig.Provider.AddDeclareTransaction(
 				t.Context(),
 				test.DeclareTxn,
-		)
-		if test.ExpectedError != nil {
-			require.Error(t, err)
-			rpcErr, ok := err.(*RPCError)
-			require.True(t, ok)
-			assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
 
 				return
-		}
-		require.NoError(t, err)
+			}
+			require.NoError(t, err)
 
 			rawExpectedResp := testConfig.Spy.LastResponse()
 			rawResp, err := json.Marshal(resp)
@@ -316,13 +314,13 @@ func TestAddInvokeTransaction(t *testing.T) {
 				InvokeTxn:     invokeTxn,
 				ExpectedError: ErrReplacementTransactionUnderpriced,
 				ErrorIndex:    4,
-						},
+			},
 			{
 				Description:   "error - fee below minimum",
 				InvokeTxn:     invokeTxn,
 				ExpectedError: ErrFeeBelowMinimum,
 				ErrorIndex:    5,
-						},
+			},
 			{
 				Description:   "error - validation failure",
 				InvokeTxn:     invokeTxn,
@@ -449,7 +447,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 				t.Context(),
 				test.InvokeTxn,
 			)
-		if test.ExpectedError != nil {
+			if test.ExpectedError != nil {
 				require.Error(t, err)
 				rpcErr, ok := err.(*RPCError)
 				require.True(t, ok)
@@ -468,65 +466,203 @@ func TestAddInvokeTransaction(t *testing.T) {
 	}
 }
 
+// TestAddDeployAccountTransaction tests the AddDeployAccountTransaction function.
 func TestAddDeployAccountTransaction(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		DeployTx      BroadcastDeployAccountTxnV3
-		ExpectedResp  AddDeployAccountTransactionResponse
-		ExpectedError error
+		Description   string
+		DeployTxn     *BroadcastDeployAccountTxnV3
+		ExpectedError *RPCError
+
+		// there are multiple errors that could be returned by the function, and
+		// this is a way to specify which error we want to test in the Mock environment.
+		// It's better than modifying the `DeclareTxn`, having to create a new variable
+		// for each error variant, and compare inside the mock `DoAndReturn` function.
+		ErrorIndex int
 	}
+
+	deployTxn := internalUtils.TestUnmarshalJSONFileToType[BroadcastDeployAccountTxnV3](
+		t,
+		"./testData/addTxn/sepoliaDeployAccount.json",
+		"",
+	)
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				DeployTx: BroadcastDeployAccountTxnV3{
-					Type:      TransactionTypeDeployAccount,
-					Version:   TransactionV3,
-					ClassHash: internalUtils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
-					Signature: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
-						internalUtils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
-					},
-					Nonce:         new(felt.Felt),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: &ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
-						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "",
-							MaxPricePerUnit: "",
-						},
-					},
-					Tip:                 "",
-					PayMasterData:       []*felt.Felt{},
-					ContractAddressSalt: new(felt.Felt),
-					ConstructorCalldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
-					},
-				},
-				ExpectedResp: AddDeployAccountTransactionResponse{
-					Hash:            internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
-					ContractAddress: internalUtils.TestHexToFelt(t, "0x0"),
-				},
-				ExpectedError: nil,
+				Description: "normal call",
+				DeployTxn:   deployTxn,
+			},
+			{
+				Description:   "error - insufficient account balance",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrInsufficientAccountBalance,
+				ErrorIndex:    1,
+			},
+			{
+				Description:   "error - insufficient resources for validate",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrInsufficientResourcesForValidate,
+				ErrorIndex:    2,
+			},
+			{
+				Description:   "error - invalid transaction nonce",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrInvalidTransactionNonce,
+				ErrorIndex:    3,
+			},
+			{
+				Description:   "error - replacement transaction underpriced",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrReplacementTransactionUnderpriced,
+				ErrorIndex:    4,
+			},
+			{
+				Description:   "error - fee below minimum",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrFeeBelowMinimum,
+				ErrorIndex:    5,
+			},
+			{
+				Description:   "error - validation failure",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrValidationFailure,
+				ErrorIndex:    6,
+			},
+			{
+				Description:   "error - non account",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrNonAccount,
+				ErrorIndex:    7,
+			},
+			{
+				Description:   "error - duplicate tx",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrDuplicateTx,
+				ErrorIndex:    8,
+			},
+			{
+				Description:   "error - unsupported tx version",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrUnsupportedTxVersion,
+				ErrorIndex:    9,
+			},
+			{
+				Description:   "error - class hash not found",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrClassHashNotFound,
+				ErrorIndex:    10,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "normal call - with error",
+				DeployTxn:   deployTxn,
+				// this test sends an already sent transaction, and this is the error
+				// returned by the node for this case.
+				// We do this because it's not feasible to create a new transaction each time.
+				// But with this test, we can assure our txn is correctly received by the node.
+				ExpectedError: ErrInvalidTransactionNonce,
 			},
 		},
 	}[tests.TEST_ENV]
-
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeployAccountTransaction(
-			context.Background(),
-			&test.DeployTx,
-		)
-		if err != nil {
-			require.Equal(t, err.Error(), test.ExpectedError)
-		} else {
-			require.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
-		}
+		t.Run(test.Description, func(t *testing.T) {
+			testConfig.MockClient.EXPECT().
+				CallContextWithSliceArgs(
+					t.Context(),
+					gomock.Any(),
+					"starknet_addDeployAccountTransaction",
+					test.DeployTxn,
+				).
+				DoAndReturn(func(_, result, _ any, _ ...any) error {
+					rawResp := result.(*json.RawMessage)
+
+					switch test.ErrorIndex {
+					case 1:
+						return RPCError{
+							Code:    54,
+							Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+						}
+					case 2:
+						return RPCError{
+							Code:    53,
+							Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+						}
+					case 3:
+						return RPCError{
+							Code:    52,
+							Message: "Invalid transaction nonce",
+							Data:    StringErrData(""),
+						}
+					case 4:
+						return RPCError{
+							Code:    64,
+							Message: "Replacement transaction is underpriced",
+						}
+					case 5:
+						return RPCError{
+							Code:    65,
+							Message: "Transaction fee below minimum",
+						}
+					case 6:
+						return RPCError{
+							Code:    55,
+							Message: "Account validation failed",
+							Data:    StringErrData(""),
+						}
+					case 7:
+						return RPCError{
+							Code:    58,
+							Message: "Sender address is not an account contract",
+						}
+					case 8:
+						return RPCError{
+							Code:    59,
+							Message: "A transaction with the same hash already exists in the mempool",
+						}
+					case 9:
+						return RPCError{
+							Code:    61,
+							Message: "The transaction version is not supported",
+						}
+					case 10:
+						return RPCError{
+							Code:    28,
+							Message: "Class hash not found",
+						}
+					}
+
+					*rawResp = json.RawMessage(`
+						{
+							"transaction_hash": "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e",
+							"contract_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+						}
+					`)
+
+					return nil
+				}).
+				Times(1)
+
+			resp, err := testConfig.Provider.AddDeployAccountTransaction(
+				t.Context(),
+				test.DeployTxn,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }

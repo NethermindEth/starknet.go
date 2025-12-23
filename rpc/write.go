@@ -104,9 +104,9 @@ func (provider *Provider) AddDeployAccountTransaction(
 			ErrFeeBelowMinimum,
 			ErrValidationFailure,
 			ErrNonAccount,
-			ErrClassHashNotFound,
 			ErrDuplicateTx,
 			ErrUnsupportedTxVersion,
+			ErrClassHashNotFound,
 		)
 	}
 
