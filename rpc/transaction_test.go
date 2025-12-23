@@ -315,46 +315,122 @@ func TestTransactionReceipt(t *testing.T) {
 	}
 }
 
-// TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
-func TestGetTransactionStatus(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
+// TestTransactionStatus tests the TransactionStatus function
+func TestTransactionStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		TxnHash      *felt.Felt
-		ExpectedResp TxnStatusResult
+		Description   string
+		TxnHash       *felt.Felt
+		ExpectedError error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.TestnetEnv: {
+		tests.MockEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
-				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatusAcceptedOnL1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+				Description: "only with FinalityStatus and ExecutionStatus",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x1"),
 			},
 			{
-				TxnHash: internalUtils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
-				ExpectedResp: TxnStatusResult{
-					FinalityStatus:  TxnStatusAcceptedOnL1,
-					ExecutionStatus: TxnExecutionStatusREVERTED,
-					FailureReason:   "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x036d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06, class hash: 0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nError at pc=0:4835:\nCairo traceback (most recent call last):\nUnknown location (pc=0:67)\nUnknown location (pc=0:1835)\nUnknown location (pc=0:2554)\nUnknown location (pc=0:3436)\nUnknown location (pc=0:4040)\n\n1: Error in the called contract (contract address: 0x00000000000000000000000000000000000000000000000000000000ffffffff, class hash: 0x0000000000000000000000000000000000000000000000000000000000000000, selector: 0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354):\nRequested contract address 0x00000000000000000000000000000000000000000000000000000000ffffffff is not deployed.\n",
-				},
+				Description: "with FailureReason",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x2"),
+			},
+			{
+				Description:   "error - hash not found",
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "only with FinalityStatus and ExecutionStatus",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+			},
+			{
+				Description: "with FailureReason",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
+			},
+			{
+				Description:   "error - hash not found",
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
-				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatusAcceptedOnL2, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+				Description: "only with FinalityStatus and ExecutionStatus",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+			},
+			{
+				Description:   "error - hash not found",
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.TransactionStatus(context.Background(), test.TxnHash)
-		require.Nil(t, err)
-		require.Equal(t, resp.FinalityStatus, test.ExpectedResp.FinalityStatus)
-		require.Equal(t, resp.ExecutionStatus, test.ExpectedResp.ExecutionStatus)
-		require.Equal(t, resp.FailureReason, test.ExpectedResp.FailureReason)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getTransactionStatus",
+						test.TxnHash,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						txnHash := args[0].(*felt.Felt)
+
+						if txnHash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    29,
+								Message: "Transaction hash not found",
+							}
+						}
+
+						if txnHash.String() == "0x1" {
+							*rawResp = json.RawMessage(`
+								{
+									"finality_status": "ACCEPTED_ON_L2",
+									"execution_status": "SUCCEEDED"
+								}
+							`)
+
+							return nil
+						}
+						if txnHash.String() == "0x2" {
+							*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/txnStatus/sepoliaStatus.json",
+								"result",
+							)
+
+							return nil
+						}
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.TransactionStatus(t.Context(), test.TxnHash)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }
 
