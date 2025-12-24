@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	client "github.com/NethermindEth/starknet.go/client"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -83,4 +84,39 @@ func (m *MockClient) Close() {
 func (mr *MockClientMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockClient)(nil).Close))
+}
+
+// Subscribe mocks base method.
+func (m *MockClient) Subscribe(ctx context.Context, namespace, methodSuffix string, channel, args any) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Subscribe", ctx, namespace, methodSuffix, channel, args)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Subscribe indicates an expected call of Subscribe.
+func (mr *MockClientMockRecorder) Subscribe(ctx, namespace, methodSuffix, channel, args any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscribe", reflect.TypeOf((*MockClient)(nil).Subscribe), ctx, namespace, methodSuffix, channel, args)
+}
+
+// SubscribeWithSliceArgs mocks base method.
+func (m *MockClient) SubscribeWithSliceArgs(ctx context.Context, namespace, methodSuffix string, channel any, args ...any) (*client.ClientSubscription, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, namespace, methodSuffix, channel}
+	for _, a := range args {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SubscribeWithSliceArgs", varargs...)
+	ret0, _ := ret[0].(*client.ClientSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubscribeWithSliceArgs indicates an expected call of SubscribeWithSliceArgs.
+func (mr *MockClientMockRecorder) SubscribeWithSliceArgs(ctx, namespace, methodSuffix, channel any, args ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, namespace, methodSuffix, channel}, args...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubscribeWithSliceArgs", reflect.TypeOf((*MockClient)(nil).SubscribeWithSliceArgs), varargs...)
 }

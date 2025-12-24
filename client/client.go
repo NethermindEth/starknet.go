@@ -113,8 +113,24 @@ type Client struct {
 type ClientI interface {
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
 	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	SubscribeWithSliceArgs(
+		ctx context.Context,
+		namespace string,
+		methodSuffix string,
+		channel interface{},
+		args ...interface{},
+	) (*ClientSubscription, error)
+	Subscribe(
+		ctx context.Context,
+		namespace string,
+		methodSuffix string,
+		channel interface{},
+		args interface{},
+	) (*ClientSubscription, error)
 	Close()
 }
+
+var _ ClientI = (*Client)(nil)
 
 type reconnectFunc func(context.Context) (ServerCodec, error)
 
