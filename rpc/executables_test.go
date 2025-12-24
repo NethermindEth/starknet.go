@@ -123,7 +123,7 @@ func TestCompiledCasm(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			rawExpectedResult := testConfig.Spy.LastResponse()
+			rawExpectedResult := testConfig.RPCSpy.LastResponse()
 
 			// asserting equality of the json results
 			resultJSON, err := json.Marshal(result)

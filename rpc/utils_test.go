@@ -25,7 +25,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 
 	// setup provider with a spy
 	provider := testConfig.Provider
-	spy := tests.NewJSONRPCSpy(provider.c, false)
+	spy := tests.NewRPCSpy(provider.c, false)
 	provider.c = spy
 
 	t.Run("No multiplier", func(t *testing.T) {

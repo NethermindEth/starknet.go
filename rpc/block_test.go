@@ -47,7 +47,7 @@ func TestBlockNumber(t *testing.T) {
 	blockNumber, err := provider.BlockNumber(t.Context())
 	require.NoError(t, err)
 
-	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawExpectedResp := testConfig.RPCSpy.LastResponse()
 	rawActualResp, err := json.Marshal(blockNumber)
 	require.NoError(t, err)
 	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
@@ -93,7 +93,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 	blockHashAndNumber, err := provider.BlockHashAndNumber(t.Context())
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
 
-	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawExpectedResp := testConfig.RPCSpy.LastResponse()
 	rawActualResp, err := json.Marshal(blockHashAndNumber)
 	require.NoError(t, err)
 	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))
@@ -213,7 +213,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			rawExpectedBlock := testConfig.Spy.LastResponse()
+			rawExpectedBlock := testConfig.RPCSpy.LastResponse()
 
 			switch block := result.(type) {
 			case *BlockTxHashes:
@@ -349,7 +349,7 @@ func TestBlockWithTxs(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedBlock := testConfig.Spy.LastResponse()
+			rawExpectedBlock := testConfig.RPCSpy.LastResponse()
 
 			switch block := blockWithTxsInterface.(type) {
 			case *PreConfirmedBlock:
@@ -467,7 +467,7 @@ func TestBlockTransactionCount(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedCount := testConfig.Spy.LastResponse()
+			rawExpectedCount := testConfig.RPCSpy.LastResponse()
 
 			rawCount, err := json.Marshal(count)
 			require.NoError(t, err)
@@ -591,7 +591,7 @@ func TestStateUpdate(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedStateUpdate := testConfig.Spy.LastResponse()
+			rawExpectedStateUpdate := testConfig.RPCSpy.LastResponse()
 
 			rawStateUpdate, err := json.Marshal(stateUpdate)
 			require.NoError(t, err)
@@ -714,7 +714,7 @@ func TestBlockWithReceipts(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedBlock := testConfig.Spy.LastResponse()
+			rawExpectedBlock := testConfig.RPCSpy.LastResponse()
 
 			switch block := result.(type) {
 			case *BlockWithReceipts:

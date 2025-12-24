@@ -119,7 +119,7 @@ func TestTransactionTrace(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 
@@ -273,7 +273,7 @@ func TestSimulateTransaction(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
@@ -373,7 +373,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))

@@ -49,8 +49,8 @@ type WsSpyer interface {
 
 // Assert that the Spy type implements the callCloser and Spyer interfaces.
 var (
-	_ callCloser = (*Spy)(nil)
-	_ Spyer      = (*Spy)(nil)
+	_ callCloser = (*RPCSpy)(nil)
+	_ RPCSpyer      = (*RPCSpy)(nil)
 )
 
 // NewJSONRPCSpy creates a new spy object.

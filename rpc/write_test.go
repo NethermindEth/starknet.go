@@ -253,7 +253,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
@@ -458,7 +458,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
@@ -659,7 +659,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))

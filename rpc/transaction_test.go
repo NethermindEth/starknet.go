@@ -94,7 +94,7 @@ func TestTransactionByHash(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, tx)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawTx, err := json.Marshal(tx)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawTx))
@@ -214,7 +214,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				return
 			}
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawTx, err := json.Marshal(tx)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawTx))
@@ -306,7 +306,7 @@ func TestTransactionReceipt(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawReceipt, err := json.Marshal(txReceiptWithBlockInfo)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawReceipt))
@@ -425,7 +425,7 @@ func TestTransactionStatus(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
@@ -515,7 +515,7 @@ func TestMessagesStatus(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))

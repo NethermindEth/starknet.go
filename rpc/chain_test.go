@@ -107,7 +107,7 @@ func TestSyncing(t *testing.T) {
 		assert.Zero(t, sync.HighestBlockNum)
 	}
 
-	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawExpectedResp := testConfig.RPCSpy.LastResponse()
 	rawActualResp, err := json.Marshal(sync)
 	require.NoError(t, err)
 	assert.JSONEq(t, string(rawExpectedResp), string(rawActualResp))

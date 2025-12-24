@@ -6,17 +6,17 @@ import (
 	"fmt"
 )
 
-// The purpose of the Spy type is to spy on the JSON-RPC calls made by the client.
+// The purpose of the RPCSpy type is to spy on the JSON-RPC calls made by the client.
 // It's used in the tests to mock the JSON-RPC calls and to check if the client is
 // making the correct calls.
-type Spy struct {
+type RPCSpy struct {
 	callCloser
 	buff  []byte
 	debug bool
 }
 
 // Toggles the debug mode of the spy to the opposite of the current value.
-func (s *Spy) ToggleDebug() {
+func (s *RPCSpy) ToggleDebug() {
 	s.debug = !s.debug
 }
 
@@ -33,8 +33,8 @@ type callCloser interface {
 	Close()
 }
 
-// The Spyer interface implemented by the Spy type.
-type Spyer interface {
+// The RPCSpyer interface implemented by the Spy type.
+type RPCSpyer interface {
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
 	CallContextWithSliceArgs(
 		ctx context.Context,
@@ -48,11 +48,11 @@ type Spyer interface {
 
 // Assert that the Spy type implements the callCloser and Spyer interfaces.
 var (
-	_ callCloser = (*Spy)(nil)
-	_ Spyer      = (*Spy)(nil)
+	_ callCloser = (*RPCSpy)(nil)
+	_ RPCSpyer   = (*RPCSpy)(nil)
 )
 
-// NewJSONRPCSpy creates a new spy object.
+// NewRPCSpy creates a new spy object.
 //
 // It takes a client callCloser as the first parameter and an optional debug parameter.
 // The client callCloser is the interface that the spy will be based on.
@@ -64,30 +64,22 @@ var (
 //
 // Returns:
 //   - spy: a new spy object
-func NewJSONRPCSpy(client callCloser, debug ...bool) Spyer {
+func NewRPCSpy(client callCloser, debug ...bool) RPCSpyer {
 	d := false
 	if len(debug) > 0 {
 		d = debug[0]
 	}
 
-	return &Spy{
+	return &RPCSpy{
 		callCloser: client,
 		buff:       []byte{},
 		debug:      d,
 	}
 }
 
-// CallContext calls the spy function with the given context, result, method, and arguments.
-//
-// Parameters:
-//   - ctx: the context.Context to be used.
-//   - result: the interface{} to store the result of the function call.
-//   - method: the string representing the method to be called.
-//   - arg: argument to be passed to the function call.
-//
-// Returns:
-//   - error: an error if any occurred during the function call
-func (s *Spy) CallContext(
+// CallContext calls the original CallContext function with the given parameters
+// and captures the response.
+func (s *RPCSpy) CallContext(
 	ctx context.Context,
 	result interface{},
 	method string,
@@ -117,17 +109,9 @@ func (s *Spy) CallContext(
 	return err
 }
 
-// CallContextWithSliceArgs calls the spy CallContext function with args as a slice.
-//
-// Parameters:
-//   - ctx: the context.Context to be used.
-//   - result: the interface{} to store the result of the function call.
-//   - method: the string representing the method to be called.
-//   - args: variadic arguments to be passed to the function call.
-//
-// Returns:
-//   - error: an error if any occurred during the function call
-func (s *Spy) CallContextWithSliceArgs(
+// CallContextWithSliceArgs calls the original CallContextWithSliceArgs function with the given parameters
+// and captures the response.
+func (s *RPCSpy) CallContextWithSliceArgs(
 	ctx context.Context,
 	result interface{},
 	method string,
@@ -162,7 +146,7 @@ func (s *Spy) CallContextWithSliceArgs(
 // LastResponse returns the last response captured by the spy.
 // In other words, it returns the raw JSON response received from the server when
 // calling a `callCloser` method.
-func (s *Spy) LastResponse() json.RawMessage {
+func (s *RPCSpy) LastResponse() json.RawMessage {
 	return s.buff
 }
 

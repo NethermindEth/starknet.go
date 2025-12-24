@@ -165,7 +165,7 @@ func TestClassAt(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 
 			switch class := resp.(type) {
 			case *contracts.DeprecatedContractClass:
@@ -315,7 +315,7 @@ func TestClassHashAt(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedClassHash := testConfig.Spy.LastResponse()
+			rawExpectedClassHash := testConfig.RPCSpy.LastResponse()
 			rawClassHash, err := json.Marshal(classhash)
 			require.NoError(t, err)
 			assert.Equal(t, string(rawExpectedClassHash), string(rawClassHash))
@@ -469,7 +469,7 @@ func TestClass(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedClass := testConfig.Spy.LastResponse()
+			rawExpectedClass := testConfig.RPCSpy.LastResponse()
 
 			switch class := resp.(type) {
 			case *contracts.DeprecatedContractClass:
@@ -631,7 +631,7 @@ func TestStorageAt(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedValue := testConfig.Spy.LastResponse()
+			rawExpectedValue := testConfig.RPCSpy.LastResponse()
 			rawValue, err := json.Marshal(value)
 			require.NoError(t, err)
 			assert.Equal(t, string(rawExpectedValue), string(rawValue))
@@ -762,7 +762,7 @@ func TestNonce(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedNonce := testConfig.Spy.LastResponse()
+			rawExpectedNonce := testConfig.RPCSpy.LastResponse()
 			rawNonce, err := json.Marshal(nonce)
 			require.NoError(t, err)
 			assert.Equal(t, string(rawExpectedNonce), string(rawNonce))
@@ -933,7 +933,7 @@ func TestEstimateMessageFee(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			rawExpectedFeeEst := testConfig.Spy.LastResponse()
+			rawExpectedFeeEst := testConfig.RPCSpy.LastResponse()
 
 			rawFeeEst, err := json.Marshal(resp)
 			require.NoError(t, err)
@@ -1163,7 +1163,7 @@ func TestEstimateFee(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawResp, err := json.Marshal(resp)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
@@ -1475,7 +1475,7 @@ func TestGetStorageProof(t *testing.T) {
 			require.NoError(t, err)
 
 			// verify JSON equality
-			rawResult := testConfig.Spy.LastResponse()
+			rawResult := testConfig.RPCSpy.LastResponse()
 			marshalledResult, err := json.Marshal(result)
 			require.NoError(t, err)
 

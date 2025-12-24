@@ -35,7 +35,7 @@ func TestSpecVersion(t *testing.T) {
 	resp, err := testConfig.Provider.SpecVersion(t.Context())
 	require.NoError(t, err)
 
-	rawExpectedResp := testConfig.Spy.LastResponse()
+	rawExpectedResp := testConfig.RPCSpy.LastResponse()
 	rawResp, err := json.Marshal(resp)
 	require.NoError(t, err)
 	assert.Equal(t, string(rawExpectedResp), string(rawResp))

@@ -174,7 +174,7 @@ func TestEvents(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			rawExpectedResp := testConfig.Spy.LastResponse()
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
 			rawEvents, err := json.Marshal(events)
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawEvents))

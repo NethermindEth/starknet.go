@@ -22,7 +22,7 @@ type TestSetup struct {
 	WsProvider *WsProvider
 	Base       string
 	WsBase     string
-	Spy        tests.Spyer
+	RPCSpy     tests.RPCSpyer
 	// Only present in mock environment
 	MockClient *clientmock.MockClient
 
@@ -48,7 +48,7 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		mockCtrl := gomock.NewController(t)
 		mockClient := clientmock.NewMockClient(mockCtrl)
 
-		spy := tests.NewJSONRPCSpy(mockClient)
+		spy := tests.NewRPCSpy(mockClient)
 
 		provider := &Provider{
 			c: spy,
@@ -56,7 +56,7 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 
 		testConfig.MockClient = mockClient
 		testConfig.Provider = provider
-		testConfig.Spy = spy
+		testConfig.RPCSpy = spy
 
 		return testConfig
 	}
@@ -71,8 +71,8 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
 	}
 
-	spy := tests.NewJSONRPCSpy(provider.c)
-	testConfig.Spy = spy
+	spy := tests.NewRPCSpy(provider.c)
+	testConfig.RPCSpy = spy
 	provider.c = spy
 
 	testConfig.Provider = provider
