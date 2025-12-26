@@ -25,7 +25,6 @@ type callCloser interface {
 }
 
 type wsConn interface {
-	callCloser
 	// Subscribe calls the "<namespace>_subscribe" method with the given arguments,
 	// registering a subscription. Server notifications for the subscription are
 	// sent to the given channel. The element type of the channel must match the
@@ -48,6 +47,7 @@ type wsConn interface {
 		channel interface{},
 		args ...interface{},
 	) (*client.ClientSubscription, error)
+	Close()
 }
 
 // do is a function that performs a remote procedure call (RPC) using the
