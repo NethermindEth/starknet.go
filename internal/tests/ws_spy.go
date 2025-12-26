@@ -18,11 +18,6 @@ type WSSpy struct {
 	debug bool
 }
 
-// Toggles the debug mode of the spy to the opposite of the current value.
-func (s *WSSpy) ToggleDebug() {
-	s.debug = !s.debug
-}
-
 // The wsConn interface used in `rpc.websocket` tests.
 // It's implemented by the `client.Client` type.
 type wsConn interface {
@@ -101,7 +96,7 @@ func (s *WSSpy) Subscribe(
 	eventType := reflect.TypeOf(channel).Elem()
 	mainCh := make(chan json.RawMessage)
 
-	go listenAndForward(ctx, mainCh, userCh, eventType, s.spyCh, s.debug)
+	go listenAndForward(ctx, mainCh, userCh, eventType, s.spyCh, &s.debug)
 
 	sub, err := s.wsConn.Subscribe(ctx, namespace, methodSuffix, mainCh, args)
 	if err != nil {
@@ -133,7 +128,7 @@ func (s *WSSpy) SubscribeWithSliceArgs(
 	eventType := reflect.TypeOf(channel).Elem()
 	mainCh := make(chan json.RawMessage)
 
-	go listenAndForward(ctx, mainCh, userCh, eventType, s.spyCh, s.debug)
+	go listenAndForward(ctx, mainCh, userCh, eventType, s.spyCh, &s.debug)
 
 	sub, err := s.wsConn.SubscribeWithSliceArgs(ctx, namespace, methodSuffix, mainCh, args...)
 	if err != nil {
@@ -152,6 +147,11 @@ func (s *WSSpy) SpyChannel() <-chan json.RawMessage {
 	return s.spyCh
 }
 
+// Toggles the debug mode of the spy to the opposite of the current value.
+func (s *WSSpy) ToggleDebug() {
+	s.debug = !s.debug
+}
+
 // listenAndForward listens for messages on the main channel
 // and forwards them to the user channel and the spy channel.
 func listenAndForward(
@@ -160,14 +160,14 @@ func listenAndForward(
 	userCh reflect.Value,
 	eventType reflect.Type,
 	spyCh chan json.RawMessage,
-	debug bool,
+	debug *bool,
 ) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case rawMsg := <-mainCh:
-			if debug {
+			if *debug {
 				fmt.Printf("### Spy Debug mode: msg received\n")
 				PrettyPrint(rawMsg)
 			}
