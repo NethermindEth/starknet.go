@@ -8,29 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 )
 
-// Subscription is the abstraction for a subscription to a WebSocket method. It
-// is used to unsubscribe from the stream, retry when the connection is lost, and
-// receive reorg events.
-type Subscription interface {
-	// Err returns the subscription error channel. The intended use of Err is to schedule
-	// resubscription when the client connection is closed unexpectedly.
-	//
-	// The error channel receives a value when the subscription has ended due to an error. The
-	// received error is nil if Close has been called on the underlying client and no other
-	// error has occurred.
-	//
-	// The error channel is closed when Unsubscribe is called on the subscription.
-	Err() <-chan error
-	// ID returns the subscription ID.
-	ID() string
-	// Reorg returns a channel that notifies the subscriber of a reorganisation of the chain.
-	// A reorg event can be received from subscribing to any Starknet subscription.
-	Reorg() <-chan *client.ReorgEvent
-	// Unsubscribe unsubscribes the notification by calling the 'starknet_unsubscribe'
-	// method and closes the error channel. It can safely be called more than once.
-	Unsubscribe()
-}
-
 // Events subscription.
 // Creates a WebSocket stream which will fire events for new Starknet events
 // with applied filters. Events are emitted for all events from the specified
@@ -46,14 +23,14 @@ type Subscription interface {
 //     nil if no filters are needed.
 //
 // Returns:
-//   - Subscription: The subscription object, used to unsubscribe from
+//   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
 func (ws *WsProvider) SubscribeEvents(
 	ctx context.Context,
 	events chan<- *EmittedEventWithFinalityStatus,
 	options *EventSubscriptionInput,
-) (Subscription, error) {
+) (*client.ClientSubscription, error) {
 	sub, err := ws.c.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
@@ -64,7 +41,7 @@ func (ws *WsProvider) SubscribeEvents(
 		)
 	}
 
-	return Subscription(sub), nil
+	return sub, nil
 }
 
 // New block headers subscription.
@@ -77,14 +54,14 @@ func (ws *WsProvider) SubscribeEvents(
 //     blocks back. If empty, the latest block will be used
 //
 // Returns:
-//   - Subscription: The subscription object, used to unsubscribe from
+//   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
 func (ws *WsProvider) SubscribeNewHeads(
 	ctx context.Context,
 	headers chan<- *BlockHeader,
 	subBlockID SubscriptionBlockID,
-) (Subscription, error) {
+) (*client.ClientSubscription, error) {
 	var sub *client.ClientSubscription
 	var err error
 
@@ -101,7 +78,7 @@ func (ws *WsProvider) SubscribeNewHeads(
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
 
-	return Subscription(sub), nil
+	return sub, nil
 }
 
 // New transactions receipts subscription
@@ -118,14 +95,14 @@ func (ws *WsProvider) SubscribeNewHeads(
 //     to nil if no filters are needed.
 //
 // Returns:
-//   - Subscription: The subscription object, used to unsubscribe
+//   - clientSubscription: The client subscription object, used to unsubscribe
 //     from the stream and to get errors
 //   - error: An error, if any
 func (ws *WsProvider) SubscribeNewTransactionReceipts(
 	ctx context.Context,
 	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
 	options *SubNewTxnReceiptsInput,
-) (Subscription, error) {
+) (*client.ClientSubscription, error) {
 	sub, err := ws.c.Subscribe(
 		ctx,
 		"starknet",
@@ -137,7 +114,7 @@ func (ws *WsProvider) SubscribeNewTransactionReceipts(
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
 
-	return Subscription(sub), nil
+	return sub, nil
 }
 
 // New transactions subscription
@@ -153,20 +130,20 @@ func (ws *WsProvider) SubscribeNewTransactionReceipts(
 //     no filters are needed.
 //
 // Returns:
-//   - Subscription: The subscription object, used to unsubscribe from
+//   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
 func (ws *WsProvider) SubscribeNewTransactions(
 	ctx context.Context,
 	newTxns chan<- *TxnWithHashAndStatus,
 	options *SubNewTxnsInput,
-) (Subscription, error) {
+) (*client.ClientSubscription, error) {
 	sub, err := ws.c.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
 
-	return Subscription(sub), nil
+	return sub, nil
 }
 
 // Transaction Status subscription.
@@ -180,14 +157,14 @@ func (ws *WsProvider) SubscribeNewTransactions(
 //   - transactionHash: The transaction hash to fetch status updates for
 //
 // Returns:
-//   - Subscription: The subscription object, used to unsubscribe from
+//   - clientSubscription: The client subscription object, used to unsubscribe from
 //     the stream and to get errors
 //   - error: An error, if any
 func (ws *WsProvider) SubscribeTransactionStatus(
 	ctx context.Context,
 	newStatus chan<- *NewTxnStatus,
 	transactionHash *felt.Felt,
-) (Subscription, error) {
+) (*client.ClientSubscription, error) {
 	sub, err := ws.c.SubscribeWithSliceArgs(
 		ctx,
 		"starknet",
@@ -199,5 +176,5 @@ func (ws *WsProvider) SubscribeTransactionStatus(
 		return nil, rpcerr.UnwrapToRPCErr(err)
 	}
 
-	return Subscription(sub), nil
+	return sub, nil
 }

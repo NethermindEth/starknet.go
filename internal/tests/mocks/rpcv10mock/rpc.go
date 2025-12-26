@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 
 	felt "github.com/NethermindEth/juno/core/felt"
+	client "github.com/NethermindEth/starknet.go/client"
 	contracts "github.com/NethermindEth/starknet.go/contracts"
 	rpc "github.com/NethermindEth/starknet.go/rpc"
 	gomock "go.uber.org/mock/gomock"
@@ -548,10 +549,10 @@ func (m *MockWebsocketProvider) EXPECT() *MockWebsocketProviderMockRecorder {
 }
 
 // SubscribeEvents mocks base method.
-func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEventWithFinalityStatus, options *rpc.EventSubscriptionInput) (rpc.Subscription, error) {
+func (m *MockWebsocketProvider) SubscribeEvents(ctx context.Context, events chan<- *rpc.EmittedEventWithFinalityStatus, options *rpc.EventSubscriptionInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeEvents", ctx, events, options)
-	ret0, _ := ret[0].(rpc.Subscription)
+	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -563,10 +564,10 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, option
 }
 
 // SubscribeNewHeads mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, subBlockID rpc.SubscriptionBlockID) (rpc.Subscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpc.BlockHeader, subBlockID rpc.SubscriptionBlockID) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, subBlockID)
-	ret0, _ := ret[0].(rpc.Subscription)
+	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -578,10 +579,10 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, sub
 }
 
 // SubscribeNewTransactionReceipts mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewTransactionReceipts(ctx context.Context, txnReceipts chan<- *rpc.TransactionReceiptWithBlockInfo, options *rpc.SubNewTxnReceiptsInput) (rpc.Subscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewTransactionReceipts(ctx context.Context, txnReceipts chan<- *rpc.TransactionReceiptWithBlockInfo, options *rpc.SubNewTxnReceiptsInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeNewTransactionReceipts", ctx, txnReceipts, options)
-	ret0, _ := ret[0].(rpc.Subscription)
+	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -593,10 +594,10 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactionReceipts(ctx
 }
 
 // SubscribeNewTransactions mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewTransactions(ctx context.Context, newTxns chan<- *rpc.TxnWithHashAndStatus, options *rpc.SubNewTxnsInput) (rpc.Subscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewTransactions(ctx context.Context, newTxns chan<- *rpc.TxnWithHashAndStatus, options *rpc.SubNewTxnsInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeNewTransactions", ctx, newTxns, options)
-	ret0, _ := ret[0].(rpc.Subscription)
+	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -608,10 +609,10 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewTransactions(ctx, newTx
 }
 
 // SubscribeTransactionStatus mocks base method.
-func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatus, transactionHash *felt.Felt) (rpc.Subscription, error) {
+func (m *MockWebsocketProvider) SubscribeTransactionStatus(ctx context.Context, newStatus chan<- *rpc.NewTxnStatus, transactionHash *felt.Felt) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeTransactionStatus", ctx, newStatus, transactionHash)
-	ret0, _ := ret[0].(rpc.Subscription)
+	ret0, _ := ret[0].(*client.ClientSubscription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
