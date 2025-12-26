@@ -1,23 +1,25 @@
 package tests
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"reflect"
 
 	"github.com/NethermindEth/starknet.go/client"
 )
 
-// The purpose of the Spy type is to spy on the JSON-RPC calls made by the client.
-// It's used in the tests to mock the JSON-RPC calls and to check if the client is
-// making the correct calls.
-type WsSpy struct {
+// The purpose of the Spy type is to spy on the subscriptions made by the client.
+// It's used in the tests to observe and store the responses from the subscriptions.
+type WSSpy struct {
 	wsConn
-	buff  []byte
+	spyCh chan json.RawMessage // must have a buffer of 1
 	debug bool
 }
 
 // Toggles the debug mode of the spy to the opposite of the current value.
-func (s *WsSpy) ToggleDebug() {
+func (s *WSSpy) ToggleDebug() {
 	s.debug = !s.debug
 }
 
@@ -42,21 +44,21 @@ type wsConn interface {
 }
 
 // The Spyer interface implemented by the Spy type.
-type WsSpyer interface {
-	callCloser
-	LastResponse() json.RawMessage
+type WSSpyer interface {
+	wsConn
+	SpyChannel() <-chan json.RawMessage
+	ToggleDebug()
 }
 
-// Assert that the Spy type implements the callCloser and Spyer interfaces.
+// Assert that the Spy type implements the WSSpyer interface.
 var (
-	_ callCloser = (*RPCSpy)(nil)
-	_ RPCSpyer      = (*RPCSpy)(nil)
+	_ WSSpyer = (*WSSpy)(nil)
 )
 
-// NewJSONRPCSpy creates a new spy object.
+// NewWSSpy creates a new WSSpy object.
 //
-// It takes a client callCloser as the first parameter and an optional debug parameter.
-// The client callCloser is the interface that the spy will be based on.
+// It takes a client wsConn as the first parameter and an optional debug parameter.
+// The client wsConn is the interface that the spy will be based on.
 // The debug parameter is a variadic parameter that specifies whether debug mode is enabled.
 //
 // Parameters:
@@ -64,125 +66,130 @@ var (
 //   - debug: a boolean flag indicating whether to print debug information
 //
 // Returns:
-//   - spy: a new spy object
-func NewWsSpy(client wsConn, debug ...bool) WsSpyer {
+//   - WsSpyer: a new WSSpy object that implements the WsSpyer interface
+func NewWSSpy(client wsConn, debug ...bool) WSSpyer {
 	d := false
 	if len(debug) > 0 {
 		d = debug[0]
 	}
 
-	return &WsSpy{
+	return &WSSpy{
 		wsConn: client,
-		buff:   []byte{},
+		spyCh:  make(chan json.RawMessage, 1),
 		debug:  d,
 	}
 }
 
-// CallContext calls the original CallContext function with the given parameters
-// and captures the response.
-func (s *WsSpy) CallContext(
-	ctx context.Context,
-	result interface{},
-	method string,
-	arg interface{},
-) error {
-	// if s.debug {
-	// 	fmt.Printf("### Spy Debug mode: in parameters\n")
-	// 	fmt.Printf("   arg.(%T): %+v\n", arg, arg)
-	// 	PrettyPrint(arg)
-	// 	fmt.Println("--------------------------------------------")
-	// }
-
-	// raw := json.RawMessage{}
-	// err := s.callCloser.CallContext(ctx, &raw, method, arg)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if s.debug {
-	// 	fmt.Printf("### Spy Debug mode: output\n")
-	// 	PrettyPrint(raw)
-	// }
-
-	// err = json.Unmarshal(raw, result)
-	// s.buff = raw
-
-	// return err
-	return nil
-}
-
 // Subscribe calls the original Subscribe function with the given parameters
-// and captures the response.
-func (s *WsSpy) Subscribe(
+// and captures the notifications sent by the node.
+func (s *WSSpy) Subscribe(
 	ctx context.Context,
 	namespace string,
 	methodSuffix string,
 	channel interface{},
 	args interface{},
-) error {
-	// if s.debug {
-	// 	fmt.Printf("### Spy Debug mode: in parameters\n")
-	// 	fmt.Printf("   args.(%T): %+v\n", args, args)
-	// 	PrettyPrint(args)
-	// 	fmt.Println("--------------------------------------------")
-	// }
+) (*client.ClientSubscription, error) {
+	if s.debug {
+		fmt.Printf("### Spy Debug mode: in parameters\n")
+		fmt.Printf("   arg.(%T): %+v\n", args, args)
+		PrettyPrint(args)
+		fmt.Println("--------------------------------------------")
+	}
 
-	// raw := json.RawMessage{}
-	// err := s.wsConn.Subscribe(ctx, namespace, methodSuffix, channel, args)
-	// if err != nil {
-	// 	return err
-	// }
+	chVal := reflect.ValueOf(channel)
+	eventType := reflect.TypeOf(channel).Elem()
+	mainCh := make(chan json.RawMessage)
 
-	// if s.debug {
-	// 	fmt.Printf("### Spy Debug mode: output\n")
-	// 	PrettyPrint(raw)
-	// }
+	go listenAndForward(ctx, mainCh, chVal, eventType, s.spyCh, s.debug)
 
-	// err = json.Unmarshal(raw, result)
-	// s.buff = raw
+	sub, err := s.wsConn.Subscribe(ctx, namespace, methodSuffix, channel, args)
+	if err != nil {
+		return nil, err
+	}
 
-	// return err
-	return nil
+	return sub, nil
 }
 
-// CallContextWithSliceArgs calls the original CallContextWithSliceArgs function with the given parameters
-// and captures the response.
-func (s *WsSpy) CallContextWithSliceArgs(
+// SubscribeWithSliceArgs calls the original SubscribeWithSliceArgs function with the given parameters
+// and captures the notifications sent by the node.
+func (s *WSSpy) SubscribeWithSliceArgs(
 	ctx context.Context,
-	result interface{},
-	method string,
+	namespace string,
+	methodSuffix string,
+	channel interface{},
 	args ...interface{},
-) error {
-	// if s.debug {
-	// 	fmt.Printf("### Spy Debug mode: in parameters\n")
-	// 	for i, v := range args {
-	// 		fmt.Printf("   Arg[%d].(%T): %+v\n", i, v, v)
-	// 		PrettyPrint(v)
-	// 		fmt.Println("--------------------------------------------")
-	// 	}
-	// }
+) (*client.ClientSubscription, error) {
+	if s.debug {
+		fmt.Printf("### Spy Debug mode: in parameters\n")
+		for i, v := range args {
+			fmt.Printf("   Arg[%d].(%T): %+v\n", i, v, v)
+			PrettyPrint(v)
+			fmt.Println("--------------------------------------------")
+		}
+	}
 
-	// raw := json.RawMessage{}
-	// err := s.callCloser.CallContextWithSliceArgs(ctx, &raw, method, args...)
-	// if err != nil {
-	// 	return err
-	// }
+	chVal := reflect.ValueOf(channel)
+	eventType := reflect.TypeOf(channel).Elem()
+	mainCh := make(chan json.RawMessage)
 
-	// if s.debug {
-	// 	fmt.Printf("### Spy Debug mode: output\n")
-	// 	PrettyPrint(raw)
-	// }
+	go listenAndForward(ctx, mainCh, chVal, eventType, s.spyCh, s.debug)
 
-	// err = json.Unmarshal(raw, result)
-	// s.buff = raw
+	sub, err := s.wsConn.SubscribeWithSliceArgs(ctx, namespace, methodSuffix, channel, args)
+	if err != nil {
+		return nil, err
+	}
 
-	// return err
-	return nil
+	return sub, nil
 }
 
-// LastResponse returns the last response captured by the spy.
-// In other words, it returns the raw JSON response received from the server when
-// calling a `callCloser` method.
-func (s *WsSpy) LastResponse() json.RawMessage {
-	return s.buff
+// SpyChannel returns the channel that captures raw JSON responses from the node.
+// In other words, it returns the raw JSON response received from the node when
+// sending notifications to the subscription.
+// It is filled right after the main channel is filled with a new message, so
+// it should be read right after the main channel is read, not before.
+func (s *WSSpy) SpyChannel() <-chan json.RawMessage {
+	return s.spyCh
+}
+
+// listenAndForward listens for messages on the main channel
+// and forwards them to the user channel and the spy channel.
+func listenAndForward(
+	ctx context.Context,
+	mainCh <-chan json.RawMessage,
+	userCh reflect.Value,
+	eventType reflect.Type,
+	spyCh chan json.RawMessage,
+	debug bool,
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case rawMsg := <-mainCh:
+			if debug {
+				fmt.Printf("### Spy Debug mode: msg received\n")
+				PrettyPrint(rawMsg)
+			}
+
+			msg := reflect.New(eventType)
+			dec := json.NewDecoder(bytes.NewReader(rawMsg))
+			err := dec.Decode(msg.Interface())
+			if err != nil {
+				panic(fmt.Errorf(
+					"failed to unmarshal message to variable of type %T: %w",
+					msg.Interface(),
+					err,
+				))
+			}
+			userCh.Send(msg.Elem())
+
+			// Non-blocking receive - discards value if present
+			select {
+			case <-spyCh:
+				spyCh <- rawMsg
+			default:
+				spyCh <- rawMsg
+			}
+		}
+	}
 }

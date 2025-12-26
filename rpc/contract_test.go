@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -177,7 +176,7 @@ func TestClassAt(t *testing.T) {
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedResp), string(rawClass))
 			default:
-				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+				t.Fatalf("Received unknown response type: %T", resp)
 			}
 		},
 		)
@@ -481,7 +480,7 @@ func TestClass(t *testing.T) {
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedClass), string(rawClass))
 			default:
-				t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
+				t.Fatalf("Received unknown response type: %T", resp)
 			}
 		})
 	}

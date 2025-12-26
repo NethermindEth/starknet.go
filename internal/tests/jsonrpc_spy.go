@@ -7,8 +7,7 @@ import (
 )
 
 // The purpose of the RPCSpy type is to spy on the JSON-RPC calls made by the client.
-// It's used in the tests to mock the JSON-RPC calls and to check if the client is
-// making the correct calls.
+// It's used in the tests to observe and store the responses from the JSON-RPC calls.
 type RPCSpy struct {
 	callCloser
 	buff  []byte
@@ -44,15 +43,15 @@ type RPCSpyer interface {
 	) error
 	Close()
 	LastResponse() json.RawMessage
+	ToggleDebug()
 }
 
-// Assert that the Spy type implements the callCloser and Spyer interfaces.
+// Assert that the RPCSpy type implements the RPCSpyer interface.
 var (
-	_ callCloser = (*RPCSpy)(nil)
-	_ RPCSpyer   = (*RPCSpy)(nil)
+	_ RPCSpyer = (*RPCSpy)(nil)
 )
 
-// NewRPCSpy creates a new spy object.
+// NewRPCSpy creates a new RPCSpy object.
 //
 // It takes a client callCloser as the first parameter and an optional debug parameter.
 // The client callCloser is the interface that the spy will be based on.
@@ -63,7 +62,7 @@ var (
 //   - debug: a boolean flag indicating whether to print debug information
 //
 // Returns:
-//   - spy: a new spy object
+//   - RPCSpyer: a new RPCSpy object that implements the RPCSpyer interface
 func NewRPCSpy(client callCloser, debug ...bool) RPCSpyer {
 	d := false
 	if len(debug) > 0 {
