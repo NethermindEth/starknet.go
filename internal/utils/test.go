@@ -54,7 +54,7 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 //
 // Returns:
 //   - T: the unmarshalled data of type T
-func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath, subfield string) *T {
+func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath, subfield string) T {
 	result, err := UnmarshalJSONFileToType[T](filePath, subfield)
 	require.NoError(t, err)
 

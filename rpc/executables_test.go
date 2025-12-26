@@ -100,7 +100,7 @@ func TestCompiledCasm(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/compiledCasm/sepolia.json",
 							"result",

@@ -129,7 +129,7 @@ func TestClassAt(t *testing.T) {
 						var class json.RawMessage
 						if contractAddress.String() == "0x123" {
 							// deprecated class
-							class = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							class = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 								t,
 								"testData/class/0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9.json",
 								"result",
@@ -137,7 +137,7 @@ func TestClassAt(t *testing.T) {
 						}
 						if contractAddress.String() == "0x456" {
 							// sierra class
-							class = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							class = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 								t,
 								"testData/class/0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855.json",
 								"result",
@@ -433,7 +433,7 @@ func TestClass(t *testing.T) {
 						var class json.RawMessage
 						if classHash.String() == "0x123" {
 							// deprecated class
-							class = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							class = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 								t,
 								"testData/class/0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9.json",
 								"result",
@@ -441,7 +441,7 @@ func TestClass(t *testing.T) {
 						}
 						if classHash.String() == "0x456" {
 							// sierra class
-							class = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							class = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 								t,
 								"testData/class/0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855.json",
 								"result",
@@ -956,7 +956,7 @@ func TestEstimateFee(t *testing.T) {
 		expectedError *RPCError
 	}
 
-	sepoliaInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+	sepoliaInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json",
 		"",
@@ -964,7 +964,7 @@ func TestEstimateFee(t *testing.T) {
 	invalidSepoliaInvokeV3 := sepoliaInvokeV3
 	invalidSepoliaInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}
 
-	integrationInvokeV3 := *internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+	integrationInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
 		"",
@@ -1453,7 +1453,7 @@ func TestGetStorageProof(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/storageProof/sepoliaLatestFullResp.json",
 							"result",

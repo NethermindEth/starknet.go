@@ -73,7 +73,7 @@ func TestTransactionByHash(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/txnWithHash/sepoliaTxn.json",
 							"result",
@@ -185,7 +185,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/txnWithHash/sepoliaTxn.json",
 							"result",
@@ -283,7 +283,7 @@ func TestTransactionReceipt(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/receipt/sepoliaReceipt.json",
 							"result",
@@ -402,7 +402,7 @@ func TestTransactionStatus(t *testing.T) {
 							return nil
 						}
 						if txnHash.String() == "0x2" {
-							*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 								t,
 								"./testData/txnStatus/sepoliaStatus.json",
 								"result",

@@ -96,7 +96,7 @@ func TestTransactionTrace(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/trace/sepoliaInvokeTrace_0x6a4a9c4f1a530f7d6dd7bba9b71f090a70d1e3bbde80998fde11a08aab8b282.json",
 							"result",
@@ -138,7 +138,7 @@ func TestSimulateTransaction(t *testing.T) {
 		Txns            []BroadcastTxn   `json:"transactions"`
 		SimulationFlags []SimulationFlag `json:"simulation_flags"`
 	}
-	input := *internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
+	input := internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
 		t, "./testData/trace/sepoliaSimulateInvokeTx.json", "params")
 
 	type testSetType struct {
@@ -244,7 +244,7 @@ func TestSimulateTransaction(t *testing.T) {
 								Data:    &TransactionExecErrData{},
 							}
 						}
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/trace/sepoliaSimulateInvokeTxResp.json",
 							"result",
@@ -350,7 +350,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
 							"result",

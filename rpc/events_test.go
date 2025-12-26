@@ -148,7 +148,7 @@ func TestEvents(t *testing.T) {
 							}
 						}
 
-						*rawResp = *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
 							"./testData/events/sepoliaEvents.json",
 							"result",

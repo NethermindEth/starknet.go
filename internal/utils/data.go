@@ -65,36 +65,36 @@ func GetAndUnmarshalJSONFromMap[T any](
 //   - subfield: string subfield to unmarshal from the JSON file
 //
 // Returns:
-//   - *T: pointer to the unmarshalled data of type T
+//   - T: the unmarshalled data of type T
 //   - error: error if file reading or unmarshalling fails
-func UnmarshalJSONFileToType[T any](filePath, subfield string) (*T, error) {
+func UnmarshalJSONFileToType[T any](filePath, subfield string) (T, error) {
 	var result T
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
 	if subfield != "" {
 		var tempMap map[string]json.RawMessage
 		err = json.Unmarshal(data, &tempMap)
 		if err != nil {
-			return nil, err
+			return result, err
 		}
 
 		if tempData, ok := tempMap[subfield]; ok {
 			data = tempData
 		} else {
-			return nil, fmt.Errorf("invalid subfield: missing field %s", subfield)
+			return result, fmt.Errorf("invalid subfield: missing field %s", subfield)
 		}
 	}
 
 	err = json.Unmarshal(data, &result)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 // RemoveFieldFromJSON removes a field from a JSON bytes slice.

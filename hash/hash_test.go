@@ -117,7 +117,7 @@ func TestClassHashes(t *testing.T) {
 	t.Run("Test Sierra ClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				sierraClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+				sierraClass := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 					t,
 					"./testData/"+test.FileNameWithoutExtensions+".contract_class.json",
 					"",
@@ -132,7 +132,7 @@ func TestClassHashes(t *testing.T) {
 	t.Run("Test CompiledClassHash:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+				casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 					t,
 					"./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json",
 					"",
@@ -148,7 +148,7 @@ func TestClassHashes(t *testing.T) {
 	t.Run("Test CompiledClassHashV2:", func(t *testing.T) {
 		for _, test := range testSet {
 			t.Run(test.FileNameWithoutExtensions, func(t *testing.T) {
-				casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+				casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 					t,
 					"./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json",
 					"",

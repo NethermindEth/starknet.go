@@ -768,7 +768,7 @@ func TestTxnOptions(t *testing.T) {
 func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 	t.Parallel()
 
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"../hash/testData/contracts_v2_HelloStarknet.compiled_contract_class.json",
 		"",

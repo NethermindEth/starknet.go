@@ -85,10 +85,18 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+		"",
+	)
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+		"",
+	)
 
 	// Build and send declare txn
 	resp, err := acc.BuildAndSendDeclareTxn(
@@ -134,13 +142,13 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.sierra.json",
 		"",
 	)
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.casm.json",
 		"",
@@ -451,10 +459,18 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+		"",
+	)
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+		"",
+	)
 
 	t.Run("on mock", func(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
@@ -852,10 +868,18 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+		"",
+	)
 
 	// Compiled Class Hash
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+		"",
+	)
 	compClassHash, err := hash.CompiledClassHashV2(&casmClass)
 	require.NoError(t, err)
 

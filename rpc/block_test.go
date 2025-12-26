@@ -163,12 +163,12 @@ func TestBlockWithTxHashes(t *testing.T) {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
-				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithHashes/sepolia3100000.json", "result",
 				)
 
-				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithHashes/sepoliaPreConfirmed.json", "result",
 				)
@@ -295,12 +295,12 @@ func TestBlockWithTxs(t *testing.T) {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
-				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithTxns/sepolia3100000.json", "result",
 				)
 
-				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithTxns/sepoliaPreConfirmed.json", "result",
 				)
@@ -540,12 +540,12 @@ func TestStateUpdate(t *testing.T) {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
-				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/stateUpdate/sepolia3100000.json", "result",
 				)
 
-				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/stateUpdate/sepoliaPreConfirmed.json", "result",
 				)
@@ -664,12 +664,12 @@ func TestBlockWithReceipts(t *testing.T) {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(string(blockID), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
-				blockSepolia3100000 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithReceipts/sepolia3100000.json", "result",
 				)
 
-				blockSepoliaPreConfirmed := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithReceipts/sepoliaPreConfirmed.json", "result",
 				)
