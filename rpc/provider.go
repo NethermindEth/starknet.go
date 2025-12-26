@@ -197,27 +197,27 @@ type WebsocketProvider interface {
 		ctx context.Context,
 		events chan<- *EmittedEventWithFinalityStatus,
 		options *EventSubscriptionInput,
-	) (*client.ClientSubscription, error)
+	) (Subscription, error)
 	SubscribeNewHeads(
 		ctx context.Context,
 		headers chan<- *BlockHeader,
 		subBlockID SubscriptionBlockID,
-	) (*client.ClientSubscription, error)
+	) (Subscription, error)
 	SubscribeNewTransactions(
 		ctx context.Context,
 		newTxns chan<- *TxnWithHashAndStatus,
 		options *SubNewTxnsInput,
-	) (*client.ClientSubscription, error)
+	) (Subscription, error)
 	SubscribeNewTransactionReceipts(
 		ctx context.Context,
 		txnReceipts chan<- *TransactionReceiptWithBlockInfo,
 		options *SubNewTxnReceiptsInput,
-	) (*client.ClientSubscription, error)
+	) (Subscription, error)
 	SubscribeTransactionStatus(
 		ctx context.Context,
 		newStatus chan<- *NewTxnStatus,
 		transactionHash *felt.Felt,
-	) (*client.ClientSubscription, error)
+	) (Subscription, error)
 }
 
 var (
