@@ -47,16 +47,19 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 	if tests.TEST_ENV == tests.MockEnv {
 		mockCtrl := gomock.NewController(t)
 		mockClient := clientmock.NewMockClient(mockCtrl)
+		wsProvider := &WsProvider{
+			c: mockClient,
+		}
 
 		spy := tests.NewRPCSpy(mockClient)
-
 		provider := &Provider{
 			c: spy,
 		}
 
 		testConfig.MockClient = mockClient
-		testConfig.Provider = provider
 		testConfig.RPCSpy = spy
+		testConfig.Provider = provider
+		testConfig.WsProvider = wsProvider
 
 		return testConfig
 	}
