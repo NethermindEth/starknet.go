@@ -18,11 +18,14 @@ func TestMain(m *testing.M) {
 
 // TestSetup is a type that is used to store setup data for the RPC tests.
 type TestSetup struct {
-	Provider   *Provider
-	WsProvider *WsProvider
-	Base       string
+	Base     string
+	Provider *Provider
+	RPCSpy   tests.RPCSpyer
+
 	WsBase     string
-	RPCSpy     tests.RPCSpyer
+	WsProvider *WsProvider
+	WSSpy      tests.WSSpyer
+
 	// Only present in mock environment
 	MockClient *clientmock.MockClient
 
@@ -32,6 +35,7 @@ type TestSetup struct {
 }
 
 // BeforeEach initialises the environment setup before running the tests.
+// It must be called inside subtests if that's the case.
 //
 // Parameters:
 //   - t: The testing.T object
@@ -47,19 +51,22 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 	if tests.TEST_ENV == tests.MockEnv {
 		mockCtrl := gomock.NewController(t)
 		mockClient := clientmock.NewMockClient(mockCtrl)
-		wsProvider := &WsProvider{
-			c: mockClient,
-		}
 
 		spy := tests.NewRPCSpy(mockClient)
 		provider := &Provider{
 			c: spy,
 		}
 
+		wsSpy := tests.NewWSSpy(mockClient)
+		wsProvider := &WsProvider{
+			c: wsSpy,
+		}
+
 		testConfig.MockClient = mockClient
-		testConfig.RPCSpy = spy
 		testConfig.Provider = provider
+		testConfig.RPCSpy = spy
 		testConfig.WsProvider = wsProvider
+		testConfig.WSSpy = wsSpy
 
 		return testConfig
 	}
