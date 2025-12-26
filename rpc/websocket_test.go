@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// TestSubscribeNewHeads tests the SubscribeNewHeads function.
 func TestSubscribeNewHeads(t *testing.T) {
 	tests.RunTestOn(t,
 		tests.MockEnv,
@@ -24,15 +26,13 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	t.Parallel()
 
-	testConfig := BeforeEach(t, true)
-
 	type testSetType struct {
 		description   string
 		subBlockID    SubscriptionBlockID
 		expectedError error
 	}
 
-	networkTestSets := []testSetType{
+	networkTestSet := []testSetType{
 		{
 			description: "normal call, zero subBlockID",
 		},
@@ -57,18 +57,29 @@ func TestSubscribeNewHeads(t *testing.T) {
 				description: "with tag latest",
 				subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
 			},
+			{
+				description:   "error - too many blocks back",
+				subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+				expectedError: ErrTooManyBlocksBack,
+			},
+			{
+				description:   "error - block not found",
+				subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				expectedError: ErrBlockNotFound,
+			},
 		},
-		tests.TestnetEnv:     networkTestSets,
-		tests.IntegrationEnv: networkTestSets,
-		tests.MainnetEnv:     networkTestSets,
+		tests.TestnetEnv:     networkTestSet,
+		tests.IntegrationEnv: networkTestSet,
+		tests.MainnetEnv:     networkTestSet,
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
+			tsetup := BeforeEach(t, true)
 
 			if tests.TEST_ENV == tests.MockEnv {
-				testConfig.MockClient.EXPECT().
+				tsetup.MockClient.EXPECT().
 					SubscribeWithSliceArgs(
 						t.Context(),
 						"starknet",
@@ -76,22 +87,48 @@ func TestSubscribeNewHeads(t *testing.T) {
 						gomock.Any(),
 						test.subBlockID,
 					).
-					DoAndReturn(func(_, _, _, channel any, _ ...any) error {
-						// ch := channel.(chan *json.RawMessage)
-						// *rawResp = json.RawMessage("\"0.10.0\"")
+					DoAndReturn(func(_, _, _, channel any, args ...any) (*client.ClientSubscription, error) {
+						ch := channel.(chan json.RawMessage)
+						subBlockID := args[0].(SubscriptionBlockID)
 
-						return nil
-					}).
-					Times(1)
+						if subBlockID.Number != nil && *subBlockID.Number == 3_000_000 {
+							return nil, RPCError{
+								Code:    68,
+								Message: "Cannot go back more than 1024 blocks",
+							}
+						}
+
+						if subBlockID.Hash != nil && subBlockID.Hash == internalUtils.DeadBeef {
+							return nil, RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							t,
+							"./testData/ws/sepoliaNewHeads.json",
+							"params", "result",
+						)
+
+						go func() {
+							for {
+								select {
+								case <-time.Tick(2 * time.Second):
+									ch <- msg
+								case <-t.Context().Done():
+									return
+								}
+							}
+						}()
+
+						return &client.ClientSubscription{}, nil
+					})
 			}
-
-			wsProvider := testConfig.WsProvider
-			spy := tests.NewWSSpy(wsProvider.c)
-			wsProvider.c = spy
 
 			headers := make(chan *BlockHeader)
 
-			sub, err := wsProvider.SubscribeNewHeads(
+			sub, err := tsetup.WsProvider.SubscribeNewHeads(
 				t.Context(),
 				headers,
 				test.subBlockID,
@@ -105,14 +142,18 @@ func TestSubscribeNewHeads(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, sub)
 
-			defer sub.Unsubscribe()
+			if tests.TEST_ENV != tests.MockEnv {
+				// this would block mock tests since the ClientSubscription is empty
+				defer sub.Unsubscribe()
+			}
+
 			timeout := time.After(10 * time.Second)
 			for {
 				select {
 				case resp := <-headers:
 					require.NotNil(t, resp)
 
-					rawExpectedMsg := <-spy.SpyChannel()
+					rawExpectedMsg := <-tsetup.WSSpy.SpyChannel()
 					rawMsg, err := json.Marshal(resp)
 					require.NoError(t, err)
 					assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
