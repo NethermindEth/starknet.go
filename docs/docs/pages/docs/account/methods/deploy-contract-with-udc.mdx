@@ -1,6 +1,6 @@
 # DeployContractWithUDC
 
-Deploys a contract using the Universal Deployer Contract (UDC).
+Deploys a contract instance using the Universal Deployer Contract (UDC). This method builds and sends an invoke transaction to the UDC, which creates a new contract instance from a previously declared class hash. The deployment address is deterministic based on the class hash, salt, and optionally the deployer's address.
 
 ## Method Signature
 
@@ -14,19 +14,53 @@ func (account *Account) DeployContractWithUDC(
 ) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
 ```
 
+**Source:** [transaction.go:L322-L345](https://github.com/NethermindEth/starknet.go/blob/main/account/transaction.go#L322-L345)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation
-- `classHash` - Class hash of contract to deploy
-- `constructorCalldata` - Constructor parameters. Pass `nil` if no constructor
-- `txnOpts` - Transaction options. Pass `nil` for defaults
-- `udcOpts` - UDC-specific options (salt, unique). Pass `nil` for defaults
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `classHash` (*felt.Felt): Class hash of the previously declared contract to deploy
+- `constructorCalldata` ([]*felt.Felt): Parameters passed to the contract constructor. Pass `nil` if no constructor
+- `txnOpts` (*TxnOptions): Transaction options for fee estimation and execution. Pass `nil` to use default values
+- `udcOpts` (*UDCOptions): UDC-specific deployment options (salt, origin independence). Pass `nil` for random salt and default settings
 
 ## Returns
 
-- `rpc.AddInvokeTransactionResponse` - Transaction response
-- `*felt.Felt` - Salt used for deployment
-- `error` - Error if deployment fails
+- `rpc.AddInvokeTransactionResponse`: Response containing the transaction hash
+- `*felt.Felt`: Salt used for deployment (useful for calculating deployed address)
+- `error`: Error if deployment fails
+
+## AddInvokeTransactionResponse Structure
+
+**Source:** [types_transaction_response.go:L18-L20](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L18-L20)
+
+The returned response contains:
+
+```go
+type AddInvokeTransactionResponse struct {
+	Hash *felt.Felt `json:"transaction_hash"`
+}
+```
+
+**Fields:**
+- `Hash` (*felt.Felt): Transaction hash of the deployment transaction
+
+## UDCOptions Structure
+
+**Source:** [udc.go:L33-L52](https://github.com/NethermindEth/starknet.go/blob/main/utils/udc.go#L33-L52)
+
+```go
+type UDCOptions struct {
+	Salt              *felt.Felt // Salt for address computation. Random if not provided
+	OriginIndependent bool       // If true, address is origin-independent (deployer address not included)
+	UDCVersion        UDCVersion // UDC version (UDCCairoV0 or UDCCairoV2)
+}
+```
+
+**Fields:**
+- `Salt` (*felt.Felt): Custom salt for deterministic address generation. If `nil`, a random salt is generated
+- `OriginIndependent` (bool): Controls whether deployer address affects deployment address. `false` = deployer-dependent, `true` = origin-independent
+- `UDCVersion` (UDCVersion): UDC contract version to use (defaults to UDCCairoV0 if not specified)
 
 ## Usage Example
 
@@ -37,80 +71,174 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
+	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assume acc is already created
-	var acc *account.Account
+	ctx := context.Background()
 
-	// Class hash of previously declared contract
-	classHash, _ := utils.HexToFelt("0x1234...")
-
-	// Constructor parameters (if any)
-	owner, _ := utils.HexToFelt("0xabcd...")
-	constructorCalldata := []*felt.Felt{owner}
-
-	// Deploy with default options (random salt)
-	response, salt, err := acc.DeployContractWithUDC(
-		context.Background(),
-		classHash,
-		constructorCalldata,
-		nil, // Transaction options
-		nil, // UDC options
-	)
-	if err != nil {
-		log.Fatal(err)
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
-	fmt.Printf("Salt: %s\n", salt.String())
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
+	}
 
-	// Calculate deployed address
-	deployedAddress := utils.CalculateUDCAddress(classHash, salt, constructorCalldata)
-	fmt.Printf("Deployed at: %s\n", deployedAddress.String())
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set in .env")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	erc20ClassHash, err := utils.HexToFelt("0x073d71c37e20c569186445d2c497d2195b4c0be9a255d72dbad86662fcc63ae6")
+	if err != nil {
+		log.Fatal("Failed to parse ERC20 class hash:", err)
+	}
+
+	name, err := utils.StringToByteArrFelt("MyToken")
+	if err != nil {
+		log.Fatal("Failed to convert name:", err)
+	}
+
+	symbol, err := utils.StringToByteArrFelt("MTK")
+	if err != nil {
+		log.Fatal("Failed to convert symbol:", err)
+	}
+
+	initialSupply, err := utils.HexToU256Felt("0xd3c21bcecceda1000000")
+	if err != nil {
+		log.Fatal("Failed to convert supply:", err)
+	}
+
+	recipient := accnt.Address
+	owner := accnt.Address
+
+	constructorCalldata := make([]*felt.Felt, 0, 20)
+	constructorCalldata = append(constructorCalldata, name...)
+	constructorCalldata = append(constructorCalldata, symbol...)
+	constructorCalldata = append(constructorCalldata, initialSupply...)
+	constructorCalldata = append(constructorCalldata, recipient, owner)
+
+	txnOpts := &account.TxnOptions{
+		FeeMultiplier: 1.5,
+		TipMultiplier: 1.0,
+	}
+
+	udcOpts := &utils.UDCOptions{
+		Salt:              nil,
+		OriginIndependent: false,
+		UDCVersion:        utils.UDCCairoV2,
+	}
+
+	response, salt, err := accnt.DeployContractWithUDC(
+		ctx,
+		erc20ClassHash,
+		constructorCalldata,
+		txnOpts,
+		udcOpts,
+	)
+	if err != nil {
+		log.Fatal("Failed to deploy contract:", err)
+	}
+
+	fmt.Printf("Deploy Transaction Successful:\n")
+	fmt.Printf("Transaction Hash: %s\n", response.Hash.String())
+	fmt.Printf("Salt Used:        %s\n", salt.String())
+
+	deployedAddress := utils.PrecomputeAddressForUDC(
+		erc20ClassHash,
+		salt,
+		constructorCalldata,
+		utils.UDCCairoV2,
+		accnt.Address,
+	)
+
+	fmt.Printf("Deployed Address: %s\n", deployedAddress.String())
+
+	txReceipt, err := accnt.WaitForTransactionReceipt(
+		ctx,
+		response.Hash,
+		3*time.Second,
+	)
+	if err != nil {
+		log.Fatal("Failed to get transaction receipt:", err)
+	}
+
+	fmt.Printf("Block Number:     %d\n", txReceipt.BlockNumber)
+	fmt.Printf("Execution Status: %s\n", txReceipt.ExecutionStatus)
+	fmt.Printf("Finality Status:  %s\n", txReceipt.FinalityStatus)
 }
 ```
 
-## Usage with Custom Options
-
-```go
-// Specify deployment options
-udcOpts := &utils.UDCOptions{
-	Salt:   new(felt.Felt).SetUint64(42), // Specific salt
-	Unique: true,                         // Make address unique to deployer
-}
-
-response, salt, err := acc.DeployContractWithUDC(
-	context.Background(),
-	classHash,
-	constructorCalldata,
-	nil,
-	udcOpts,
-)
-```
-
-## Description
-
-DeployContractWithUDC uses Starknet's Universal Deployer Contract to deploy contract instances. This is the recommended way to deploy contracts.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
 ```go
 response, salt, err := acc.DeployContractWithUDC(ctx, classHash, calldata, txnOpts, udcOpts)
 if err != nil {
-	// Handle errors like:
-	// - Class not declared
-	// - Invalid constructor calldata
-	// - Insufficient balance
-	return err
+	switch {
+	case errors.Is(err, rpc.ErrClassHashNotFound):
+		log.Println("Class hash not declared on network")
+	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
+		log.Println("Insufficient balance to pay deployment fees")
+	case errors.Is(err, rpc.ErrInvalidCallData):
+		log.Println("Invalid constructor calldata")
+	default:
+		log.Printf("Failed to deploy contract: %v", err)
+	}
+	return
 }
+
+fmt.Printf("Contract deployed successfully at transaction: %s\n", response.Hash.String())
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndSendDeclareTxn](./build-and-send-declare-txn.mdx) - Declare before deploying
-- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - Underlying invoke method
+- Deploy contract instances from previously declared class hashes
+- Create deterministic contract addresses using specific salts
+- Deploy contracts with origin-independent addresses for address reservation
+- Deploy multiple instances of the same contract class with different constructor parameters
+- Recommended method for deploying contracts on Starknet (versus direct deployment)

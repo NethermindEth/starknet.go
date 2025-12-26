@@ -1,0 +1,183 @@
+# Curve Examples
+
+This page provides essential examples demonstrating the most commonly used cryptographic operations in Starknet: hashing with Pedersen/Poseidon, signing transactions, verifying signatures, and managing keys.
+
+## Pedersen Hash - Merkle Trees and State Commitments
+
+This example demonstrates the Pedersen hash operation, which is the primary hash function used throughout Starknet for Merkle trees and state commitments. Understanding Pedersen hashing is essential as it's used in contract address calculations, storage proofs, and transaction hashing across the entire Starknet protocol.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create two felt values to hash
+	a := new(felt.Felt).SetUint64(123)
+	b := new(felt.Felt).SetUint64(456)
+
+	// Compute Pedersen hash
+	hash := curve.Pedersen(a, b)
+	if hash == nil {
+		log.Fatal("Failed to compute Pedersen hash")
+	}
+
+	fmt.Println("Pedersen Hash:")
+	fmt.Printf("  Input a: %s\n", a.String())
+	fmt.Printf("  Input b: %s\n", b.String())
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
+```
+
+## PedersenArray - Transaction and Calldata Hashing
+
+This example shows how to hash arrays of field elements, which is critical for hashing transaction calldata and computing transaction hashes in Starknet. When interacting with contracts or constructing transactions, you'll frequently need to hash multiple parameters together into a single commitment.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create array of felt values
+	felt1 := new(felt.Felt).SetUint64(1)
+	felt2 := new(felt.Felt).SetUint64(2)
+	felt3 := new(felt.Felt).SetUint64(3)
+	felt4 := new(felt.Felt).SetUint64(4)
+
+	// Compute Pedersen hash of array
+	hash := curve.PedersenArray(felt1, felt2, felt3, felt4)
+	if hash == nil {
+		log.Fatal("Failed to compute PedersenArray hash")
+	}
+
+	fmt.Println("PedersenArray Hash:")
+	fmt.Printf("  Input: [%s, %s, %s, %s]\n", felt1.String(), felt2.String(), felt3.String(), felt4.String())
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
+```
+
+## StarknetKeccak - Function Selectors
+
+This example shows how to compute function selectors using `StarknetKeccak`. Every contract function call in Starknet requires a selector, which is the Keccak hash of the function name. This is one of the most frequently used operations when interacting with Starknet contracts.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Function name to hash
+	functionName := "transfer"
+
+	// Compute Starknet Keccak hash
+	hash := curve.StarknetKeccak([]byte(functionName))
+
+	fmt.Println("Starknet Keccak:")
+	fmt.Printf("  Input: %s\n", functionName)
+	fmt.Printf("  Hash (Selector): %s\n", hash.String())
+}
+```
+
+## GetRandomKeys - Creating New Accounts
+
+This example demonstrates key pair generation for creating new Starknet accounts. The x-coordinate of the public key becomes your Starknet account public key, which is used for address derivation and signature verification. This is the starting point for any account creation workflow.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate random key pair
+	privKey, pubX, pubY, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal("Failed to generate keys:", err)
+	}
+
+	fmt.Println("Random Key Pair:")
+	fmt.Printf("  Private Key: 0x%x\n", privKey)
+	fmt.Printf("  Public Key X: 0x%x\n", pubX)
+	fmt.Printf("  Public Key Y: 0x%x\n", pubY)
+	fmt.Printf("\nNote: The X coordinate is used as the Starknet public key\n")
+}
+```
+
+## Sign and Verify - Transaction Authorization
+
+This example shows the complete workflow of signing and verifying a transaction. Signing is how you authorize transactions on Starknet - every transaction must be signed with your private key. The signature proves you control the account without revealing your private key. Verification ensures that a signature was created by the expected account, which is critical for transaction validation.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Generate a key pair
+	privKey, pubX, _, err := curve.GetRandomKeys()
+	if err != nil {
+		log.Fatal("Failed to generate keys:", err)
+	}
+
+	// Message hash to sign
+	msgHash := new(big.Int)
+	msgHash.SetString("1234567890abcdef", 16)
+
+	// Sign the message
+	r, s, err := curve.Sign(msgHash, privKey)
+	if err != nil {
+		log.Fatal("Failed to sign message:", err)
+	}
+
+	fmt.Println("Sign and Verify:")
+	fmt.Printf("  Message Hash: 0x%x\n", msgHash)
+	fmt.Printf("  Private Key: 0x%x\n", privKey)
+	fmt.Printf("  Public Key X: 0x%x\n", pubX)
+	fmt.Printf("  Signature R: 0x%x\n", r)
+	fmt.Printf("  Signature S: 0x%x\n", s)
+
+	// Verify the signature
+	valid, err := curve.Verify(msgHash, r, s, pubX)
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+
+	fmt.Printf("\nVerification:")
+	fmt.Printf("  Valid: %v\n", valid)
+
+	// Test with wrong message hash
+	wrongHash := new(big.Int).SetInt64(999999)
+	valid2, err := curve.Verify(wrongHash, r, s, pubX)
+	if err != nil {
+		log.Fatal("Failed to verify signature:", err)
+	}
+	fmt.Printf("  Wrong Hash Verification: %v (expected: false)\n", valid2)
+}
+```

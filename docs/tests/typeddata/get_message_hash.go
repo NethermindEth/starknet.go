@@ -1,55 +1,55 @@
 package main
-
+ 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
-
+ 
 	"github.com/NethermindEth/starknet.go/typeddata"
 )
-
+ 
 func main() {
-	// Example typed data following SNIP-12
+	// Create TypedData from JSON
 	typedDataJSON := []byte(`{
 		"types": {
 			"StarkNetDomain": [
-				{ "name": "name", "type": "felt" },
-				{ "name": "version", "type": "felt" },
-				{ "name": "chainId", "type": "felt" }
+				{"name": "name", "type": "felt"},
+				{"name": "version", "type": "felt"},
+				{"name": "chainId", "type": "felt"}
 			],
-			"Person": [
-				{ "name": "name", "type": "felt" },
-				{ "name": "wallet", "type": "felt" },
-				{ "name": "age", "type": "felt" }
+			"Mail": [
+				{"name": "from", "type": "felt"},
+				{"name": "to", "type": "felt"},
+				{"name": "contents", "type": "felt"}
 			]
 		},
-		"primaryType": "Person",
+		"primaryType": "Mail",
 		"domain": {
-			"name": "MyDapp",
+			"name": "StarkNet Mail",
 			"version": "1",
 			"chainId": "SN_SEPOLIA"
 		},
 		"message": {
-			"name": "Alice",
-			"wallet": "0x1234567890abcdef",
-			"age": "30"
+			"from": "0x1234",
+			"to": "0x5678",
+			"contents": "Hello!"
 		}
 	}`)
-
+ 
 	var td typeddata.TypedData
-	err := json.Unmarshal(typedDataJSON, &td)
-	if err != nil {
-		log.Fatal(err)
+	if err := json.Unmarshal(typedDataJSON, &td); err != nil {
+		log.Fatalf("Failed to unmarshal: %v", err)
 	}
-
-	// Calculate message hash for signing (using valid Starknet address)
-	accountAddress := "0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a"
+ 
+	// Account address that will sign
+	accountAddress := "0x02cdAb749380950e7a7c0deFf5ea8eDD716fEb3a2952aDd4E5659655077B8510"
+ 
+	// Get message hash for signing
 	messageHash, err := td.GetMessageHash(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to get message hash: %v", err)
 	}
-
-	fmt.Println("GetMessageHash:")
-	fmt.Printf("  Account: %s\n", accountAddress)
-	fmt.Printf("  Message Hash: %s\n", messageHash.String())
+ 
+	fmt.Printf("Message Hash: %s\n", messageHash.String())
+	fmt.Printf("This hash should be signed with the account's private key\n")
 }

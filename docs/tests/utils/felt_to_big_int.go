@@ -8,20 +8,19 @@ import (
 )
 
 func main() {
-	feltValues := []string{
-		"0x123",
-		"0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a",
-		"0x1",
+	// Convert simple Felt to BigInt
+	felt, err := utils.HexToFelt("0x123")
+	if err != nil {
+		log.Fatal(err)
 	}
+	bigInt := utils.FeltToBigInt(felt)
+	fmt.Printf("Input Felt: %s\n", felt.String())
+	fmt.Printf("Output BigInt: %s\n", bigInt.String())
+	// Output BigInt: 291
 
-	fmt.Println("FeltToBigInt:")
-	for _, hexStr := range feltValues {
-		felt, err := utils.HexToFelt(hexStr)
-		if err != nil {
-			log.Fatal(err)
-		}
-		bigInt := utils.FeltToBigInt(felt)
-		fmt.Printf("  Input Felt: %s\n", felt.String())
-		fmt.Printf("  Output BigInt: %s\n\n", bigInt.String())
-	}
+	// Convert large Felt (contract address) to BigInt
+	felt2, _ := utils.HexToFelt("0x7e00d496e324876bbc8531f2d9a82bf154d1a04a50218ee74cdd372f75a551a")
+	bigInt2 := utils.FeltToBigInt(felt2)
+	fmt.Printf("Output BigInt: %s\n", bigInt2.String())
+	// Output BigInt: 3562055384976875123115280411327378123839557441680670463096306030682092229914
 }

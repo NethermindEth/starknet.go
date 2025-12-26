@@ -1,39 +1,84 @@
 # SubscribeNewHeads
 
-Subscribe to new block headers via WebSocket stream.
+Creates a WebSocket stream which fires events for new block headers produced on Starknet. The stream sends headers for all blocks from the specified starting block up to the latest block, and continues to send new block headers as they are produced.
 
 import { Callout } from 'vocs/components'
 
 <Callout type="info">
-  **Provider Support**: WebSocket method support varies by RPC provider. This method is widely supported. Always check your provider's documentation for WebSocket availability.
+  **Provider Support**: This WebSocket method may not be supported by all RPC providers. Some providers may have limited support for WebSocket subscriptions. Check your provider's documentation for WebSocket method availability, or consider [running your own Juno node](https://www.youtube.com/watch?v=gvdC2XIOibA) for full WebSocket support.
 </Callout>
 
 ## Method Signature
 
 ```go
 func (ws *WsProvider) SubscribeNewHeads(
-    ctx context.Context,
-    headers chan<- *BlockHeader,
-    subBlockID SubscriptionBlockID,
+	ctx context.Context,
+	headers chan<- *BlockHeader,
+	subBlockID SubscriptionBlockID,
 ) (*client.ClientSubscription, error)
 ```
 
+**Source:** [websocket.go:L60-L82](https://github.com/NethermindEth/starknet.go/blob/main/rpc/websocket.go#L60-L82)
+
 ## Parameters
 
-- `ctx` - The context.Context object for controlling the function call
-- `headers` - The channel to send new block headers to
-- `subBlockID` - Optional starting block ID. Pass empty struct `SubscriptionBlockID{}` to subscribe from latest block
+- `ctx` (context.Context): The context for controlling the function call
+- `headers` (chan&lt;- \*BlockHeader): The channel to send new block headers to
+- `subBlockID` (SubscriptionBlockID): Optional starting block ID. Pass empty struct `SubscriptionBlockID{}` to subscribe from latest block (limited to 1024 blocks back)
 
 ## Returns
 
-- `*client.ClientSubscription` - The client subscription object, used to unsubscribe from the stream and to get errors
-- `error` - An error, if any
+- `*client.ClientSubscription`: The client subscription object, used to unsubscribe from the stream and to get errors
+- `error`: An error if any occurred (`ErrTooManyBlocksBack`, `ErrBlockNotFound`)
 
-## Description
+## Type Definitions
 
-SubscribeNewHeads creates a WebSocket stream that fires events when new blocks are produced on Starknet. This is useful for monitoring chain progression in real-time. You can optionally specify a starting block to receive headers from (max 1024 blocks back).
+### SubscriptionBlockID
 
-The subscription will continue to send block headers until unsubscribed or the connection is closed.
+The block ID for specifying the starting block for the subscription.
+
+```go
+type SubscriptionBlockID struct {
+	Number *uint64    `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Tag    string     `json:",omitempty"`
+}
+```
+
+**Source:** [types_block.go:L142](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L142)
+
+### BlockHeader
+
+The block header notification received from the server.
+
+```go
+type BlockHeader struct {
+	// Hash The hash of this block
+	Hash *felt.Felt `json:"block_hash"`
+	// ParentHash The hash of this block's parent
+	ParentHash *felt.Felt `json:"parent_hash"`
+	// Number the block number (its height)
+	Number uint64 `json:"block_number"`
+	// NewRoot The new global state root
+	NewRoot *felt.Felt `json:"new_root"`
+	// Timestamp the time in which the block was created, encoded in Unix time
+	Timestamp uint64 `json:"timestamp"`
+	// SequencerAddress the StarkNet identity of the sequencer submitting this block
+	SequencerAddress *felt.Felt `json:"sequencer_address"`
+	// The price of l1 gas in the block
+	L1GasPrice ResourcePrice `json:"l1_gas_price"`
+	// The price of l2 gas in the block
+	L2GasPrice ResourcePrice `json:"l2_gas_price"`
+	// The price of l1 data gas in the block
+	L1DataGasPrice ResourcePrice `json:"l1_data_gas_price"`
+	// Specifies whether the data of this block is published via blob data or calldata
+	L1DAMode L1DAMode `json:"l1_da_mode"`
+	// Semver of the current Starknet protocol
+	StarknetVersion string `json:"starknet_version"`
+}
+```
+
+**Source:** [types_block.go:L63-L85](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L63-L85)
 
 ## Usage Example
 
@@ -53,10 +98,14 @@ import (
 
 func main() {
 	// Load environment variables
-	godotenv.Load(".env")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	wsURL := os.Getenv("STARKNET_WS_URL")
 	if wsURL == "" {
-		log.Fatal("STARKNET_WS_URL not set in .env")
+		log.Fatal("STARKNET_WS_URL not found in .env file")
 	}
 
 	ctx := context.Background()
@@ -78,11 +127,13 @@ func main() {
 	}
 	defer sub.Unsubscribe()
 
-	fmt.Println("✅ Successfully subscribed to new block headers")
+	fmt.Println("Successfully subscribed to new block headers")
 	fmt.Println("Waiting for new blocks...\n")
 
-	// Listen for new blocks
+	// Listen for new blocks with timeout
+	timeout := time.After(120 * time.Second)
 	blockCount := 0
+
 	for {
 		select {
 		case header := <-headersChan:
@@ -93,78 +144,45 @@ func main() {
 			fmt.Printf("  Timestamp: %d\n", header.Timestamp)
 			fmt.Printf("  Sequencer: %s\n", header.SequencerAddress)
 			fmt.Printf("  Parent Hash: %s\n\n", header.ParentHash)
+
+			if blockCount >= 2 {
+				fmt.Printf("Successfully received %d blocks\n", blockCount)
+				return
+			}
 		case err := <-sub.Err():
 			log.Fatal("Subscription error:", err)
-		case <-time.After(120 * time.Second):
-			fmt.Println("No new blocks in 120s, exiting...")
+		case <-timeout:
+			if blockCount > 0 {
+				fmt.Printf("Test completed - received %d block(s)\n", blockCount)
+			} else {
+				fmt.Println("Timeout - no blocks received in 120s")
+			}
 			return
 		}
 	}
 }
 ```
 
-### Example Output
-
-```
-Testing SubscribeNewHeads WebSocket method...
-✅ Successfully subscribed to new block headers
-Waiting for new blocks...
-
-Block #1:
-  Block Number: 2843643
-  Block Hash: 0x510da1c44b567cd30474f1cdc494771a1fbdf0ffded90ab2f26e5efe989d9bf
-  Timestamp: 1762805155
-  Sequencer: 0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8
-  Parent Hash: 0x5290d368175a07719c0ba9513361346f16839c68a6d8b6dc0cd5ae3ef0dcfbc
-
-Block #2:
-  Block Number: 2843644
-  Block Hash: 0x7238f9a37862b3edd9152672217fb0fb55ffc04ab3bbb2e1a006d4e48e026fc
-  Timestamp: 1762805163
-  Sequencer: 0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8
-  Parent Hash: 0x510da1c44b567cd30474f1cdc494771a1fbdf0ffded90ab2f26e5efe989d9bf
-```
-
-## Starting Block Options
-
-The `SubscriptionBlockID` struct allows you to specify a starting block:
-
-```go
-type SubscriptionBlockID struct {
-	Number *uint64    // Start from specific block number
-	Tag    string     // Start from "latest" or "pending"
-}
-```
-
-**Examples:**
-
-```go
-// Subscribe from latest block (default)
-rpc.SubscriptionBlockID{}
-
-// Subscribe from specific block number
-rpc.SubscriptionBlockID{Number: &blockNum}
-
-// Subscribe from pending block
-rpc.SubscriptionBlockID{Tag: "pending"}
-```
-
-**Note:** The starting block cannot be more than 1024 blocks in the past.
-
-## Common Use Cases
-
-1. **Chain Monitoring**: Track new blocks as they're produced
-2. **Block Explorer**: Update UI with latest block information
-3. **Transaction Confirmation**: Wait for specific block confirmations
-4. **Network Health**: Monitor block production rate and timing
+:::note
+Create a `.env` file in your project root with `STARKNET_WS_URL` and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-sub, err := wsProvider.SubscribeNewHeads(ctx, headersChan, rpc.SubscriptionBlockID{})
+sub, err := wsProvider.SubscribeNewHeads(ctx, headersChan, rpc.SubscriptionBlockID{Tag: "latest"})
 if err != nil {
-	// Handle subscription errors
-	log.Fatal("Failed to subscribe:", err)
+	switch {
+	case errors.Is(err, rpc.ErrTooManyBlocksBack):
+		log.Println("Requested starting block is too far in the past (>1024 blocks)")
+		return
+	case errors.Is(err, rpc.ErrBlockNotFound):
+		log.Println("Specified starting block does not exist")
+		return
+	default:
+		log.Printf("Subscription error: %v", err)
+		return
+	}
 }
 
 // Listen for stream errors
@@ -176,18 +194,15 @@ go func() {
 }()
 ```
 
-## Possible Errors
+## Common Use Cases
 
-- `ErrTooManyBlocksBack` - Requested starting block is too far in the past (>1024 blocks)
-- `ErrBlockNotFound` - Specified starting block does not exist
-- Connection errors - WebSocket connection issues
+- **Monitor Chain Progression**: Track new blocks as they're produced on Starknet in real-time
+- **Block Explorer Applications**: Update UI with latest block information and metadata
+- **Transaction Confirmation Tracking**: Wait for specific block confirmations before considering transactions final
+- **Network Health Monitoring**: Monitor block production rate, timing, and sequencer activity
 
 ## Related Methods
 
-- [SubscribeEvents](./subscribe-events) - Subscribe to contract events
-- [SubscribeNewTransactions](./subscribe-new-transactions) - Subscribe to new transactions
-- [SubscribeTransactionStatus](./subscribe-transaction-status) - Subscribe to transaction status updates
-
-## Specification
-
-Follows the Starknet WebSocket RPC specification for `starknet_subscribeNewHeads`.
+- [SubscribeEvents](/docs/rpc/websocket/subscribe-events) - Subscribe to contract events
+- [SubscribeNewTransactions](/docs/rpc/websocket/subscribe-new-transactions) - Subscribe to new transactions
+- [BlockWithTxHashes](/docs/rpc/methods/block-with-tx-hashes) - Get specific block data (non-streaming)

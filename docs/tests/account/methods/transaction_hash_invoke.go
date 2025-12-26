@@ -1,75 +1,139 @@
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	err := godotenv.Load("../../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
-
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not set")
 	}
-
-	ctx := context.Background()
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
-	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
-
-	acc, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("Account credentials not set in .env")
+	}
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse account address:", err)
 	}
-
-	// Create an invoke transaction v1 (simpler than v3)
-	contractAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	entryPointSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
-	recipient, _ := new(felt.Felt).SetString("0x1234567890abcdef")
-
-	invokeTx := rpc.InvokeTxnV1{
-		Type:          rpc.TransactionTypeInvoke,
-		SenderAddress: accountAddress,
-		Nonce:         new(felt.Felt).SetUint64(0),
-		MaxFee:        new(felt.Felt).SetUint64(1000000000000),
-		Version:       rpc.TransactionV1,
-		Signature:     []*felt.Felt{},
-		Calldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(1), // num calls
-			contractAddress,
-			entryPointSelector,
-			new(felt.Felt).SetUint64(3), // calldata len
-			recipient,
-			new(felt.Felt).SetUint64(100), // amount
-			new(felt.Felt).SetUint64(0),   // amount high
+ 
+	accnt, err := account.NewAccount(provider, accountAddressFelt, publicKey, ks, account.CairoV2)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+ 
+	nonce, _ := accnt.Nonce(ctx)
+ 
+	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	recipient := accountAddressFelt
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+	u256Amount, _ := utils.HexToU256Felt(amount.String())
+ 
+	fnCall := rpc.FunctionCall{
+		ContractAddress:    strkContract,
+		EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
+		Calldata:           append([]*felt.Felt{recipient}, u256Amount...),
+	}
+ 
+	calldata, _ := accnt.FmtCalldata([]rpc.FunctionCall{fnCall})
+ 
+	invokeTxnV3 := utils.BuildInvokeTxn(
+		accnt.Address,
+		nonce,
+		calldata,
+		&rpc.ResourceBoundsMapping{
+			L1Gas:     rpc.ResourceBounds{MaxAmount: "0x186a0", MaxPricePerUnit: "0x5f5e100"},
+			L2Gas:     rpc.ResourceBounds{MaxAmount: "0x186a0", MaxPricePerUnit: "0x5f5e100"},
+			L1DataGas: rpc.ResourceBounds{MaxAmount: "0x186a0", MaxPricePerUnit: "0x5f5e100"},
 		},
-	}
-
-	fmt.Println("Calculating transaction hash for InvokeTxnV1:")
-	txHash, err := acc.TransactionHashInvoke(invokeTx)
+		nil,
+	)
+ 
+	txHashV3, err := accnt.TransactionHashInvoke(invokeTxnV3)
 	if err != nil {
-		fmt.Printf("Error calculating hash: %v\n", err)
-		return
+		log.Fatal("Failed to compute V3 hash:", err)
 	}
-
-	fmt.Printf("Transaction hash: %s\n", txHash)
+ 
+	fmt.Printf("V3 Transaction:\n")
+	fmt.Printf("  Sender:   %s\n", invokeTxnV3.SenderAddress.String())
+	fmt.Printf("  Nonce:    %d\n", invokeTxnV3.Nonce.Uint64())
+	fmt.Printf("  Calldata: %d elements\n", len(invokeTxnV3.Calldata))
+	fmt.Printf("  Hash:     %s\n\n", txHashV3.String())
+ 
+	invokeTxnV1 := &rpc.InvokeTxnV1{
+		Type:          rpc.TransactionTypeInvoke,
+		Version:       rpc.TransactionV1,
+		SenderAddress: accnt.Address,
+		Nonce:         nonce,
+		Calldata:      calldata,
+		MaxFee:        new(felt.Felt).SetUint64(1000000000000000),
+		Signature:     []*felt.Felt{},
+	}
+ 
+	txHashV1, err := accnt.TransactionHashInvoke(invokeTxnV1)
+	if err != nil {
+		log.Fatal("Failed to compute V1 hash:", err)
+	}
+ 
+	fmt.Printf("V1 Transaction:\n")
+	fmt.Printf("  Sender: %s\n", invokeTxnV1.SenderAddress.String())
+	fmt.Printf("  Nonce:  %d\n", invokeTxnV1.Nonce.Uint64())
+	fmt.Printf("  MaxFee: %s\n", invokeTxnV1.MaxFee.String())
+	fmt.Printf("  Hash:   %s\n\n", txHashV1.String())
+ 
+	invokeTxnV0 := &rpc.InvokeTxnV0{
+		Type:    rpc.TransactionTypeInvoke,
+		Version: rpc.TransactionV0,
+		FunctionCall: rpc.FunctionCall{
+			ContractAddress:    strkContract,
+			EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
+			Calldata:           fnCall.Calldata,
+		},
+		MaxFee:    new(felt.Felt).SetUint64(1000000000000000),
+		Signature: []*felt.Felt{},
+	}
+ 
+	txHashV0, err := accnt.TransactionHashInvoke(invokeTxnV0)
+	if err != nil {
+		log.Fatal("Failed to compute V0 hash:", err)
+	}
+ 
+	fmt.Printf("V0 Transaction (Deprecated):\n")
+	fmt.Printf("  Contract:   %s\n", invokeTxnV0.ContractAddress.String())
+	fmt.Printf("  EntryPoint: %s\n", invokeTxnV0.EntryPointSelector.String())
+	fmt.Printf("  Hash:       %s\n", txHashV0.String())
 }

@@ -2,11 +2,30 @@
 
 Retrieves a list of pre-funded test accounts from the DevNet server.
 
+:::danger 
+
+This method is **permanently broken** and cannot work with any available DevNet version.
+
+**Why it's broken:**
+- Designed for deprecated Python starknet-devnet (no longer available)
+- Expects `/predeployed_accounts` endpoint which doesn't exist in starknet-devnet-rs
+- Results in EOF error when called
+
+**Workaround:** Get account credentials from DevNet startup logs:
+```bash
+docker logs starknet-devnet | grep -A2 "Account address"
+```
+
+Then use the credentials directly in your code or with the RPC provider.
+:::
+
 ## Method Signature
 
 ```go
 func (devnet *DevNet) Accounts() ([]TestAccount, error)
 ```
+
+**Source:** [devnet.go:L74-L94](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L74-L94)
 
 ## Parameters
 
@@ -26,6 +45,8 @@ type TestAccount struct {
     Address    string `json:"address"`
 }
 ```
+
+**Source:** [devnet.go:L20-L24](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L20-L24)
 
 ## Usage Example
 
@@ -65,17 +86,6 @@ func main() {
 		fmt.Printf("  Private Key: %s\n", accounts[0].PrivateKey)
 	}
 }
-```
-
-## Expected Output
-
-```
-Found 10 pre-funded accounts
-
-First Account:
-  Address:     0x...
-  Public Key:  0x...
-  Private Key: 0x...
 ```
 
 ## Use Cases
@@ -160,9 +170,3 @@ if len(accounts) == 0 {
 }
 ```
 
-## Related Methods
-
-- [NewDevNet](./new-devnet.mdx) - Create DevNet instance
-- [IsAlive](./is-alive.mdx) - Verify DevNet is running before getting accounts
-- [Mint](./mint.mdx) - Add more tokens to accounts
-- [FeeToken](./fee-token.mdx) - Get fee token information

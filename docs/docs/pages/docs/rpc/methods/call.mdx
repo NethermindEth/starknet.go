@@ -1,38 +1,85 @@
 # Call
 
-Calls a contract function on Starknet without creating a transaction.
+Calls a contract function on Starknet without creating a transaction. This allows you to query contract state or execute view functions without paying gas fees or modifying the blockchain state.
 
 ## Method Signature
 
 ```go
 func (provider *Provider) Call(
-	ctx context.Context,
-	request FunctionCall,
-	blockID BlockID,
+    ctx context.Context,
+    request FunctionCall,
+    blockID BlockID,
 ) ([]*felt.Felt, error)
 ```
 
+**Source:** [call.go:L20-L41](https://github.com/NethermindEth/starknet.go/blob/main/rpc/call.go#L20-L41)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `request` - The function call request containing:
-  - `ContractAddress` - The address of the contract
-  - `EntryPointSelector` - The selector of the function to call
-  - `Calldata` - The input data for the function call
-- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `request` (FunctionCall): The function call request containing contract address, entry point selector, and calldata
+- `blockID` (BlockID): Block identifier to specify which block state to use for the call
 
 ## Returns
 
-- `[]*felt.Felt` - Array of felt values returned by the function
-- `error` - Error if the request fails
+- `[]*felt.Felt`: Array of felt values returned by the function
+- `error`: Error if the request fails
+:::note
+This can return `ErrContractNotFound`, `ErrEntrypointNotFound`, `ErrContractError`, or `ErrBlockNotFound`.
+:::
 
-## BlockID Parameter
+## Type Definitions
 
-The `blockID` parameter specifies which block state to use for the call. See [BlockID helper functions](../helper-functions.mdx) for available options:
-- `WithBlockTag("latest")` - Latest block
-- `WithBlockTag("pending")` - Pending block
-- `WithBlockNumber(n)` - Specific block number
-- `WithBlockHash(hash)` - Specific block hash
+### FunctionCall
+
+```go
+type FunctionCall struct {
+    ContractAddress    *felt.Felt `json:"contract_address"`
+    EntryPointSelector *felt.Felt `json:"entry_point_selector"`
+    // Calldata The parameters passed to the function
+    Calldata []*felt.Felt `json:"calldata"`
+}
+```
+
+**Source:** [types.go:L178-L184](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L178-L184)
+
+### BlockID
+
+The `blockID` parameter specifies which block state to use for the call. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+    Number *uint64    `json:"block_number,omitempty"`
+    Hash   *felt.Felt `json:"block_hash,omitempty"`
+    Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -40,79 +87,99 @@ The `blockID` parameter specifies which block state to use for the call. See [Bl
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"os"
+    "context"
+    "fmt"
+    "log"
+    "os"
 
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
+    "github.com/NethermindEth/juno/core/felt"
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-	// Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
-	}
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
 
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
 
-	// ETH contract address on Sepolia
-	contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	if err != nil {
-		log.Fatal("Failed to parse contract address:", err)
-	}
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	// Get symbol selector (symbol())
-	symbolSelector := utils.GetSelectorFromNameFelt("symbol")
+    ctx := context.Background()
 
-	// Create function call request
-	request := rpc.FunctionCall{
-		ContractAddress:    contractAddress,
-		EntryPointSelector: symbolSelector,
-		Calldata:           []*felt.Felt{},
-	}
+    // ETH contract address on Sepolia
+    contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	// Call the function
-	result, err := client.Call(ctx, request, rpc.WithBlockTag("latest"))
-	if err != nil {
-		log.Fatal("Call failed:", err)
-	}
+    // Get function selector for "symbol()"
+    symbolSelector := utils.GetSelectorFromNameFelt("symbol")
 
-	// Print result
-	resultJSON, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Printf("Symbol result:\n%s\n", resultJSON)
+    // Create function call request
+    request := rpc.FunctionCall{
+        ContractAddress:    contractAddress,
+        EntryPointSelector: symbolSelector,
+        Calldata:           []*felt.Felt{},
+    }
+
+    // Call the function
+    result, err := provider.Call(ctx, request, rpc.WithBlockTag("latest"))
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Symbol: %s\n", result[0])
 }
 ```
 
-## Expected Output
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
-```
-Symbol result:
-[
-  "0x455448"
-]
-```
 
 ## Error Handling
 
 ```go
-result, err := client.Call(ctx, request, rpc.WithBlockTag("latest"))
+result, err := provider.Call(ctx, request, rpc.WithBlockTag("latest"))
 if err != nil {
-	// Handle errors like contract not found, invalid selector, etc.
-	return err
+    if errors.Is(err, rpc.ErrContractNotFound) {
+        log.Printf("Contract not found at address: %s", request.ContractAddress)
+        return
+    }
+    if errors.Is(err, rpc.ErrEntrypointNotFound) {
+        log.Printf("Entry point not found: %s", request.EntryPointSelector)
+        return
+    }
+    if errors.Is(err, rpc.ErrContractError) {
+        log.Printf("Contract execution error")
+        return
+    }
+    if errors.Is(err, rpc.ErrBlockNotFound) {
+        log.Printf("Block not found")
+        return
+    }
+    log.Printf("Call failed: %v", err)
+    return
 }
+
+fmt.Printf("Call result: %v\n", result)
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [TransactionByHash](./transaction-by-hash.mdx) - Get transaction details
-- [EstimateFee](./estimate-fee.mdx) - Estimate transaction fees 
+- Readin contract storage values without modifying state.
+- Gettin ERC20 token balances for accounts.
+- Executing view functions to retrieve computed values.

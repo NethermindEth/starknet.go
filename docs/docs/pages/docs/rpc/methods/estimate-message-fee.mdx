@@ -1,6 +1,6 @@
 # EstimateMessageFee
 
-Estimates the L2 fee of a message sent from Ethereum L1 to Starknet L2.
+Estimates the L2 fee of a message sent from Ethereum L1 to Starknet L2. This method is specifically for cross-layer messaging where an L1 contract sends a message to an L2 contract with an `l1_handler` function. The estimation helps determine the gas costs before sending an actual L1->L2 message.
 
 ## Method Signature
 
@@ -12,28 +12,135 @@ func (provider *Provider) EstimateMessageFee(
 ) (MessageFeeEstimation, error)
 ```
 
+**Source:** [contract.go:L215-L228](https://github.com/NethermindEth/starknet.go/blob/main/rpc/contract.go#L215-L228)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `msg` - The L1->L2 message containing:
-  - `FromAddress` - The Ethereum L1 address (string)
-  - `ToAddress` - The Starknet L2 contract address
-  - `Selector` - The L1 handler entry point selector
-  - `Payload` - The message payload
-- `blockID` - The block identifier (see [BlockID helper functions](../helper-functions.mdx))
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `msg` (MsgFromL1): The L1->L2 message to estimate fees for
+- `blockID` (BlockID): Block identifier specifying the state to estimate against
 
 ## Returns
 
-- `MessageFeeEstimation` - Fee estimation for the L1->L2 message
-- `error` - Error if the request fails
+- `MessageFeeEstimation`: Fee estimation for the L1->L2 message in WEI
+- `error`: Error if the request fails
 
-## BlockID Parameter
+:::note
+This can return `ErrContractError` if the contract doesn't have the required L1 handler, or `ErrBlockNotFound` if the block doesn't exist. The `FromAddress` is an Ethereum address (string), and the `ToAddress` must be a deployed Starknet contract that has an L1 handler.
+:::
 
-The `blockID` parameter specifies which block state to use for estimation. See [BlockID helper functions](../helper-functions.mdx) for available options:
-- `WithBlockTag("latest")` - Latest block
-- `WithBlockTag("pending")` - Pending block
-- `WithBlockNumber(n)` - Specific block number
-- `WithBlockHash(hash)` - Specific block hash
+## Type Definitions
+
+:::tip
+The L1→L2 message fee estimation uses these related types to build and return fee estimates:
+:::
+1. Input Types (`MsgFromL1`, `BlockID`) define the cross-layer message (L1 sender, L2 recipient, payload) and the block state to estimate against.
+2. Result Type (`MessageFeeEstimation`) returned fee estimate that embeds `FeeEstimationCommon` and specifies the unit as WEI (Ethereum L1 fees).
+3. Common Fee Fields (`FeeEstimationCommon`) shared structure containing gas consumption and pricing details (L1 gas, L2 gas, data gas, and overall fee).
+
+The method accepts a `MsgFromL1` (with Ethereum L1 sender address and Starknet L2 recipient) and returns a `MessageFeeEstimation` in WEI. Unlike `EstimateFee` which returns FRI for L2 transactions, this returns WEI because L1→L2 messages are initiated on Ethereum and require L1 gas payment.
+
+
+### MsgFromL1
+
+```go
+type MsgFromL1 struct {
+	// FromAddress The address of the L1 contract sending the message
+	FromAddress string `json:"from_address"`
+	// ToAddress The target L2 address the message is sent to
+	ToAddress *felt.Felt `json:"to_address"`
+	// EntryPointSelector The selector of the l1_handler in invoke in the target contract
+	Selector *felt.Felt `json:"entry_point_selector"`
+	// Payload  The payload of the message
+	Payload []*felt.Felt `json:"payload"`
+}
+```
+
+**Source:** [types_transaction_receipt.go:L20-L29](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_receipt.go#L20-L29)
+
+### MessageFeeEstimation
+
+```go
+type MessageFeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be WEI
+	Unit PriceUnitWei `json:"unit"`
+}
+```
+
+**Source:** [types.go:L239-L243](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L239-L243)
+
+### FeeEstimationCommon
+
+```go
+type FeeEstimationCommon struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+}
+```
+
+**Source:** [types.go:L205-L231](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types.go#L205-L231)
+
+### BlockID
+
+The `blockID` parameter specifies which block state to query. You can identify a block in three ways:
+
+```go
+type BlockID struct {
+	Number *uint64    `json:"block_number,omitempty"`
+	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Tag    BlockTag   `json:"tag,omitempty"`
+}
+```
+
+**Source:** [types_block.go:L130-L136](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_block.go#L130-L136)
+
+There are helper functions for creating `BlockID`. So Instead of manually creating the `BlockID` struct, use these convenience functions.
+
+-  By Block Number - Get a specific block by its height
+
+    ```go
+    blockID := rpc.WithBlockNumber(123456)
+    ```
+    Source: [block.go:L59-L64](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L59-L64)
+
+-  By Block Hash - Get a specific block by its hash
+
+    ```go
+    hash, _ := new(felt.Felt).SetString("0x1234...")
+    blockID := rpc.WithBlockHash(hash)
+    ```
+    Source: [block.go:L73-L78](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L73-L78)
+
+- By Block Tag - Get a dynamic block reference
+    ```go
+    blockID := rpc.WithBlockTag("latest")      // Latest accepted block
+    blockID := rpc.WithBlockTag("pending")     // Block currently being built
+    ```
+    Source: [block.go:L87-L92](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L87-L92)
 
 ## Usage Example
 
@@ -49,33 +156,58 @@ import (
 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Create RPC client
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	// Get RPC URL from environment variable
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
+	}
+
+	// Initialize provider
+	provider, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
+
+	// L1 contract address (Ethereum address)
+	fromAddress := "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc"
+
+	// L2 contract address (Starknet address)
+	toAddress, err := utils.HexToFelt("0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f")
 	if err != nil {
-		log.Fatal("Failed to create client:", err)
+		log.Fatal(err)
 	}
 
-	fromAddress := "0x8453fc6cd1bcfe8d4dfc069c400b433054d47bdc"
-	toAddress, _ := utils.HexToFelt("0x04c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f")
-	selector, _ := utils.HexToFelt("0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19")
-	payload, _ := utils.HexArrToFelt([]string{
+	// L1 handler selector
+	selector, err := utils.HexToFelt("0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Message payload
+	payload, err := utils.HexArrToFelt([]string{
 		"0x455448",
 		"0x2f14d277fc49e0e2d2967d019aea8d6bd9cb3998",
 		"0x02000e6213e24b84012b1f4b1cbd2d7a723fb06950aeab37bedb6f098c7e051a",
 		"0x01a055690d9db80000",
 		"0x00",
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// Create L1->L2 message
 	l1Handler := rpc.MsgFromL1{
 		FromAddress: fromAddress,
 		ToAddress:   toAddress,
@@ -83,45 +215,44 @@ func main() {
 		Payload:     payload,
 	}
 
+	// Estimate message fee
 	blockNumber := uint64(523066)
-	result, err := client.EstimateMessageFee(ctx, l1Handler, rpc.WithBlockNumber(blockNumber))
+	result, err := provider.EstimateMessageFee(ctx, l1Handler, rpc.WithBlockNumber(blockNumber))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Printf("Estimate Message Fee: %s\n", resultJSON)
+	fmt.Printf("Estimate Message Fee:\n%s\n", resultJSON)
 }
 ```
 
-## Expected Output
-
-```
-Estimate Message Fee: {
-  "l1_gas_consumed": "0x4ed1",
-  "l1_gas_price": "0x7e15d2b5",
-  "l2_gas_consumed": "0x0",
-  "l2_gas_price": "0x0",
-  "l1_data_gas_consumed": "0x80",
-  "l1_data_gas_price": "0x1",
-  "overall_fee": "0x26d196042c45",
-  "unit": "WEI"
-}
-```
-
-**Note:** This method is specifically for L1->L2 messaging. The `FromAddress` is an Ethereum address (string), and the `ToAddress` must be a deployed Starknet contract that has an L1 handler.
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
 ```go
-result, err := client.EstimateMessageFee(ctx, l1Handler, rpc.WithBlockNumber(blockNumber))
+result, err := provider.EstimateMessageFee(ctx, l1Handler, rpc.WithBlockNumber(blockNumber))
 if err != nil {
-	// Handle errors like contract not found, invalid message, etc.
-	return err
+	if errors.Is(err, rpc.ErrContractError) {
+		log.Printf("Contract error: L1 handler not found or execution failed")
+		return
+	}
+	if errors.Is(err, rpc.ErrBlockNotFound) {
+		log.Printf("Block not found")
+		return
+	}
+	log.Printf("Error estimating message fee: %v", err)
+	return
 }
+
+fmt.Printf("Overall fee: %s WEI\n", result.OverallFee)
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [EstimateFee](./estimate-fee.mdx) - Estimate L2 transaction fees
-- [GetMessagesStatus](./get-messages-status.mdx) - Get status of L1->L2 messages
+- Estimating gas costs before sending L1->L2 messages from Ethereum to Starknet.
+- Validating that L1 handler functions exist and can be invoked with the given payload.
+- Comparing message fees across different block states.

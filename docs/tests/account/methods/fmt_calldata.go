@@ -1,100 +1,111 @@
 package main
-
+ 
 import (
 	"context"
 	"fmt"
 	"log"
 	"math/big"
 	"os"
-
+ 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	// Load .env file
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	ctx := context.Background()
+ 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
-
-	// Get RPC URL from environment
+ 
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
-
-	// Create RPC provider
-	ctx := context.Background()
+ 
 	provider, err := rpc.NewProvider(ctx, rpcURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create provider:", err)
 	}
-
-	// Create account address
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-
-	// Create keystore with test key
-	publicKey := "0x03603a2692a2ae60abb343e832ee53b55d6b25f02a3ef1565ec691edc7a209b2"
-	privateKey := new(big.Int).SetUint64(123456789)
-	ks := account.SetNewMemKeystore(publicKey, privateKey)
-
-	// Create Cairo v2 account
-	fmt.Println("Testing Cairo v2 account:")
-	acc2, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV2)
+ 
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+ 
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+ 
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+ 
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to parse account address:", err)
 	}
-
-	// Create function calls
-	contractAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	entryPointSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
-	recipient, _ := new(felt.Felt).SetString("0x1234567890abcdef")
-
-	functionCalls := []rpc.FunctionCall{
-		{
-			ContractAddress:    contractAddress,
-			EntryPointSelector: entryPointSelector,
-			Calldata: []*felt.Felt{
-				recipient,
-				new(felt.Felt).SetUint64(100),
-				new(felt.Felt).SetUint64(0),
-			},
-		},
+ 
+	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	transferSelector := utils.GetSelectorFromNameFelt("transfer")
+	recipient := accountAddressFelt
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+	u256Amount, _ := utils.HexToU256Felt(amount.String())
+ 
+	fnCall := rpc.FunctionCall{
+		ContractAddress:    strkContract,
+		EntryPointSelector: transferSelector,
+		Calldata:           append([]*felt.Felt{recipient}, u256Amount...),
 	}
-
-	// Format calldata for Cairo v2
-	calldata2, err := acc2.FmtCalldata(functionCalls)
+ 
+	accntV2, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
 	if err != nil {
-		fmt.Printf("Error formatting calldata: %v\n", err)
-		return
+		log.Fatal("Failed to create Cairo v2 account:", err)
 	}
-
-	fmt.Println("\nCairo v2 formatted calldata:")
-	for i, data := range calldata2 {
-		fmt.Printf("  [%d]: %s\n", i, data)
-	}
-	fmt.Printf("Total elements: %d\n", len(calldata2))
-
-	// Create Cairo v0 account
-	fmt.Println("\nTesting Cairo v0 account:")
-	acc0, err := account.NewAccount(provider, accountAddress, publicKey, ks, account.CairoV0)
+ 
+	calldataV2, err := accntV2.FmtCalldata([]rpc.FunctionCall{fnCall})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to format Cairo v2 calldata:", err)
 	}
-
-	// Format calldata for Cairo v0
-	calldata0, err := acc0.FmtCalldata(functionCalls)
+ 
+	fmt.Println("Cairo v2 Formatted Calldata:")
+	fmt.Printf("Total elements: %d\n", len(calldataV2))
+	fmt.Printf("  [0] Num calls:         %s\n", calldataV2[0].String())
+	fmt.Printf("  [1] Contract address:  %s\n", calldataV2[1].String())
+	fmt.Printf("  [2] Entry point sel:   %s\n", calldataV2[2].String())
+	fmt.Printf("  [3] Calldata length:   %s\n", calldataV2[3].String())
+ 
+	accntV0, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV0,
+	)
 	if err != nil {
-		fmt.Printf("Error formatting calldata: %v\n", err)
-		return
+		log.Fatal("Failed to create Cairo v0 account:", err)
 	}
-
-	fmt.Println("\nCairo v0 formatted calldata:")
-	for i, data := range calldata0 {
-		fmt.Printf("  [%d]: %s\n", i, data)
+ 
+	calldataV0, err := accntV0.FmtCalldata([]rpc.FunctionCall{fnCall})
+	if err != nil {
+		log.Fatal("Failed to format Cairo v0 calldata:", err)
 	}
-	fmt.Printf("Total elements: %d\n", len(calldata0))
+ 
+	fmt.Println("Cairo v0 Formatted Calldata:")
+	fmt.Printf("Total elements: %d\n", len(calldataV0))
+	fmt.Printf("  [0] Num calls:             %s\n", calldataV0[0].String())
+	fmt.Printf("  [1] Contract address:      %s\n", calldataV0[1].String())
+	fmt.Printf("  [2] Entry point selector:  %s\n", calldataV0[2].String())
+	fmt.Printf("  [3] Calldata offset:       %s\n", calldataV0[3].String())
 }

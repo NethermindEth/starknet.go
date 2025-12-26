@@ -2,11 +2,25 @@
 
 Mints tokens to a specified address for testing purposes.
 
+:::danger 
+
+This method is **permanently broken** and cannot work with any available DevNet version.
+
+**Why it's broken:**
+- Designed for deprecated Python starknet-devnet (no longer available)
+- Expects `/mint` endpoint which doesn't exist in starknet-devnet-rs
+- Current starknet-devnet-rs has a different minting mechanism
+
+**Note:** Starknet DevNet-rs accounts come pre-funded with 1000 ETH/STRK, which is usually sufficient for testing.
+:::
+
 ## Method Signature
 
 ```go
 func (devnet *DevNet) Mint(address *felt.Felt, amount *big.Int) (*MintResponse, error)
 ```
+
+**Source:** [devnet.go:L141-L170](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L141-L170)
 
 ## Parameters
 
@@ -27,6 +41,8 @@ type MintResponse struct {
     TransactionHash string `json:"tx_hash"`
 }
 ```
+
+**Source:** [devnet.go:L126-L130](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L126-L130)
 
 ## Usage Example
 
@@ -73,14 +89,6 @@ func main() {
 	fmt.Printf("New Balance: %s %s\n", response.NewBalance, response.Unit)
 	fmt.Printf("Transaction Hash: %s\n", response.TransactionHash)
 }
-```
-
-## Expected Output
-
-```
-Tokens minted successfully!
-New Balance: 1000000000000000000 WEI
-Transaction Hash: 0x...
 ```
 
 ## Use Cases
@@ -182,8 +190,3 @@ if response.TransactionHash == "" {
 - DevNet must be running for minting to work
 - No gas fees are charged for minting
 
-## Related Methods
-
-- [Accounts](./accounts.mdx) - Get pre-funded test accounts
-- [FeeToken](./fee-token.mdx) - Get information about the fee token
-- [IsAlive](./is-alive.mdx) - Verify DevNet is running before minting

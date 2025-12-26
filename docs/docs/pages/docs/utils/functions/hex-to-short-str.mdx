@@ -8,6 +8,8 @@ Converts a hexadecimal string to a short string (ASCII text).
 func HexToShortStr(hexStr string) string
 ```
 
+**Source:** [keccak.go:L59-L61](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L59-L61)
+
 ## Parameters
 
 - `hexStr` (string): Hexadecimal string representing ASCII text
@@ -15,10 +17,6 @@ func HexToShortStr(hexStr string) string
 ## Returns
 
 - `string`: Decoded ASCII string
-
-## Description
-
-Decodes a hexadecimal string into its ASCII representation. Commonly used for reading short strings stored in Starknet contracts.
 
 ## Usage Example
 
@@ -51,10 +49,11 @@ func main() {
 
 ## Use Cases
 
-- Reading contract names
-- Decoding token symbols
-- Processing short string data from contracts
+- Reading contract names.
+- Decoding token symbols.
+- Processing short string data from contracts.
 
-## Related Functions
+## See Also
 
-- [StrToHex](/docs/utils/functions/str-to-hex)
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) demonstrates string decoding from contracts
+

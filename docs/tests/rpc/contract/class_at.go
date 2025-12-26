@@ -1,48 +1,56 @@
 package main
-
+ 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/joho/godotenv"
+    "context"
+    "encoding/json"
+    "fmt"
+    "log"
+    "os"
+ 
+    "github.com/NethermindEth/starknet.go/rpc"
+    "github.com/NethermindEth/starknet.go/utils"
+    "github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	godotenv.Load(".env")
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
-	}
-
-	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
-	if err != nil {
-		log.Fatal("Failed to create client:", err)
-	}
-
-	// Use ETH token contract address on Sepolia
-	contractAddress, err := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	if err != nil {
-		log.Fatal("Failed to parse contract address:", err)
-	}
-
-	blockID := rpc.WithBlockTag("latest")
-	classOutput, err := client.ClassAt(ctx, blockID, contractAddress)
-	if err != nil {
-		log.Fatal("Failed to get class at address:", err)
-	}
-
-	// Marshal to JSON for readable output (show first 1000 chars)
-	classJSON, err := json.MarshalIndent(classOutput, "", "  ")
-	if err != nil {
-		log.Fatal("Failed to marshal class:", err)
-	}
-
-	fmt.Printf("Contract Class at Address (first 1000 chars):\n%s...\n", string(classJSON[:1000]))
-	fmt.Printf("\nTotal JSON size: %d bytes\n", len(classJSON))
+    // Load environment variables from .env file
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+ 
+    // Get RPC URL from environment variable
+    rpcURL := os.Getenv("STARKNET_RPC_URL")
+    if rpcURL == "" {
+        log.Fatal("STARKNET_RPC_URL not found in .env file")
+    }
+ 
+    // Initialize provider
+    provider, err := rpc.NewProvider(context.Background(), rpcURL)
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    ctx := context.Background()
+ 
+    // ETH contract address on Sepolia
+    contractAddress, err := utils.HexToFelt("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    // Get class definition at the contract address
+    blockID := rpc.WithBlockTag("latest")
+    class, err := provider.ClassAt(ctx, blockID, contractAddress)
+    if err != nil {
+        log.Fatal(err)
+    }
+ 
+    // Print class information (first 500 characters)
+    classJSON, _ := json.MarshalIndent(class, "", "  ")
+    classStr := string(classJSON)
+    if len(classStr) > 500 {
+        classStr = classStr[:500] + "..."
+    }
+    fmt.Printf("Class definition at contract address:\n%s\n", classStr)
 }

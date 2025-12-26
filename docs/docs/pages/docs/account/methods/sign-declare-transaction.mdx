@@ -1,6 +1,6 @@
 # SignDeclareTransaction
 
-Signs a declare transaction.
+Signs a declare transaction by calculating the transaction hash and signing it with the account's private key. This method automatically sets the Signature field on the transaction with the resulting (r, s) signature components. Supports V1, V2, V3, and BroadcastDeclareTxnV3 declare transactions.
 
 ## Method Signature
 
@@ -11,96 +11,180 @@ func (account *Account) SignDeclareTransaction(
 ) error
 ```
 
+**Source:** [signature.go:L160-L194](https://github.com/NethermindEth/starknet.go/blob/main/account/signature.go#L160-L194)
+
 ## Parameters
 
-- `ctx` - Context for cancellation and timeout
-- `tx` - Declare transaction to sign (V1, V2, V3, or BroadcastV3)
+- `ctx` (context.Context): Context for cancellation and timeout
+- `tx` (rpc.DeclareTxnType): Declare transaction to sign (DeclareTxnV1, DeclareTxnV2, DeclareTxnV3, or BroadcastDeclareTxnV3)
 
 ## Returns
 
-- `error` - Error if signing fails
+- `error`: Error if signing fails or transaction type is invalid
 
 ## Usage Example
-
-> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
 
 ```go
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance
-	var acc *account.Account
-	// acc = ... (already initialized)
-
-	// Create a declare transaction V2
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	classHash, _ := new(felt.Felt).SetString("0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855")
-	compiledClassHash, _ := new(felt.Felt).SetString("0x017f655f7a639a49ea1d8d56172e99cff8b51f4123b733f0378dfd6378a2cd37")
-
-	declareTx := &rpc.DeclareTxnV2{
-		Type:              rpc.TransactionTypeDeclare,
-		SenderAddress:     accountAddress,
-		CompiledClassHash: compiledClassHash,
-		ClassHash:         classHash,
-		MaxFee:            new(felt.Felt).SetUint64(1000000000000),
-		Version:           rpc.TransactionV2,
-		Signature:         []*felt.Felt{}, // Empty before signing
-		Nonce:             new(felt.Felt).SetUint64(0),
-	}
-
-	fmt.Printf("Before signing - Signature length: %d\n", len(declareTx.Signature))
-
-	// Sign the transaction
 	ctx := context.Background()
-	err := acc.SignDeclareTransaction(ctx, declareTx)
-	if err != nil {
-		log.Fatalf("Error signing transaction: %v", err)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	fmt.Printf("After signing - Signature length: %d\n", len(declareTx.Signature))
-	for i, sig := range declareTx.Signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
+	}
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	content, err := os.ReadFile("contracts/cairo0/hello_starknet_compiled.json")
+	if err != nil {
+		fmt.Printf("Note: Contract file not found, using mock data for demonstration\n\n")
+
+		nonce, err := accnt.Nonce(ctx)
+		if err != nil {
+			log.Fatal("Failed to get nonce:", err)
+		}
+
+		mockClassHash, _ := utils.HexToFelt("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
+		mockCompiledClassHash, _ := utils.HexToFelt("0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd")
+
+		declareTxn := &rpc.DeclareTxnV3{
+			Nonce:   nonce,
+			Type:    rpc.TransactionTypeDeclare,
+			Version: rpc.TransactionV3,
+			ResourceBounds: &rpc.ResourceBoundsMapping{
+				L1Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x0",
+				},
+				L1DataGas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x0",
+				},
+				L2Gas: rpc.ResourceBounds{
+					MaxAmount:       "0x0",
+					MaxPricePerUnit: "0x0",
+				},
+			},
+			Tip:                   "0x0",
+			PayMasterData:         []*felt.Felt{},
+			AccountDeploymentData: []*felt.Felt{},
+			NonceDataMode:         rpc.DAModeL1,
+			FeeMode:               rpc.DAModeL1,
+			SenderAddress:         accountAddressFelt,
+			ClassHash:             mockClassHash,
+			CompiledClassHash:     mockCompiledClassHash,
+			Signature:             []*felt.Felt{},
+		}
+
+		fmt.Printf("Sender:              %s\n", declareTxn.SenderAddress.String())
+		fmt.Printf("Nonce:               %d\n", declareTxn.Nonce.Uint64())
+		fmt.Printf("Class Hash:          %s\n", declareTxn.ClassHash.String())
+		fmt.Printf("Compiled Class Hash: %s\n", declareTxn.CompiledClassHash.String())
+		fmt.Printf("Signature (before):  %v\n\n", declareTxn.Signature)
+
+		err = accnt.SignDeclareTransaction(ctx, declareTxn)
+		if err != nil {
+			log.Fatal("Failed to sign declare transaction:", err)
+		}
+
+		fmt.Printf("Signature components:\n")
+		fmt.Printf("  r: %s\n", declareTxn.Signature[0].String())
+		fmt.Printf("  s: %s\n", declareTxn.Signature[1].String())
+
+	} else {
+		var class contracts.ContractClass
+		if err := json.Unmarshal(content, &class); err != nil {
+			log.Fatal("Failed to unmarshal contract class:", err)
+		}
+
+		fmt.Printf("Contract class loaded with %d entry points\n", len(class.EntryPointsByType.External))
 	}
 }
 ```
 
-## Expected Output
-
-```
-Before signing - Signature length: 0
-After signing - Signature length: 2
-Signature[0]: 0x51c8409d7b6743661f134719f2fa8717b72399678624381597f2938109d5a9a
-Signature[1]: 0x3223d8c72505ee93d290146dc2f0e5ec13e138f9eb93ca6077131d539609797
-```
-
-## Description
-
-SignDeclareTransaction signs a declare transaction by:
-1. Calculating the transaction hash using [TransactionHashDeclare](./transaction-hash-declare)
-2. Signing the hash with the account's private key (see [Sign](./sign) for signing details)
-3. Setting the `Signature` field on the transaction with the resulting (r, s) signature components
-
-Supports V1, V2, V3, and BroadcastDeclareTxnV3 declare transactions.
-
-> For conceptual details about transaction signing, see [Transaction Signing Concepts](/docs/account/concepts/transaction-signing).
-
-**Note**: Typically handled automatically by [BuildAndSendDeclareTxn](./build-and-send-declare-txn), which manages transaction creation, signing, and submission in one call.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
-Common errors include invalid transaction type, hash calculation failure, or signing failure. See [Transaction Signing Concepts - Error Handling](/docs/account/concepts/transaction-signing#error-handling) for detailed error scenarios and handling patterns.
+```go
+err := acc.SignDeclareTransaction(ctx, declareTx)
+if err != nil {
+	switch {
+	case errors.Is(err, account.ErrInvalidTransactionType):
+		log.Println("Invalid declare transaction type")
+	case errors.Is(err, account.ErrHashCalculationFailed):
+		log.Println("Failed to calculate transaction hash")
+	case errors.Is(err, account.ErrSigningFailed):
+		log.Println("Failed to sign transaction")
+	default:
+		log.Printf("Failed to sign declare transaction: %v", err)
+	}
+	return
+}
+```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndSendDeclareTxn](./build-and-send-declare-txn.mdx) - High-level declare method
-- [TransactionHashDeclare](./transaction-hash-declare.mdx) - Calculate hash
+- Sign manually constructed declare transactions before sending
+- Low-level transaction signing for advanced workflows
+- Usually handled automatically by BuildAndSendDeclareTxn
+- Custom transaction flows requiring manual signing control
+- Testing and debugging declare transaction signing
