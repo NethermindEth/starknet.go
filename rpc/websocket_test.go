@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -22,75 +21,32 @@ func TestSubscribeNewHeads(t *testing.T) {
 	testConfig := BeforeEach(t, true)
 
 	type testSetType struct {
-		headers         chan *BlockHeader
-		subBlockID      SubscriptionBlockID
-		counter         int
-		isErrorExpected bool
-		description     string
+		description   string
+		subBlockID    SubscriptionBlockID
+		expectedError error
 	}
-
-	provider := testConfig.Provider
-	blockNumber, err := provider.BlockNumber(context.Background())
-	require.NoError(t, err)
-
-	latestBlockNumbers := []uint64{
-		blockNumber,
-		blockNumber + 1,
-	} // for the case the latest block number is updated
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
 			{
-				headers:         make(chan *BlockHeader),
-				isErrorExpected: false,
-				description:     "normal call, without subBlockID",
+				description: "normal call, zero subBlockID",
 			},
 			{
-				headers:         make(chan *BlockHeader),
-				subBlockID:      new(SubscriptionBlockID).WithLatestTag(),
-				isErrorExpected: false,
-				description:     "with tag latest",
+				description: "with tag latest",
+				subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
 			},
 			{
-				headers:         make(chan *BlockHeader),
-				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 100),
-				counter:         100,
-				isErrorExpected: false,
-				description:     "with block number within the range of 1024 blocks",
+				description:   "error - too many blocks back",
+				subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+				expectedError: ErrTooManyBlocksBack,
 			},
 			{
-				headers:         make(chan *BlockHeader),
-				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1025),
-				isErrorExpected: true,
-				description:     "invalid, with block number out of the range of 1024 blocks",
+				description:   "error - block not found",
+				subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				expectedError: ErrBlockNotFound,
 			},
 		},
-		tests.IntegrationEnv: {
-			{
-				headers:         make(chan *BlockHeader),
-				isErrorExpected: false,
-				description:     "normal call, without subBlockID",
-			},
-			{
-				headers:         make(chan *BlockHeader),
-				subBlockID:      new(SubscriptionBlockID).WithLatestTag(),
-				isErrorExpected: false,
-				description:     "with tag latest",
-			},
-			{
-				headers:         make(chan *BlockHeader),
-				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 100),
-				counter:         100,
-				isErrorExpected: false,
-				description:     "with block number within the range of 1024 blocks",
-			},
-			{
-				headers:         make(chan *BlockHeader),
-				subBlockID:      new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1025),
-				isErrorExpected: true,
-				description:     "invalid, with block number out of the range of 1024 blocks",
-			},
-		},
+		tests.IntegrationEnv: {},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
@@ -98,40 +54,42 @@ func TestSubscribeNewHeads(t *testing.T) {
 			t.Parallel()
 
 			wsProvider := testConfig.WsProvider
+			spy := tests.NewWSSpy(wsProvider.c)
+			wsProvider.c = spy
 
-			var sub *client.ClientSubscription
-			sub, err = wsProvider.SubscribeNewHeads(
-				context.Background(),
-				test.headers,
+			headers := make(chan *BlockHeader)
+
+			sub, err := wsProvider.SubscribeNewHeads(
+				t.Context(),
+				headers,
 				test.subBlockID,
 			)
-			if sub != nil {
-				defer sub.Unsubscribe()
-			}
-
-			if test.isErrorExpected {
+			if test.expectedError != nil {
 				require.Error(t, err)
+				assert.EqualError(t, err, test.expectedError.Error())
 
 				return
 			}
 			require.NoError(t, err)
 			require.NotNil(t, sub)
 
+			defer sub.Unsubscribe()
+			timeout := time.After(10 * time.Second)
 			for {
 				select {
-				case resp := <-test.headers:
-					require.IsType(t, &BlockHeader{}, resp)
+				case resp := <-headers:
+					require.NotNil(t, resp)
 
-					if test.counter != 0 {
-						if test.counter == 1 {
-							require.Contains(t, latestBlockNumbers, resp.Number+1)
+					rawExpectedMsg := <-spy.SpyChannel()
+					rawMsg, err := json.Marshal(resp)
+					require.NoError(t, err)
+					assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
 
-							return
-						} else {
-							test.counter--
-						}
-					} else {
+					// stop test after a few seconds
+					select {
+					case <-timeout:
 						return
+					default:
 					}
 				case err := <-sub.Err():
 					require.NoError(t, err)
