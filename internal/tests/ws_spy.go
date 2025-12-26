@@ -55,7 +55,8 @@ var (
 	_ WSSpyer = (*WSSpy)(nil)
 )
 
-// NewWSSpy creates a new WSSpy object.
+// NewWSSpy creates a new WSSpy object. A new spy should be created for each subscription,
+// since it uses a single channel to capture the notifications sent by the node.
 //
 // It takes a client wsConn as the first parameter and an optional debug parameter.
 // The client wsConn is the interface that the spy will be based on.
@@ -96,13 +97,13 @@ func (s *WSSpy) Subscribe(
 		fmt.Println("--------------------------------------------")
 	}
 
-	chVal := reflect.ValueOf(channel)
+	userCh := reflect.ValueOf(channel)
 	eventType := reflect.TypeOf(channel).Elem()
 	mainCh := make(chan json.RawMessage)
 
-	go listenAndForward(ctx, mainCh, chVal, eventType, s.spyCh, s.debug)
+	go listenAndForward(ctx, mainCh, userCh, eventType, s.spyCh, s.debug)
 
-	sub, err := s.wsConn.Subscribe(ctx, namespace, methodSuffix, channel, args)
+	sub, err := s.wsConn.Subscribe(ctx, namespace, methodSuffix, mainCh, args)
 	if err != nil {
 		return nil, err
 	}
@@ -128,13 +129,13 @@ func (s *WSSpy) SubscribeWithSliceArgs(
 		}
 	}
 
-	chVal := reflect.ValueOf(channel)
+	userCh := reflect.ValueOf(channel)
 	eventType := reflect.TypeOf(channel).Elem()
 	mainCh := make(chan json.RawMessage)
 
-	go listenAndForward(ctx, mainCh, chVal, eventType, s.spyCh, s.debug)
+	go listenAndForward(ctx, mainCh, userCh, eventType, s.spyCh, s.debug)
 
-	sub, err := s.wsConn.SubscribeWithSliceArgs(ctx, namespace, methodSuffix, channel, args)
+	sub, err := s.wsConn.SubscribeWithSliceArgs(ctx, namespace, methodSuffix, mainCh, args...)
 	if err != nil {
 		return nil, err
 	}
