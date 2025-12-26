@@ -239,7 +239,7 @@ type ClientSubscription struct {
 // This is the sentinel value sent on sub.quit when Unsubscribe is called.
 var errUnsubscribed = errors.New("unsubscribed")
 
-func newClientSubscription(c *Client, namespace string, channel reflect.Value) *ClientSubscription {
+func NewClientSubscription(c *Client, namespace string, channel reflect.Value) *ClientSubscription {
 	sub := &ClientSubscription{
 		client:       c,
 		namespace:    namespace,

@@ -580,7 +580,7 @@ func (c *Client) Subscribe(
 	op := &requestOp{
 		ids:  []json.RawMessage{msg.ID},
 		resp: make(chan []*jsonrpcMessage, 1),
-		sub:  newClientSubscription(c, namespace, chanVal),
+		sub:  NewClientSubscription(c, namespace, chanVal),
 	}
 
 	// Send the subscription request.
