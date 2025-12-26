@@ -11,10 +11,16 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestSubscribeNewHeads(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.MockEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.TestnetEnv,
+	)
 
 	t.Parallel()
 
@@ -26,32 +32,58 @@ func TestSubscribeNewHeads(t *testing.T) {
 		expectedError error
 	}
 
+	networkTestSets := []testSetType{
+		{
+			description: "normal call, zero subBlockID",
+		},
+		{
+			description: "with tag latest",
+			subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
+		},
+		{
+			description:   "error - too many blocks back",
+			subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+			expectedError: ErrTooManyBlocksBack,
+		},
+		{
+			description:   "error - block not found",
+			subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+			expectedError: ErrBlockNotFound,
+		},
+	}
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.TestnetEnv: {
-			{
-				description: "normal call, zero subBlockID",
-			},
+		tests.MockEnv: {
 			{
 				description: "with tag latest",
 				subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
 			},
-			{
-				description:   "error - too many blocks back",
-				subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
-				expectedError: ErrTooManyBlocksBack,
-			},
-			{
-				description:   "error - block not found",
-				subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
-				expectedError: ErrBlockNotFound,
-			},
 		},
-		tests.IntegrationEnv: {},
+		tests.TestnetEnv:     networkTestSets,
+		tests.IntegrationEnv: networkTestSets,
+		tests.MainnetEnv:     networkTestSets,
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run("test: "+test.description, func(t *testing.T) {
 			t.Parallel()
+
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					SubscribeWithSliceArgs(
+						t.Context(),
+						"starknet",
+						"_subscribeNewHeads",
+						gomock.Any(),
+						test.subBlockID,
+					).
+					DoAndReturn(func(_, _, _, channel any, _ ...any) error {
+						// ch := channel.(chan *json.RawMessage)
+						// *rawResp = json.RawMessage("\"0.10.0\"")
+
+						return nil
+					}).
+					Times(1)
+			}
 
 			wsProvider := testConfig.WsProvider
 			spy := tests.NewWSSpy(wsProvider.c)
