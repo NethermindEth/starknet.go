@@ -15,6 +15,10 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// TODO: we need to add logic to check the raw request sent to the RPC server.
+
+const testDuration = 10 * time.Second
+
 // TestSubscribeNewHeads tests the SubscribeNewHeads function.
 func TestSubscribeNewHeads(t *testing.T) {
 	tests.RunTestOn(t,
@@ -23,8 +27,6 @@ func TestSubscribeNewHeads(t *testing.T) {
 		tests.MainnetEnv,
 		tests.TestnetEnv,
 	)
-
-	t.Parallel()
 
 	type testSetType struct {
 		description   string
@@ -147,7 +149,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 				defer sub.Unsubscribe()
 			}
 
-			timeout := time.After(10 * time.Second)
+			stopTest := time.After(testDuration)
 			for {
 				select {
 				case resp := <-headers:
@@ -160,424 +162,326 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 					// stop test after a few seconds
 					select {
-					case <-timeout:
+					case <-stopTest:
 						return
 					default:
 					}
 				case err := <-sub.Err():
 					require.NoError(t, err)
+				case <-time.After(testDuration * 2):
+					t.Fatal("no new heads received")
+					return
 				}
 			}
 		})
 	}
 }
 
+// TestSubscribeEvents tests the SubscribeEvents function.
 func TestSubscribeEvents(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
-
-	t.Parallel()
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := BeforeEach(t, true)
 
-	type testSetType struct {
-		// Example values for the test
-		fromAddressExample *felt.Felt
-		keyExample         *felt.Felt
+	// STRK Token
+	fromAddress := internalUtils.TestHexToFelt(
+		t,
+		"0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+	)
+	// "Transfer" event key
+	key := internalUtils.TestHexToFelt(
+		t,
+		"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9",
+	)
+
+	tooManyKeys := make([][]*felt.Felt, 10000)
+	for i := range 10000 {
+		tooManyKeys[i] = []*felt.Felt{new(felt.Felt).SetUint64(uint64(i))}
 	}
 
-	testSet := map[tests.TestEnv]testSetType{
-		tests.TestnetEnv: {
-			// sepolia StarkGate: STRK Token
-			fromAddressExample: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-			// "Transfer" event key, used by StarkGate ETH Token and STRK Token contracts
-			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
-		},
-		tests.IntegrationEnv: {
-			// a contract with a lot of txns in integration network
-			fromAddressExample: internalUtils.TestHexToFelt(t, "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-			// "Transfer" event key
-			keyExample: internalUtils.TestHexToFelt(t, "0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"),
-		},
-	}[tests.TEST_ENV]
+	if tests.TEST_ENV == tests.MockEnv {
+		testConfig.MockClient.EXPECT().
+			CallContextWithSliceArgs(
+				t.Context(),
+				gomock.Any(),
+				"starknet_blockNumber",
+			).
+			DoAndReturn(
+				func(_, result, _ any, _ ...any) error {
+					rawResp := result.(*json.RawMessage)
+					rawBlockNumber := json.RawMessage("1234567890")
+					*rawResp = rawBlockNumber
 
+					return nil
+				},
+			)
+	}
 	provider := testConfig.Provider
-	blockNumber, err := provider.BlockNumber(context.Background())
+	blockNumber, err := provider.BlockNumber(t.Context())
 	require.NoError(t, err)
 
-	// TODO for all the cases: add logic to marshal get request type and compare with the raw request sent to the RPC server.
-	// Maybe a websocket spy could help here.
+	type testSetType struct {
+		description   string
+		input         *EventSubscriptionInput
+		expectedError error
+	}
 
-	t.Run("with empty args", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(
-			context.Background(),
-			events,
-			&EventSubscriptionInput{},
-		)
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(10 * time.Second)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				t.Fatal("timeout waiting for events")
-			}
-		}
-	})
-
-	t.Run("blockID only - 1000 blocks back", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(
-			context.Background(),
-			events,
-			&EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+	template := []testSetType{
+		{
+			description: "from address only",
+			input: &EventSubscriptionInput{
+				FromAddress: fromAddress,
 			},
-		)
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(10 * time.Second)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
-
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				t.Fatal("timeout waiting for events")
-			}
-		}
-	})
-
-	t.Run("blockID only - with tag latest", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(
-			context.Background(),
-			events,
-			&EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).WithLatestTag(),
+		},
+		{
+			description: "keys only",
+			input: &EventSubscriptionInput{
+				Keys: [][]*felt.Felt{{key}},
 			},
-		)
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(10 * time.Second)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				t.Fatal("timeout waiting for events")
-			}
-		}
-	})
-
-	t.Run("finalityStatus only", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		t.Run("with finality status ACCEPTED_ON_L2", func(t *testing.T) {
-			t.Parallel()
-
-			events := make(chan *EmittedEventWithFinalityStatus)
-			sub, err := wsProvider.SubscribeEvents(
-				context.Background(),
-				events,
-				&EventSubscriptionInput{
-					FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+		},
+		{
+			description: "with block ID only",
+			input: &EventSubscriptionInput{
+				SubBlockID: SubscriptionBlockID{
+					Tag: BlockTagLatest,
 				},
-			)
-			if sub != nil {
-				defer sub.Unsubscribe()
-			}
-			require.NoError(t, err)
-			require.NotNil(t, sub)
-
-			// outside the loop, to avoid it being resetted
-			timeout := time.After(10 * time.Second)
-
-			for {
-				select {
-				case resp := <-events:
-					require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-					assert.Equal(t, TxnFinalityStatusAcceptedOnL2, resp.FinalityStatus)
-
-					return
-				case err := <-sub.Err():
-					require.NoError(t, err)
-				case <-timeout:
-					t.Fatal("timeout waiting for events")
-				}
-			}
-		})
-
-		t.Run("with finality status PRE_CONFIRMED", func(t *testing.T) {
-			t.Parallel()
-
-			events := make(chan *EmittedEventWithFinalityStatus)
-			sub, err := wsProvider.SubscribeEvents(
-				context.Background(),
-				events,
-				&EventSubscriptionInput{
-					FinalityStatus: TxnFinalityStatusPreConfirmed,
-				},
-			)
-			if sub != nil {
-				defer sub.Unsubscribe()
-			}
-			require.NoError(t, err)
-			require.NotNil(t, sub)
-
-			// outside the loop, to avoid it being resetted
-			timeout := time.After(10 * time.Second)
-
-			var preConfirmedEventFound bool
-			var acceptedOnL2EventFound bool
-
-			for {
-				select {
-				case resp := <-events:
-					require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-
-					if preConfirmedEventFound && acceptedOnL2EventFound {
-						// subscribing with PRE_CONFIRMED should return both PRE_CONFIRMED and ACCEPTED_ON_L2 events
-						return
-					}
-
-					switch resp.FinalityStatus {
-					case TxnFinalityStatusPreConfirmed:
-						preConfirmedEventFound = true
-					case TxnFinalityStatusAcceptedOnL2:
-						acceptedOnL2EventFound = true
-					default:
-						t.Fatalf("unexpected finality status: %s", resp.FinalityStatus)
-					}
-				case err := <-sub.Err():
-					require.NoError(t, err)
-				case <-timeout:
-					t.Fatal("timeout waiting for events")
-				}
-			}
-		})
-	})
-
-	t.Run("fromAddress + blockID, within the range of 1024 blocks", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(
-			context.Background(),
-			events,
-			&EventSubscriptionInput{
-				FromAddress: testSet.fromAddressExample,
-				SubBlockID:  new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 			},
-		)
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(10 * time.Second)
-
-		for {
-			select {
-			case resp := <-events:
-				assert.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				assert.Less(t, resp.BlockNumber, blockNumber)
-
-				assert.Equal(t, testSet.fromAddressExample, resp.FromAddress)
-
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				t.Skip("timeout reached, no events received")
-			}
-		}
-	})
-
-	t.Run("keys + blockID, within the range of 1024 blocks", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(
-			context.Background(),
-			events,
-			&EventSubscriptionInput{
-				Keys:       [][]*felt.Felt{{testSet.keyExample}},
-				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+		},
+		{
+			description: "with finality status PRE_CONFIRMED",
+			input: &EventSubscriptionInput{
+				FinalityStatus: TxnFinalityStatusPreConfirmed,
 			},
-		)
-		if sub != nil {
-			defer sub.Unsubscribe()
-		}
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(20 * time.Second)
-
-		for {
-			select {
-			case resp := <-events:
-				require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
-
-				// Subscription with keys should only return events with the specified keys.
-				require.Equal(t, testSet.keyExample, resp.Keys[0])
-
-				return
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				t.Skip("timeout reached, no events received")
-			}
-		}
-	})
-
-	t.Run("with all arguments, within the range of 1024 blocks", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		events := make(chan *EmittedEventWithFinalityStatus)
-		sub, err := wsProvider.SubscribeEvents(
-			context.Background(),
-			events,
-			&EventSubscriptionInput{
-				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-				FromAddress:    testSet.fromAddressExample,
-				Keys:           [][]*felt.Felt{{testSet.keyExample}},
+		},
+		{
+			description: "with finality status ACCEPTED_ON_L2",
+			input: &EventSubscriptionInput{
 				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
-		)
-		if sub != nil {
-			defer sub.Unsubscribe()
+		},
+		{
+			description: "all filters",
+			input: &EventSubscriptionInput{
+				FromAddress:    fromAddress,
+				Keys:           [][]*felt.Felt{{key}},
+				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+			},
+		},
+		{
+			description: "error: too many keys",
+			input: &EventSubscriptionInput{
+				Keys: tooManyKeys,
+			},
+			expectedError: ErrTooManyKeysInFilter,
+		},
+		{
+			description: "error: too many blocks back",
+			input: &EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+			},
+			expectedError: ErrTooManyBlocksBack,
+		},
+		{
+			description: "error: block not found",
+			input: &EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+			},
+			expectedError: ErrBlockNotFound,
+		},
+	}
+
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv:        template,
+		tests.IntegrationEnv: template,
+		tests.MainnetEnv:     template,
+		tests.TestnetEnv:     template,
+	}[tests.TEST_ENV]
+
+	for _, test := range testSet {
+		t.Run(test.description, func(t *testing.T) {
+			t.Parallel()
+			tsetup := BeforeEach(t, true)
+
+			if tests.TEST_ENV == tests.MockEnv {
+				tsetup.MockClient.EXPECT().
+					Subscribe(
+						t.Context(),
+						"starknet",
+						"_subscribeEvents",
+						gomock.Any(),
+						test.input,
+					).
+					DoAndReturn(func(_, _, _, channel any, arg any) (*client.ClientSubscription, error) {
+						ch := channel.(chan json.RawMessage)
+						input := arg.(*EventSubscriptionInput)
+
+						if input.SubBlockID.Number != nil && *input.SubBlockID.Number == 3_000_000 {
+							return nil, RPCError{
+								Code:    68,
+								Message: "Cannot go back more than 1024 blocks",
+							}
+						}
+
+						if input.SubBlockID.Hash != nil &&
+							input.SubBlockID.Hash == internalUtils.DeadBeef {
+							return nil, RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if len(input.Keys) > 1000 {
+							return nil, RPCError{
+								Code:    34,
+								Message: "Too many keys provided in a filter",
+							}
+						}
+
+						msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							t,
+							"./testData/ws/sepoliaEvents.json",
+							"params", "result",
+						)
+
+						go func() {
+							for {
+								select {
+								case <-time.Tick(2 * time.Second):
+									ch <- msg
+								case <-t.Context().Done():
+									return
+								}
+							}
+						}()
+
+						return &client.ClientSubscription{}, nil
+					})
+			}
+
+			events := make(chan *EmittedEventWithFinalityStatus)
+			sub, err := tsetup.WsProvider.SubscribeEvents(
+				t.Context(),
+				events,
+				test.input,
+			)
+			if test.expectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.expectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, sub)
+
+			if tests.TEST_ENV != tests.MockEnv {
+				// this would block mock tests since the ClientSubscription is empty
+				defer sub.Unsubscribe()
+			}
+
+			stopTest := time.After(testDuration)
+			for {
+				select {
+				case resp := <-events:
+					require.NotNil(t, resp)
+
+					rawExpectedMsg := <-tsetup.WSSpy.SpyChannel()
+					rawMsg, err := json.Marshal(resp)
+					require.NoError(t, err)
+					assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
+
+					// stop test after a few seconds
+					select {
+					case <-stopTest:
+						return
+					default:
+					}
+				case err := <-sub.Err():
+					require.NoError(t, err)
+				case <-time.After(testDuration * 2):
+					// Since we are setting some filters, it could be the case that no events match the filters
+					// at the time. So we skip the test instead of failing it.
+					t.Skip("no events received")
+					return
+				}
+			}
+		})
+	}
+
+	t.Run("with default options - nil input", func(t *testing.T) {
+		t.Parallel()
+		tsetup := BeforeEach(t, true)
+
+		if tests.TEST_ENV == tests.MockEnv {
+			tsetup.MockClient.EXPECT().
+				Subscribe(
+					t.Context(),
+					"starknet",
+					"_subscribeEvents",
+					gomock.Any(),
+					nil,
+				).
+				DoAndReturn(func(_, _, _, channel any, _ any) (*client.ClientSubscription, error) {
+					ch := channel.(chan json.RawMessage)
+
+					msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						t,
+						"./testData/ws/sepoliaEvents.json",
+						"params", "result",
+					)
+
+					go func() {
+						for {
+							select {
+							case <-time.Tick(2 * time.Second):
+								ch <- msg
+							case <-t.Context().Done():
+								return
+							}
+						}
+					}()
+
+					return &client.ClientSubscription{}, nil
+				})
 		}
+
+		events := make(chan *EmittedEventWithFinalityStatus)
+		sub, err := tsetup.WsProvider.SubscribeEvents(
+			t.Context(),
+			events,
+			nil,
+		)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(20 * time.Second)
+		if tests.TEST_ENV != tests.MockEnv {
+			// this would block mock tests since the ClientSubscription is empty
+			defer sub.Unsubscribe()
+		}
 
+		stopTest := time.After(testDuration)
 		for {
 			select {
 			case resp := <-events:
-				assert.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
-				assert.Less(t, resp.BlockNumber, blockNumber)
-				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
-				// so we can use it to verify the events are returned correctly.
-				assert.Equal(t, testSet.fromAddressExample, resp.FromAddress)
-				assert.Equal(t, testSet.keyExample, resp.Keys[0])
+				require.NotNil(t, resp)
 
-				return
+				rawExpectedMsg := <-tsetup.WSSpy.SpyChannel()
+				rawMsg, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
+
+				// stop test after a few seconds
+				select {
+				case <-stopTest:
+					return
+				default:
+				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-timeout:
-				t.Skip("timeout reached, no events received")
+			case <-time.After(testDuration * 2):
+				t.Fatal("no events received")
+				return
 			}
-		}
-	})
-
-	t.Run("error calls", func(t *testing.T) {
-		t.Parallel()
-
-		wsProvider := testConfig.WsProvider
-
-		type testSetType struct {
-			input         EventSubscriptionInput
-			expectedError error
-		}
-
-		keys := make([][]*felt.Felt, 2000)
-		for i := range 2000 {
-			keys[i] = []*felt.Felt{internalUtils.TestHexToFelt(t, "0x1")}
-		}
-
-		testSet := []testSetType{
-			{
-				input: EventSubscriptionInput{
-					Keys: keys,
-				},
-				expectedError: ErrTooManyKeysInFilter,
-			},
-			{
-				input: EventSubscriptionInput{
-					SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber - 2000),
-				},
-				expectedError: ErrTooManyBlocksBack,
-			},
-			{
-				input: EventSubscriptionInput{
-					SubBlockID: new(SubscriptionBlockID).WithBlockNumber(blockNumber + 10000),
-				},
-				expectedError: ErrBlockNotFound,
-			},
-		}
-
-		for _, test := range testSet {
-			t.Run(test.expectedError.Error(), func(t *testing.T) {
-				t.Parallel()
-
-				events := make(chan *EmittedEventWithFinalityStatus)
-				defer close(events)
-				sub, err := wsProvider.SubscribeEvents(context.Background(), events, &test.input)
-				if sub != nil {
-					defer sub.Unsubscribe()
-				}
-				require.Nil(t, sub)
-				require.EqualError(t, err, test.expectedError.Error())
-			})
 		}
 	})
 }
