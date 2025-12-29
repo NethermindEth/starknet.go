@@ -104,6 +104,11 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		if err != nil {
 			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.WsBase, err)
 		}
+
+		spy := tests.NewWSSpy(wsClient.c)
+		testConfig.WSSpy = spy
+		wsClient.c = spy
+
 		testConfig.WsProvider = wsClient
 		t.Cleanup(func() {
 			testConfig.WsProvider.c.Close()
