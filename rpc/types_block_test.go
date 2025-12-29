@@ -69,3 +69,62 @@ func TestBlockID_Marshal(t *testing.T) {
 		assert.JSONEq(t, string(b), test.want)
 	}
 }
+
+// TestSubscriptionBlockID_Marshal tests the MarshalJSON method of the SubscriptionBlockID struct.
+func TestSubscriptionBlockID_Marshal(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv)
+
+	blockNumber := uint64(420)
+	for _, test := range []struct {
+		id      SubscriptionBlockID
+		want    string
+		wantErr bool
+	}{
+		{
+			id: SubscriptionBlockID{
+				Tag: "latest",
+			},
+			want: `"latest"`,
+		},
+		{
+			id: SubscriptionBlockID{
+				Number: &blockNumber,
+			},
+			want: `{"block_number":420}`,
+		},
+		{
+			id: SubscriptionBlockID{
+				Hash: internalUtils.TestHexToFelt(t, "0xdead"),
+			},
+			want: `{"block_hash":"0xdead"}`,
+		},
+		{
+			id: SubscriptionBlockID{
+				Tag: "pre_confirmed",
+			},
+			wantErr: true,
+		},
+		{
+			id: SubscriptionBlockID{
+				Tag: "l1_accepted",
+			},
+			wantErr: true,
+		},
+		{
+			id: SubscriptionBlockID{
+				Tag: "bad tag",
+			},
+			wantErr: true,
+		},
+	} {
+		b, err := test.id.MarshalJSON()
+		if test.wantErr {
+			require.Error(t, err)
+
+			return
+		}
+		require.NoError(t, err)
+
+		assert.JSONEq(t, string(b), test.want)
+	}
+}
