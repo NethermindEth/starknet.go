@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -244,39 +243,7 @@ type NewTxnStatus struct {
 
 type TransactionReceiptWithBlockInfo struct {
 	TransactionReceipt
+	// If this field is missing, it means the receipt belongs to the pre-confirmed block
 	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
-	BlockNumber uint       `json:"block_number,omitempty"`
-}
-
-func (tr *TransactionReceiptWithBlockInfo) MarshalJSON() ([]byte, error) {
-	aux := &struct {
-		TransactionReceipt
-		BlockHash   string `json:"block_hash,omitempty"`
-		BlockNumber uint   `json:"block_number,omitempty"`
-	}{
-		TransactionReceipt: tr.TransactionReceipt,
-		BlockHash:          tr.BlockHash.String(),
-		BlockNumber:        tr.BlockNumber,
-	}
-
-	return json.Marshal(aux)
-}
-
-func (tr *TransactionReceiptWithBlockInfo) UnmarshalJSON(data []byte) error {
-	type Alias TransactionReceiptWithBlockInfo
-	var txnResp Alias
-
-	if err := json.Unmarshal(data, &txnResp); err != nil {
-		return err
-	}
-
-	// If the block hash is nil (txn from pre_confirmed block), set it to felt.Zero
-	// to avoid nil pointer dereference
-	if txnResp.BlockHash == nil {
-		txnResp.BlockHash = new(felt.Felt)
-	}
-
-	*tr = TransactionReceiptWithBlockInfo(txnResp)
-
-	return nil
+	BlockNumber uint       `json:"block_number"`
 }
