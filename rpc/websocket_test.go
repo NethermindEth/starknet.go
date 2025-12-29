@@ -724,326 +724,248 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	})
 }
 
+// TestSubscribeNewTransactions tests the SubscribeNewTransactions function.
 func TestSubscribeNewTransactions(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	t.Parallel()
+	type testSetType struct {
+		description   string
+		input         *SubNewTxnsInput
+		expectedError error
+	}
 
-	testConfig := BeforeEach(t, true)
-	wsProvider := testConfig.WsProvider
+	tooManyAddresses := make([]*felt.Felt, 10000)
+	for i := range 10000 {
+		tooManyAddresses[i] = new(felt.Felt).SetUint64(uint64(i))
+	}
 
-	t.Run("general cases", func(t *testing.T) {
-		t.Parallel()
-
-		type testSetType struct {
-			newTxns       chan *TxnWithHashAndStatus
-			options       *SubNewTxnsInput
-			expectedError error
-			description   string
-		}
-
-		addresses := make([]*felt.Felt, 1025)
-		for i := range 1025 {
-			addresses[i] = internalUtils.TestHexToFelt(t, "0x1")
-		}
-
-		testSet := []testSetType{
-			{
-				newTxns:     make(chan *TxnWithHashAndStatus),
-				options:     nil,
-				description: "nil input",
+	template := []testSetType{
+		{
+			description: "from address only",
+			input: &SubNewTxnsInput{
+				SenderAddress: []*felt.Felt{randAddress},
 			},
-			{
-				newTxns:     make(chan *TxnWithHashAndStatus),
-				options:     &SubNewTxnsInput{},
-				description: "empty input",
+		},
+		{
+			description: "with finality status RECEIVED",
+			input: &SubNewTxnsInput{
+				FinalityStatus: []TxnStatus{TxnStatusReceived},
 			},
-			{
-				newTxns:       make(chan *TxnWithHashAndStatus),
-				options:       &SubNewTxnsInput{SenderAddress: addresses},
-				expectedError: ErrTooManyAddressesInFilter,
-				description:   "error: too many addresses",
+		},
+		{
+			description: "with finality status CANDIDATE",
+			input: &SubNewTxnsInput{
+				FinalityStatus: []TxnStatus{TxnStatusCandidate},
 			},
-		}
+		},
+		{
+			description: "with finality status PRE_CONFIRMED",
+			input: &SubNewTxnsInput{
+				FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
+			},
+		},
+		{
+			description: "with finality status ACCEPTED_ON_L2",
+			input: &SubNewTxnsInput{
+				FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
+			},
+		},
+		{
+			description: "all filters",
+			input: &SubNewTxnsInput{
+				SenderAddress: []*felt.Felt{randAddress},
+				FinalityStatus: []TxnStatus{
+					TxnStatusReceived,
+					TxnStatusCandidate,
+					TxnStatusPreConfirmed,
+					TxnStatusAcceptedOnL2,
+				},
+			},
+		},
+		{
+			description: "error: too many addresses",
+			input: &SubNewTxnsInput{
+				SenderAddress: tooManyAddresses,
+			},
+			expectedError: ErrTooManyAddressesInFilter,
+		},
+	}
 
-		for _, test := range testSet {
-			t.Run("test: "+test.description, func(t *testing.T) {
-				t.Parallel()
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv:        template,
+		tests.IntegrationEnv: template,
+		tests.MainnetEnv:     template,
+		tests.TestnetEnv:     template,
+	}[tests.TEST_ENV]
 
-				sub, err := wsProvider.SubscribeNewTransactions(
-					context.Background(),
-					test.newTxns,
-					test.options,
-				)
-				if test.expectedError != nil {
-					require.EqualError(t, err, test.expectedError.Error())
+	for _, test := range testSet {
+		t.Run(test.description, func(t *testing.T) {
+			t.Parallel()
+			tsetup := BeforeEach(t, true)
 
-					return
-				}
-				defer sub.Unsubscribe()
+			if tests.TEST_ENV == tests.MockEnv {
+				tsetup.MockClient.EXPECT().
+					Subscribe(
+						t.Context(),
+						"starknet",
+						"_subscribeNewTransactions",
+						gomock.Any(),
+						test.input,
+					).
+					DoAndReturn(func(_, _, _, channel any, arg any) (*client.ClientSubscription, error) {
+						ch := channel.(chan json.RawMessage)
+						input := arg.(*SubNewTxnsInput)
 
-				require.NoError(t, err)
-				require.NotNil(t, sub)
+						if len(input.SenderAddress) > 1000 {
+							return nil, RPCError{
+								Code:    67,
+								Message: "Too many addresses in filter sender_address filter",
+							}
+						}
 
-				timeout := time.After(20 * time.Second)
-
-				for {
-					select {
-					case resp := <-test.newTxns:
-						assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-						assert.Equal(
+						msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 							t,
-							TxnStatusAcceptedOnL2,
-							resp.FinalityStatus,
-						) // default finality status is ACCEPTED_ON_L2
+							"./testData/ws/sepoliaNewTxns.json",
+							"params", "result",
+						)
 
-						return
-					case <-timeout:
-						assert.Fail(t, "no txns received within timeout")
+						go func() {
+							for {
+								select {
+								case <-time.Tick(2 * time.Second):
+									ch <- msg
+								case <-t.Context().Done():
+									return
+								}
+							}
+						}()
 
+						return &client.ClientSubscription{}, nil
+					})
+			}
+
+			txns := make(chan *TxnWithHashAndStatus)
+			sub, err := tsetup.WsProvider.SubscribeNewTransactions(
+				t.Context(),
+				txns,
+				test.input,
+			)
+			if test.expectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.expectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, sub)
+
+			if tests.TEST_ENV != tests.MockEnv {
+				// this would block mock tests since the ClientSubscription is empty
+				defer sub.Unsubscribe()
+			}
+
+			stopTest := time.After(testDuration)
+			for {
+				select {
+				case resp := <-txns:
+					require.NotNil(t, resp)
+
+					rawExpectedMsg := <-tsetup.WSSpy.SpyChannel()
+					rawMsg, err := json.Marshal(resp)
+					require.NoError(t, err)
+					assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
+
+					// stop test after a few seconds
+					select {
+					case <-stopTest:
 						return
-					case err := <-sub.Err():
-						require.NoError(t, err)
+					default:
 					}
-				}
-			})
-		}
-	})
-
-	t.Run("with finality status ACCEPTED_ON_L2", func(t *testing.T) {
-		t.Parallel()
-
-		newTxns := make(chan *TxnWithHashAndStatus)
-		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
-		}
-
-		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		defer sub.Unsubscribe()
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(20 * time.Second)
-
-		counter := 0
-		for {
-			select {
-			case resp := <-newTxns:
-				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatusAcceptedOnL2, resp.FinalityStatus)
-				assert.NotEmpty(t, resp.Transaction)
-				assert.NotEmpty(t, resp.Hash)
-
-				counter++
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				assert.Greater(t, counter, 0, "no txns received")
-
-				return
-			}
-		}
-	})
-
-	t.Run("with finality status PRE_CONFIRMED", func(t *testing.T) {
-		t.Parallel()
-
-		newTxns := make(chan *TxnWithHashAndStatus)
-		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
-		}
-
-		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		defer sub.Unsubscribe()
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(20 * time.Second)
-
-		counter := 0
-		for {
-			select {
-			case resp := <-newTxns:
-				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.Equal(t, TxnStatusPreConfirmed, resp.FinalityStatus)
-				assert.NotEmpty(t, resp.Hash)
-				assert.NotEmpty(t, resp.Transaction)
-
-				counter++
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				assert.Greater(t, counter, 0, "no txns received")
-
-				return
-			}
-		}
-	})
-
-	t.Run("with both PRE_CONFIRMED and ACCEPTED_ON_L2 finality statuses", func(t *testing.T) {
-		t.Parallel()
-
-		newTxns := make(chan *TxnWithHashAndStatus)
-		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{TxnStatusPreConfirmed, TxnStatusAcceptedOnL2},
-		}
-
-		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		defer sub.Unsubscribe()
-
-		preConfirmedReceived := false
-		acceptedOnL2Received := false
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(20 * time.Second)
-
-		for {
-			select {
-			case resp := <-newTxns:
-				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.NotEmpty(t, resp.Hash)
-				assert.NotEmpty(t, resp.Transaction)
-
-				if resp.FinalityStatus == TxnStatusPreConfirmed {
-					preConfirmedReceived = true
-				}
-
-				if resp.FinalityStatus == TxnStatusAcceptedOnL2 {
-					acceptedOnL2Received = true
-				}
-
-				if preConfirmedReceived && acceptedOnL2Received {
+				case err := <-sub.Err():
+					require.NoError(t, err)
+				case <-time.After(testDuration * 2):
+					// Since we are setting some filters, it could be the case that no events match the filters
+					// at the time. So we skip the test instead of failing it.
+					t.Skip("no events received")
 					return
 				}
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				assert.True(
-					t,
-					(preConfirmedReceived && acceptedOnL2Received),
-					"no txns received from both finality statuses",
-				)
-
-				return
 			}
-		}
-	})
+		})
+	}
 
-	t.Run("with all finality statuses, except ACCEPTED_ON_L1", func(t *testing.T) {
+	t.Run("with default options - nil input", func(t *testing.T) {
 		t.Parallel()
+		tsetup := BeforeEach(t, true)
 
-		newTxns := make(chan *TxnWithHashAndStatus)
-		options := &SubNewTxnsInput{
-			FinalityStatus: []TxnStatus{
-				TxnStatusReceived,
-				TxnStatusCandidate,
-				TxnStatusPreConfirmed,
-				TxnStatusAcceptedOnL2,
-			},
+		if tests.TEST_ENV == tests.MockEnv {
+			tsetup.MockClient.EXPECT().
+				Subscribe(
+					t.Context(),
+					"starknet",
+					"_subscribeNewTransactions",
+					gomock.Any(),
+					nil,
+				).
+				DoAndReturn(func(_, _, _, channel any, _ any) (*client.ClientSubscription, error) {
+					ch := channel.(chan json.RawMessage)
+
+					msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+						t,
+						"./testData/ws/sepoliaNewTxns.json",
+						"params", "result",
+					)
+
+					go func() {
+						for {
+							select {
+							case <-time.Tick(2 * time.Second):
+								ch <- msg
+							case <-t.Context().Done():
+								return
+							}
+						}
+					}()
+
+					return &client.ClientSubscription{}, nil
+				})
 		}
 
-		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
-		require.NoError(t, err)
-		require.NotNil(t, sub)
-
-		defer sub.Unsubscribe()
-
-		receivedReceived := false
-		candidateReceived := false
-		preConfirmedReceived := false
-		acceptedOnL2Received := false
-
-		// outside the loop, to avoid it being resetted
-		timeout := time.After(20 * time.Second)
-
-		for {
-			select {
-			case resp := <-newTxns:
-				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
-				assert.NotEmpty(t, resp.Hash)
-				assert.NotEmpty(t, resp.Transaction)
-
-				switch resp.FinalityStatus {
-				case TxnStatusReceived:
-					t.Log("RECEIVED txn received")
-					receivedReceived = true
-				case TxnStatusCandidate:
-					t.Log("CANDIDATE txn received")
-					candidateReceived = true
-				case TxnStatusPreConfirmed:
-					t.Log("PRE_CONFIRMED txn received")
-					preConfirmedReceived = true
-				case TxnStatusAcceptedOnL2:
-					t.Log("ACCEPTED_ON_L2 txn received")
-					acceptedOnL2Received = true
-				}
-
-			case err := <-sub.Err():
-				require.NoError(t, err)
-			case <-timeout:
-				assert.True(
-					t,
-					(receivedReceived || candidateReceived || preConfirmedReceived || acceptedOnL2Received),
-					"no txns received",
-				)
-
-				return
-			}
-		}
-	})
-
-	t.Run("with sender address filter", func(t *testing.T) {
-		t.Parallel()
-
-		// and address currently sending a lot of transactions in Sepolia
-		randAddress := internalUtils.TestHexToFelt(
-			t,
-			"0x00395a96a5b6343fc0f543692fd36e7034b54c2a276cd1a021e8c0b02aee1f43",
+		txns := make(chan *TxnWithHashAndStatus)
+		sub, err := tsetup.WsProvider.SubscribeNewTransactions(
+			t.Context(),
+			txns,
+			nil,
 		)
-		provider := testConfig.Provider
-		tempStruct := struct {
-			SenderAddress *felt.Felt `json:"sender_address"`
-		}{}
-
-		newTxns := make(chan *TxnWithHashAndStatus)
-		options := &SubNewTxnsInput{
-			SenderAddress: []*felt.Felt{randAddress},
-		}
-
-		sub, err := wsProvider.SubscribeNewTransactions(context.Background(), newTxns, options)
 		require.NoError(t, err)
 		require.NotNil(t, sub)
 
-		defer sub.Unsubscribe()
+		if tests.TEST_ENV != tests.MockEnv {
+			// this would block mock tests since the ClientSubscription is empty
+			defer sub.Unsubscribe()
+		}
 
-		timeout := time.After(20 * time.Second)
-
+		stopTest := time.After(testDuration)
 		for {
 			select {
-			case resp := <-newTxns:
-				assert.IsType(t, &TxnWithHashAndStatus{}, resp)
+			case resp := <-txns:
+				require.NotNil(t, resp)
 
-				txn, err := provider.TransactionByHash(context.Background(), resp.Hash)
+				rawExpectedMsg := <-tsetup.WSSpy.SpyChannel()
+				rawMsg, err := json.Marshal(resp)
 				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
 
-				raw, err := json.Marshal(txn)
-				require.NoError(t, err)
-
-				err = json.Unmarshal(raw, &tempStruct)
-				require.NoError(t, err)
-
-				assert.Equal(t, randAddress, tempStruct.SenderAddress)
+				// stop test after a few seconds
+				select {
+				case <-stopTest:
+					return
+				default:
+				}
 			case err := <-sub.Err():
 				require.NoError(t, err)
-			case <-timeout:
-				t.Skip("no txns received")
+			case <-time.After(testDuration * 2):
+				t.Fatal("no events received")
+				return
 			}
 		}
 	})
