@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -971,20 +970,16 @@ func TestSubscribeNewTransactions(t *testing.T) {
 	})
 }
 
+// TestUnsubscribe tests the Unsubscribe method.
 func TestUnsubscribe(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
-
 	t.Parallel()
 
 	testConfig := BeforeEach(t, true)
-
 	wsProvider := testConfig.WsProvider
 
 	events := make(chan *EmittedEventWithFinalityStatus)
-	sub, err := wsProvider.SubscribeEvents(context.Background(), events, nil)
-	if sub != nil {
-		defer sub.Unsubscribe()
-	}
+	sub, err := wsProvider.SubscribeEvents(t.Context(), events, nil)
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 
@@ -996,17 +991,14 @@ func TestUnsubscribe(t *testing.T) {
 
 	timeout := time.After(10 * time.Second)
 
-loop:
-
 	for {
 		select {
-		case resp := <-events:
-			require.IsType(t, &EmittedEventWithFinalityStatus{}, resp)
+		case <-events:
 		case err := <-sub.Err():
 			// when unsubscribing, the error channel should return nil
-			require.Nil(t, err)
+			assert.Nil(t, err)
 
-			break loop
+			return
 		case <-timeout:
 			t.Fatal("timeout waiting for unsubscription")
 		}
