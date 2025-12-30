@@ -143,8 +143,8 @@ type PreConfirmedBlockHeader struct {
 
 // BlockHashAndNumberOutput is a struct that is returned by BlockHashAndNumber.
 type BlockHashAndNumberOutput struct {
-	Number uint64     `json:"block_number,omitempty"`
-	Hash   *felt.Felt `json:"block_hash,omitempty"`
+	Number uint64     `json:"block_number"`
+	Hash   *felt.Felt `json:"block_hash"`
 }
 
 // BlockTag represents the possible values for a block tag.
