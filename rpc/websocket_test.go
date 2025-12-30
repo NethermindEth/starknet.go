@@ -31,6 +31,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 		tests.MainnetEnv,
 		tests.TestnetEnv,
 	)
+	t.Parallel()
 
 	type testSetType struct {
 		description   string
@@ -190,6 +191,7 @@ func TestSubscribeEvents(t *testing.T) {
 		tests.TestnetEnv,
 	)
 
+	t.Parallel()
 	testConfig := BeforeEach(t, true)
 
 	// STRK Token
@@ -225,8 +227,7 @@ func TestSubscribeEvents(t *testing.T) {
 				},
 			)
 	}
-	provider := testConfig.Provider
-	blockNumber, err := provider.BlockNumber(t.Context())
+	blockNumber, err := testConfig.Provider.BlockNumber(t.Context())
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -503,6 +504,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		tests.MainnetEnv,
 		tests.TestnetEnv,
 	)
+	t.Parallel()
 
 	type testSetType struct {
 		description   string
@@ -741,6 +743,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		tests.MainnetEnv,
 		tests.TestnetEnv,
 	)
+	t.Parallel()
 
 	type testSetType struct {
 		description   string
@@ -993,6 +996,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		tests.MainnetEnv,
 		tests.TestnetEnv,
 	)
+	t.Parallel()
 
 	t.Run("network test", func(t *testing.T) {
 		tests.RunTestOn(t,
@@ -1000,6 +1004,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 			tests.MainnetEnv,
 			tests.TestnetEnv,
 		)
+		t.Parallel()
 
 		tsetup := BeforeEach(t, true)
 
@@ -1050,6 +1055,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 	t.Run("mock tests", func(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
+		t.Parallel()
 
 		testSet := []*felt.Felt{
 			new(felt.Felt).SetUint64(1), // RECEIVED
