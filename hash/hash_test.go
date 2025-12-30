@@ -120,7 +120,6 @@ func TestClassHashes(t *testing.T) {
 				sierraClass := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 					t,
 					"./testData/"+test.FileNameWithoutExtensions+".contract_class.json",
-					"",
 				)
 
 				hashResult := hash.ClassHash(&sierraClass)
@@ -135,7 +134,6 @@ func TestClassHashes(t *testing.T) {
 				casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 					t,
 					"./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json",
-					"",
 				)
 
 				hashResult, err := hash.CompiledClassHash(&casmClass)
@@ -151,7 +149,6 @@ func TestClassHashes(t *testing.T) {
 				casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 					t,
 					"./testData/"+test.FileNameWithoutExtensions+".compiled_contract_class.json",
-					"",
 				)
 
 				hashResult, err := hash.CompiledClassHashV2(&casmClass)

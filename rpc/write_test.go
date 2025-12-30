@@ -32,7 +32,6 @@ func TestAddDeclareTransaction(t *testing.T) {
 	declareTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastDeclareTxnV3](
 		t,
 		"./testData/addTxn/sepoliaDeclare.json",
-		"",
 	)
 
 	testSet := map[tests.TestEnv][]testSetType{
@@ -282,7 +281,6 @@ func TestAddInvokeTransaction(t *testing.T) {
 	invokeTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastInvokeTxnV3](
 		t,
 		"./testData/addTxn/sepoliaInvoke.json",
-		"",
 	)
 
 	testSet := map[tests.TestEnv][]testSetType{
@@ -487,7 +485,6 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 	deployTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastDeployAccountTxnV3](
 		t,
 		"./testData/addTxn/sepoliaDeployAccount.json",
-		"",
 	)
 
 	testSet := map[tests.TestEnv][]testSetType{

@@ -959,7 +959,6 @@ func TestEstimateFee(t *testing.T) {
 	sepoliaInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json",
-		"",
 	)
 	invalidSepoliaInvokeV3 := sepoliaInvokeV3
 	invalidSepoliaInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}
@@ -967,7 +966,6 @@ func TestEstimateFee(t *testing.T) {
 	integrationInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
-		"",
 	)
 	invalidIntegrationInvokeV3 := integrationInvokeV3
 	invalidIntegrationInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}

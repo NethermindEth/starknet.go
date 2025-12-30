@@ -88,14 +88,12 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.sierra.json",
-		"",
 	)
 
 	// Casm Class
 	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.casm.json",
-		"",
 	)
 
 	// Build and send declare txn
@@ -145,13 +143,11 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.sierra.json",
-		"",
 	)
 	// Casm Class
 	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.casm.json",
-		"",
 	)
 
 	t.Run("compiled class hash", func(t *testing.T) {
@@ -462,14 +458,12 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.sierra.json",
-		"",
 	)
 
 	// Casm Class
 	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.casm.json",
-		"",
 	)
 
 	t.Run("on mock", func(t *testing.T) {
@@ -531,7 +525,6 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		fakeTxn := internalUtils.TestUnmarshalJSONFileToType[rpc.InvokeTxnV3](
 			t,
 			"./testData/fakeInvokeTxn.json",
-			"",
 		)
 		// called when estimating the tip
 		mockRPCProvider.EXPECT().
@@ -871,14 +864,12 @@ func TestSendDeclareTxn(t *testing.T) {
 	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.sierra.json",
-		"",
 	)
 
 	// Compiled Class Hash
 	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.casm.json",
-		"",
 	)
 	compClassHash, err := hash.CompiledClassHashV2(&casmClass)
 	require.NoError(t, err)
