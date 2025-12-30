@@ -183,7 +183,12 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 // TestSubscribeEvents tests the SubscribeEvents function.
 func TestSubscribeEvents(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.MockEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.TestnetEnv,
+	)
 
 	testConfig := BeforeEach(t, true)
 
@@ -492,7 +497,12 @@ func TestSubscribeEvents(t *testing.T) {
 
 // TestSubscribeNewTransactionReceipts tests the SubscribeNewTransactionReceipts function.
 func TestSubscribeNewTransactionReceipts(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.MockEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.TestnetEnv,
+	)
 
 	type testSetType struct {
 		description   string
@@ -725,7 +735,12 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 // TestSubscribeNewTransactions tests the SubscribeNewTransactions function.
 func TestSubscribeNewTransactions(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
+	tests.RunTestOn(t,
+		tests.MockEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.TestnetEnv,
+	)
 
 	type testSetType struct {
 		description   string
