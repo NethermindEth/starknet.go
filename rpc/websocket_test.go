@@ -175,6 +175,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 					require.NoError(t, err)
 				case <-time.After(testDuration * 2):
 					t.Fatal("no new heads received")
+
 					return
 				}
 			}
@@ -412,6 +413,7 @@ func TestSubscribeEvents(t *testing.T) {
 					// Since we are setting some filters, it could be the case that no events match the filters
 					// at the time. So we skip the test instead of failing it.
 					t.Skip("no events received")
+
 					return
 				}
 			}
@@ -490,6 +492,7 @@ func TestSubscribeEvents(t *testing.T) {
 				require.NoError(t, err)
 			case <-time.After(testDuration * 2):
 				t.Fatal("no events received")
+
 				return
 			}
 		}
@@ -651,6 +654,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					// Since we are setting some filters, it could be the case that no events match the filters
 					// at the time. So we skip the test instead of failing it.
 					t.Skip("no events received")
+
 					return
 				}
 			}
@@ -729,6 +733,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				require.NoError(t, err)
 			case <-time.After(testDuration * 2):
 				t.Fatal("no events received")
+
 				return
 			}
 		}
@@ -904,6 +909,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 					// Since we are setting some filters, it could be the case that no events match the filters
 					// at the time. So we skip the test instead of failing it.
 					t.Skip("no events received")
+
 					return
 				}
 			}
@@ -982,6 +988,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 				require.NoError(t, err)
 			case <-time.After(testDuration * 2):
 				t.Fatal("no events received")
+
 				return
 			}
 		}

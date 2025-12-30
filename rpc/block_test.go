@@ -170,7 +170,8 @@ func TestBlockWithTxHashes(t *testing.T) {
 
 				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
-					"./testData/blockWithHashes/sepoliaPreConfirmed.json", "result",
+					"./testData/blockWithHashes/sepoliaPreConfirmed.json",
+					"result",
 				)
 
 				testConfig.MockClient.EXPECT().
@@ -302,7 +303,8 @@ func TestBlockWithTxs(t *testing.T) {
 
 				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
-					"./testData/blockWithTxns/sepoliaPreConfirmed.json", "result",
+					"./testData/blockWithTxns/sepoliaPreConfirmed.json",
+					"result",
 				)
 
 				testConfig.MockClient.EXPECT().
@@ -547,7 +549,8 @@ func TestStateUpdate(t *testing.T) {
 
 				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
-					"./testData/stateUpdate/sepoliaPreConfirmed.json", "result",
+					"./testData/stateUpdate/sepoliaPreConfirmed.json",
+					"result",
 				)
 
 				testConfig.MockClient.EXPECT().
@@ -671,7 +674,8 @@ func TestBlockWithReceipts(t *testing.T) {
 
 				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
-					"./testData/blockWithReceipts/sepoliaPreConfirmed.json", "result",
+					"./testData/blockWithReceipts/sepoliaPreConfirmed.json",
+					"result",
 				)
 
 				testConfig.MockClient.EXPECT().

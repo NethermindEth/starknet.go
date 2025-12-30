@@ -450,7 +450,11 @@ func TestBuildTransaction(t *testing.T) {
 			}
 
 			// *** assert the request marshalled is equal to the expected request
-			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/deploy-request.json", "params")
+			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](
+				t,
+				"testdata/build_txn/deploy-request.json",
+				"params",
+			)
 			expectedReq := expectedReqs[0]
 
 			rawReq, err := json.Marshal(request)
@@ -459,7 +463,11 @@ func TestBuildTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedReq), string(rawReq))
 
 			// *** assert the response marshalled is equal to the expected response
-			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy-response.json", "result")
+			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				t,
+				"testdata/build_txn/deploy-response.json",
+				"result",
+			)
 
 			var response BuildTransactionResponse
 			err = json.Unmarshal(expectedResp, &response)
@@ -505,7 +513,11 @@ func TestBuildTransaction(t *testing.T) {
 			}
 
 			// *** assert the request marshalled is equal to the expected request
-			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/invoke-request.json", "params")
+			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](
+				t,
+				"testdata/build_txn/invoke-request.json",
+				"params",
+			)
 			expectedReq := expectedReqs[0]
 
 			rawReq, err := json.Marshal(request)
@@ -514,7 +526,11 @@ func TestBuildTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedReq), string(rawReq))
 
 			// *** assert the response marshalled is equal to the expected response
-			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/invoke-response.json", "result")
+			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				t,
+				"testdata/build_txn/invoke-response.json",
+				"result",
+			)
 
 			var response BuildTransactionResponse
 			err = json.Unmarshal(expectedResp, &response)
@@ -560,7 +576,11 @@ func TestBuildTransaction(t *testing.T) {
 				}
 
 				// *** assert the request marshalled is equal to the expected request
-				expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-request.json", "params")
+				expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](
+					t,
+					"testdata/build_txn/deploy_and_invoke-request.json",
+					"params",
+				)
 				expectedReq := expectedReqs[0]
 
 				rawReq, err := json.Marshal(request)
@@ -569,7 +589,11 @@ func TestBuildTransaction(t *testing.T) {
 				assert.JSONEq(t, string(expectedReq), string(rawReq))
 
 				// *** assert the response marshalled is equal to the expected response
-				expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/build_txn/deploy_and_invoke-response.json", "result")
+				expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"testdata/build_txn/deploy_and_invoke-response.json",
+					"result",
+				)
 
 				var response BuildTransactionResponse
 				err = json.Unmarshal(expectedResp, &response)

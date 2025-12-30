@@ -108,8 +108,8 @@ func (s *RPCSpy) CallContext(
 	return err
 }
 
-// CallContextWithSliceArgs calls the original CallContextWithSliceArgs function with the given parameters
-// and captures the response.
+// CallContextWithSliceArgs calls the original CallContextWithSliceArgs function
+// with the given parameters and captures the response.
 func (s *RPCSpy) CallContextWithSliceArgs(
 	ctx context.Context,
 	result interface{},

@@ -63,14 +63,14 @@ var (
 //
 // Returns:
 //   - WsSpyer: a new WSSpy object that implements the WsSpyer interface
-func NewWSSpy(client wsConn, debug ...bool) WSSpyer {
+func NewWSSpy(wsClient wsConn, debug ...bool) WSSpyer {
 	d := false
 	if len(debug) > 0 {
 		d = debug[0]
 	}
 
 	return &WSSpy{
-		wsConn: client,
+		wsConn: wsClient,
 		spyCh:  make(chan json.RawMessage, 1),
 		debug:  d,
 	}
@@ -106,8 +106,8 @@ func (s *WSSpy) Subscribe(
 	return sub, nil
 }
 
-// SubscribeWithSliceArgs calls the original SubscribeWithSliceArgs function with the given parameters
-// and captures the notifications sent by the node.
+// SubscribeWithSliceArgs calls the original SubscribeWithSliceArgs function with
+// the given parameters and captures the notifications sent by the node.
 func (s *WSSpy) SubscribeWithSliceArgs(
 	ctx context.Context,
 	namespace string,
