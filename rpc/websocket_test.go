@@ -985,6 +985,70 @@ func TestSubscribeNewTransactions(t *testing.T) {
 	})
 }
 
+// TestSubscribeTransactionStatus tests the SubscribeTransactionStatus function.
+func TestSubscribeTransactionStatus(t *testing.T) {
+	tests.RunTestOn(t,
+		tests.MockEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.TestnetEnv,
+	)
+
+	t.Run("network tests", func(t *testing.T) {
+		tests.RunTestOn(t,
+			tests.IntegrationEnv,
+			tests.MainnetEnv,
+			tests.TestnetEnv,
+		)
+
+		tsetup := BeforeEach(t, true)
+
+		// getting a random new PRE_CONFIRMED transaction
+		txns := make(chan *TxnWithHashAndStatus)
+		sub, err := tsetup.WsProvider.SubscribeNewTransactions(
+			t.Context(),
+			txns,
+			&SubNewTxnsInput{
+				FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
+			},
+		)
+		require.NoError(t, err)
+		defer sub.Unsubscribe()
+
+		txn := <-txns
+		require.NotNil(t, txn)
+
+		status := make(chan *NewTxnStatus)
+		sub2, err := tsetup.WsProvider.SubscribeTransactionStatus(
+			t.Context(),
+			status,
+			txn.Hash,
+		)
+		require.NoError(t, err)
+		defer sub2.Unsubscribe()
+
+		for {
+			select {
+			case status := <-status:
+				rawExpectedMsg := <-tsetup.WSSpy.SpyChannel()
+				rawMsg, err := json.Marshal(status)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedMsg), string(rawMsg))
+
+				return
+			case err := <-sub2.Err():
+				require.NoError(t, err)
+
+				return
+			case <-time.After(testDuration * 2):
+				t.Fatal("timeout waiting for status")
+
+				return
+			}
+		}
+	})
+}
+
 // TestUnsubscribe tests the Unsubscribe method.
 func TestUnsubscribe(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
