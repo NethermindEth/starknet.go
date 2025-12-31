@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 -->
+### Added
+- Full support for RPC v0.10.0. All new types and changes implemented. For more details, see the [RPC v0.10.0](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.10.0) specification.
+  - `ErrContractNotFound` is now returned by the `rpc.EstimateFee` and `rpc.EstimateMessageFee` methods.
+  - Small change in the `rpc.ErrEntrypointNotFound` error message.
+  - The `rpc.ContractStorageKeys.StorageKeys` field is now of type `[]StorageKey`.
+  - New fields in the `rpc.BlockHeader` type.
+  - New fields in the `rpc.EmittedEvent` type.
+  - Multiple changes to the `rpc.StateUpdateOutput` type.
+
+### Fixed
+- The transactions in the `rpc.BlockWithReceipts` method response were incorrectly including the transaction hash in
+addition to those returned by the receipts.
+
 ## [0.13.2](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.2) - 2025-11-25
 Same as v0.17.1, but for RPC v0.8.1.
 
