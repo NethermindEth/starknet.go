@@ -16,7 +16,6 @@ import (
 func TestCompiledCasm(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 	t.Parallel()
-	t.Parallel()
 
 	testConfig := BeforeEach(t, false)
 	provider := testConfig.Provider
@@ -25,12 +24,7 @@ func TestCompiledCasm(t *testing.T) {
 		Description   string
 		ClassHash     *felt.Felt
 		ExpectedError *RPCError
-		Description   string
-		ClassHash     *felt.Felt
-		ExpectedError *RPCError
 	}
-
-	// TODO: use the 'testData/compiledCasm' folder for mock tests
 
 	// TODO: use the 'testData/compiledCasm' folder for mock tests
 	testSet := map[tests.TestEnv][]testSetType{
@@ -131,11 +125,6 @@ func TestCompiledCasm(t *testing.T) {
 			require.NoError(t, err)
 			rawExpectedResult := testConfig.RPCSpy.LastResponse()
 
-			// asserting equality of the json results
-			resultJSON, err := json.Marshal(result)
-			require.NoError(t, err)
-			assert.JSONEq(t, string(rawExpectedResult), string(resultJSON))
-		})
 			// asserting equality of the json results
 			resultJSON, err := json.Marshal(result)
 			require.NoError(t, err)

@@ -775,15 +775,11 @@ func TestEstimateMessageFee(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
-	provider := testConfig.Provider
-	spy := tests.NewJSONRPCSpy(provider.c)
-	provider.c = spy
 
 	type testSetType struct {
 		Description string
 		MsgFromL1
 		BlockID
-		ExpectedError *RPCError
 		ExpectedError *RPCError
 	}
 
@@ -1266,8 +1262,6 @@ func TestGetStorageProof(t *testing.T) {
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 							StorageKeys: []StorageKey{
 								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
-							StorageKeys: []StorageKey{
-								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 							},
 						},
 					},
@@ -1291,16 +1285,10 @@ func TestGetStorageProof(t *testing.T) {
 							StorageKeys: []StorageKey{
 								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
-							StorageKeys: []StorageKey{
-								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
-								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-							StorageKeys: []StorageKey{
-								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
-								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							StorageKeys: []StorageKey{
 								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
@@ -1365,8 +1353,6 @@ func TestGetStorageProof(t *testing.T) {
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 							StorageKeys: []StorageKey{
 								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
-							StorageKeys: []StorageKey{
-								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 							},
 						},
 					},
@@ -1390,16 +1376,10 @@ func TestGetStorageProof(t *testing.T) {
 							StorageKeys: []StorageKey{
 								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
-							StorageKeys: []StorageKey{
-								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
-								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-							StorageKeys: []StorageKey{
-								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
-								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							StorageKeys: []StorageKey{
 								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
@@ -1475,11 +1455,6 @@ func TestGetStorageProof(t *testing.T) {
 
 			result, err := testConfig.Provider.StorageProof(t.Context(), test.StorageProofInput)
 			if test.ExpectedError != nil {
-				if test.ExpectedError == ErrStorageProofNotSupported {
-					// Juno and Pathfinder return this error in different situations, so we'll just
-					// avoid assertions related to this error
-					return
-				}
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
 
