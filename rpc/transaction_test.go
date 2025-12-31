@@ -459,7 +459,7 @@ func TestMessagesStatus(t *testing.T) {
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
 			},
 			{
-				TxHash:      "0xdeadbeef",
+				TxHash:      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				ExpectedErr: ErrHashNotFound,
 			},
 		},
