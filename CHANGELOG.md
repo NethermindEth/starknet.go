@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 -->
+### Added
+- Full support for RPC v0.10.0. All new types and changes implemented. For more details, see the [RPC v0.10.0](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.10.0) specification.
+  - `ErrContractNotFound` is now returned by the `rpc.EstimateFee` and `rpc.EstimateMessageFee` methods.
+  - Small change in the `rpc.ErrEntrypointNotFound` error message.
+  - The `rpc.ContractStorageKeys.StorageKeys` field is now of type `[]StorageKey`.
+  - New fields in the `rpc.BlockHeader` type.
+  - New fields in the `rpc.EmittedEvent` type.
+  - Multiple changes to the `rpc.StateUpdateOutput` type.
+
 ### Changed
 - The `mocks` pkg is no longer exported. It was moved to the internal package.
 - The `utils.UnmarshalJSONFileToType` function now returns T instead of a pointer to T. Also, it now accepts a
@@ -22,6 +31,8 @@ variadic parameter of subfields instead of just a single one.
 - The `rpc.TransactionReceiptWithBlockInfo` type now returns a nil `BlockHash` field if the receipt belongs to the pre-confirmed block.
 
 ### Fixed
+- The transactions in the `rpc.BlockWithReceipts` method response were incorrectly including the transaction hash in
+addition to those returned by the receipts.
 - Wrong `omitempty` tags in the `rpc.BlockHashAndNumberOutput` type.
 - The `rpc.TxnWithHashAndStatus` type was missing the `finality_status` field when marshalling the JSON data.
 

@@ -8,6 +8,8 @@ Converts a BigInt to a Felt value.
 func BigIntToFelt(b *big.Int) *felt.Felt
 ```
 
+**Source:** [felt.go:L70-L72](https://github.com/NethermindEth/starknet.go/blob/main/utils/felt.go#L70-L72)
+
 ## Parameters
 
 - `b` (*big.Int): The BigInt value to convert
@@ -24,7 +26,8 @@ felt := utils.BigIntToFelt(bigInt)
 // felt = 0x181cd
 ```
 
-## Related Functions
+## See Also
 
-- [FeltToBigInt](/docs/utils/functions/felt-to-big-int)
-- [HexToFelt](/docs/utils/functions/hex-to-felt)
+- [Smart Contract Integration](/docs/utils/examples#smart-contract-integration) shows converting amounts to Felt for contract calls
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) for working between BigInt and Felt
+

@@ -1,24 +1,24 @@
 # Contracts Package
 
-The contracts package provides types and utilities for working with Starknet contract classes, ABIs, and deployment. Use it to load contract files, parse ABIs, and compute contract addresses.
+The Contracts package provides data structures and utilities for working with Starknet contract classes, ABIs, and deployment. This package is essential for loading contract files, parsing ABIs, computing contract addresses, and working with different contract class formats.
 
-## What This Package Does
+## Overview
 
-**Contract Class Handling**
-- Work with Sierra contract classes (Cairo 1.0+)
-- Handle CASM (Cairo Assembly) compiled classes
-- Support deprecated Cairo 0 contracts
+Contracts are the building blocks of Starknet applications. The contracts package helps you work with contract classes in various formats, from legacy Cairo 0 contracts to modern Cairo 1.0+ Sierra and CASM formats. It provides:
 
-**ABI Parsing**
-- Parse contract ABIs
-- Access function definitions and parameters
-- Work with event and struct definitions
+- **CASM Class Loading**: Load and parse compiled Cairo Assembly (CASM) classes
+- **Contract Class Handling**: Work with Sierra format (Cairo 1.0+) and deprecated Cairo 0 contracts
+- **Address Precomputation**: Calculate contract deployment addresses deterministically
+- **ABI Parsing**: Access function definitions, parameters, and event structures
 
-**Address Computation**
-- Precompute contract addresses before deployment
-- Calculate deployment addresses deterministically
+## Key Components
 
-## Import
+- [UnmarshalCasmClass](/docs/contracts/functions/unmarshal-casm-class) - Load and parse CASM class from JSON file
+- [PrecomputeAddress](/docs/contracts/functions/precompute-address) - Calculate contract address before deployment
+
+## Getting Started
+
+To use the Contracts package, import it in your Go code:
 
 ```go
 import "github.com/NethermindEth/starknet.go/contracts"
@@ -38,11 +38,13 @@ import (
 )
 
 func main() {
-	// Precompute a contract address
-	deployerAddress := new(felt.Felt).SetUint64(0x123)
-	salt := new(felt.Felt).SetUint64(0x456)
-	classHash := new(felt.Felt).SetUint64(0x789)
-	constructorCalldata := []*felt.Felt{}
+	// Precompute a contract address before deployment
+	deployerAddress, _ := new(felt.Felt).SetString("0x1234")
+	salt, _ := new(felt.Felt).SetString("0x5678")
+	classHash, _ := new(felt.Felt).SetString("0x07e2e0ba00c247e6c2c7e38e8cadfcc59f828bb94c182e69bd8ea667bcbb65e7")
+	constructorCalldata := []*felt.Felt{
+		new(felt.Felt).SetUint64(100),
+	}
 
 	address := contracts.PrecomputeAddress(
 		deployerAddress,
@@ -54,138 +56,123 @@ func main() {
 	fmt.Printf("Precomputed address: %s\n", address.String())
 
 	// Load a CASM class from file
-	casmClass, err := contracts.UnmarshalCasmClass("./my_contract.casm.json")
+	casmClass, err := contracts.UnmarshalCasmClass("./contract.casm.json")
 	if err != nil {
 		log.Fatal("Failed to load CASM class:", err)
 	}
 
 	fmt.Printf("CASM compiler version: %s\n", casmClass.CompilerVersion)
+	fmt.Printf("Bytecode length: %d instructions\n", len(casmClass.ByteCode))
 }
 ```
 
-## Available Functions
+For more examples, see the [Examples page](/docs/contracts/examples).
 
-### [PrecomputeAddress](./functions/precompute-address)
+## How Contract Classes Work in Starknet
 
-Calculate where a contract will be deployed before actually deploying it:
+### Contract Class Formats
 
-```go
-address := contracts.PrecomputeAddress(
-    deployerAddress,
+Starknet supports multiple contract class formats, reflecting the evolution of the Cairo language:
+
+1. **Sierra Format (Cairo 1.0+)**: The intermediate representation for Cairo 1.0+ contracts. Sierra provides safety guarantees and is compiled to CASM before execution.
+
+2. **CASM Format**: Cairo Assembly - the executable bytecode that runs on the Starknet VM. All contracts are eventually compiled to CASM for execution.
+
+3. **Deprecated Format (Cairo 0)**: Legacy format for contracts written in Cairo 0. Still supported but deprecated.
+
+### Contract Deployment Flow
+
+Understanding the contract deployment process helps you use this package effectively:
+
+1. **Write Contract**: Develop your contract in Cairo
+2. **Compile to Sierra**: Cairo 1.0+ compiler produces a Sierra JSON file
+3. **Compile to CASM**: Sierra is compiled to CASM (executable format)
+4. **Declare Class**: Submit both Sierra and CASM to Starknet via declare transaction
+5. **Get Class Hash**: Receive a unique hash identifying your contract class
+6. **Precompute Address**: Calculate where the contract instance will be deployed
+7. **Deploy Instance**: Create a contract instance at the precomputed address
+
+### Address Computation
+
+Starknet uses deterministic address computation, similar to Ethereum's CREATE2. The contract address depends on:
+
+- **Deployer Address**: Who is deploying the contract
+- **Salt**: A random value for uniqueness
+- **Class Hash**: Which contract class to instantiate
+- **Constructor Calldata**: Parameters passed to the constructor
+
+This determinism enables powerful patterns like counterfactual deployments and address prediction.
+
+## Choosing the Right Approach
+
+### Loading Contract Classes
+
+- **Use UnmarshalCasmClass** when:
+  - You need to load compiled CASM files
+  - Working with declare V2/V3 transactions that require CASM
+  - Analyzing bytecode and entry points
+  - Calculating compiled class hashes
+
+- **Use utils.UnmarshalJSONFileToType** when:
+  - Loading Sierra contract classes
+  - Working with Cairo 0 deprecated classes
+  - You need more flexibility in file loading
+  - Loading contracts with custom unmarshaling logic
+
+### Address Precomputation
+
+- **Use PrecomputeAddress** when:
+  - Implementing counterfactual deployments
+  - Need to fund an address before contract deployment
+  - Building factory patterns that predict child addresses
+  - Implementing account abstraction with predetermined addresses
+  - Working with Universal Deployer Contract (UDC)
+
+## Use Cases
+
+- **Contract Deployment**: Load contract classes and compute deployment addresses
+- **Declare Transactions**: Prepare Sierra and CASM classes for on-chain declaration
+- **Counterfactual Patterns**: Know contract addresses before deployment
+- **Factory Contracts**: Precompute addresses for contracts deployed by factories
+- **Account Abstraction**: Calculate account contract addresses deterministically
+- **ABI Analysis**: Parse contract ABIs to understand function interfaces
+- **Bytecode Inspection**: Analyze CASM bytecode, entry points, and hints
+
+## Understanding Contract Addresses
+
+Contract addresses in Starknet are deterministic and computed using:
+
+```
+address = hash(
+    "STARKNET_CONTRACT_ADDRESS",
+    deployer_address,
     salt,
-    classHash,
-    constructorCalldata,
+    class_hash,
+    hash(constructor_calldata)
 )
 ```
 
-Useful for:
-- Funding addresses before deployment
-- Predicting contract addresses
-- Deterministic deployments
+This means:
+- Same deployment parameters → Same address (deterministic)
+- Different salt → Different address (allowing multiple instances)
+- Different deployer → Different address (scoped to deployer)
+- Different constructor calldata → Different address (initialization matters)
 
-### [UnmarshalCasmClass](./functions/unmarshal-casm-class)
+:::tip
+Best Practices
+- Always validate CASM files before deployment to ensure they match your Sierra class.
+- Use `PrecomputeAddress` to fund contract addresses before deploying them.
+- Store class hashes after declaration for reuse when deploying multiple instances.
+- When using UDC, remember that the deployer address is the UDC address, not your account.
+- Verify constructor calldata matches expected parameters to avoid address mismatches.
+:::
 
-Load and parse a compiled CASM class from a JSON file:
-
-```go
-casmClass, err := contracts.UnmarshalCasmClass("./contract.casm.json")
-```
-
-## Available Types
-
-### Contract Classes
-
-- **[ContractClass](./contract-classes)** - Sierra format (Cairo 1.0+)
-- **[CasmClass](./contract-classes)** - Compiled Cairo Assembly format
-- **[DeprecatedContractClass](./contract-classes)** - Legacy Cairo 0 format
-
-### ABI Types
-
-- **[ABI Types](./abi-types)** - Function, event, and struct definitions
-- Type parameters and return values
-- Interface definitions
-
-### Entry Points
-
-- **[Entry Points](./entry-points)** - Constructor, external, and L1 handler entry points
-- Event entry points
-- Entry point selectors
-
-## Common Workflows
-
-### Load Contract Files
-
-```go
-// Load CASM class
-casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
-if err != nil {
-    log.Fatal(err)
-}
-
-// Or use utils for more flexibility
-import "github.com/NethermindEth/starknet.go/utils"
-
-sierraClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](
-    "contract.sierra.json",
-    "",
-)
-```
-
-### Compute Deployment Address
-
-Before deploying a contract:
-
-```go
-// 1. Get deployment parameters
-deployerAddr := accountAddress  // Your account address
-salt := utils.GetRandomFelt()   // Random salt
-classHash := declaredClassHash   // From declare transaction
-calldata := constructorCalldata  // Constructor parameters
-
-// 2. Precompute address
-contractAddr := contracts.PrecomputeAddress(
-    deployerAddr,
-    salt,
-    classHash,
-    calldata,
-)
-
-fmt.Printf("Contract will be deployed at: %s\n", contractAddr.String())
-
-// 3. Fund the address if needed, then deploy
-```
-
-### Parse Contract ABI
-
-```go
-// Access contract class
-contractClass, _ := utils.UnmarshalJSONFileToType[contracts.ContractClass](
-    "contract.sierra.json",
-    "",
-)
-
-// Iterate through ABI entries
-for _, entry := range contractClass.ABI {
-    switch e := entry.(type) {
-    case contracts.FunctionABIEntry:
-        fmt.Printf("Function: %s\n", e.Name)
-    case contracts.EventABIEntry:
-        fmt.Printf("Event: %s\n", e.Name)
-    }
-}
-```
-
-## Related Packages
-
-- **[Account Package](/docs/account/)** - Uses contracts for deployment
-- **[Utils Package](/docs/utils/)** - Helper functions for loading contract files
-- **[RPC Package](/docs/rpc/)** - Contract interaction methods
-
-## Examples
-
-- **[Declare Contract](/docs/examples/simple-declare)** - Declaring contract classes
-- **[Deploy with UDC](/docs/examples/deploy-contract-udc)** - Deploying contracts with UDC
-
-## Reference
-
-Full API reference: [pkg.go.dev](https://pkg.go.dev/github.com/NethermindEth/starknet.go/contracts)
+:::note
+See the [Examples page](/docs/contracts/examples) for comprehensive examples covering:
+- Loading and analyzing CASM classes
+- Precomputing addresses for various deployment patterns
+- Working with different contract class formats
+- Parsing ABIs and accessing entry points
+- Factory pattern implementations
+- Counterfactual deployment workflows
+:::

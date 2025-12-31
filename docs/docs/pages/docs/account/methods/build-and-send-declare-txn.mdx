@@ -1,6 +1,6 @@
 # BuildAndSendDeclareTxn
 
-Builds, signs, and sends a declare transaction to register a new contract class.
+Builds, signs, estimates fees, and sends a declare transaction to register a new contract class on Starknet. This method handles the entire declaration process including nonce management, fee estimation, and transaction signing automatically. The returned class hash can be used to deploy contract instances.
 
 ## Method Signature
 
@@ -13,17 +13,36 @@ func (account *Account) BuildAndSendDeclareTxn(
 ) (rpc.AddDeclareTransactionResponse, error)
 ```
 
+**Source:** [transaction.go:L121-L217](https://github.com/NethermindEth/starknet.go/blob/main/account/transaction.go#L121-L217)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `casmClass` - Compiled CASM (Cairo Assembly) class
-- `contractClass` - Sierra contract class
-- `opts` - Transaction options. Pass `nil` for defaults
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `casmClass` (*contracts.CasmClass): Compiled CASM (Cairo Assembly) class generated from Sierra compilation
+- `contractClass` (*contracts.ContractClass): Sierra contract class containing the high-level contract definition
+- `opts` (*TxnOptions): Transaction options for fee estimation and execution. Pass `nil` to use default values
 
 ## Returns
 
-- `rpc.AddDeclareTransactionResponse` - Response with transaction hash and class hash
-- `error` - Error if declaration fails
+- `rpc.AddDeclareTransactionResponse`: Response containing transaction hash and declared class hash
+- `error`: Error if declaration fails
+
+## AddDeclareTransactionResponse Structure
+
+**Source:** [types_transaction_response.go:L6-L9](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L6-L9)
+
+The returned response contains:
+
+```go
+type AddDeclareTransactionResponse struct {
+	Hash      *felt.Felt `json:"transaction_hash"`
+	ClassHash *felt.Felt `json:"class_hash"`
+}
+```
+
+**Fields:**
+- `Hash` (*felt.Felt): Transaction hash of the declare transaction
+- `ClassHash` (*felt.Felt): Class hash of the declared contract (used for deployment)
 
 ## Usage Example
 
@@ -32,77 +51,133 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assume acc is already created
-	var acc *account.Account
+	ctx := context.Background()
 
-	// Load compiled contract
-	sierraFile, _ := os.ReadFile("contract.sierra.json")
-	casmFile, _ := os.ReadFile("contract.casm.json")
-
-	contractClass, err := contracts.UnmarshalContractClass(sierraFile)
-	if err != nil {
-		log.Fatal(err)
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	casmClass, err := contracts.UnmarshalCasmClass(casmFile)
-	if err != nil {
-		log.Fatal(err)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
 
-	// Declare the contract
-	response, err := acc.BuildAndSendDeclareTxn(
-		context.Background(),
-		casmClass,
-		contractClass,
-		nil, // Use default options
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set in .env")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create account:", err)
 	}
 
-	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
-	fmt.Printf("Class hash: %s\n", response.ClassHash)
+	sierraFile, err := os.ReadFile("contract.sierra.json")
+	if err != nil {
+		log.Fatal("Failed to read sierra file:", err)
+	}
+
+	var contractClass contracts.ContractClass
+	if err := json.Unmarshal(sierraFile, &contractClass); err != nil {
+		log.Fatal("Failed to unmarshal contract class:", err)
+	}
+
+	casmClass, err := contracts.UnmarshalCasmClass("contract.casm.json")
+	if err != nil {
+		log.Fatal("Failed to unmarshal casm class:", err)
+	}
+
+	opts := &account.TxnOptions{
+		FeeMultiplier: 1.5,
+		TipMultiplier: 1.0,
+	}
+
+	response, err := accnt.BuildAndSendDeclareTxn(
+		ctx,
+		casmClass,
+		&contractClass,
+		opts,
+	)
+	if err != nil {
+		log.Fatal("Failed to declare contract:", err)
+	}
+
+	fmt.Printf("Declare Transaction Successful:\n")
+	fmt.Printf("Transaction Hash: %s\n", response.Hash.String())
+	fmt.Printf("Class Hash:       %s\n", response.ClassHash.String())
+	fmt.Printf("\nUse this class hash to deploy contract instances\n")
 }
 ```
 
-## Description
-
-BuildAndSendDeclareTxn registers a new contract class on Starknet. The process:
-
-1. Fetches current nonce
-2. Builds declare transaction with zero fees
-3. Signs for fee estimation
-4. Estimates fees
-5. Updates with estimated fees
-6. Signs again with final fees
-7. Sends to network
-
-The returned class hash is used to deploy instances of this contract.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
 ```go
 response, err := acc.BuildAndSendDeclareTxn(ctx, casmClass, contractClass, opts)
 if err != nil {
-	// Handle errors like:
-	// - Class already declared
-	// - Invalid contract class
-	// - Compilation errors
-	// - Insufficient balance
-	return err
+	switch {
+	case errors.Is(err, rpc.ErrClassAlreadyDeclared):
+		log.Println("Contract class already declared on network")
+	case errors.Is(err, rpc.ErrInvalidContractClass):
+		log.Println("Invalid contract class format")
+	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
+		log.Println("Insufficient balance to pay transaction fees")
+	default:
+		log.Printf("Failed to declare contract: %v", err)
+	}
+	return
 }
+
+fmt.Printf("Declared successfully with class hash: %s\n", response.ClassHash.String())
 ```
 
-## Related Methods
+## Common Use Cases
 
-- [SignDeclareTransaction](./sign-declare-transaction.mdx) - Sign declare transactions
-- [DeployContractWithUDC](./deploy-contract-with-udc.mdx) - Deploy declared contract
+- Register a new contract class on Starknet before deploying instances
+- Declare upgraded versions of existing contracts with new class hashes
+- Deploy libraries or base contracts that will be used by other contracts
+- Essential first step before using DeployContractWithUDC to create contract instances
+- Automatically handles nonce management, fee estimation, and signing in one method call

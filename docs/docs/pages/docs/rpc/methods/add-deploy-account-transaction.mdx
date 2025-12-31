@@ -1,25 +1,114 @@
 # AddDeployAccountTransaction
 
-Submits a deploy account transaction to the network to create a new account contract.
+Submits a deploy account transaction (V3) to the Starknet network to create and deploy a new account contract. Deploy account transactions use counterfactual deployment, allowing the account address to be determined before deployment. The nonce is always 0 for deploy account transactions since the account doesn't exist yet.
 
 ## Method Signature
 
 ```go
 func (provider *Provider) AddDeployAccountTransaction(
-    ctx context.Context,
-    deployAccountTransaction *BroadcastDeployAccountTxnV3,
+	ctx context.Context,
+	deployAccountTransaction *BroadcastDeployAccountTxnV3,
 ) (AddDeployAccountTransactionResponse, error)
 ```
 
+**Source:** [write.go:L90-L114](https://github.com/NethermindEth/starknet.go/blob/main/rpc/write.go#L90-L114)
+
 ## Parameters
 
-- `ctx` - Context for request cancellation and timeout
-- `deployAccountTransaction` - The deploy account transaction to submit
+- `ctx` (context.Context): Context for request cancellation and timeout
+- `deployAccountTransaction` (*BroadcastDeployAccountTxnV3): The V3 deploy account transaction containing class hash, constructor calldata, and salt
 
 ## Returns
 
-- `AddDeployAccountTransactionResponse` - Response containing transaction hash and contract address
-- `error` - Error if the submission fails
+- `AddDeployAccountTransactionResponse`: Response containing both the transaction hash and the deployed contract address
+- `error`: Error if the submission fails
+
+:::note
+This method can return multiple error types including `ErrClassHashNotFound`, `ErrInsufficientAccountBalance`, `ErrInvalidTransactionNonce`, `ErrValidationFailure`, and others. The nonce must always be 0 for deploy account transactions.
+:::
+
+## Type Definitions
+
+:::tip
+The deploy account transaction submission system uses these related types:
+:::
+1. Input Type (`BroadcastDeployAccountTxnV3`) contains the account class hash, constructor parameters, address salt, and resource bounds.
+2. Result Type (`AddDeployAccountTransactionResponse`) returns both the transaction hash for tracking and the deterministic contract address.
+3. Address Derivation uses the class hash, constructor calldata, and salt to compute the account address before deployment.
+
+The method deploys the account contract and initializes it with the constructor calldata in a single atomic transaction.
+
+### BroadcastDeployAccountTxnV3
+
+```go
+type BroadcastDeployAccountTxnV3 = DeployAccountTxnV3
+```
+
+**Source:** [types_broadcast_transaction.go:L20](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_broadcast_transaction.go#L20)
+
+### DeployAccountTxnV3
+
+```go
+type DeployAccountTxnV3 struct {
+	Type                TransactionType        `json:"type"`
+	Version             TransactionVersion     `json:"version"`
+	Signature           []*felt.Felt           `json:"signature"`
+	Nonce               *felt.Felt             `json:"nonce"`
+	ContractAddressSalt *felt.Felt             `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
+	ClassHash           *felt.Felt             `json:"class_hash"`
+	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip                 U64                    `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
+```
+
+**Source:** [types_transaction.go:L234-L250](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L234-L250)
+
+### AddDeployAccountTransactionResponse
+
+```go
+type AddDeployAccountTransactionResponse struct {
+	Hash            *felt.Felt `json:"transaction_hash"`
+	ContractAddress *felt.Felt `json:"contract_address"`
+}
+```
+
+**Source:** [types_transaction_response.go:L12-L15](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction_response.go#L12-L15)
+
+### ResourceBoundsMapping
+
+```go
+type ResourceBoundsMapping struct {
+	// The max amount and max price per unit of L1 gas used in this tx
+	L1Gas ResourceBounds `json:"l1_gas"`
+	// The max amount and max price per unit of L1 blob gas used in this tx
+	L1DataGas ResourceBounds `json:"l1_data_gas"`
+	// The max amount and max price per unit of L2 gas used in this tx
+	L2Gas ResourceBounds `json:"l2_gas"`
+}
+```
+
+**Source:** [types_transaction.go:L121-L128](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_transaction.go#L121-L128)
+
+## Prerequisites
+
+Before deploying an account, you need:
+1. A declared account contract class (use [AddDeclareTransaction](/docs/rpc/methods/add-declare-transaction) first)
+2. The account class hash from the declaration
+3. A private/public key pair for the account
+4. A salt value for deterministic address generation
+5. The precomputed account address (from `account.PrecomputeAccountAddress`)
+6. STRK tokens in the precomputed account address to pay for deployment fees
+
+:::note
+See the environment variables required in the usage example code below (`.env` file setup).
+:::
 
 ## Usage Example
 
@@ -27,104 +116,285 @@ func (provider *Provider) AddDeployAccountTransaction(
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
+	"context"
+	"fmt"
+	"log"
+	"math/big"
 	"os"
+	"time"
 
-    "github.com/NethermindEth/starknet.go/rpc"
-    "github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-    // Create RPC client
-	// Get RPC URL from environment variable
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in environment")
+	// Load environment variables
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file:", err)
 	}
 
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	privateKeyStr := os.Getenv("ACCOUNT_PRIVATE_KEY")
+	publicKeyStr := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	classHashStr := os.Getenv("ACCOUNT_CLASS_HASH")
+	saltStr := os.Getenv("ACCOUNT_SALT")
+	addressStr := os.Getenv("ACCOUNT_ADDRESS")
+
+	if rpcURL == "" || privateKeyStr == "" || publicKeyStr == "" || classHashStr == "" || saltStr == "" || addressStr == "" {
+		log.Fatal("Missing required environment variables")
+	}
+
+	// Parse credentials
+	privateKey, err := new(felt.Felt).SetString(privateKeyStr)
+	if err != nil {
+		log.Fatal("Invalid private key:", err)
+	}
+
+	publicKey, err := new(felt.Felt).SetString(publicKeyStr)
+	if err != nil {
+		log.Fatal("Invalid public key:", err)
+	}
+
+	classHash, err := new(felt.Felt).SetString(classHashStr)
+	if err != nil {
+		log.Fatal("Invalid class hash:", err)
+	}
+
+	salt, err := new(felt.Felt).SetString(saltStr)
+	if err != nil {
+		log.Fatal("Invalid salt:", err)
+	}
+
+	address, err := new(felt.Felt).SetString(addressStr)
+	if err != nil {
+		log.Fatal("Invalid address:", err)
+	}
+
+	fmt.Printf("Account Address: %s\n", address.String())
+	fmt.Printf("RPC URL: %s\n\n", rpcURL)
+
+	// Connect to RPC provider
 	ctx := context.Background()
-    client, err := rpc.NewProvider(ctx, rpcURL)
-    if err != nil {
-        log.Fatal("Failed to create client:", err)
-    }
+	client, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to connect to RPC provider:", err)
+	}
 
-    classHash, _ := new(felt.Felt).SetString("0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f")
-    contractAddressSalt, _ := new(felt.Felt).SetString("0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
-    publicKey, _ := new(felt.Felt).SetString("0x01234567890abcdef01234567890abcdef01234567890abcdef01234567890ab")
+	// Check if account is already deployed
+	fmt.Println("Checking if account is already deployed...")
+	classHashResponse, err := client.ClassHashAt(ctx, rpc.BlockID{Tag: "latest"}, address)
+	if err == nil && classHashResponse != nil {
+		fmt.Println("Account is already deployed!")
+		fmt.Printf("Class Hash: %s\n", classHashResponse.String())
+		return
+	}
 
-    // Create a V3 deploy account transaction
-    deployAccountTxn := &rpc.BroadcastDeployAccountTxnV3{
-        Type:                rpc.TransactionType("DEPLOY_ACCOUNT"),
-        Version:             rpc.TransactionVersion("0x3"),
-        ClassHash:           classHash,
-        ContractAddressSalt: contractAddressSalt,
-        ConstructorCalldata: []*felt.Felt{publicKey}, // Public key for account
-        Signature: []*felt.Felt{
-            new(felt.Felt).SetString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"),
-            new(felt.Felt).SetString("0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"),
-        },
-        Nonce: new(felt.Felt).SetUint64(0), // Nonce is always 0 for deploy account
-        ResourceBounds: &rpc.ResourceBoundsMapping{
-            L1Gas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0x0"),
-                MaxPricePerUnit: rpc.U128("0x33a937098d80"),
-            },
-            L2Gas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0x15c2a0"),
-                MaxPricePerUnit: rpc.U128("0x10c388d00"),
-            },
-            L1DataGas: rpc.ResourceBounds{
-                MaxAmount:       rpc.U64("0xc0"),
-                MaxPricePerUnit: rpc.U128("0xdb31"),
-            },
-        },
-        Tip:           rpc.U64("0x0"),
-        PayMasterData: []*felt.Felt{},
-        NonceDataMode: rpc.DAModeL1,
-        FeeMode:       rpc.DAModeL1,
-    }
+	// Check STRK balance
+	fmt.Println("Checking STRK balance...")
+	strkBalance, err := getStrkBalance(ctx, client, address)
+	if err != nil {
+		log.Printf("Warning: Could not check STRK balance: %v\n", err)
+	} else {
+		// Convert to STRK (18 decimals)
+		strkAmount := new(big.Float).Quo(
+			new(big.Float).SetInt(strkBalance),
+			new(big.Float).SetFloat64(1e18),
+		)
+		fmt.Printf("STRK Balance: %s STRK\n", strkAmount.Text('f', 4))
+		if strkBalance.Cmp(big.NewInt(0)) == 0 {
+			fmt.Println("\nWARNING: Account has 0 STRK balance!")
+			fmt.Println("Please fund your account first:")
+			fmt.Printf("Address: %s\n", address.String())
+			fmt.Println("Faucet: https://starknet-faucet.vercel.app/")
+			return
+		}
+	}
 
-    // Submit the deploy account transaction
-    result, err := client.AddDeployAccountTransaction(ctx, deployAccountTxn)
-    if err != nil {
-        log.Fatal("Failed to add deploy account transaction:", err)
-    }
+	// Get chain ID
+	chainID, err := client.ChainID(ctx)
+	if err != nil {
+		log.Fatal("Failed to get chain ID:", err)
+	}
+	fmt.Printf("Chain ID: %s\n\n", chainID)
 
-    // Print the result
-    resultJSON, _ := json.MarshalIndent(result, "", "  ")
-    fmt.Printf("Account deployed:\n%s\n", resultJSON)
+	// Create account manager (undeployed)
+	ks := account.NewMemKeystore()
+	ks.Put(publicKey.String(), privateKey.BigInt(new(big.Int)))
+
+	// Constructor calldata for OZ account is just the public key
+	constructorCalldata := []*felt.Felt{publicKey}
+
+	// Prepare deploy account transaction
+	fmt.Println("Deploying account...")
+
+	// Create account controller
+	accnt, err := account.NewAccount(client, address, publicKey.String(), ks, 2)
+	if err != nil {
+		log.Fatal("Failed to create account controller:", err)
+	}
+
+	// Build and estimate deploy account transaction (V3 with STRK fees)
+	deployTx, precomputedAddr, err := accnt.BuildAndEstimateDeployAccountTxn(
+		ctx,
+		salt,
+		classHash,
+		constructorCalldata,
+		nil,
+	)
+	if err != nil {
+		log.Fatal("Failed to build deploy account transaction:", err)
+	}
+
+	if precomputedAddr.String() != address.String() {
+		log.Fatalf("Address mismatch! Expected %s, got %s", address.String(), precomputedAddr.String())
+	}
+
+	fmt.Printf("Estimated gas: L1Gas=%d, L2Gas=%d\n",
+		deployTx.ResourceBounds.L1Gas.MaxAmount,
+		deployTx.ResourceBounds.L2Gas.MaxAmount)
+
+	// Sign the transaction
+	err = accnt.SignDeployAccountTransaction(ctx, &rpc.DeployAccountTxnV3{
+		Type:                deployTx.Type,
+		ClassHash:           deployTx.ClassHash,
+		ContractAddressSalt: deployTx.ContractAddressSalt,
+		ConstructorCalldata: deployTx.ConstructorCalldata,
+		Version:             deployTx.Version,
+		Signature:           deployTx.Signature,
+		Nonce:               deployTx.Nonce,
+		ResourceBounds:      deployTx.ResourceBounds,
+		Tip:                 deployTx.Tip,
+		PayMasterData:       deployTx.PayMasterData,
+		NonceDataMode:       deployTx.NonceDataMode,
+		FeeMode:             deployTx.FeeMode,
+	}, address)
+	if err != nil {
+		log.Fatal("Failed to sign transaction:", err)
+	}
+
+	// Send the transaction
+	resp, err := client.AddDeployAccountTransaction(ctx, deployTx)
+	if err != nil {
+		log.Fatal("Failed to deploy account:", err)
+	}
+
+	fmt.Printf("Deploy transaction sent!\n")
+	fmt.Printf("Transaction Hash: %s\n", resp.Hash.String())
+
+	// Wait for transaction confirmation
+	fmt.Println("\nWaiting for transaction confirmation...")
+	receipt, err := waitForTransaction(ctx, client, resp.Hash)
+	if err != nil {
+		log.Fatal("Transaction failed:", err)
+	}
+
+	fmt.Printf("Account deployed successfully!\n")
+	fmt.Printf("Block Number: %d\n", receipt.BlockNumber)
+	fmt.Printf("Status: %s\n\n", receipt.FinalityStatus)
+
+	fmt.Println("Your account is now ready to use!")
+	fmt.Printf("Address: %s\n", address.String())
+}
+
+func getStrkBalance(ctx context.Context, client *rpc.Provider, address *felt.Felt) (*big.Int, error) {
+	// STRK contract address on Sepolia
+	strkContract, _ := new(felt.Felt).SetString("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+
+	// Call balanceOf
+	result, err := client.Call(ctx, rpc.FunctionCall{
+		ContractAddress:    strkContract,
+		EntryPointSelector: utils.GetSelectorFromNameFelt("balanceOf"),
+		Calldata:           []*felt.Felt{address},
+	}, rpc.BlockID{Tag: "latest"})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(result) == 0 {
+		return big.NewInt(0), nil
+	}
+
+	// balanceOf returns Uint256 (low, high)
+	if len(result) >= 2 {
+		low := result[0].BigInt(new(big.Int))
+		high := result[1].BigInt(new(big.Int))
+		// balance = low + high * 2^128
+		balance := new(big.Int).Lsh(high, 128)
+		balance.Add(balance, low)
+		return balance, nil
+	}
+
+	return result[0].BigInt(new(big.Int)), nil
+}
+
+// waitForTransaction waits for a transaction to be confirmed on the network
+func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, error) {
+	for i := 0; i < 60; i++ {
+		receipt, err := client.TransactionReceipt(ctx, txHash)
+		if err == nil {
+			if receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL2 ||
+				receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL1 {
+				return receipt, nil
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+		fmt.Print(".")
+	}
+
+	return nil, fmt.Errorf("transaction confirmation timeout")
 }
 ```
 
-## Expected Output
-
-```json
-{
-  "transaction_hash": "0x05a12345678901234567890123456789012345678901234567890123456789ab",
-  "contract_address": "0x0517c64b48079568a30f02967ade11d08f2dfdc45d2c0124650f013d07613802"
-}
-```
+:::note
+Create a `.env` file in your project root and install the godotenv package to run the code snippet.
+:::
 
 ## Error Handling
 
-Common errors include invalid class hash, incorrect constructor calldata, and insufficient balance for fees. The nonce must always be 0 for deploy account transactions.
-
 ```go
-result, err := client.AddDeployAccountTransaction(ctx, deployAccountTxn)
+result, err := provider.AddDeployAccountTransaction(ctx, &deployTx)
 if err != nil {
-    log.Printf("Failed to deploy account: %v", err)
-    return
+	switch {
+	case errors.Is(err, rpc.ErrClassHashNotFound):
+		log.Printf("Account class not declared - declare it first")
+		return
+	case errors.Is(err, rpc.ErrInsufficientAccountBalance):
+		log.Printf("Insufficient balance - fund the account address before deployment")
+		return
+	case errors.Is(err, rpc.ErrInvalidTransactionNonce):
+		log.Printf("Invalid nonce - must be 0 for deploy account transactions")
+		return
+	case errors.Is(err, rpc.ErrValidationFailure):
+		log.Printf("Transaction validation failed - check signature and parameters")
+		return
+	case errors.Is(err, rpc.ErrFeeBelowMinimum):
+		log.Printf("Resource bounds too low for current network conditions")
+		return
+	default:
+		log.Printf("Failed to deploy account: %v", err)
+		return
+	}
 }
-// Safe to use result.TransactionHash and result.ContractAddress
+
+fmt.Printf("Contract Address: %s\n", result.ContractAddress)
 ```
+
+## Common Use Cases
+
+- Creating new user accounts on Starknet with counterfactual address derivation
+- Deploying smart wallet contracts with custom validation logic and features
+- Setting up multi-signature accounts by deploying multisig account contracts
+- Initializing account contracts with specific public keys or guardian configurations
 
 ## Related Methods
 
-- [ClassHashAt](/docs/rpc/methods/get-class-hash-at) - Verify the deployed account's class hash
-- [Nonce](/docs/rpc/methods/get-nonce) - Check account nonce after deployment
-- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate deployment fees
-- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Check deployment status
-- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test deployment before submitting
+- [ClassHashAt](/docs/rpc/methods/class-hash-at) - Verify the deployed account's class hash after deployment
+- [Nonce](/docs/rpc/methods/nonce) - Get account nonce after deployment (should be 1)
+- [EstimateFee](/docs/rpc/methods/estimate-fee) - Estimate deployment fees before submission
+- [TransactionReceipt](/docs/rpc/methods/transaction-receipt) - Check deployment status after submission
+- [SimulateTransactions](/docs/rpc/methods/simulate-transaction) - Test deployment before submitting to network

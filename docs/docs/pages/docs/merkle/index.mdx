@@ -1,24 +1,33 @@
 # Merkle Package
 
-The Merkle package provides functionality for working with Merkle trees in Starknet. This package enables you to create fixed-size Merkle trees, generate proofs, and verify Merkle paths using Pedersen hash functions.
+The Merkle package provides data structures and functions for creating and verifying Merkle trees in Starknet. This package is essential for state commitments, storage proofs, and efficient data integrity verification using Pedersen hash functions.
 
 ## Overview
 
-Merkle trees are cryptographic data structures that allow efficient verification of data integrity. In Starknet, they are used extensively for state commitment and proof generation. This package provides:
+Merkle trees are cryptographic data structures that enable efficient and secure verification of large datasets. In Starknet, they are fundamental to how the protocol commits to state and generates proofs. The merkle package provides:
 
-- Merkle hash calculation using Pedersen hash
-- Fixed-size Merkle tree construction
-- Merkle proof generation
-- Merkle path verification
+- **Merkle Hash Calculation**: Deterministic hashing of two values using Pedersen
+- **Fixed-Size Merkle Trees**: Immutable tree structures with efficient proof generation
+- **Proof Generation**: Create proofs for any leaf in the tree
+- **Proof Verification**: Verify that a leaf belongs to a specific Merkle root
 
 ## Key Components
 
 ### Functions
-- [MerkleHash](./merkle-hash) - Calculate the Merkle hash of two big integers
-- [ProofMerklePath](./proof-merkle-path) - Verify if a leaf is part of a Merkle tree path
+- [MerkleHash](/docs/merkle/functions/merkle-hash) - Calculate Merkle hash of two big integers with deterministic ordering
+- [ProofMerklePath](/docs/merkle/functions/proof-merkle-path) - Verify if a leaf is part of a Merkle tree path
+- [NewFixedSizeMerkleTree](/docs/merkle/functions/new-fixed-size-merkle-tree) - Create a fixed-size Merkle tree from leaves
 
-### Types
-- [FixedSizeMerkleTree](./fixed-size-merkle-tree) - Fixed-size Merkle tree implementation
+### Methods
+- [Proof](/docs/merkle/methods/proof) - Generate a Merkle proof for a specific leaf
+
+## Getting Started
+
+To use the Merkle package, import it in your Go code:
+
+```go
+import "github.com/NethermindEth/starknet.go/merkle"
+```
 
 ## Quick Example
 
@@ -60,37 +69,87 @@ func main() {
 }
 ```
 
-## Getting Started
+For more examples, see the [Examples page](/docs/merkle/examples).
 
-To use the Merkle package, import it in your Go code:
+## How Merkle Trees Work in Starknet
 
-```go
-import "github.com/NethermindEth/starknet.go/merkle"
-```
-
-## How Merkle Trees Work
+### Tree Structure
 
 A Merkle tree is a binary tree where:
 
-1. Each leaf node contains a data value
-2. Each non-leaf node contains the hash of its two children
-3. The root represents a cryptographic commitment to all the data
+1. **Leaf Nodes**: Contain the actual data values you want to commit to
+2. **Internal Nodes**: Each parent node contains the hash of its two children
+3. **Root Node**: The topmost hash that represents a cryptographic commitment to all data in the tree
 
-This structure allows you to prove that a specific value exists in the tree by providing a path of sibling hashes from the leaf to the root, without revealing all the data in the tree.
+This hierarchical structure enables efficient proofs - you only need to provide log₂(n) hashes to prove a specific value exists in a tree with n leaves.
+
+### Merkle Hash Function
+
+The `MerkleHash` function is the building block of Merkle trees. It computes the Pedersen hash of two values with an important property: **deterministic ordering**. The function always hashes the smaller value first, ensuring that `MerkleHash(a, b)` equals `MerkleHash(b, a)`. This consistency is crucial for Merkle tree operations and proof verification.
+
+### Proof Generation and Verification
+
+When you generate a proof for a leaf, you get an array of sibling hashes representing the path from that leaf to the root. To verify the proof:
+
+1. Start with the leaf value
+2. Hash it with the first sibling in the proof
+3. Hash the result with the next sibling
+4. Continue until you reach the root
+5. Compare the computed root with the expected root
+
+If they match, the leaf is proven to be part of the tree.
+
+## Choosing the Right Approach
+
+### Fixed-Size Trees vs Manual Construction
+
+- **Use NewFixedSizeMerkleTree** when:
+  - You need automatic tree construction from an array of leaves
+  - You want to generate proofs for multiple leaves efficiently
+  - You need access to all branches for proof generation
+  - Working with immutable datasets where tree structure won't change
+
+- **Use Manual Construction (MerkleHash)** when:
+  - You need fine-grained control over tree structure
+  - Building custom Merkle tree variants
+  - Implementing specific protocols with unique tree requirements
+  - Only need to verify proofs without generating them
 
 ## Use Cases
 
-- **State Commitment**: Committing to contract state in a compact way
-- **Proof Generation**: Creating proofs that specific data exists in a larger dataset
-- **Data Verification**: Verifying data integrity without accessing the entire dataset
-- **Storage Proofs**: Proving contract storage values
+- **State Commitments**: Commit to contract state in a compact, verifiable way
+- **Storage Proofs**: Prove specific storage values exist in a contract's state
+- **Batch Verification**: Verify multiple values are part of a dataset without revealing the entire dataset
+- **Data Availability**: Prove data was available at a specific time through Merkle roots
+- **Contract Address Calculation**: Merkle trees are used in Starknet's address derivation
+- **Transaction Batching**: Group multiple transactions with a single Merkle root commitment
 
-## Available Documentation
+## Understanding Proof Sizes
 
-- [MerkleHash Function](./merkle-hash) - Learn how to calculate Merkle hashes
-- [ProofMerklePath Function](./proof-merkle-path) - Understand proof verification
-- [FixedSizeMerkleTree Type](./fixed-size-merkle-tree) - Work with Merkle trees
+One of the key benefits of Merkle trees is their logarithmic proof size:
 
-## Version
+- Tree with 4 leaves → Proof size: 2 hashes
+- Tree with 8 leaves → Proof size: 3 hashes
+- Tree with 100 leaves → Proof size: ~7 hashes
+- Tree with 1,000,000 leaves → Proof size: ~20 hashes
 
-This documentation is based on the latest version of the starknet.go library.
+This logarithmic scaling makes Merkle trees extremely efficient for proving membership in large datasets.
+
+:::note
+See the [Examples page](/docs/merkle/examples) for comprehensive examples covering:
+- Basic tree creation and verification workflows
+- Manual tree construction for understanding internals
+- Batch verification of multiple leaves
+- Invalid proof detection and security properties
+- Deterministic hash ordering demonstrations
+- Large tree scalability and proof size analysis
+- Handling odd numbers of leaves
+
+:::tip
+Best Practices
+- Use `MerkleHash` for building trees as it ensures deterministic ordering.
+- Store Merkle roots on-chain for later proof verification.
+- Verify proofs match expected roots before trusting the data.
+- For trees with odd numbers of leaves, the last leaf is paired with zero automatically.
+:::
+

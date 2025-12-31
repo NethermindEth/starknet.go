@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
@@ -15,9 +14,6 @@ func main() {
 
 	// Compute Poseidon hash
 	hash := curve.Poseidon(a, b)
-	if hash == nil {
-		log.Fatal("Failed to compute Poseidon hash")
-	}
 
 	fmt.Println("Poseidon Hash:")
 	fmt.Printf("  Input a: %s\n", a.String())

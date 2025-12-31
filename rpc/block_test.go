@@ -221,11 +221,18 @@ func TestBlockWithTxHashes(t *testing.T) {
 				rawBlock, err := json.Marshal(block)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
+				rawBlock, err := json.Marshal(block)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
 			case *PreConfirmedBlockTxHashes:
 				rawBlock, err := json.Marshal(block)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
+				rawBlock, err := json.Marshal(block)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
 			default:
+				t.Fatalf("unexpected block type, found: %T\n", block)
 				t.Fatalf("unexpected block type, found: %T\n", block)
 			}
 		})
@@ -358,7 +365,13 @@ func TestBlockWithTxs(t *testing.T) {
 				rawBlock, err := json.Marshal(block)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
+				rawBlock, err := json.Marshal(block)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
 			case *Block:
+				rawBlock, err := json.Marshal(block)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
 				rawBlock, err := json.Marshal(block)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))

@@ -1,50 +1,66 @@
 package main
-
+ 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-
+ 
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/joho/godotenv"
 )
-
+ 
 func main() {
-	godotenv.Load(".env")
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+ 
+	// Get RPC URL from environment variable
 	rpcURL := os.Getenv("STARKNET_RPC_URL")
 	if rpcURL == "" {
-		log.Fatal("STARKNET_RPC_URL not set in .env")
+		log.Fatal("STARKNET_RPC_URL not found in .env file")
 	}
-
+ 
+	// Initialize provider
+	provider, err := rpc.NewProvider(context.Background(), rpcURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+ 
 	ctx := context.Background()
-	client, err := rpc.NewProvider(ctx, rpcURL)
+ 
+	// Trace all transactions in a specific block
+	blockID := rpc.WithBlockNumber(99433)
+	traces, err := provider.TraceBlockTransactions(ctx, blockID)
 	if err != nil {
-		log.Fatal("Failed to create client:", err)
+		log.Fatal(err)
 	}
-
-	// Get traces for all transactions in latest block
-	blockID := rpc.WithBlockTag("latest")
-	traces, err := client.TraceBlockTransactions(ctx, blockID)
-	if err != nil {
-		log.Fatal("Failed to get block transaction traces:", err)
-	}
-
-	// Show summary
-	fmt.Printf("Number of transaction traces: %d\n", len(traces))
-
-	if len(traces) > 0 {
-		// Show first trace in detail
-		traceJSON, err := json.MarshalIndent(traces[0], "", "  ")
-		if err != nil {
-			log.Fatal("Failed to marshal trace:", err)
+ 
+	fmt.Printf("Block has %d transactions\n\n", len(traces))
+ 
+	// Analyze each transaction trace
+	for i, trace := range traces {
+		fmt.Printf("Transaction %d:\n", i+1)
+		fmt.Printf("  Hash: %s\n", trace.TxnHash)
+ 
+		// Type assert to analyze specific trace types
+		if invokeTrace, ok := trace.TraceRoot.(rpc.InvokeTxnTrace); ok {
+			fmt.Printf("  Type: %s\n", invokeTrace.Type)
+			fmt.Printf("  Total L2 Gas: %d\n", invokeTrace.ExecutionResources.L2Gas)
+ 
+			// Count nested calls
+			nestedCallCount := len(invokeTrace.ExecuteInvocation.NestedCalls)
+			fmt.Printf("  Nested Calls: %d\n", nestedCallCount)
+ 
+			// Check for state changes
+			if invokeTrace.StateDiff != nil {
+				fmt.Printf("  Storage Updates: %d contracts\n", len(invokeTrace.StateDiff.StorageDiffs))
+				fmt.Printf("  Nonce Updates: %d accounts\n", len(invokeTrace.StateDiff.Nonces))
+			}
 		}
-
-		if len(traceJSON) > 1000 {
-			fmt.Printf("\nFirst transaction trace (first 1000 chars):\n%s...\n", string(traceJSON[:1000]))
-		} else {
-			fmt.Printf("\nFirst transaction trace:\n%s\n", string(traceJSON))
-		}
+ 
+		fmt.Println()
 	}
 }

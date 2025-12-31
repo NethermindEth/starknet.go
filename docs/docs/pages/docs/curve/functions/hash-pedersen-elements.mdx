@@ -6,7 +6,7 @@ import { Callout } from 'vocs/components'
   **Internal Helper Function**: This is a low-level utility that works with `*big.Int` types. Most developers should use [PedersenArray](./pedersen-array) which works with `*felt.Felt` types instead.
 </Callout>
 
-Calculates Pedersen hash of a list of big.Int elements.
+Calculates Pedersen hash of a list of big.Int elements. This function sequentially hashes each element in the array without adding a length prefix.
 
 ## Function Signature
 
@@ -14,15 +14,49 @@ Calculates Pedersen hash of a list of big.Int elements.
 func HashPedersenElements(elems []*big.Int) (hash *big.Int)
 ```
 
-## Expected Output
+**Source:** [curve.go:L195-L217](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L195-L217)
 
+## Parameters
+
+- `elems` ([]*big.Int): Slice of big.Int pointers to be hashed
+
+## Returns
+
+- `hash` (*big.Int): The Pedersen hash of the list of elements
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Create array of big.Int values
+	elems := []*big.Int{
+		big.NewInt(111),
+		big.NewInt(222),
+		big.NewInt(333),
+	}
+
+	// Compute Pedersen hash
+	hash := curve.HashPedersenElements(elems)
+
+	fmt.Println("HashPedersenElements:")
+	fmt.Printf("  Input elements: %v\n", elems)
+	fmt.Printf("  Hash: %s\n", hash.String())
+}
 ```
-HashPedersenElements:
-  Input elements: [111, 222, 333]
-  Hash: 1806953628366150061155015437827467975050659843036579320561057832655817945018
-```
 
-## Related Functions
+## Common Use Cases
 
-- [ComputeHashOnElements](/docs/curve/functions/compute-hash-on-elements)
-- [PedersenArray](/docs/curve/functions/pedersen-array)
+- Hash sequences of big.Int values in legacy code that hasn't migrated to felt.Felt types.
+- Create commitments to ordered arrays without including the length in the hash.
+- Use in backwards-compatible code where big.Int types are required for interoperability.
+- For modern Starknet development, prefer [PedersenArray](./pedersen-array) which works with felt.Felt types.
+

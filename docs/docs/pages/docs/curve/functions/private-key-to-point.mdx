@@ -1,6 +1,6 @@
 # PrivateKeyToPoint
 
-Generates a public key point from a private key.
+Generates a public key point from a private key. This function performs scalar multiplication on the Stark curve's base point to derive the corresponding public key coordinates.
 
 ## Function Signature
 
@@ -8,15 +8,47 @@ Generates a public key point from a private key.
 func PrivateKeyToPoint(privKey *big.Int) (x, y *big.Int)
 ```
 
-## Expected Output
+**Source:** [curve.go:L152-L168](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L152-L168)
 
+## Parameters
+
+- `privKey` (*big.Int): The private key
+
+## Returns
+
+- `x` (*big.Int): The x-coordinate of the point on the curve
+- `y` (*big.Int): The y-coordinate of the point on the curve
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/big"
+
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Known private key
+	privKey := big.NewInt(1234567890123456789)
+
+	// Derive public key
+	x, y := curve.PrivateKeyToPoint(privKey)
+
+	fmt.Println("PrivateKeyToPoint:")
+	fmt.Printf("  Private Key: 0x%x\n", privKey)
+	fmt.Printf("  Public Key X: 0x%x\n", x)
+	fmt.Printf("  Public Key Y: 0x%x\n", y)
+}
 ```
-PrivateKeyToPoint:
-  Private Key: 1234567890123456789
-  Public Key X: 0x3e26432f173ab6eff34b2c5d14c468502d8970275eefe5ed33699f86b50b8b5
-  Public Key Y: 0x29f028e4c2e373bee233aaaff3050a03168bdce3720877e1514c8f6435ec6ad
-```
 
-## Related Functions
+## Common Use Cases
 
-- [GetRandomKeys](/docs/curve/functions/get-random-keys)
+- Derive public keys from known private keys when loading existing accounts or wallets.
+- Compute the Starknet account address from a stored private key by extracting the X coordinate.
+- Verify that a private key corresponds to an expected public key during authentication flows.
+- Use in key recovery scenarios where you need to reconstruct the public key from backed-up private keys.
+

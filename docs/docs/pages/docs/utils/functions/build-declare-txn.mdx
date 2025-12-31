@@ -12,6 +12,8 @@ func BuildDeclareTxn(
 ) (*rpc.DeclareTxnV2, error)
 ```
 
+**Source:** [transactions.go:L137-L144](https://github.com/NethermindEth/starknet.go/blob/main/utils/transactions.go#L137-L144)
+
 ## Parameters
 
 - `contractClass` (*contracts.ContractClass): Sierra contract class definition
@@ -22,10 +24,6 @@ func BuildDeclareTxn(
 
 - `*rpc.DeclareTxnV2`: Fully constructed declare transaction V2
 - `error`: Error if build fails
-
-## Description
-
-BuildDeclareTxn creates a declare transaction for registering a new contract class on Starknet. It requires both the Sierra class (high-level) and the compiled CASM class hash (low-level executable).
 
 ## Usage Example
 
@@ -96,17 +94,14 @@ upgradeCall := rpc.FunctionCall{
 }
 ```
 
-## Notes
+:::tip
 
 - Both Sierra and CASM classes are required for declaration
 - The compiled class hash must match the provided CASM class
 - Class hash is calculated automatically from the Sierra class
 - After declaration, use the class hash to deploy contract instances
 - Declare V2 is the current standard (includes compiled class hash)
+:::
+## See Also
 
-## Related Functions
-
-- [hash.ClassHash](/docs/hash/functions/class-hash) - Calculate Sierra class hash
-- [hash.CompiledClassHash](/docs/hash/functions/compiled-class-hash) - Calculate CASM class hash
-- [contracts.UnmarshalCasmClass](/docs/contracts/functions/unmarshal-casm-class) - Load CASM class
-- [BuildInvokeTxn](/docs/utils/functions/build-invoke-txn) - Build invoke transactions
+- [Transaction Construction](/docs/utils/examples#transaction-construction) includes declare transaction examples

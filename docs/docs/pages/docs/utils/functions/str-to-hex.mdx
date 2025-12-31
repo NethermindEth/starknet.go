@@ -8,6 +8,8 @@ Converts a string to its hexadecimal representation.
 func StrToHex(str string) string
 ```
 
+**Source:** [keccak.go:L48-L50](https://github.com/NethermindEth/starknet.go/blob/main/utils/keccak.go#L48-L50)
+
 ## Parameters
 
 - `str` (string): ASCII string to convert
@@ -15,10 +17,6 @@ func StrToHex(str string) string
 ## Returns
 
 - `string`: Hexadecimal string with "0x" prefix
-
-## Description
-
-Encodes an ASCII string into hexadecimal format. Useful for preparing short strings to store in Starknet contracts.
 
 ## Usage Example
 
@@ -51,10 +49,11 @@ func main() {
 
 ## Use Cases
 
-- Encoding contract names
-- Preparing token symbols
-- Converting short strings for contract calls
+- Encoding contract names.
+- Preparing token symbols.
+- Converting short strings for contract calls.
 
-## Related Functions
+## See Also
 
-- [HexToShortStr](/docs/utils/functions/hex-to-short-str)
+- [Type Conversions](/docs/utils/examples#type-conversions-comprehensive-example) shows string encoding patterns
+

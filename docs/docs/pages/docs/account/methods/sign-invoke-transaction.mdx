@@ -1,6 +1,6 @@
 # SignInvokeTransaction
 
-Signs an invoke transaction.
+Signs an invoke transaction using the account's private key. This method computes the transaction hash based on the invoke version, signs it, and attaches the signature to the transaction, making it ready for broadcasting. Supports V0, V1, and V3 invoke transactions.
 
 ## Method Signature
 
@@ -10,6 +10,8 @@ func (account *Account) SignInvokeTransaction(
 	invokeTx rpc.InvokeTxnType,
 ) error
 ```
+
+**Source:** [signature.go:L36-L75](https://github.com/NethermindEth/starknet.go/blob/main/account/signature.go#L36-L75)
 
 ## Parameters
 
@@ -22,8 +24,6 @@ func (account *Account) SignInvokeTransaction(
 
 ## Usage Example
 
-> **Prerequisites**: This example assumes you have an account instance already created. To learn how to create an account, see [NewAccount](./new-account.mdx).
-
 ```go
 package main
 
@@ -31,85 +31,140 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
+	"os"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Assuming 'acc' is your Account instance
-	var acc *account.Account
-	// acc = ... (already initialized)
-
-	// Create an invoke transaction V1
-	accountAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	contractAddress, _ := new(felt.Felt).SetString("0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7")
-	entryPointSelector, _ := new(felt.Felt).SetString("0x83afd3f4caedc6eebf44246fe54e38c95e3179a5ec9ea81740eca5b482d12e")
-	recipient, _ := new(felt.Felt).SetString("0x1234567890abcdef")
-
-	invokeTx := &rpc.InvokeTxnV1{
-		Type:          rpc.TransactionTypeInvoke,
-		SenderAddress: accountAddress,
-		Nonce:         new(felt.Felt).SetUint64(0),
-		MaxFee:        new(felt.Felt).SetUint64(1000000000000),
-		Version:       rpc.TransactionV1,
-		Signature:     []*felt.Felt{}, // Empty before signing
-		Calldata: []*felt.Felt{
-			new(felt.Felt).SetUint64(1), // num calls
-			contractAddress,
-			entryPointSelector,
-			new(felt.Felt).SetUint64(3), // calldata len
-			recipient,
-			new(felt.Felt).SetUint64(100), // amount
-			new(felt.Felt).SetUint64(0),   // amount high
-		},
-	}
-
-	fmt.Printf("Before signing - Signature length: %d\n", len(invokeTx.Signature))
-
-	// Sign the transaction
 	ctx := context.Background()
-	err := acc.SignInvokeTransaction(ctx, invokeTx)
-	if err != nil {
-		log.Fatalf("Error signing transaction: %v", err)
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Failed to load .env file:", err)
 	}
 
-	fmt.Printf("After signing - Signature length: %d\n", len(invokeTx.Signature))
-	for i, sig := range invokeTx.Signature {
-		fmt.Printf("Signature[%d]: %s\n", i, sig)
+	rpcURL := os.Getenv("STARKNET_RPC_URL")
+	if rpcURL == "" {
+		log.Fatal("STARKNET_RPC_URL not set in .env file")
 	}
+
+	provider, err := rpc.NewProvider(ctx, rpcURL)
+	if err != nil {
+		log.Fatal("Failed to create provider:", err)
+	}
+
+	accountAddress := os.Getenv("ACCOUNT_ADDRESS")
+	publicKey := os.Getenv("ACCOUNT_PUBLIC_KEY")
+	privateKey := os.Getenv("ACCOUNT_PRIVATE_KEY")
+
+	if accountAddress == "" || publicKey == "" || privateKey == "" {
+		log.Fatal("ACCOUNT_ADDRESS, ACCOUNT_PUBLIC_KEY, or ACCOUNT_PRIVATE_KEY not set")
+	}
+
+	ks := account.NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(privateKey, 0)
+	if !ok {
+		log.Fatal("Failed to parse private key")
+	}
+	ks.Put(publicKey, privKeyBI)
+
+	accountAddressFelt, err := utils.HexToFelt(accountAddress)
+	if err != nil {
+		log.Fatal("Failed to parse account address:", err)
+	}
+
+	accnt, err := account.NewAccount(
+		provider,
+		accountAddressFelt,
+		publicKey,
+		ks,
+		account.CairoV2,
+	)
+	if err != nil {
+		log.Fatal("Failed to create account:", err)
+	}
+
+	nonce, err := accnt.Nonce(ctx)
+	if err != nil {
+		log.Fatal("Failed to get nonce:", err)
+	}
+
+	strkContract, _ := utils.HexToFelt("0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d")
+	recipient := accountAddressFelt
+	amount := new(felt.Felt).SetUint64(1000000000000000)
+	u256Amount, _ := utils.HexToU256Felt(amount.String())
+
+	fnCall := rpc.FunctionCall{
+		ContractAddress:    strkContract,
+		EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
+		Calldata:           append([]*felt.Felt{recipient}, u256Amount...),
+	}
+
+	calldata, err := accnt.FmtCalldata([]rpc.FunctionCall{fnCall})
+	if err != nil {
+		log.Fatal("Failed to format calldata:", err)
+	}
+
+	invokeTx := utils.BuildInvokeTxn(
+		accnt.Address,
+		nonce,
+		calldata,
+		&rpc.ResourceBoundsMapping{
+			L1Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L1DataGas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+			L2Gas: rpc.ResourceBounds{
+				MaxAmount:       "0x0",
+				MaxPricePerUnit: "0x0",
+			},
+		},
+		nil,
+	)
+
+	fmt.Printf("Sender:             %s\n", invokeTx.SenderAddress.String())
+	fmt.Printf("Nonce:              %d\n", invokeTx.Nonce.Uint64())
+	fmt.Printf("Calldata:           %d elements\n", len(invokeTx.Calldata))
+	fmt.Printf("Signature (before): %v\n\n", invokeTx.Signature)
+
+	err = accnt.SignInvokeTransaction(ctx, invokeTx)
+	if err != nil {
+		log.Fatal("Failed to sign invoke transaction:", err)
+	}
+
+	fmt.Printf("Signature components:\n")
+	fmt.Printf("  r: %s\n", invokeTx.Signature[0].String())
+	fmt.Printf("  s: %s\n", invokeTx.Signature[1].String())
 }
 ```
 
-## Expected Output
-
-```
-Before signing - Signature length: 0
-After signing - Signature length: 2
-Signature[0]: 0x5258e0774fcc97c2dc830b0119a83c301f86707fc9541941a1cda984e0ca5fb
-Signature[1]: 0x5c5e86aadb169eb8850ed2434fb6bb973051feaf17c8e9bf1421e3f97b1c8a6
-```
-
-## Description
-
-SignInvokeTransaction signs an invoke transaction by:
-1. Calculating the transaction hash using [TransactionHashInvoke](./transaction-hash-invoke)
-2. Signing the hash with the account's private key (see [Sign](./sign) for signing details)
-3. Setting the `Signature` field on the transaction with the resulting (r, s) signature components
-
-Supports V0, V1, and V3 invoke transactions.
-
-> For conceptual details about transaction signing, see [Transaction Signing Concepts](/docs/account/concepts/transaction-signing).
-
-**Note**: Typically handled automatically by [BuildAndSendInvokeTxn](./build-and-send-invoke-txn), which manages transaction creation, signing, and submission in one call.
+:::note
+Create a `.env` file in your project root and add `STARKNET_RPC_URL`, `ACCOUNT_ADDRESS`, `ACCOUNT_PUBLIC_KEY`, and `ACCOUNT_PRIVATE_KEY` variables and also install required packages like `godotenv` as you see in the usage example above.
+:::
 
 ## Error Handling
 
-Common errors include invalid transaction type, hash calculation failure, or signing failure. See [Transaction Signing Concepts - Error Handling](/docs/account/concepts/transaction-signing#error-handling) for detailed error scenarios and handling patterns.
+```go
+err := accnt.SignInvokeTransaction(ctx, invokeTx)
+if err != nil {
+	// Handle signing errors
+	return err
+}
+```
 
-## Related Methods
+## Common Use Cases
 
-- [BuildAndSendInvokeTxn](./build-and-send-invoke-txn.mdx) - High-level invoke method
-- [TransactionHashInvoke](./transaction-hash-invoke.mdx) - Calculate transaction hash
-- [Sign](./sign.mdx) - Low-level signing
+- Manual transaction building workflow with custom fee estimation logic
+- Multi-signature coordination where signatures need to be collected independently
+- Testing and debugging invoke transaction flows
+- Advanced workflows requiring fine-grained control over transaction construction
+- Inspecting transactions before sending them to the network

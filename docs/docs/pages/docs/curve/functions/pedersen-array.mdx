@@ -1,12 +1,14 @@
 # PedersenArray
 
-Computes the Pedersen hash of multiple field elements.
+Computes the Pedersen hash of multiple field elements. This function extends the two-input Pedersen hash to handle arrays of any length, making it ideal for hashing transaction data, calldata arrays, and other multi-element structures in Starknet applications.
 
 ## Function Signature
 
 ```go
 func PedersenArray(felts ...*felt.Felt) *felt.Felt
 ```
+
+**Source:** [curve.go:L270-L272](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L270-L272)
 
 ## Parameters
 
@@ -48,38 +50,10 @@ func main() {
 }
 ```
 
-## Expected Output
+## Common Use Cases
 
-```
-PedersenArray Hash:
-  Input: [0x1, 0x2, 0x3, 0x4]
-  Hash: 0x66bd4335902683054d08a0572747ea78ebd9e531536fb43125424ca9f902084
-```
+- Hash multiple transaction fields together (nonce, amount, recipient, etc.) to create transaction commitments.
+- Compute hashes of calldata arrays when invoking contract functions with multiple parameters.
+- Create commitments to arrays of data where you need to hash more than two field elements at once.
+- Use when you have a variable number of elements to hash and want a single deterministic hash output.
 
-## Use Cases
-
-### 1. Hash Transaction Data
-```go
-// Hash multiple transaction fields
-nonce := new(felt.Felt).SetUint64(1)
-amount := new(felt.Felt).SetString("0x1000")
-recipient := new(felt.Felt).SetString("0xabc...")
-txHash := curve.PedersenArray(nonce, amount, recipient)
-```
-
-### 2. Hash Calldata
-```go
-// Hash array of calldata parameters
-calldata := []*felt.Felt{
-    new(felt.Felt).SetString("0x1"),
-    new(felt.Felt).SetString("0x2"),
-    new(felt.Felt).SetString("0x3"),
-}
-calldataHash := curve.PedersenArray(calldata...)
-```
-
-## Related Functions
-
-- [Pedersen](/docs/curve/functions/pedersen) - Hash two elements
-- [PoseidonArray](/docs/curve/functions/poseidon-array) - Alternative array hash
-- [ComputeHashOnElements](/docs/curve/functions/compute-hash-on-elements) - Hash with length prefix

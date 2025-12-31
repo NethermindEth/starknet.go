@@ -1,6 +1,6 @@
 # GetYCoordinate
 
-Returns the Y-coordinate given an X-coordinate on the Stark curve.
+Returns the Y-coordinate given an X-coordinate on the Stark curve. This function solves the curve equation to derive the Y-coordinate from a known X-coordinate.
 
 ## Function Signature
 
@@ -8,14 +8,45 @@ Returns the Y-coordinate given an X-coordinate on the Stark curve.
 func GetYCoordinate(starkX *felt.Felt) *felt.Felt
 ```
 
-## Expected Output
+**Source:** [curve.go:L170-L193](https://github.com/NethermindEth/starknet.go/blob/main/curve/curve.go#L170-L193)
 
+## Parameters
+
+- `starkX` (*felt.Felt): The x-coordinate of the point
+
+## Returns
+
+- `*felt.Felt`: The y-coordinate of the point
+
+## Usage Example
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/curve"
+)
+
+func main() {
+	// Known X-coordinate
+	x, _ := new(felt.Felt).SetString("0x5f1614a304f6a40630792a4f6562eee36805f52e94f777d6a78463ae541229b")
+
+	// Derive Y-coordinate
+	y := curve.GetYCoordinate(x)
+
+	fmt.Println("GetYCoordinate:")
+	fmt.Printf("  X-Coordinate: %s\n", x.String())
+	fmt.Printf("  Y-Coordinate: %s\n", y.String())
+}
 ```
-GetYCoordinate:
-  X-Coordinate: 0x5f1614a304f6a40630792a4f6562eee36805f52e94f777d6a78463ae541229b
-  Y-Coordinate: 0x76adc9b44071323252b6f7de033fedaa502cbbe0dcf8f6c00982af5120bca74
-```
 
-## Related Functions
+## Common Use Cases
 
-- [PrivateKeyToPoint](/docs/curve/functions/private-key-to-point)
+- Reconstruct complete public key points when only the X-coordinate is available from storage or network data.
+- Verify that a given X-coordinate corresponds to a valid point on the Stark curve.
+- Use in compressed key representations where Y-coordinates are omitted to save space.
+- Complete elliptic curve operations that require both coordinates when working with Starknet addresses.
+
