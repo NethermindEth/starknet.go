@@ -20,7 +20,7 @@ func main() {
 	fmt.Println("Account address:", accnt.Address)
 
 	// This is how you can initialise a typed data from a JSON file
-	ttd, err := utils.UnmarshalJSONFileToType[typeddata.TypedData]("./baseExample.json", "")
+	ttd, err := utils.UnmarshalJSONFileToType[typeddata.TypedData]("./baseExample.json")
 	if err != nil {
 		panic(fmt.Errorf("fail to unmarshal TypedData: %w", err))
 	}
