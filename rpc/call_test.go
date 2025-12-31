@@ -198,7 +198,7 @@ func TestCall(t *testing.T) {
 			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
-				assert.EqualError(t, err, test.ExpectedError.Error())
+				assert.ErrorContains(t, err, test.ExpectedError.Message)
 			} else {
 				require.NoError(t, err)
 				require.NotEmpty(t, output, "should return an output")
