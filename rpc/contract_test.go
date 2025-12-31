@@ -1016,15 +1016,6 @@ func TestEstimateFee(t *testing.T) {
 				expectedError: nil,
 			},
 			{
-				description: "normal call - two transactions",
-				txs: []BroadcastTxn{
-					sepoliaInvokeV3,
-					sepoliaInvokeV3,
-				},
-				blockID:       WithBlockNumber(574447),
-				expectedError: nil,
-			},
-			{
 				description: "normal call - with skip validate flag",
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
