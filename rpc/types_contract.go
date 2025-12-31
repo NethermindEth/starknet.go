@@ -19,6 +19,10 @@ type NumAsHex string
 // 64 bit unsigned integers, represented by hex string of length at most 16
 type U64 string
 
+// A storage key, represented as a string of hex digits.
+// Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
+type StorageKey string
+
 // ToUint64 converts the U64 type to a uint64.
 // If the value is greater than max uint64, returns an error.
 func (u U64) ToUint64() (uint64, error) {
@@ -79,7 +83,7 @@ type StorageProofInput struct {
 
 type ContractStorageKeys struct {
 	ContractAddress *felt.Felt   `json:"contract_address"`
-	StorageKeys     []*felt.Felt `json:"storage_keys"`
+	StorageKeys     []StorageKey `json:"storage_keys"`
 }
 
 // The requested storage proofs. Note that if a requested leaf has the default

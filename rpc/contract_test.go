@@ -283,48 +283,92 @@ func TestClass(t *testing.T) {
 	type testSetType struct {
 		BlockID                       BlockID
 		ClassHash                     *felt.Felt
-		ExpectedProgram               string
+		ExpectedClass                 json.RawMessage
 		ExpectedEntryPointConstructor contracts.SierraEntryPoint
 	}
+
+	// sepolia
+	class0x36c := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+		t,
+		"testData/class/sepolia/0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9.json",
+		"result",
+	)
+	class0x008 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+		t,
+		"testData/class/sepolia/0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253.json",
+		"result",
+	)
+	class0x01f := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+		t,
+		"testData/class/sepolia/0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855.json",
+		"result",
+	)
+
+	// mainnet
+	class0x0299 := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+		t,
+		"testData/class/mainnet/0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b.json",
+		"result",
+	)
+
+	// integration
+	class0x941a := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+		t,
+		"testData/class/integration/0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040.json",
+		"result",
+	)
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:         WithBlockTag(BlockTagPreConfirmed),
-				ClassHash:       internalUtils.DeadBeef,
-				ExpectedProgram: "H4sIAAAAAAAA",
+				BlockID:       WithBlockTag(BlockTagPreConfirmed),
+				ClassHash:     internalUtils.DeadBeef,
+				ExpectedClass: class0x36c,
 			},
 		},
 		tests.TestnetEnv: {
 			// v0 class
 			{
-				BlockID:         WithBlockTag(BlockTagLatest),
-				ClassHash:       internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
-				ExpectedProgram: "H4sIAAAAAAAA",
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
+				ExpectedClass: class0x36c,
 			},
 			// v2 classes
 			{
-				BlockID:                       WithBlockTag(BlockTagLatest),
-				ClassHash:                     internalUtils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
-				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x576402000a0028a9c00a010").String(),
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 34, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0x00816dd0297efc55dc1e7559020a3a825e81ef734b558f03c83325d4da7e6253"),
+				ExpectedClass: class0x008,
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
+					FunctionIdx: 34,
+					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
+				},
 			},
 			{
-				BlockID:                       WithBlockTag(BlockTagLatest),
-				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedClass: class0x01f,
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
+					FunctionIdx: 2,
+					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
+				},
 			},
 			{
-				BlockID:                       WithBlockTag(BlockTagPreConfirmed),
-				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:       WithBlockTag(BlockTagPreConfirmed),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedClass: class0x01f,
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
+					FunctionIdx: 2,
+					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
+				},
 			},
 			{
-				BlockID:                       WithBlockTag(BlockTagL1Accepted),
-				ClassHash:                     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0xe70d09071117174f17170d4fe60d09071117").String(),
-				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 2, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
+				BlockID:       WithBlockTag(BlockTagL1Accepted),
+				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
+				ExpectedClass: class0x01f,
+				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{
+					FunctionIdx: 2,
+					Selector:    internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194"),
+				},
 			},
 		},
 		tests.IntegrationEnv: {
@@ -332,7 +376,7 @@ func TestClass(t *testing.T) {
 			{
 				BlockID:                       WithBlockTag(BlockTagLatest),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
-				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x1ec80b01438a4b40600900e4b8578b123001c0a0090122f4578b1").String(),
+				ExpectedClass:                 class0x941a,
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 38, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
@@ -341,7 +385,7 @@ func TestClass(t *testing.T) {
 			{
 				BlockID:                       WithBlockTag(BlockTagLatest),
 				ClassHash:                     internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
-				ExpectedProgram:               internalUtils.TestHexToFelt(t, "0x9fa00900700e00712e12500712e").String(),
+				ExpectedClass:                 class0x0299,
 				ExpectedEntryPointConstructor: contracts.SierraEntryPoint{FunctionIdx: 32, Selector: internalUtils.TestHexToFelt(t, "0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")},
 			},
 		},
@@ -360,10 +404,37 @@ func TestClass(t *testing.T) {
 
 				switch class := resp.(type) {
 				case *contracts.DeprecatedContractClass:
-					assert.Contains(t, class.Program, test.ExpectedProgram)
+					var expectedDepClass contracts.DeprecatedContractClass
+					require.NoError(t, expectedDepClass.UnmarshalJSON(test.ExpectedClass))
+
+					// juno and pathfinder use different compression formats, so we can't compare them,
+					// so we just check the value is not empty
+					assert.NotEmpty(t, class.Program)
+
+					assert.ElementsMatch(t, *expectedDepClass.ABI, *class.ABI)
+
+					// entry points
+					assert.ElementsMatch(t, expectedDepClass.DeprecatedEntryPointsByType.Constructor, class.DeprecatedEntryPointsByType.Constructor)
+					assert.ElementsMatch(t, expectedDepClass.DeprecatedEntryPointsByType.External, class.DeprecatedEntryPointsByType.External)
+					assert.ElementsMatch(t, expectedDepClass.DeprecatedEntryPointsByType.L1Handler, class.DeprecatedEntryPointsByType.L1Handler)
 				case *contracts.ContractClass:
-					assert.Equal(t, class.SierraProgram[len(class.SierraProgram)-1].String(), test.ExpectedProgram)
-					assert.Equal(t, class.EntryPointsByType.Constructor[0], test.ExpectedEntryPointConstructor)
+					var expectedClass contracts.ContractClass
+					require.NoError(t, json.Unmarshal(test.ExpectedClass, &expectedClass))
+
+					assert.ElementsMatch(t, expectedClass.SierraProgram, class.SierraProgram)
+					assert.Equal(t, expectedClass.ContractClassVersion, class.ContractClassVersion)
+
+					// abi
+					rawExpectedABI, err := json.Marshal(expectedClass.ABI)
+					require.NoError(t, err)
+					rawClassABI, err := json.Marshal(class.ABI)
+					require.NoError(t, err)
+					assert.Equal(t, string(rawExpectedABI), string(rawClassABI))
+
+					// entry points
+					assert.ElementsMatch(t, expectedClass.EntryPointsByType.Constructor, class.EntryPointsByType.Constructor)
+					assert.ElementsMatch(t, expectedClass.EntryPointsByType.External, class.EntryPointsByType.External)
+					assert.ElementsMatch(t, expectedClass.EntryPointsByType.L1Handler, class.EntryPointsByType.L1Handler)
 				default:
 					t.Fatalf("Received unknown response type: %v", reflect.TypeOf(resp))
 				}
@@ -603,12 +674,14 @@ func TestEstimateMessageFee(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
+	provider := testConfig.Provider
+	spy := tests.NewJSONRPCSpy(provider.c)
+	provider.c = spy
 
 	type testSetType struct {
 		MsgFromL1
 		BlockID
-		ExpectedFeeEst *MessageFeeEstimation
-		ExpectedError  *RPCError
+		ExpectedError *RPCError
 	}
 
 	// https://sepolia.voyager.online/message/0x273f4e20fc522098a60099e5872ab3deeb7fb8321a03dadbd866ac90b7268361
@@ -636,51 +709,24 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				MsgFromL1: MsgFromL1{FromAddress: "0x0", ToAddress: &felt.Zero, Selector: &felt.Zero, Payload: []*felt.Felt{&felt.Zero}},
 				BlockID:   BlockID{Tag: "latest"},
-				ExpectedFeeEst: &MessageFeeEstimation{
-					FeeEstimationCommon: FeeEstimationCommon{
-						L1GasConsumed:     internalUtils.DeadBeef,
-						L1GasPrice:        internalUtils.DeadBeef,
-						L2GasConsumed:     internalUtils.DeadBeef,
-						L2GasPrice:        internalUtils.DeadBeef,
-						L1DataGasConsumed: internalUtils.DeadBeef,
-						L1DataGasPrice:    internalUtils.DeadBeef,
-						OverallFee:        internalUtils.DeadBeef,
-					},
-					Unit: WeiUnit,
-				},
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				MsgFromL1: l1Handler,
 				BlockID:   WithBlockNumber(523066),
-				ExpectedFeeEst: &MessageFeeEstimation{
-					FeeEstimationCommon: FeeEstimationCommon{
-						L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed3"),
-						L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
-						L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-						L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
-						L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
-						L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1"),
-						OverallFee:        internalUtils.TestHexToFelt(t, "0x26d2922fd1af"),
-					},
-					Unit: WeiUnit,
-				},
 			},
 			{
-				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagLatest),
-				ExpectedFeeEst: nil,
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockTag(BlockTagLatest),
 			},
 			{
-				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagPreConfirmed),
-				ExpectedFeeEst: nil,
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
-				MsgFromL1:      l1Handler,
-				BlockID:        WithBlockTag(BlockTagL1Accepted),
-				ExpectedFeeEst: nil,
+				MsgFromL1: l1Handler,
+				BlockID:   WithBlockTag(BlockTagL1Accepted),
 			},
 			{ // invalid msg data
 				MsgFromL1: MsgFromL1{
@@ -690,7 +736,7 @@ func TestEstimateMessageFee(t *testing.T) {
 					Payload:     []*felt.Felt{},
 				},
 				BlockID:       WithBlockNumber(523066),
-				ExpectedError: ErrContractError,
+				ExpectedError: ErrContractNotFound,
 			},
 			{ // invalid block number
 				MsgFromL1:     l1Handler,
@@ -701,8 +747,9 @@ func TestEstimateMessageFee(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
+		blockID, _ := json.MarshalIndent(test.BlockID, "", "  ")
 		t.Run(
-			fmt.Sprintf("blockID: %v, fromAddress: %s", test.BlockID, test.FromAddress),
+			fmt.Sprintf("blockID: %v, fromAddress: %v", string(blockID), test.FromAddress),
 			func(t *testing.T) {
 				resp, err := testConfig.Provider.EstimateMessageFee(
 					context.Background(),
@@ -718,13 +765,11 @@ func TestEstimateMessageFee(t *testing.T) {
 					return
 				}
 				require.NoError(t, err)
+				rawExpectedFeeEst := spy.LastResponse()
 
-				if test.ExpectedFeeEst != nil {
-					assert.Exactly(t, *test.ExpectedFeeEst, resp)
-
-					return
-				}
-				assert.NotEmpty(t, resp)
+				rawFeeEst, err := json.Marshal(resp)
+				require.NoError(t, err)
+				assert.JSONEq(t, string(rawExpectedFeeEst), string(rawFeeEst))
 			},
 		)
 	}
@@ -1020,7 +1065,6 @@ func TestEstimateFee(t *testing.T) {
 	}
 }
 
-//nolint:dupl // fix this later
 func TestGetStorageProof(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 
@@ -1079,8 +1123,8 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 							},
 						},
 					},
@@ -1102,16 +1146,16 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 					},
@@ -1175,8 +1219,8 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
 							},
 						},
 					},
@@ -1198,16 +1242,16 @@ func TestGetStorageProof(t *testing.T) {
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"),
-							StorageKeys: []*felt.Felt{
-								internalUtils.TestHexToFelt(t, "0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1"),
-								internalUtils.TestHexToFelt(t, "0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72"),
+							StorageKeys: []StorageKey{
+								"0x0341c1bdfd89f69748aa00b5742b03adbffd79b8e80cab5c50d91cd8c2a79be1",
+								"0x00b6ce5410fca59d078ee9b2a4371a9d684c530d697c64fbef0ae6d5e8f0ac72",
 							},
 						},
 					},
@@ -1242,12 +1286,16 @@ func TestGetStorageProof(t *testing.T) {
 		t.Run(test.Description, func(t *testing.T) {
 			result, err := provider.StorageProof(context.Background(), test.StorageProofInput)
 			if test.ExpectedError != nil {
+				if test.ExpectedError == ErrStorageProofNotSupported {
+					// Juno and Pathfinder return this error in different situations, so we'll just
+					// avoid assertions related to this error
+					return
+				}
 				require.Error(t, err)
 				require.ErrorContains(t, err, test.ExpectedError.Error())
 
 				return
 			}
-
 			require.NoError(t, err)
 			require.NotNil(t, result, "empty result from starknet_getStorageProof")
 

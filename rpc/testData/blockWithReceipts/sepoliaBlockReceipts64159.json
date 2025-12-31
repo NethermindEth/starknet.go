@@ -19,9 +19,16 @@
 		"l1_da_mode": "BLOB",
 		"starknet_version": "0.13.1.1",
 		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
+			"price_in_fri": "0x1",
+			"price_in_wei": "0x1"
 		},
+		"transaction_commitment": "0x32c9c92d85728bfad75b5fbecb728e2868ad7e33c5bbafc0ef8a6ae5ef0e338",
+		"event_commitment": "0x39df7627f0b0aa785cc0757a44d7729cbba60487672886387ec194e523e3aae",
+		"receipt_commitment": "0x0",
+		"state_diff_commitment": "0x0",
+		"event_count": 638,
+		"transaction_count": 21,
+		"state_diff_length": 159,
 		"transactions": [
 			{
 				"transaction": {
