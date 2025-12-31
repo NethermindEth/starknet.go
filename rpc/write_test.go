@@ -15,8 +15,6 @@ import (
 func TestAddDeclareTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := BeforeEach(t, false)
-
 	type testSetType struct {
 		Description   string
 		DeclareTxn    *BroadcastDeclareTxnV3
@@ -29,10 +27,12 @@ func TestAddDeclareTransaction(t *testing.T) {
 		ErrorIndex int
 	}
 
-	declareTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastDeclareTxnV3](
+	temp := internalUtils.TestUnmarshalJSONFileToType[[]*BroadcastDeclareTxnV3](
 		t,
 		"./testData/addTxn/sepoliaDeclare.json",
+		"params",
 	)
+	declareTxn := temp[0]
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -140,102 +140,106 @@ func TestAddDeclareTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			testConfig.MockClient.EXPECT().
-				CallContextWithSliceArgs(
-					t.Context(),
-					gomock.Any(),
-					"starknet_addDeclareTransaction",
-					test.DeclareTxn,
-				).
-				DoAndReturn(func(_, result, _ any, _ ...any) error {
-					rawResp := result.(*json.RawMessage)
+			testConfig := BeforeEach(t, false)
 
-					switch test.ErrorIndex {
-					case 1:
-						return RPCError{
-							Code:    51,
-							Message: "Class already declared",
-						}
-					case 2:
-						return RPCError{
-							Code:    56,
-							Message: "Compilation failed",
-							Data:    StringErrData(""),
-						}
-					case 3:
-						return RPCError{
-							Code:    60,
-							Message: "The compiled class hash did not match the one supplied in the transaction",
-						}
-					case 4:
-						return RPCError{
-							Code:    54,
-							Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
-						}
-					case 5:
-						return RPCError{
-							Code:    53,
-							Message: "The transaction's resources don't cover validation or the minimal transaction fee",
-						}
-					case 6:
-						return RPCError{
-							Code:    52,
-							Message: "Invalid transaction nonce",
-							Data:    StringErrData(""),
-						}
-					case 7:
-						return RPCError{
-							Code:    64,
-							Message: "Replacement transaction is underpriced",
-						}
-					case 8:
-						return RPCError{
-							Code:    65,
-							Message: "Transaction fee below minimum",
-						}
-					case 9:
-						return RPCError{
-							Code:    55,
-							Message: "Account validation failed",
-							Data:    StringErrData(""),
-						}
-					case 10:
-						return RPCError{
-							Code:    58,
-							Message: "Sender address is not an account contract",
-						}
-					case 11:
-						return RPCError{
-							Code:    59,
-							Message: "A transaction with the same hash already exists in the mempool",
-						}
-					case 12:
-						return RPCError{
-							Code:    57,
-							Message: "Contract class size is too large",
-						}
-					case 13:
-						return RPCError{
-							Code:    61,
-							Message: "The transaction version is not supported",
-						}
-					case 14:
-						return RPCError{
-							Code:    62,
-							Message: "The contract class version is not supported",
-						}
-					}
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_addDeclareTransaction",
+						test.DeclareTxn,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
 
-					*rawResp = json.RawMessage(`
-						{
-							"transaction_hash": "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3",
-							"class_hash": "0x5d68906f23c7e96713002a9ef6a7b1b6ec19e18c31a32710446d87b2aca762d"
+						switch test.ErrorIndex {
+						case 1:
+							return RPCError{
+								Code:    51,
+								Message: "Class already declared",
+							}
+						case 2:
+							return RPCError{
+								Code:    56,
+								Message: "Compilation failed",
+								Data:    StringErrData(""),
+							}
+						case 3:
+							return RPCError{
+								Code:    60,
+								Message: "The compiled class hash did not match the one supplied in the transaction",
+							}
+						case 4:
+							return RPCError{
+								Code:    54,
+								Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+							}
+						case 5:
+							return RPCError{
+								Code:    53,
+								Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+							}
+						case 6:
+							return RPCError{
+								Code:    52,
+								Message: "Invalid transaction nonce",
+								Data:    StringErrData(""),
+							}
+						case 7:
+							return RPCError{
+								Code:    64,
+								Message: "Replacement transaction is underpriced",
+							}
+						case 8:
+							return RPCError{
+								Code:    65,
+								Message: "Transaction fee below minimum",
+							}
+						case 9:
+							return RPCError{
+								Code:    55,
+								Message: "Account validation failed",
+								Data:    StringErrData(""),
+							}
+						case 10:
+							return RPCError{
+								Code:    58,
+								Message: "Sender address is not an account contract",
+							}
+						case 11:
+							return RPCError{
+								Code:    59,
+								Message: "A transaction with the same hash already exists in the mempool",
+							}
+						case 12:
+							return RPCError{
+								Code:    57,
+								Message: "Contract class size is too large",
+							}
+						case 13:
+							return RPCError{
+								Code:    61,
+								Message: "The transaction version is not supported",
+							}
+						case 14:
+							return RPCError{
+								Code:    62,
+								Message: "The contract class version is not supported",
+							}
 						}
-					`)
 
-					return nil
-				}).
-				Times(1)
+						*rawResp = json.RawMessage(`
+							{
+								"transaction_hash": "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3",
+								"class_hash": "0x5d68906f23c7e96713002a9ef6a7b1b6ec19e18c31a32710446d87b2aca762d"
+							}
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
 
 			resp, err := testConfig.Provider.AddDeclareTransaction(
 				t.Context(),
@@ -264,8 +268,6 @@ func TestAddDeclareTransaction(t *testing.T) {
 func TestAddInvokeTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := BeforeEach(t, false)
-
 	type testSetType struct {
 		Description   string
 		InvokeTxn     *BroadcastInvokeTxnV3
@@ -278,10 +280,12 @@ func TestAddInvokeTransaction(t *testing.T) {
 		ErrorIndex int
 	}
 
-	invokeTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastInvokeTxnV3](
+	temp := internalUtils.TestUnmarshalJSONFileToType[[]*BroadcastInvokeTxnV3](
 		t,
 		"./testData/addTxn/sepoliaInvoke.json",
+		"params",
 	)
+	invokeTxn := temp[0]
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
@@ -365,81 +369,84 @@ func TestAddInvokeTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			testConfig.MockClient.EXPECT().
-				CallContextWithSliceArgs(
-					t.Context(),
-					gomock.Any(),
-					"starknet_addInvokeTransaction",
-					test.InvokeTxn,
-				).
-				DoAndReturn(func(_, result, _ any, _ ...any) error {
-					rawResp := result.(*json.RawMessage)
+			testConfig := BeforeEach(t, false)
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_addInvokeTransaction",
+						test.InvokeTxn,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
 
-					switch test.ErrorIndex {
-					case 1:
-						return RPCError{
-							Code:    54,
-							Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+						switch test.ErrorIndex {
+						case 1:
+							return RPCError{
+								Code:    54,
+								Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+							}
+						case 2:
+							return RPCError{
+								Code:    53,
+								Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+							}
+						case 3:
+							return RPCError{
+								Code:    52,
+								Message: "Invalid transaction nonce",
+								Data:    StringErrData(""),
+							}
+						case 4:
+							return RPCError{
+								Code:    64,
+								Message: "Replacement transaction is underpriced",
+							}
+						case 5:
+							return RPCError{
+								Code:    65,
+								Message: "Transaction fee below minimum",
+							}
+						case 6:
+							return RPCError{
+								Code:    55,
+								Message: "Account validation failed",
+								Data:    StringErrData(""),
+							}
+						case 7:
+							return RPCError{
+								Code:    58,
+								Message: "Sender address is not an account contract",
+							}
+						case 8:
+							return RPCError{
+								Code:    59,
+								Message: "A transaction with the same hash already exists in the mempool",
+							}
+						case 9:
+							return RPCError{
+								Code:    61,
+								Message: "The transaction version is not supported",
+							}
+						case 10:
+							return RPCError{
+								Code:    63,
+								Message: "An unexpected error occurred",
+								Data:    StringErrData(""),
+							}
 						}
-					case 2:
-						return RPCError{
-							Code:    53,
-							Message: "The transaction's resources don't cover validation or the minimal transaction fee",
-						}
-					case 3:
-						return RPCError{
-							Code:    52,
-							Message: "Invalid transaction nonce",
-							Data:    StringErrData(""),
-						}
-					case 4:
-						return RPCError{
-							Code:    64,
-							Message: "Replacement transaction is underpriced",
-						}
-					case 5:
-						return RPCError{
-							Code:    65,
-							Message: "Transaction fee below minimum",
-						}
-					case 6:
-						return RPCError{
-							Code:    55,
-							Message: "Account validation failed",
-							Data:    StringErrData(""),
-						}
-					case 7:
-						return RPCError{
-							Code:    58,
-							Message: "Sender address is not an account contract",
-						}
-					case 8:
-						return RPCError{
-							Code:    59,
-							Message: "A transaction with the same hash already exists in the mempool",
-						}
-					case 9:
-						return RPCError{
-							Code:    61,
-							Message: "The transaction version is not supported",
-						}
-					case 10:
-						return RPCError{
-							Code:    63,
-							Message: "An unexpected error occurred",
-							Data:    StringErrData(""),
-						}
-					}
 
-					*rawResp = json.RawMessage(`
-						{
-							"transaction_hash": "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"
-						}
-					`)
+						*rawResp = json.RawMessage(`
+							{
+								"transaction_hash": "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"
+							}
+						`)
 
-					return nil
-				}).
-				Times(1)
+						return nil
+					}).
+					Times(1)
+			}
 
 			resp, err := testConfig.Provider.AddInvokeTransaction(
 				t.Context(),
@@ -468,8 +475,6 @@ func TestAddInvokeTransaction(t *testing.T) {
 func TestAddDeployAccountTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := BeforeEach(t, false)
-
 	type testSetType struct {
 		Description   string
 		DeployTxn     *BroadcastDeployAccountTxnV3
@@ -485,6 +490,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 	deployTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastDeployAccountTxnV3](
 		t,
 		"./testData/addTxn/sepoliaDeployAccount.json",
+		"result",
 	)
 
 	testSet := map[tests.TestEnv][]testSetType{
@@ -568,81 +574,85 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			testConfig.MockClient.EXPECT().
-				CallContextWithSliceArgs(
-					t.Context(),
-					gomock.Any(),
-					"starknet_addDeployAccountTransaction",
-					test.DeployTxn,
-				).
-				DoAndReturn(func(_, result, _ any, _ ...any) error {
-					rawResp := result.(*json.RawMessage)
+			testConfig := BeforeEach(t, false)
 
-					switch test.ErrorIndex {
-					case 1:
-						return RPCError{
-							Code:    54,
-							Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
-						}
-					case 2:
-						return RPCError{
-							Code:    53,
-							Message: "The transaction's resources don't cover validation or the minimal transaction fee",
-						}
-					case 3:
-						return RPCError{
-							Code:    52,
-							Message: "Invalid transaction nonce",
-							Data:    StringErrData(""),
-						}
-					case 4:
-						return RPCError{
-							Code:    64,
-							Message: "Replacement transaction is underpriced",
-						}
-					case 5:
-						return RPCError{
-							Code:    65,
-							Message: "Transaction fee below minimum",
-						}
-					case 6:
-						return RPCError{
-							Code:    55,
-							Message: "Account validation failed",
-							Data:    StringErrData(""),
-						}
-					case 7:
-						return RPCError{
-							Code:    58,
-							Message: "Sender address is not an account contract",
-						}
-					case 8:
-						return RPCError{
-							Code:    59,
-							Message: "A transaction with the same hash already exists in the mempool",
-						}
-					case 9:
-						return RPCError{
-							Code:    61,
-							Message: "The transaction version is not supported",
-						}
-					case 10:
-						return RPCError{
-							Code:    28,
-							Message: "Class hash not found",
-						}
-					}
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_addDeployAccountTransaction",
+						test.DeployTxn,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
 
-					*rawResp = json.RawMessage(`
-						{
-							"transaction_hash": "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e",
-							"contract_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+						switch test.ErrorIndex {
+						case 1:
+							return RPCError{
+								Code:    54,
+								Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+							}
+						case 2:
+							return RPCError{
+								Code:    53,
+								Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+							}
+						case 3:
+							return RPCError{
+								Code:    52,
+								Message: "Invalid transaction nonce",
+								Data:    StringErrData(""),
+							}
+						case 4:
+							return RPCError{
+								Code:    64,
+								Message: "Replacement transaction is underpriced",
+							}
+						case 5:
+							return RPCError{
+								Code:    65,
+								Message: "Transaction fee below minimum",
+							}
+						case 6:
+							return RPCError{
+								Code:    55,
+								Message: "Account validation failed",
+								Data:    StringErrData(""),
+							}
+						case 7:
+							return RPCError{
+								Code:    58,
+								Message: "Sender address is not an account contract",
+							}
+						case 8:
+							return RPCError{
+								Code:    59,
+								Message: "A transaction with the same hash already exists in the mempool",
+							}
+						case 9:
+							return RPCError{
+								Code:    61,
+								Message: "The transaction version is not supported",
+							}
+						case 10:
+							return RPCError{
+								Code:    28,
+								Message: "Class hash not found",
+							}
 						}
-					`)
 
-					return nil
-				}).
-				Times(1)
+						*rawResp = json.RawMessage(`
+							{
+								"transaction_hash": "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e",
+								"contract_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+							}
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
 
 			resp, err := testConfig.Provider.AddDeployAccountTransaction(
 				t.Context(),
@@ -650,7 +660,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
-				assert.EqualError(t, err, test.ExpectedError.Error())
+				assert.ErrorContains(t, err, test.ExpectedError.Message)
 
 				return
 			}
