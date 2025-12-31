@@ -1013,11 +1013,11 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		)
 		t.Parallel()
 
-		tsetup := BeforeEach(t, true)
-
 		// getting a random new PRE_CONFIRMED transaction
+		tempSetup := BeforeEach(t, true) // to avoid race condition (BeforeEach
+		// must be called once per subscription)
 		txns := make(chan *TxnWithHashAndStatus)
-		sub, err := tsetup.WsProvider.SubscribeNewTransactions(
+		sub, err := tempSetup.WsProvider.SubscribeNewTransactions(
 			t.Context(),
 			txns,
 			&SubNewTxnsInput{
@@ -1029,6 +1029,8 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 		txn := <-txns
 		require.NotNil(t, txn)
+
+		tsetup := BeforeEach(t, true)
 
 		status := make(chan *NewTxnStatus)
 		sub2, err := tsetup.WsProvider.SubscribeTransactionStatus(
