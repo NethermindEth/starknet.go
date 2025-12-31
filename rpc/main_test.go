@@ -90,7 +90,7 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		testConfig.Provider.c.Close()
 	})
 
-	if tests.TEST_ENV == tests.DevnetEnv || tests.TEST_ENV == tests.MainnetEnv {
+	if tests.TEST_ENV == tests.DevnetEnv {
 		return testConfig
 	}
 
