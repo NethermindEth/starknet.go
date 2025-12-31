@@ -100,6 +100,8 @@ func (s *WSSpy) Subscribe(
 
 	sub, err := s.wsConn.Subscribe(ctx, namespace, methodSuffix, mainCh, args)
 	if err != nil {
+		close(mainCh)
+
 		return nil, err
 	}
 
@@ -132,6 +134,8 @@ func (s *WSSpy) SubscribeWithSliceArgs(
 
 	sub, err := s.wsConn.SubscribeWithSliceArgs(ctx, namespace, methodSuffix, mainCh, args...)
 	if err != nil {
+		close(mainCh)
+
 		return nil, err
 	}
 
@@ -166,7 +170,11 @@ func listenAndForward(
 		select {
 		case <-ctx.Done():
 			return
-		case rawMsg := <-mainCh:
+		case rawMsg, ok := <-mainCh:
+			if !ok {
+				return
+			}
+
 			if *debug {
 				fmt.Printf("### Spy Debug mode: msg received\n")
 				PrettyPrint(rawMsg)
