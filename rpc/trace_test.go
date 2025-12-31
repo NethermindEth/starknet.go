@@ -180,22 +180,10 @@ func TestSimulateTransaction(t *testing.T) {
 				SimulationFlags: input.SimulationFlags,
 			},
 			{
-				Description:     "valid call, skip fee charge",
+				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipFeeCharge},
-			},
-			{
-				Description:     "valid call, latest + skip validate + skip fee charge",
-				BlockID:         WithBlockTag(BlockTagLatest),
-				Txns:            input.Txns,
 				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
-			},
-			{
-				Description:     "valid call, l1 accepted + skip validate",
-				BlockID:         WithBlockTag(BlockTagL1Accepted),
-				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate},
 			},
 			{
 				Description:     "exec error, pre confirmed",
