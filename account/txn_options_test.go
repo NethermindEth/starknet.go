@@ -11,7 +11,7 @@ import (
 // TestTxnOptions tests the methods of the TxnOptions struct,
 // verifying that default values are set correctly and edge cases are handled properly
 //
-//nolint:dupl // The tests are similar, but with different field names.
+
 func TestTxnOptions(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()

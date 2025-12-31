@@ -1,0 +1,21 @@
+{
+	"jsonrpc": "2.0",
+	"error": {
+		"code": 40,
+		"message": "Contract error",
+		"data": {
+			"revert_error": {
+				"class_hash": "0x358663e6ed9d37efd33d4661e20b2bad143e0f92076b0c91fe65f31ccf55046",
+				"contract_address": "0x4c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f",
+				"error": {
+					"class_hash": "0x358663e6ed9d37efd33d4661e20b2bad143e0f92076b0c91fe65f31ccf55046",
+					"contract_address": "0x4c5772d1914fe6ce891b64eb35bf3522aeae1315647314aac58b01137607f3f",
+					"error": "0x4661696c656420746f20646573657269616c697a6520706172616d202332 ('Failed to deserialize param #2')",
+					"selector": "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"
+				},
+				"selector": "0x1b64b1b3b690b43b9b514fb81377518f4039cd3e4f4914d8a6bdf01d679fb19"
+			}
+		}
+	},
+	"id": 1
+}

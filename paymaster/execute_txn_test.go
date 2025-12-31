@@ -203,7 +203,11 @@ func TestExecuteTransaction(t *testing.T) {
 			}
 
 			t.Log("asserting the request marshalled is equal to the expected request")
-			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/execute_txn/deploy-request.json", "params")
+			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](
+				t,
+				"testdata/execute_txn/deploy-request.json",
+				"params",
+			)
 			expectedReq := expectedReqs[0]
 
 			rawReq, err := json.Marshal(request)
@@ -212,7 +216,11 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedReq), string(rawReq))
 
 			t.Log("asserting the response marshalled is equal to the expected response")
-			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/execute_txn/response.json", "result")
+			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				t,
+				"testdata/execute_txn/response.json",
+				"result",
+			)
 
 			var response ExecuteTransactionResponse
 			err = json.Unmarshal(expectedResp, &response)
@@ -236,13 +244,16 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
-		//nolint:dupl // A function just to wrap the test body is overkill
 		t.Run("execute invoke transaction", func(t *testing.T) {
 			t.Parallel()
 			t.Log("building invoke request")
 
 			t.Log("asserting the request marshalled is equal to the expected request")
-			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/execute_txn/invoke-request.json", "params")
+			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](
+				t,
+				"testdata/execute_txn/invoke-request.json",
+				"params",
+			)
 			expectedReq := expectedReqs[0]
 
 			// since the invoke request is more complex, let's take it from the file
@@ -257,7 +268,11 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedReq), string(rawReq))
 
 			t.Log("asserting the response marshalled is equal to the expected response")
-			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/execute_txn/response.json", "result")
+			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				t,
+				"testdata/execute_txn/response.json",
+				"result",
+			)
 
 			var response ExecuteTransactionResponse
 			err = json.Unmarshal(expectedResp, &response)
@@ -282,13 +297,16 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedResp), string(rawResp))
 		})
 
-		//nolint:dupl // A function just to wrap the test body is overkill
 		t.Run("execute deploy_and_invoke transaction", func(t *testing.T) {
 			t.Parallel()
 			t.Log("building deploy_and_invoke request")
 
 			t.Log("asserting the request marshalled is equal to the expected request")
-			expectedReqs := *internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](t, "testdata/execute_txn/deploy_and_invoke-request.json", "params")
+			expectedReqs := internalUtils.TestUnmarshalJSONFileToType[[]json.RawMessage](
+				t,
+				"testdata/execute_txn/deploy_and_invoke-request.json",
+				"params",
+			)
 			expectedReq := expectedReqs[0]
 
 			// since the deploy_and_invoke request is more complex, let's take it from the file
@@ -303,7 +321,11 @@ func TestExecuteTransaction(t *testing.T) {
 			assert.JSONEq(t, string(expectedReq), string(rawReq))
 
 			t.Log("asserting the response marshalled is equal to the expected response")
-			expectedResp := *internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](t, "testdata/execute_txn/response.json", "result")
+			expectedResp := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+				t,
+				"testdata/execute_txn/response.json",
+				"result",
+			)
 
 			var response ExecuteTransactionResponse
 			err = json.Unmarshal(expectedResp, &response)
@@ -369,7 +391,7 @@ func createDeploymentData(t *testing.T, pubKey *felt.Felt) *AccountDeploymentDat
 
 // buildDeployTxn builds a deploy transaction calling the paymaster_buildTransaction method
 //
-//nolint:dupl // It is similar to buildInvokeTxn, but it has small differences
+
 func buildDeployTxn(
 	t *testing.T,
 	pm *Paymaster,
@@ -429,7 +451,7 @@ func createInvokeData(t *testing.T, accAdd *felt.Felt) *UserInvoke {
 
 // buildInvokeTxn builds an invoke transaction calling the paymaster_buildTransaction method
 //
-//nolint:dupl // It is similar to buildDeployTxn, but it has small differences
+
 func buildInvokeTxn(
 	t *testing.T,
 	pm *Paymaster,

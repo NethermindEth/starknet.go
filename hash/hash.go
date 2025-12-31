@@ -259,7 +259,7 @@ func hashCasmClassByteCode(
 	visited := make([]uint64, len(bytecode))
 
 	for i := range bytecode {
-		visited[i] = uint64(i) //nolint:gosec // Never underflows
+		visited[i] = uint64(i) //nolint:gosec // Never overflows
 	}
 
 	slices.Reverse(visited)

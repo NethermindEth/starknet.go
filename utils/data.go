@@ -8,11 +8,17 @@ import internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 //
 // Parameters:
 //   - filePath: string path to the JSON file
-//   - subfield: string subfield to unmarshal from the JSON file
+//   - subfields: string slice of subfields to unmarshal from the JSON file
+//
+// You can use 'subfields' to specify the path of the type you want to unmarshal.
+// Example: if you want to unmarshal the field "bar" that is within the json,
+// you can specify the subfields as ["bar"].
+// If you want to unmarshal the field "foo" that is within the "bar" field,
+// you can specify the subfields as ["bar", "foo"].
 //
 // Returns:
-//   - *T: pointer to the unmarshalled data of type T
+//   - T: the unmarshalled data of type T
 //   - error: error if file reading or unmarshalling fails
-func UnmarshalJSONFileToType[T any](filePath, subfield string) (*T, error) {
-	return internalUtils.UnmarshalJSONFileToType[T](filePath, subfield)
+func UnmarshalJSONFileToType[T any](filePath string, subfields ...string) (T, error) {
+	return internalUtils.UnmarshalJSONFileToType[T](filePath, subfields...)
 }

@@ -261,7 +261,7 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 	}
 }
 
-//nolint:dupl,tparallel // The tests are similar, but they are testing different things. // Run sequentially to avoid race conditions with the `tests` variable.
+//nolint:tparallel // Run sequentially to avoid race conditions with the `tests` variable.
 func TestFeeEstToResBoundsMap(t *testing.T) {
 	t.Parallel()
 
@@ -768,10 +768,9 @@ func TestTxnOptions(t *testing.T) {
 func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 	t.Parallel()
 
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"../hash/testData/contracts_v2_HelloStarknet.compiled_contract_class.json",
-		"",
 	)
 
 	testCases := []struct {

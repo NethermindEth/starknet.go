@@ -1,0 +1,38 @@
+{
+	"jsonrpc": "2.0",
+	"method": "starknet_subscriptionNewTransactionReceipts",
+	"params": {
+		"result": {
+			"type": "INVOKE",
+			"transaction_hash": "0x4834352d7e9cef74dc87fc58f32ea8c9216740949b529705c68114f568312c7",
+			"actual_fee": {
+				"amount": "0x2129258cd0ea80",
+				"unit": "FRI"
+			},
+			"execution_status": "SUCCEEDED",
+			"finality_status": "ACCEPTED_ON_L2",
+			"block_number": 4627995,
+			"messages_sent": [],
+			"events": [
+				{
+					"from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+					"keys": [
+						"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+					],
+					"data": [
+						"0x4f4e29add19afa12c868ba1f4439099f225403ff9a71fe667eebb50e13518d3",
+						"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+						"0x2129258cd0ea80",
+						"0x0"
+					]
+				}
+			],
+			"execution_resources": {
+				"l1_gas": 0,
+				"l2_gas": 1152335,
+				"l1_data_gas": 128
+			}
+		},
+		"subscription_id": "11497396412448425436"
+	}
+}

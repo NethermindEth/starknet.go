@@ -23,9 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New fields in the `rpc.EmittedEvent` type.
   - Multiple changes to the `rpc.StateUpdateOutput` type.
 
+### Changed
+- The `mocks` pkg is no longer exported. It was moved to the internal package.
+- The `utils.UnmarshalJSONFileToType` function now returns T instead of a pointer to T. Also, it now accepts a
+variadic parameter of subfields instead of just a single one.
+- In the `client.ClientI` interface, the subscription methods were added.
+- The `rpc.TransactionReceiptWithBlockInfo` type now returns a nil `BlockHash` field if the receipt belongs to the pre-confirmed block.
+
 ### Fixed
 - The transactions in the `rpc.BlockWithReceipts` method response were incorrectly including the transaction hash in
 addition to those returned by the receipts.
+- Wrong `omitempty` tags in the `rpc.BlockHashAndNumberOutput` type.
+- The `rpc.TxnWithHashAndStatus` type was missing the `finality_status` field when marshalling the JSON data.
+
+### Dev updates
+- Huge refactoring in the tests, using now the spy to compare the responses from the RPC calls.
+- Removed the custom `mock_test.go` file, using now the `mockgen` tool to generate the mocks.
+- New Spy for websocket subscriptions.
+- New mock for the `client` package.
 
 ## [0.13.2](https://github.com/NethermindEth/starknet.go/releases/tag/v0.13.2) - 2025-11-25
 Same as v0.17.1, but for RPC v0.8.1.

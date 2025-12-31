@@ -65,6 +65,7 @@ func (ws *WsProvider) SubscribeNewHeads(
 	var sub *client.ClientSubscription
 	var err error
 
+	// @todo see why not accept subBlockID as a pointer
 	// if subBlockID is empty, don't send it to the server to avoid it being marshalled as 'null'
 	if subBlockID == (SubscriptionBlockID{}) { //nolint:exhaustruct // Asserting the type
 		sub, err = ws.c.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)

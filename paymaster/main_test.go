@@ -9,8 +9,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/clientmock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -28,11 +28,11 @@ type MockPaymaster struct {
 	// this should be a pointer to the mock client used in the Paymaster struct.
 	// This is intended to have an easy access to the mock client, without having to
 	// type cast it from the `callCloser` interface every time.
-	c *mocks.MockClient
+	c *clientmock.MockClient
 }
 
 // Creates a real Sepolia paymaster client and a spy for integration tests.
-func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.Spyer) {
+func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.RPCSpyer) {
 	t.Helper()
 
 	apiKey := os.Getenv("AVNU_API_KEY")
@@ -42,7 +42,7 @@ func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.Spyer) {
 	pm, err := New(context.Background(), avnuPaymasterURL, apiHeader)
 	require.NoError(t, err, "failed to create paymaster client")
 
-	spy := tests.NewJSONRPCSpy(pm.c, debug...)
+	spy := tests.NewRPCSpy(pm.c, debug...)
 	pm.c = spy
 
 	return pm, spy
@@ -52,7 +52,7 @@ func SetupPaymaster(t *testing.T, debug ...bool) (*Paymaster, tests.Spyer) {
 func SetupMockPaymaster(t *testing.T) *MockPaymaster {
 	t.Helper()
 
-	pmClient := mocks.NewMockClient(gomock.NewController(t))
+	pmClient := clientmock.NewMockClient(gomock.NewController(t))
 	mpm := &MockPaymaster{
 		Paymaster: &Paymaster{c: pmClient},
 		c:         pmClient,

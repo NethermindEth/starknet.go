@@ -394,6 +394,23 @@ func (txn *TxnWithHashAndStatus) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON marshals the TxnWithHashAndStatus object into a JSON byte slice.
+func (txn *TxnWithHashAndStatus) MarshalJSON() ([]byte, error) {
+	blockTxnData, err := json.Marshal(&txn.BlockTransaction)
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(blockTxnData, &result); err != nil {
+		return nil, err
+	}
+
+	result["finality_status"] = txn.FinalityStatus
+
+	return json.Marshal(result)
+}
+
 // UnmarshalJSON unmarshals the data into a BlockTransaction object.
 //
 // It takes a byte slice as the parameter, representing the JSON data to be

@@ -344,18 +344,19 @@ func encodeTypes(
 		for i, param := range typeDef.Parameters {
 			if len(isEnum) != 0 {
 				typesArr := typeNameRegexp.FindAllString(param.Type, -1)
-				var fullTypeName string
+				var fullTypeName strings.Builder
 				for i, typeNam := range typesArr {
-					fullTypeName += `"` + typeNam + `"`
+					fullTypeName.WriteString(`"` + typeNam + `"`)
 					if i < (len(typesArr) - 1) {
-						fullTypeName += `,`
+						fullTypeName.WriteString(`,`)
 					}
 				}
+
 				buf.WriteString(
 					fmt.Sprintf(
 						quotationMark+"%s"+quotationMark+":"+`(`+"%s"+`)`,
 						param.Name,
-						fullTypeName,
+						fullTypeName.String(),
 					),
 				)
 
@@ -418,7 +419,8 @@ func encodeTypes(
 		return typeDef, err
 	}
 
-	fullEncString := singleEncString
+	var fullEncString strings.Builder
+	fullEncString.WriteString(singleEncString)
 	// appends the custom types' encode
 	if len(referencedTypesEnc) > 0 {
 		// temp map just to remove duplicated items
@@ -436,15 +438,15 @@ func encodeTypes(
 		slices.Sort(referencedTypesEnc)
 
 		for _, typeEncStr := range referencedTypesEnc {
-			fullEncString += typeEncStr
+			fullEncString.WriteString(typeEncStr)
 		}
 	}
 
 	newTypeDef = TypeDefinition{
 		Name:               typeDef.Name,
 		Parameters:         typeDef.Parameters,
-		Encoding:           internalUtils.GetSelectorFromNameFelt(fullEncString),
-		EncoddingString:    fullEncString,
+		Encoding:           internalUtils.GetSelectorFromNameFelt(fullEncString.String()),
+		EncoddingString:    fullEncString.String(),
 		SingleEncString:    singleEncString,
 		ReferencedTypesEnc: referencedTypesEnc,
 	}
@@ -781,7 +783,7 @@ func encodeData(
 
 			enc = append(
 				enc,
-				new(felt.Felt).SetUint64(uint64(paramIndex)), //nolint:gosec // Never underflows
+				new(felt.Felt).SetUint64(uint64(paramIndex)), //nolint:gosec // Never overflows
 			)
 
 			if len(dataArr) == 0 {

@@ -13,8 +13,8 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
@@ -85,10 +85,16 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+	)
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+	)
 
 	// Build and send declare txn
 	resp, err := acc.BuildAndSendDeclareTxn(
@@ -134,16 +140,14 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.sierra.json",
-		"",
 	)
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
 		t,
 		"./testData/contracts_v2_HelloStarknet.casm.json",
-		"",
 	)
 
 	t.Run("compiled class hash", func(t *testing.T) {
@@ -202,7 +206,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 		for _, test := range testcases {
 			t.Run(test.name, func(t *testing.T) {
 				ctrl := gomock.NewController(t)
-				mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
+				mockRPCProvider := rpcv10mock.NewMockRPCProvider(ctrl)
 
 				ks, pub, _ := account.GetRandomKeys()
 				// called when instantiating the account
@@ -451,16 +455,22 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.DevnetEnv)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+	)
 
 	// Casm Class
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+	)
 
 	t.Run("on mock", func(t *testing.T) {
 		tests.RunTestOn(t, tests.MockEnv)
 
 		ctrl := gomock.NewController(t)
-		mockRPCProvider := mocks.NewMockRPCProvider(ctrl)
+		mockRPCProvider := rpcv10mock.NewMockRPCProvider(ctrl)
 
 		mockRPCProvider.EXPECT().
 			Nonce(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -515,7 +525,6 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		fakeTxn := internalUtils.TestUnmarshalJSONFileToType[rpc.InvokeTxnV3](
 			t,
 			"./testData/fakeInvokeTxn.json",
-			"",
 		)
 		// called when estimating the tip
 		mockRPCProvider.EXPECT().
@@ -852,10 +861,16 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.NoError(t, err)
 
 	// Class
-	class := *internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](t, "./testData/contracts_v2_HelloStarknet.sierra.json", "")
+	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.sierra.json",
+	)
 
 	// Compiled Class Hash
-	casmClass := *internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](t, "./testData/contracts_v2_HelloStarknet.casm.json", "")
+	casmClass := internalUtils.TestUnmarshalJSONFileToType[contracts.CasmClass](
+		t,
+		"./testData/contracts_v2_HelloStarknet.casm.json",
+	)
 	compClassHash, err := hash.CompiledClassHashV2(&casmClass)
 	require.NoError(t, err)
 
@@ -1022,7 +1037,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 

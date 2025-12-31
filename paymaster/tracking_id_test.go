@@ -13,7 +13,7 @@ import (
 
 // Test the TxnStatus enum type
 //
-//nolint:dupl // The enum tests are similar, but with different enum values
+
 func TestTxnStatusType(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()

@@ -1,0 +1,45 @@
+{
+	"jsonrpc": "2.0",
+	"method": "starknet_subscriptionNewTransaction",
+	"params": {
+		"result": {
+			"transaction_hash": "0x26e2841b7c2d2c8f943a4c8d72f2de5824918b8f796a7eeaf8c32311e8cde61",
+			"type": "INVOKE",
+			"version": "0x3",
+			"nonce": "0x473f",
+			"sender_address": "0x4cf1446972be577d020a17890380262eaca4d96e73b14d488ca046c56792efc",
+			"signature": [
+				"0x71d0b58ae65323a43d5fd9445a52a3847f1269d32129f2d4a0c842ead808f4e",
+				"0x4ce97bf0477f58e44b04c0bb14c567b2c54761ffc342682952e03091a4c7645"
+			],
+			"calldata": [
+				"0x1",
+				"0x3f32e152b9637c31bfcf73e434f78591067a01ba070505ff6ee195642c9acfb",
+				"0x37446750a403c1b4014436073cf8d08ceadc5b156ac1c8b7b0ca41a0c9c1c54",
+				"0x1",
+				"0xebbd0e1f3e272c43c9474b5f1ad6d2a7acd795c64527850e57b6b891354783"
+			],
+			"resource_bounds": {
+				"l1_gas": {
+					"max_amount": "0x0",
+					"max_price_per_unit": "0x62f8a5df0a24"
+				},
+				"l2_gas": {
+					"max_amount": "0x14ea4c0",
+					"max_price_per_unit": "0x59682f000"
+				},
+				"l1_data_gas": {
+					"max_amount": "0xb40",
+					"max_price_per_unit": "0x294d527"
+				}
+			},
+			"tip": "0x5f5e100",
+			"paymaster_data": [],
+			"account_deployment_data": [],
+			"nonce_data_availability_mode": "L1",
+			"fee_data_availability_mode": "L1",
+			"finality_status": "ACCEPTED_ON_L2"
+		},
+		"subscription_id": "1039093679809613241"
+	}
+}

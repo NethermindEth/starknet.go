@@ -62,39 +62,51 @@ func GetAndUnmarshalJSONFromMap[T any](
 //
 // Parameters:
 //   - filePath: string path to the JSON file
-//   - subfield: string subfield to unmarshal from the JSON file
+//   - subfields: string slice of subfields to unmarshal from the JSON file
+//
+// You can use 'subfields' to specify the path of the type you want to unmarshal.
+// Example: if you want to unmarshal the field "bar" that is within the json,
+// you can specify the subfields as ["bar"].
+// If you want to unmarshal the field "foo" that is within the "bar" field,
+// you can specify the subfields as ["bar", "foo"].
 //
 // Returns:
-//   - *T: pointer to the unmarshalled data of type T
+//   - T: the unmarshalled data of type T
 //   - error: error if file reading or unmarshalling fails
-func UnmarshalJSONFileToType[T any](filePath, subfield string) (*T, error) {
+func UnmarshalJSONFileToType[T any](filePath string, subfields ...string) (T, error) {
 	var result T
 
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
-	if subfield != "" {
-		var tempMap map[string]json.RawMessage
-		err = json.Unmarshal(data, &tempMap)
-		if err != nil {
-			return nil, err
-		}
+	if len(subfields) != 0 {
+		for _, subfield := range subfields {
+			var tempMap map[string]json.RawMessage
+			err = json.Unmarshal(data, &tempMap)
+			if err != nil {
+				return result, fmt.Errorf(
+					"error unmarshalling data in subfield %s: %w",
+					subfield,
+					err,
+				)
+			}
 
-		if tempData, ok := tempMap[subfield]; ok {
-			data = tempData
-		} else {
-			return nil, fmt.Errorf("invalid subfield: missing field %s", subfield)
+			if tempData, ok := tempMap[subfield]; ok {
+				data = tempData
+			} else {
+				return result, fmt.Errorf("invalid subfield: missing field %s", subfield)
+			}
 		}
 	}
 
 	err = json.Unmarshal(data, &result)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 // RemoveFieldFromJSON removes a field from a JSON bytes slice.

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -319,10 +318,10 @@ func SplitFactStr(fact string) (factLow, factHigh string, err error) {
 		return "", "", errors.New("fact string is too large")
 	}
 	factBytes := factBN.Bytes()
-	lpadfactBytes := bytes.Repeat([]byte{0x00}, 32-len(factBytes)) // left pad with zeros
-	factBytes = append(lpadfactBytes, factBytes...)
-	high := BytesToBig(factBytes[:16]) // first 16 bytes
-	low := BytesToBig(factBytes[16:])  // last 16 bytes
+	lpadfactBytes := make([]byte, 32-len(factBytes)) // left pad with zeros
+	factBytes = append(lpadfactBytes, factBytes...)  //nolint:makezero // we want the zeros
+	high := BytesToBig(factBytes[:16])               // first 16 bytes
+	low := BytesToBig(factBytes[16:])                // last 16 bytes
 
 	return BigToHex(low), BigToHex(high), nil
 }

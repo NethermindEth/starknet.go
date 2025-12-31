@@ -109,12 +109,28 @@ type Client struct {
 // ClientInt is an interface with some methods of the Client type with the purpose of
 // being used to generate mock implementations for tests.
 
-//go:generate mockgen -destination=../mocks/mock_client.go -package=mocks -mock_names=ClientI=MockClient -source=client.go ClientI
+//go:generate mockgen -destination=../internal/tests/mocks/clientmock/client.go -package=clientmock -mock_names=ClientI=MockClient -source=client.go ClientI
 type ClientI interface {
 	CallContext(ctx context.Context, result interface{}, method string, args interface{}) error
 	CallContextWithSliceArgs(ctx context.Context, result interface{}, method string, args ...interface{}) error
+	SubscribeWithSliceArgs(
+		ctx context.Context,
+		namespace string,
+		methodSuffix string,
+		channel interface{},
+		args ...interface{},
+	) (*ClientSubscription, error)
+	Subscribe(
+		ctx context.Context,
+		namespace string,
+		methodSuffix string,
+		channel interface{},
+		args interface{},
+	) (*ClientSubscription, error)
 	Close()
 }
+
+var _ ClientI = (*Client)(nil)
 
 type reconnectFunc func(context.Context) (ServerCodec, error)
 

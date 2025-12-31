@@ -1,0 +1,15 @@
+{
+	"jsonrpc": "2.0",
+	"method": "starknet_subscriptionTransactionStatus",
+	"params": {
+		"result": {
+			"transaction_hash": "0xb2c5599dd3d421edd1491a92bf3cd12cdd2a58e5cb89eebe0a3fc890520c7b",
+			"status": {
+				"finality_status": "ACCEPTED_ON_L2",
+				"execution_status": "REVERTED",
+				"failure_reason": "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x066e2765db75d46c2fdf61ca5710e75fe857b88d75f4e2d671638850b1532730, class hash: 0x036078334509b514626504edc9fb252328d1a240e4e948bef8d0c08dff45927f, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nExecution failed. Failure reason:\n(0x617267656e742f6d756c746963616c6c2d6661696c6564 ('argent/multicall-failed'), 0x0 (''), 0x434c4541525f41545f4c454153545f4d494e494d554d ('CLEAR_AT_LEAST_MINIMUM'), 0x454e545259504f494e545f4641494c4544 ('ENTRYPOINT_FAILED'), 0x454e545259504f494e545f4641494c4544 ('ENTRYPOINT_FAILED')).\n"
+			}
+		},
+		"subscription_id": "3521385012497367388"
+	}
+}

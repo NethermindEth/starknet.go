@@ -1,0 +1,25 @@
+{
+	"jsonrpc": "2.0",
+	"method": "starknet_subscriptionEvents",
+	"params": {
+		"result": {
+			"from_address": "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+			"keys": [
+				"0x99cd8bde557814842a3121e8ddfd433a539b8c9f14bf31ebf108d12e6196e9"
+			],
+			"data": [
+				"0x4f4e29add19afa12c868ba1f4439099f225403ff9a71fe667eebb50e13518d3",
+				"0x1176a1bd84444c89232ec27754698e5d2e7e1a7f1539f12027f28b23ec9f3d8",
+				"0x335ac493c63a80",
+				"0x0"
+			],
+			"block_number": 4622053,
+			"block_hash": "0x3a4b26ea7a8dd4c210696b3277a2cb0a881fb698828b63bda36fb0ee7842a36",
+			"transaction_hash": "0x75f475d90901049eb2f419582ed7254f2b62af6be0f6178bfe552ba09b32fb9",
+			"transaction_index": 1,
+			"event_index": 0,
+			"finality_status": "ACCEPTED_ON_L2"
+		},
+		"subscription_id": "7507352046986513318"
+	}
+}

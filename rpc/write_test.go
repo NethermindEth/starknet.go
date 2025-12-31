@@ -1,187 +1,675 @@
 package rpc
 
 import (
-	"context"
+	"encoding/json"
 	"testing"
 
-	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-func TestDeclareTransaction(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
-
-	testConfig := BeforeEach(t, false)
+// TestAddDeclareTransaction tests the AddDeclareTransaction function.
+func TestAddDeclareTransaction(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	type testSetType struct {
-		DeclareTx     BroadcastDeclareTxnV3
-		ExpectedResp  AddDeclareTransactionResponse
+		Description   string
+		DeclareTxn    *BroadcastDeclareTxnV3
 		ExpectedError *RPCError
+
+		// there are multiple errors that could be returned by the function, and
+		// this is a way to specify which error we want to test in the Mock environment.
+		// It's better than modifying the `DeclareTxn`, having to create a new variable
+		// for each error variant, and compare inside the mock `DoAndReturn` function.
+		ErrorIndex int
 	}
+
+	temp := internalUtils.TestUnmarshalJSONFileToType[[]*BroadcastDeclareTxnV3](
+		t,
+		"./testData/addTxn/sepoliaDeclare.json",
+		"params",
+	)
+	declareTxn := temp[0]
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				DeclareTx: BroadcastDeclareTxnV3{},
-				ExpectedResp: AddDeclareTransactionResponse{
-					Hash: internalUtils.TestHexToFelt(t, "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3"),
-				},
-				ExpectedError: nil,
+				Description: "normal call",
+				DeclareTxn:  declareTxn,
+			},
+			{
+				Description:   "error - class already declared",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrClassAlreadyDeclared,
+				ErrorIndex:    1,
+			},
+			{
+				Description:   "error - compilation failed",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrCompilationFailed,
+				ErrorIndex:    2,
+			},
+			{
+				Description:   "error - compiled class hash mismatch",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrCompiledClassHashMismatch,
+				ErrorIndex:    3,
+			},
+			{
+				Description:   "error - insufficient account balance",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrInsufficientAccountBalance,
+				ErrorIndex:    4,
+			},
+			{
+				Description:   "error - insufficient resources for validate",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrInsufficientResourcesForValidate,
+				ErrorIndex:    5,
+			},
+			{
+				Description:   "error - invalid transaction nonce",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrInvalidTransactionNonce,
+				ErrorIndex:    6,
+			},
+			{
+				Description:   "error - replacement transaction underpriced",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrReplacementTransactionUnderpriced,
+				ErrorIndex:    7,
+			},
+			{
+				Description:   "error - fee below minimum",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrFeeBelowMinimum,
+				ErrorIndex:    8,
+			},
+			{
+				Description:   "error - validation failure",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrValidationFailure,
+				ErrorIndex:    9,
+			},
+			{
+				Description:   "error - non account",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrNonAccount,
+				ErrorIndex:    10,
+			},
+			{
+				Description:   "error - duplicate tx",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrDuplicateTx,
+				ErrorIndex:    11,
+			},
+			{
+				Description:   "error - contract class size too large",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrContractClassSizeTooLarge,
+				ErrorIndex:    12,
+			},
+			{
+				Description:   "error - unsupported tx version",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrUnsupportedTxVersion,
+				ErrorIndex:    13,
+			},
+			{
+				Description:   "error - unsupported contract class version",
+				DeclareTxn:    declareTxn,
+				ExpectedError: ErrUnsupportedContractClassVersion,
+				ErrorIndex:    14,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "normal call - with error",
+				DeclareTxn:  declareTxn,
+				// this test sends an already sent transaction, and this is the error
+				// returned by the node for this case.
+				// We do this because it's not feasible to create a new transaction each time.
+				// But with this test, we can assure our txn is correctly received by the node.
+				ExpectedError: ErrInvalidTransactionNonce,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeclareTransaction(
-			context.Background(),
-			&test.DeclareTx,
-		)
-		if test.ExpectedError != nil {
-			require.Error(t, err)
-			rpcErr, ok := err.(*RPCError)
-			require.True(t, ok)
-			assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
-			assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+		t.Run(test.Description, func(t *testing.T) {
+			testConfig := BeforeEach(t, false)
 
-			continue
-		}
-		require.NoError(t, err)
-		assert.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_addDeclareTransaction",
+						test.DeclareTxn,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
+
+						switch test.ErrorIndex {
+						case 1:
+							return RPCError{
+								Code:    51,
+								Message: "Class already declared",
+							}
+						case 2:
+							return RPCError{
+								Code:    56,
+								Message: "Compilation failed",
+								Data:    StringErrData(""),
+							}
+						case 3:
+							return RPCError{
+								Code:    60,
+								Message: "The compiled class hash did not match the one supplied in the transaction",
+							}
+						case 4:
+							return RPCError{
+								Code:    54,
+								Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+							}
+						case 5:
+							return RPCError{
+								Code:    53,
+								Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+							}
+						case 6:
+							return RPCError{
+								Code:    52,
+								Message: "Invalid transaction nonce",
+								Data:    StringErrData(""),
+							}
+						case 7:
+							return RPCError{
+								Code:    64,
+								Message: "Replacement transaction is underpriced",
+							}
+						case 8:
+							return RPCError{
+								Code:    65,
+								Message: "Transaction fee below minimum",
+							}
+						case 9:
+							return RPCError{
+								Code:    55,
+								Message: "Account validation failed",
+								Data:    StringErrData(""),
+							}
+						case 10:
+							return RPCError{
+								Code:    58,
+								Message: "Sender address is not an account contract",
+							}
+						case 11:
+							return RPCError{
+								Code:    59,
+								Message: "A transaction with the same hash already exists in the mempool",
+							}
+						case 12:
+							return RPCError{
+								Code:    57,
+								Message: "Contract class size is too large",
+							}
+						case 13:
+							return RPCError{
+								Code:    61,
+								Message: "The transaction version is not supported",
+							}
+						case 14:
+							return RPCError{
+								Code:    62,
+								Message: "The contract class version is not supported",
+							}
+						}
+
+						*rawResp = json.RawMessage(`
+							{
+								"transaction_hash": "0x41d1f5206ef58a443e7d3d1ca073171ec25fa75313394318fc83a074a6631c3",
+								"class_hash": "0x5d68906f23c7e96713002a9ef6a7b1b6ec19e18c31a32710446d87b2aca762d"
+							}
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.AddDeclareTransaction(
+				t.Context(),
+				test.DeclareTxn,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }
 
+// TestAddInvokeTransaction tests the AddInvokeTransaction function.
 func TestAddInvokeTransaction(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
-
-	testConfig := BeforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	type testSetType struct {
-		InvokeTx      BroadcastInvokeTxnV3
-		ExpectedResp  AddInvokeTransactionResponse
+		Description   string
+		InvokeTxn     *BroadcastInvokeTxnV3
 		ExpectedError *RPCError
+
+		// there are multiple errors that could be returned by the function, and
+		// this is a way to specify which error we want to test in the Mock environment.
+		// It's better than modifying the `DeclareTxn`, having to create a new variable
+		// for each error variant, and compare inside the mock `DoAndReturn` function.
+		ErrorIndex int
 	}
+
+	temp := internalUtils.TestUnmarshalJSONFileToType[[]*BroadcastInvokeTxnV3](
+		t,
+		"./testData/addTxn/sepoliaInvoke.json",
+		"params",
+	)
+	invokeTxn := temp[0]
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				InvokeTx: BroadcastInvokeTxnV3{
-					Type:    TransactionTypeInvoke,
-					Version: TransactionV3,
-					Signature: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x71a9b2cd8a8a6a4ca284dcddcdefc6c4fd20b92c1b201bd9836e4ce376fad16"),
-						internalUtils.TestHexToFelt(t, "0x6bef4745194c9447fdc8dd3aec4fc738ab0a560b0d2c7bf62fbf58aef3abfc5"),
-					},
-					Nonce:         internalUtils.TestHexToFelt(t, "0xe97"),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: &ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
-						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "0x0",
-							MaxPricePerUnit: "0x0",
-						},
-					},
-					Tip:           "",
-					PayMasterData: []*felt.Felt{},
-					SenderAddress: internalUtils.TestHexToFelt(t, "0x3f6f3bc663aedc5285d6013cc3ffcbc4341d86ab488b8b68d297f8258793c41"),
-					Calldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x2"),
-						internalUtils.TestHexToFelt(t, "0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684"),
-						internalUtils.TestHexToFelt(t, "0x27c3334165536f239cfd400ed956eabff55fc60de4fb56728b6a4f6b87db01c"),
-						internalUtils.TestHexToFelt(t, "0x0"),
-						internalUtils.TestHexToFelt(t, "0x4"),
-						internalUtils.TestHexToFelt(t, "0x4c312760dfd17a954cdd09e76aa9f149f806d88ec3e402ffaf5c4926f568a42"),
-						internalUtils.TestHexToFelt(t, "0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf"),
-						internalUtils.TestHexToFelt(t, "0x4"),
-						internalUtils.TestHexToFelt(t, "0x1"),
-						internalUtils.TestHexToFelt(t, "0x5"),
-						internalUtils.TestHexToFelt(t, "0x450703c32370cf7ffff540b9352e7ee4ad583af143a361155f2b485c0c39684"),
-						internalUtils.TestHexToFelt(t, "0x5df99ae77df976b4f0e5cf28c7dcfe09bd6e81aab787b19ac0c08e03d928cf"),
-						internalUtils.TestHexToFelt(t, "0x1"),
-						internalUtils.TestHexToFelt(t, "0x7fe4fd616c7fece1244b3616bb516562e230be8c9f29668b46ce0369d5ca829"),
-						internalUtils.TestHexToFelt(t, "0x287acddb27a2f9ba7f2612d72788dc96a5b30e401fc1e8072250940e024a587"),
-					},
-					AccountDeploymentData: []*felt.Felt{},
-				},
-				ExpectedResp:  AddInvokeTransactionResponse{internalUtils.TestHexToFelt(t, "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd")},
-				ExpectedError: nil,
+				Description: "normal call",
+				InvokeTxn:   invokeTxn,
+			},
+			{
+				Description:   "error - insufficient account balance",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrInsufficientAccountBalance,
+				ErrorIndex:    1,
+			},
+			{
+				Description:   "error - insufficient resources for validate",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrInsufficientResourcesForValidate,
+				ErrorIndex:    2,
+			},
+			{
+				Description:   "error - invalid transaction nonce",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrInvalidTransactionNonce,
+				ErrorIndex:    3,
+			},
+			{
+				Description:   "error - replacement transaction underpriced",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrReplacementTransactionUnderpriced,
+				ErrorIndex:    4,
+			},
+			{
+				Description:   "error - fee below minimum",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrFeeBelowMinimum,
+				ErrorIndex:    5,
+			},
+			{
+				Description:   "error - validation failure",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrValidationFailure,
+				ErrorIndex:    6,
+			},
+			{
+				Description:   "error - non account",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrNonAccount,
+				ErrorIndex:    7,
+			},
+			{
+				Description:   "error - duplicate tx",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrDuplicateTx,
+				ErrorIndex:    8,
+			},
+			{
+				Description:   "error - unsupported tx version",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrUnsupportedTxVersion,
+				ErrorIndex:    9,
+			},
+			{
+				Description:   "error - unexpected error",
+				InvokeTxn:     invokeTxn,
+				ExpectedError: ErrUnexpectedError,
+				ErrorIndex:    10,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "normal call - with error",
+				InvokeTxn:   invokeTxn,
+				// this test sends an already sent transaction, and this is the error
+				// returned by the node for this case.
+				// We do this because it's not feasible to create a new transaction each time.
+				// But with this test, we can assure our txn is correctly received by the node.
+				ExpectedError: ErrInvalidTransactionNonce,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddInvokeTransaction(context.Background(), &test.InvokeTx)
-		if test.ExpectedError != nil {
-			require.Equal(t, test.ExpectedError, err)
-		} else {
-			require.Equal(t, resp, test.ExpectedResp)
-		}
+		t.Run(test.Description, func(t *testing.T) {
+			testConfig := BeforeEach(t, false)
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_addInvokeTransaction",
+						test.InvokeTxn,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
+
+						switch test.ErrorIndex {
+						case 1:
+							return RPCError{
+								Code:    54,
+								Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+							}
+						case 2:
+							return RPCError{
+								Code:    53,
+								Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+							}
+						case 3:
+							return RPCError{
+								Code:    52,
+								Message: "Invalid transaction nonce",
+								Data:    StringErrData(""),
+							}
+						case 4:
+							return RPCError{
+								Code:    64,
+								Message: "Replacement transaction is underpriced",
+							}
+						case 5:
+							return RPCError{
+								Code:    65,
+								Message: "Transaction fee below minimum",
+							}
+						case 6:
+							return RPCError{
+								Code:    55,
+								Message: "Account validation failed",
+								Data:    StringErrData(""),
+							}
+						case 7:
+							return RPCError{
+								Code:    58,
+								Message: "Sender address is not an account contract",
+							}
+						case 8:
+							return RPCError{
+								Code:    59,
+								Message: "A transaction with the same hash already exists in the mempool",
+							}
+						case 9:
+							return RPCError{
+								Code:    61,
+								Message: "The transaction version is not supported",
+							}
+						case 10:
+							return RPCError{
+								Code:    63,
+								Message: "An unexpected error occurred",
+								Data:    StringErrData(""),
+							}
+						}
+
+						*rawResp = json.RawMessage(`
+							{
+								"transaction_hash": "0x49728601e0bb2f48ce506b0cbd9c0e2a9e50d95858aa41463f46386dca489fd"
+							}
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.AddInvokeTransaction(
+				t.Context(),
+				test.InvokeTxn,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				rpcErr, ok := err.(*RPCError)
+				require.True(t, ok)
+				assert.Equal(t, test.ExpectedError.Code, rpcErr.Code)
+				assert.Equal(t, test.ExpectedError.Message, rpcErr.Message)
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }
 
+// TestAddDeployAccountTransaction tests the AddDeployAccountTransaction function.
 func TestAddDeployAccountTransaction(t *testing.T) {
-	tests.RunTestOn(t, tests.MockEnv)
-
-	testConfig := BeforeEach(t, false)
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	type testSetType struct {
-		DeployTx      BroadcastDeployAccountTxnV3
-		ExpectedResp  AddDeployAccountTransactionResponse
-		ExpectedError error
+		Description   string
+		DeployTxn     *BroadcastDeployAccountTxnV3
+		ExpectedError *RPCError
+
+		// there are multiple errors that could be returned by the function, and
+		// this is a way to specify which error we want to test in the Mock environment.
+		// It's better than modifying the `DeclareTxn`, having to create a new variable
+		// for each error variant, and compare inside the mock `DoAndReturn` function.
+		ErrorIndex int
 	}
+
+	deployTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastDeployAccountTxnV3](
+		t,
+		"./testData/addTxn/sepoliaDeployAccount.json",
+		"result",
+	)
+
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				DeployTx: BroadcastDeployAccountTxnV3{
-					Type:      TransactionTypeDeployAccount,
-					Version:   TransactionV3,
-					ClassHash: internalUtils.TestHexToFelt(t, "0x2338634f11772ea342365abd5be9d9dc8a6f44f159ad782fdebd3db5d969738"),
-					Signature: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x6d756e754793d828c6c1a89c13f7ec70dbd8837dfeea5028a673b80e0d6b4ec"),
-						internalUtils.TestHexToFelt(t, "0x4daebba599f860daee8f6e100601d98873052e1c61530c630cc4375c6bd48e3"),
-					},
-					Nonce:         new(felt.Felt),
-					NonceDataMode: DAModeL1,
-					FeeMode:       DAModeL1,
-					ResourceBounds: &ResourceBoundsMapping{
-						L1Gas: ResourceBounds{
-							MaxAmount:       "0x186a0",
-							MaxPricePerUnit: "0x5af3107a4000",
-						},
-						L2Gas: ResourceBounds{
-							MaxAmount:       "",
-							MaxPricePerUnit: "",
-						},
-					},
-					Tip:                 "",
-					PayMasterData:       []*felt.Felt{},
-					ContractAddressSalt: new(felt.Felt),
-					ConstructorCalldata: []*felt.Felt{
-						internalUtils.TestHexToFelt(t, "0x5cd65f3d7daea6c63939d659b8473ea0c5cd81576035a4d34e52fb06840196c"),
-					},
-				},
-				ExpectedResp: AddDeployAccountTransactionResponse{
-					Hash:            internalUtils.TestHexToFelt(t, "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e"),
-					ContractAddress: internalUtils.TestHexToFelt(t, "0x0"),
-				},
-				ExpectedError: nil,
+				Description: "normal call",
+				DeployTxn:   deployTxn,
+			},
+			{
+				Description:   "error - insufficient account balance",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrInsufficientAccountBalance,
+				ErrorIndex:    1,
+			},
+			{
+				Description:   "error - insufficient resources for validate",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrInsufficientResourcesForValidate,
+				ErrorIndex:    2,
+			},
+			{
+				Description:   "error - invalid transaction nonce",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrInvalidTransactionNonce,
+				ErrorIndex:    3,
+			},
+			{
+				Description:   "error - replacement transaction underpriced",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrReplacementTransactionUnderpriced,
+				ErrorIndex:    4,
+			},
+			{
+				Description:   "error - fee below minimum",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrFeeBelowMinimum,
+				ErrorIndex:    5,
+			},
+			{
+				Description:   "error - validation failure",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrValidationFailure,
+				ErrorIndex:    6,
+			},
+			{
+				Description:   "error - non account",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrNonAccount,
+				ErrorIndex:    7,
+			},
+			{
+				Description:   "error - duplicate tx",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrDuplicateTx,
+				ErrorIndex:    8,
+			},
+			{
+				Description:   "error - unsupported tx version",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrUnsupportedTxVersion,
+				ErrorIndex:    9,
+			},
+			{
+				Description:   "error - class hash not found",
+				DeployTxn:     deployTxn,
+				ExpectedError: ErrClassHashNotFound,
+				ErrorIndex:    10,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "normal call - with error",
+				DeployTxn:   deployTxn,
+				// this test sends an already sent transaction, and this is the error
+				// returned by the node for this case.
+				// We do this because it's not feasible to create a new transaction each time.
+				// But with this test, we can assure our txn is correctly received by the node.
+				ExpectedError: ErrInvalidTransactionNonce,
 			},
 		},
 	}[tests.TEST_ENV]
-
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.AddDeployAccountTransaction(
-			context.Background(),
-			&test.DeployTx,
-		)
-		if err != nil {
-			require.Equal(t, err.Error(), test.ExpectedError)
-		} else {
-			require.Equal(t, resp.Hash.String(), test.ExpectedResp.Hash.String())
-		}
+		t.Run(test.Description, func(t *testing.T) {
+			testConfig := BeforeEach(t, false)
+
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_addDeployAccountTransaction",
+						test.DeployTxn,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
+
+						switch test.ErrorIndex {
+						case 1:
+							return RPCError{
+								Code:    54,
+								Message: "Account balance is smaller than the transaction's maximal fee (calculated as the sum of each resource's limit x max price)",
+							}
+						case 2:
+							return RPCError{
+								Code:    53,
+								Message: "The transaction's resources don't cover validation or the minimal transaction fee",
+							}
+						case 3:
+							return RPCError{
+								Code:    52,
+								Message: "Invalid transaction nonce",
+								Data:    StringErrData(""),
+							}
+						case 4:
+							return RPCError{
+								Code:    64,
+								Message: "Replacement transaction is underpriced",
+							}
+						case 5:
+							return RPCError{
+								Code:    65,
+								Message: "Transaction fee below minimum",
+							}
+						case 6:
+							return RPCError{
+								Code:    55,
+								Message: "Account validation failed",
+								Data:    StringErrData(""),
+							}
+						case 7:
+							return RPCError{
+								Code:    58,
+								Message: "Sender address is not an account contract",
+							}
+						case 8:
+							return RPCError{
+								Code:    59,
+								Message: "A transaction with the same hash already exists in the mempool",
+							}
+						case 9:
+							return RPCError{
+								Code:    61,
+								Message: "The transaction version is not supported",
+							}
+						case 10:
+							return RPCError{
+								Code:    28,
+								Message: "Class hash not found",
+							}
+						}
+
+						*rawResp = json.RawMessage(`
+							{
+								"transaction_hash": "0x32b272b6d0d584305a460197aa849b5c7a9a85903b66e9d3e1afa2427ef093e",
+								"contract_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+							}
+						`)
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.AddDeployAccountTransaction(
+				t.Context(),
+				test.DeployTxn,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.ErrorContains(t, err, test.ExpectedError.Message)
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }

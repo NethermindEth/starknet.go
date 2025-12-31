@@ -9,8 +9,8 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/mocks"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,7 +35,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 
 	type testSetType struct {
 		ExpectedHash   *felt.Felt
@@ -199,7 +199,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	if tests.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
-		mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+		mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 		acnt, err = account.NewAccount(
@@ -334,7 +334,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(
@@ -427,7 +427,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRPCProvider := mocks.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(

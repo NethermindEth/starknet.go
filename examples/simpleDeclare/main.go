@@ -63,15 +63,14 @@ func main() {
 	fmt.Println("Established connection with the client")
 
 	// Unmarshalling the casm contract class from a JSON file.
-	casmClass, err := utils.UnmarshalJSONFileToType[contracts.CasmClass](casmContractFilePath, "")
+	casmClass, err := utils.UnmarshalJSONFileToType[*contracts.CasmClass](casmContractFilePath)
 	if err != nil {
 		panic(err)
 	}
 
 	// Unmarshalling the sierra contract class from a JSON file.
-	contractClass, err := utils.UnmarshalJSONFileToType[contracts.ContractClass](
+	contractClass, err := utils.UnmarshalJSONFileToType[*contracts.ContractClass](
 		sierraContractFilePath,
-		"",
 	)
 	if err != nil {
 		panic(err)

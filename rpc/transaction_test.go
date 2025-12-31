@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -10,88 +10,95 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-// TestTransactionByHash tests transaction by hash
-//
-// Parameters:
-//   - t: the testing object for running the test cases
-//
-// Returns:
-// none
+// TestTransactionByHash tests the TransactionByHash function.
 func TestTransactionByHash(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		TxHash      *felt.Felt
-		ExpectedTxn BlockTransaction
+		TxHash        *felt.Felt
+		ExpectedError error
 	}
-
-	BlockDeclareTxnV2Example := BlockTransaction{
-		Hash: internalUtils.TestHexToFelt(
-			t,
-			"0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda",
-		),
-		Transaction: DeclareTxnV2{
-			Type:    TransactionTypeDeclare,
-			Version: TransactionV2,
-			MaxFee:  internalUtils.TestHexToFelt(t, "0x4a0fbb2d7a43"),
-			ClassHash: internalUtils.TestHexToFelt(
-				t,
-				"0x79b7ec8fdf40a4ff6ed47123049dfe36b5c02db93aa77832682344775ef70c6",
-			),
-			CompiledClassHash: internalUtils.TestHexToFelt(
-				t,
-				"0x7130f75fc2f1400813d1e96ea7ebee334b568a87b645a62aade0eb2fa2cf252",
-			),
-			Nonce: internalUtils.TestHexToFelt(t, "0x16e"),
-			Signature: []*felt.Felt{
-				internalUtils.TestHexToFelt(
-					t,
-					"0x5569787df42fece1184537b0d480900a403386355b9d6a59e7c7a7e758287f0",
-				),
-				internalUtils.TestHexToFelt(
-					t,
-					"0x2acaeea2e0817da33ed5dbeec295b0177819b5a5a50b0a669e6eecd88e42e92",
-				),
-			},
-			SenderAddress: internalUtils.TestHexToFelt(
-				t,
-				"0x5fd4befee268bf6880f955875cbed3ade8346b1f1e149cc87b317e62b6db569",
-			),
-		},
-	}
-
-	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](t, "./testData/txnByHash/integration_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "result")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
-				ExpectedTxn: BlockDeclareTxnV2Example,
+				TxHash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+			},
+			{
+				TxHash:        internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				TxHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
-				ExpectedTxn: BlockDeclareTxnV2Example,
+				TxHash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+			},
+			{
+				TxHash:        internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				TxHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
-				ExpectedTxn: integrationInvokeV3Example,
+				TxHash: internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+			},
+			{
+				TxHash:        internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		tx, err := testConfig.Provider.TransactionByHash(context.Background(), test.TxHash)
-		require.NoError(t, err)
-		require.NotNil(t, tx)
+		t.Run(test.TxHash.String(), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getTransactionByHash",
+						test.TxHash,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
 
-		assert.Equal(t, test.ExpectedTxn, *tx)
+						if test.TxHash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    29,
+								Message: "Transaction hash not found",
+							}
+						}
+
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							t,
+							"./testData/txnWithHash/sepoliaTxn.json",
+							"result",
+						)
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			tx, err := testConfig.Provider.TransactionByHash(t.Context(), test.TxHash)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, tx)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawTx, err := json.Marshal(tx)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawTx))
+		})
 	}
 }
 
@@ -102,36 +109,32 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID     BlockID
-		Index       uint64
-		ExpectedTxn *BlockTransaction
+		BlockID       BlockID
+		Index         uint64
+		ExpectedError error
 	}
-
-	InvokeTxnV3example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](
-		t,
-		"./testData/transactions/sepoliaBlockInvokeTxV3_0x265f6a59e7840a4d52cec7db37be5abd724fdfd72db9bf684f416927a88bc89.json",
-		"",
-	)
-
-	integrationInvokeV3Example := internalUtils.TestUnmarshalJSONFileToType[BlockTransaction](
-		t,
-		"./testData/txnByBlockIndex/integration-1300000-0.json",
-		"result",
-	)
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
-				Index:       0,
-				ExpectedTxn: InvokeTxnV3example,
+				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				Index:   3,
+			},
+			{
+				BlockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				Index:         99999999999999999,
+				ExpectedError: ErrInvalidTxnIndex,
+			},
+			{
+				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				Index:         3,
+				ExpectedError: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
-				Index:       3,
-				ExpectedTxn: InvokeTxnV3example,
+				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				Index:   3,
 			},
 			{
 				BlockID: WithBlockTag(BlockTagPreConfirmed),
@@ -148,183 +151,315 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(1_300_000),
-				Index:       0,
-				ExpectedTxn: integrationInvokeV3Example,
+				BlockID: WithBlockNumber(1_300_000),
+				Index:   0,
 			},
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getTransactionByBlockIdAndIndex",
+						test.BlockID,
+						test.Index,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						blockID := args[0].(BlockID)
+
+						if blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if test.Index == 99999999999999999 {
+							return RPCError{
+								Code:    27,
+								Message: "Invalid transaction index in a block",
+							}
+						}
+
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							t,
+							"./testData/txnWithHash/sepoliaTxn.json",
+							"result",
+						)
+
+						return nil
+					}).
+					Times(1)
+			}
+
 			tx, err := testConfig.Provider.TransactionByBlockIDAndIndex(
-				context.Background(),
+				t.Context(),
 				test.BlockID,
 				test.Index,
 			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
 			if err != nil {
 				// in case the block has no transactions
 				assert.EqualError(t, err, ErrInvalidTxnIndex.Error())
 
 				return
 			}
-			if test.ExpectedTxn != nil {
-				assert.Equal(t, test.ExpectedTxn, tx)
 
-				return
-			}
-			assert.NotEmpty(t, tx)
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawTx, err := json.Marshal(tx)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawTx))
 		})
 	}
 }
 
+// TestTransactionReceipt tests the TransactionReceipt function.
 func TestTransactionReceipt(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		TxnHash      *felt.Felt
-		ExpectedResp TransactionReceiptWithBlockInfo
+		TxnHash       *felt.Felt
+		ExpectedError error
 	}
-
-	receiptTxn52767_16 := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/sepoliaRec_0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b.json", "")
-
-	integrationInvokeV3Example := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/integration_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json", "result")
-
-	// https://voyager.online/tx/0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519
-	receiptL1Handler := *internalUtils.TestUnmarshalJSONFileToType[TransactionReceiptWithBlockInfo](t, "./testData/receipt/mainnetRc_0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519.json", "")
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
-				ExpectedResp: receiptTxn52767_16,
+				TxnHash: internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
 			},
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0x74011377f326265f5a54e27a27968355e7033ad1de11b77b225374875aff519"),
-				ExpectedResp: receiptL1Handler,
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
-				ExpectedResp: receiptTxn52767_16,
+				TxnHash: internalUtils.TestHexToFelt(t, "0xf2f3d50192637e8d5e817363460c39d3a668fe12f117ecedb9749466d8352b"),
+			},
+			{
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
-				ExpectedResp: integrationInvokeV3Example,
+				TxnHash: internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+			},
+			{
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(
-			context.Background(),
-			test.TxnHash,
-		)
-		require.Nil(t, err)
-		require.Equal(t, test.ExpectedResp, *txReceiptWithBlockInfo)
+		t.Run(test.TxnHash.String(), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getTransactionReceipt",
+						test.TxnHash,
+					).
+					DoAndReturn(func(_, result, _ any, _ ...any) error {
+						rawResp := result.(*json.RawMessage)
+
+						if test.TxnHash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    29,
+								Message: "Transaction hash not found",
+							}
+						}
+
+						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+							t,
+							"./testData/receipt/sepoliaReceipt.json",
+							"result",
+						)
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(
+				t.Context(),
+				test.TxnHash,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawReceipt, err := json.Marshal(txReceiptWithBlockInfo)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawReceipt))
+		})
 	}
 }
 
-// TestGetTransactionStatus tests starknet_getTransactionStatus in the GetTransactionStatus function
-func TestGetTransactionStatus(t *testing.T) {
-	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
+// TestTransactionStatus tests the TransactionStatus function
+func TestTransactionStatus(t *testing.T) {
+	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		TxnHash      *felt.Felt
-		ExpectedResp TxnStatusResult
+		Description   string
+		TxnHash       *felt.Felt
+		ExpectedError error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
-		tests.TestnetEnv: {
+		tests.MockEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
-				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatusAcceptedOnL1, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+				Description: "only with FinalityStatus and ExecutionStatus",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x1"),
 			},
 			{
-				TxnHash: internalUtils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
-				ExpectedResp: TxnStatusResult{
-					FinalityStatus:  TxnStatusAcceptedOnL1,
-					ExecutionStatus: TxnExecutionStatusREVERTED,
-					FailureReason:   "Transaction execution has failed:\n0: Error in the called contract (contract address: 0x036d67ab362562a97f9fba8a1051cf8e37ff1a1449530fb9f1f0e32ac2da7d06, class hash: 0x061dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f, selector: 0x015d40a3d6ca2ac30f4031e42be28da9b056fef9bb7357ac5e85627ee876e5ad):\nError at pc=0:4835:\nCairo traceback (most recent call last):\nUnknown location (pc=0:67)\nUnknown location (pc=0:1835)\nUnknown location (pc=0:2554)\nUnknown location (pc=0:3436)\nUnknown location (pc=0:4040)\n\n1: Error in the called contract (contract address: 0x00000000000000000000000000000000000000000000000000000000ffffffff, class hash: 0x0000000000000000000000000000000000000000000000000000000000000000, selector: 0x02f0b3c5710379609eb5495f1ecd348cb28167711b73609fe565a72734550354):\nRequested contract address 0x00000000000000000000000000000000000000000000000000000000ffffffff is not deployed.\n",
-				},
+				Description: "with FailureReason",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x2"),
+			},
+			{
+				Description:   "error - hash not found",
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description: "only with FinalityStatus and ExecutionStatus",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+			},
+			{
+				Description: "with FailureReason",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x5adf825a4b7fc4d2d99e65be934bd85c83ca2b9383f2ff28fc2a4bc2e6382fc"),
+			},
+			{
+				Description:   "error - hash not found",
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				TxnHash:      internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
-				ExpectedResp: TxnStatusResult{FinalityStatus: TxnStatusAcceptedOnL2, ExecutionStatus: TxnExecutionStatusSUCCEEDED},
+				Description: "only with FinalityStatus and ExecutionStatus",
+				TxnHash:     internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+			},
+			{
+				Description:   "error - hash not found",
+				TxnHash:       internalUtils.DeadBeef,
+				ExpectedError: ErrHashNotFound,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		resp, err := testConfig.Provider.TransactionStatus(context.Background(), test.TxnHash)
-		require.Nil(t, err)
-		require.Equal(t, resp.FinalityStatus, test.ExpectedResp.FinalityStatus)
-		require.Equal(t, resp.ExecutionStatus, test.ExpectedResp.ExecutionStatus)
-		require.Equal(t, resp.FailureReason, test.ExpectedResp.FailureReason)
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getTransactionStatus",
+						test.TxnHash,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						txnHash := args[0].(*felt.Felt)
+
+						if txnHash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    29,
+								Message: "Transaction hash not found",
+							}
+						}
+
+						if txnHash.String() == "0x1" {
+							*rawResp = json.RawMessage(`
+								{
+									"finality_status": "ACCEPTED_ON_L2",
+									"execution_status": "SUCCEEDED"
+								}
+							`)
+
+							return nil
+						}
+						if txnHash.String() == "0x2" {
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/txnStatus/sepoliaStatus.json",
+								"result",
+							)
+
+							return nil
+						}
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			resp, err := testConfig.Provider.TransactionStatus(t.Context(), test.TxnHash)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
+		})
 	}
 }
 
-// TestGetMessagesStatus tests starknet_getMessagesStatus in the GetMessagesStatus function
-func TestGetMessagesStatus(t *testing.T) {
-	// TODO: add integration testcases
+// TestMessagesStatus tests the MessagesStatus function
+func TestMessagesStatus(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		TxHash       NumAsHex
-		ExpectedResp []MessageStatus
-		ExpectedErr  error
+		TxHash      NumAsHex
+		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				TxHash: "0x123",
-				ExpectedResp: []MessageStatus{
-					{
-						Hash:            internalUtils.DeadBeef,
-						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
-						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-					},
-					{
-						Hash:            internalUtils.DeadBeef,
-						FinalityStatus:  TxnFinalityStatusAcceptedOnL2,
-						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-					},
-				},
 			},
 			{
-				TxHash:      "0xdededededededededededededededededededededededededededededededede",
+				TxHash:      "0xdeadbeef",
 				ExpectedErr: ErrHashNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				TxHash: "0x06c5ca541e3d6ce35134e1de3ed01dbf106eaa770d92744432b497f59fddbc00",
-				ExpectedResp: []MessageStatus{
-					{
-						Hash:            internalUtils.TestHexToFelt(t, "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157"),
-						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-					},
-					{
-						Hash:            internalUtils.TestHexToFelt(t, "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640"),
-						FinalityStatus:  TxnFinalityStatusAcceptedOnL1,
-						ExecutionStatus: TxnExecutionStatusSUCCEEDED,
-					},
-				},
 			},
 			{
-				TxHash:      "0xdededededededededededededededededededededededededededededededede",
+				TxHash:      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				ExpectedErr: ErrHashNotFound,
 			},
 		},
@@ -332,13 +467,58 @@ func TestGetMessagesStatus(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(string(test.TxHash), func(t *testing.T) {
-			resp, err := testConfig.Provider.MessagesStatus(context.Background(), test.TxHash)
-			if test.ExpectedErr != nil {
-				require.EqualError(t, err, test.ExpectedErr.Error())
-			} else {
-				require.Nil(t, err)
-				require.Equal(t, test.ExpectedResp, resp)
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getMessagesStatus",
+						test.TxHash,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						txnHash := args[0].(NumAsHex)
+
+						if txnHash == "0xdeadbeef" {
+							return RPCError{
+								Code:    29,
+								Message: "Transaction hash not found",
+							}
+						}
+
+						*rawResp = json.RawMessage(`
+							[
+								{
+									"transaction_hash": "0x71660e0442b35d307fc07fa6007cf2ae4418d29fd73833303e7d3cfe1157157",
+									"finality_status": "ACCEPTED_ON_L1",
+									"execution_status": "SUCCEEDED"
+								},
+								{
+									"transaction_hash": "0x28a3d1f30922ab86bb240f7ce0f5e8cbbf936e5d2fcfe52b8ffbe71e341640",
+									"finality_status": "ACCEPTED_ON_L1",
+									"execution_status": "SUCCEEDED"
+								}
+							]
+						`)
+
+						return nil
+					}).
+					Times(1)
 			}
+
+			resp, err := testConfig.Provider.MessagesStatus(t.Context(), test.TxHash)
+			if test.ExpectedErr != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedErr.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedResp := testConfig.RPCSpy.LastResponse()
+			rawResp, err := json.Marshal(resp)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
 		})
 	}
 }

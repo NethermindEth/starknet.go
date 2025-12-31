@@ -50,12 +50,18 @@ func TestHexArrToFelt(t testing.TB, hexArr []string) []*felt.Felt {
 // Parameters:
 //   - t: testing.TB interface for test logging and error reporting
 //   - filePath: string path to the JSON file
-//   - subfield: string subfield to unmarshal from the JSON file
+//   - subfields: string slice of subfields to unmarshal from the JSON file
+//
+// You can use 'subfields' to specify the path of the type you want to unmarshal.
+// Example: if you want to unmarshal the field "bar" that is within the json,
+// you can specify the subfields as ["bar"].
+// If you want to unmarshal the field "foo" that is within the "bar" field,
+// you can specify the subfields as ["bar", "foo"].
 //
 // Returns:
 //   - T: the unmarshalled data of type T
-func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath, subfield string) *T {
-	result, err := UnmarshalJSONFileToType[T](filePath, subfield)
+func TestUnmarshalJSONFileToType[T any](t testing.TB, filePath string, subfields ...string) T {
+	result, err := UnmarshalJSONFileToType[T](filePath, subfields...)
 	require.NoError(t, err)
 
 	return result
