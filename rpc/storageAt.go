@@ -20,8 +20,9 @@ import (
 // Returns:
 //   - string: The value of the storage
 //   - error: An error if any occurred during the execution
-func (provider *Provider) StorageAt(
+func StorageAt(
 	ctx context.Context,
+	c callCloser,
 	contractAddress *felt.Felt,
 	key string,
 	blockID BlockID,
@@ -29,7 +30,7 @@ func (provider *Provider) StorageAt(
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
 	if err := do(
-		ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID,
+		ctx, c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID,
 	); err != nil {
 		return "", rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}

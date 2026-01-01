@@ -15,9 +15,9 @@ import (
 // Returns:
 //   - uint64: The block number
 //   - error: An error if any
-func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
+func BlockNumber(ctx context.Context, c callCloser) (uint64, error) {
 	var blockNumber uint64
-	if err := do(ctx, provider.c, "starknet_blockNumber", &blockNumber); err != nil {
+	if err := do(ctx, c, "starknet_blockNumber", &blockNumber); err != nil {
 		if errors.Is(err, errNotFound) {
 			return 0, ErrNoBlocks
 		}

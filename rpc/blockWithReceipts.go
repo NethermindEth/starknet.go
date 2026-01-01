@@ -8,12 +8,13 @@ import (
 )
 
 // Get block information with full transactions and receipts given the block id
-func (provider *Provider) BlockWithReceipts(
+func GetBlockWithReceipts(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 ) (interface{}, error) {
 	var result json.RawMessage
-	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
+	if err := do(ctx, c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 

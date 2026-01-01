@@ -23,15 +23,16 @@ import (
 //   - []FeeEstimation: A sequence of fee estimation where the i'th estimate corresponds
 //     to the i'th transaction
 //   - error: An error if any occurred during the execution
-func (provider *Provider) EstimateFee(
+func EstimateFee(
 	ctx context.Context,
+	c callCloser,
 	requests []BroadcastTxn,
 	simulationFlags []SimulationFlag,
 	blockID BlockID,
 ) ([]FeeEstimation, error) {
 	var raw []FeeEstimation
 	if err := do(
-		ctx, provider.c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID,
+		ctx, c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,

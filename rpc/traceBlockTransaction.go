@@ -15,8 +15,9 @@ import (
 // Returns:
 //   - []Trace: a slice of Trace objects representing the traces of transactions in the block
 //   - error: an error if there was a problem retrieving the traces.
-func (provider *Provider) TraceBlockTransactions(
+func TraceBlockTransactions(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 ) ([]Trace, error) {
 	err := checkForPreConfirmed(blockID)
@@ -26,7 +27,7 @@ func (provider *Provider) TraceBlockTransactions(
 
 	var output []Trace
 	if err := do(
-		ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID,
+		ctx, c, "starknet_traceBlockTransactions", &output, blockID,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}

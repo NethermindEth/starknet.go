@@ -16,12 +16,13 @@ import (
 // Returns:
 //   - TransactionReceipt: the transaction receipt
 //   - error: an error if any
-func (provider *Provider) TransactionReceipt(
+func GetTransactionReceipt(
 	ctx context.Context,
+	c callCloser,
 	transactionHash *felt.Felt,
 ) (*TransactionReceiptWithBlockInfo, error) {
 	var receipt TransactionReceiptWithBlockInfo
-	err := do(ctx, provider.c, "starknet_getTransactionReceipt", &receipt, transactionHash)
+	err := do(ctx, c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}

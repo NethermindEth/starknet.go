@@ -14,9 +14,9 @@ import (
 // Returns:
 //   - *SyncStatus: The synchronisation status
 //   - error: An error if any occurred during the execution
-func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error) {
+func Syncing(ctx context.Context, c callCloser) (SyncStatus, error) {
 	var result SyncStatus
-	if err := do(ctx, provider.c, "starknet_syncing", &result); err != nil {
+	if err := do(ctx, c, "starknet_syncing", &result); err != nil {
 		return SyncStatus{}, rpcerr.UnwrapToRPCErr(err)
 	}
 

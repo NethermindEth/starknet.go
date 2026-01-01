@@ -16,12 +16,13 @@ import (
 // Returns:
 //   - *StateUpdateOutput: The retrieved state update
 //   - error: An error, if any
-func (provider *Provider) StateUpdate(
+func GetStateUpdate(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 ) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
-	if err := do(ctx, provider.c, "starknet_getStateUpdate", &state, blockID); err != nil {
+	if err := do(ctx, c, "starknet_getStateUpdate", &state, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 

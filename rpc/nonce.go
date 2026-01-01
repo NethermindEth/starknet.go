@@ -17,14 +17,15 @@ import (
 // Returns:
 //   - *felt.Felt: the contract's nonce at the requested state
 //   - error: an error if any
-func (provider *Provider) Nonce(
+func Nonce(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var nonce *felt.Felt
 	if err := do(
-		ctx, provider.c, "starknet_getNonce", &nonce, blockID, contractAddress,
+		ctx, c, "starknet_getNonce", &nonce, blockID, contractAddress,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}

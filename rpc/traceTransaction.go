@@ -17,13 +17,14 @@ import (
 // Returns:
 //   - TxnTrace: the transaction trace
 //   - error: an error if the transaction trace cannot be retrieved
-func (provider *Provider) TraceTransaction(
+func TraceTransaction(
 	ctx context.Context,
+	c callCloser,
 	transactionHash *felt.Felt,
 ) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := do(
-		ctx, provider.c, "starknet_traceTransaction", &rawTxnTrace, transactionHash,
+		ctx, c, "starknet_traceTransaction", &rawTxnTrace, transactionHash,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)
 	}

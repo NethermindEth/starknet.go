@@ -28,15 +28,16 @@ import (
 //   - []SimulatedTransaction: The execution trace and consumed resources of the
 //     required transactions
 //   - error: An error if any occurred during the execution
-func (provider *Provider) SimulateTransactions(
+func SimulateTransactions(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 	txns []BroadcastTxn,
 	simulationFlags []SimulationFlag,
 ) ([]SimulatedTransaction, error) {
 	var output []SimulatedTransaction
 	if err := do(
-		ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags,
+		ctx, c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}

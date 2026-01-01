@@ -15,9 +15,9 @@ import (
 // Returns
 //   - eventChunk: The retrieved events
 //   - error: An error if any
-func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error) {
+func Events(ctx context.Context, c callCloser, input EventsInput) (*EventChunk, error) {
 	var result EventChunk
-	if err := do(ctx, provider.c, "starknet_getEvents", &result, input); err != nil {
+	if err := do(ctx, c, "starknet_getEvents", &result, input); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrPageSizeTooBig,

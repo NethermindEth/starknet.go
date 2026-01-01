@@ -17,12 +17,13 @@ import (
 // Returns:
 //   - CasmCompiledContractClass: The compiled contract class
 //   - error: An error if any occurred during the execution
-func (provider *Provider) CompiledCasm(
+func CompiledCasm(
 	ctx context.Context,
+	c callCloser,
 	classHash *felt.Felt,
 ) (*contracts.CasmClass, error) {
 	var result contracts.CasmClass
-	if err := do(ctx, provider.c, "starknet_getCompiledCasm", &result, classHash); err != nil {
+	if err := do(ctx, c, "starknet_getCompiledCasm", &result, classHash); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrCompilationError)
 	}
 

@@ -17,12 +17,13 @@ import (
 //   - [] MessageStatusResp: An array containing the status of the messages sent
 //     by the L1 transaction
 //   - error, if one arose.
-func (provider *Provider) MessagesStatus(
+func MessagesStatus(
 	ctx context.Context,
+	c callCloser,
 	transactionHash NumAsHex,
 ) ([]MessageStatus, error) {
 	var response []MessageStatus
-	err := do(ctx, provider.c, "starknet_getMessagesStatus", &response, transactionHash)
+	err := do(ctx, c, "starknet_getMessagesStatus", &response, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}

@@ -16,9 +16,9 @@ import (
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func BlockWithTxs(ctx context.Context, c callCloser, blockID BlockID) (interface{}, error) {
 	var result Block
-	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
+	if err := do(ctx, c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pre_confirmed block

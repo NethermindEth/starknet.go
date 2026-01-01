@@ -14,11 +14,12 @@ import (
 // Returns:
 //   - *BlockHashAndNumberOutput: The hash and number of the current block
 //   - error: An error if any
-func (provider *Provider) BlockHashAndNumber(
+func BlockHashAndNumber(
 	ctx context.Context,
+	c callCloser,
 ) (*BlockHashAndNumberOutput, error) {
 	var block BlockHashAndNumberOutput
-	if err := do(ctx, provider.c, "starknet_blockHashAndNumber", &block); err != nil {
+	if err := do(ctx, c, "starknet_blockHashAndNumber", &block); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrNoBlocks)
 	}
 

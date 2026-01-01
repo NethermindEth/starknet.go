@@ -15,13 +15,14 @@ import (
 // Returns:
 //   - AddDeclareTransactionResponse: The response of submitting the declare transaction
 //   - error: an error if any
-func (provider *Provider) AddDeclareTransaction(
+func AddDeclareTransaction(
 	ctx context.Context,
+	c callCloser,
 	declareTransaction *BroadcastDeclareTxnV3,
 ) (AddDeclareTransactionResponse, error) {
 	var result AddDeclareTransactionResponse
 	if err := do(
-		ctx, provider.c, "starknet_addDeclareTransaction", &result, declareTransaction,
+		ctx, c, "starknet_addDeclareTransaction", &result, declareTransaction,
 	); err != nil {
 		return AddDeclareTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,

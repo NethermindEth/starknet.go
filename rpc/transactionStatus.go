@@ -17,12 +17,13 @@ import (
 //   - *TxnStatusResult: Transaction status result, including finality status
 //     and execution status
 //   - error, if one arose.
-func (provider *Provider) TransactionStatus(
+func TransactionStatus(
 	ctx context.Context,
+	c callCloser,
 	transactionHash *felt.Felt,
 ) (*TxnStatusResult, error) {
 	var receipt TxnStatusResult
-	err := do(ctx, provider.c, "starknet_getTransactionStatus", &receipt, transactionHash)
+	err := do(ctx, c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}

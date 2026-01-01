@@ -17,14 +17,15 @@ import (
 // Returns:
 //   - *felt.Felt: The class hash
 //   - error: An error if any occurred during the execution
-func (provider *Provider) ClassHashAt(
+func ClassHashAt(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := do(
-		ctx, provider.c, "starknet_getClassHashAt", &result, blockID, contractAddress,
+		ctx, c, "starknet_getClassHashAt", &result, blockID, contractAddress,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}

@@ -19,14 +19,15 @@ import (
 // Returns:
 //   - ClassOutput: The output of the class
 //   - error: An error if any occurred during the execution
-func (provider *Provider) ClassAt(
+func ClassAt(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 	contractAddress *felt.Felt,
 ) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := do(
-		ctx, provider.c, "starknet_getClassAt", &rawClass, blockID, contractAddress,
+		ctx, c, "starknet_getClassAt", &rawClass, blockID, contractAddress,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}

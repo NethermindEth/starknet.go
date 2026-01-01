@@ -16,12 +16,13 @@ import (
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
-func (provider *Provider) BlockWithTxHashes(
+func BlockWithTxHashes(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 ) (interface{}, error) {
 	var result BlockTxHashes
-	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
+	if err := do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 

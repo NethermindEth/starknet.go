@@ -15,12 +15,13 @@ import (
 // Returns:
 //   - AddInvokeTransactionResponse: the response of adding the invoke transaction
 //   - error: an error if any
-func (provider *Provider) AddInvokeTransaction(
+func AddInvokeTransaction(
 	ctx context.Context,
+	c callCloser,
 	invokeTxn *BroadcastInvokeTxnV3,
 ) (AddInvokeTransactionResponse, error) {
 	var output AddInvokeTransactionResponse
-	if err := do(ctx, provider.c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
+	if err := do(ctx, c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {
 		return AddInvokeTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrInsufficientAccountBalance,

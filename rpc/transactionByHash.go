@@ -16,12 +16,13 @@ import (
 // Returns:
 //   - BlockTransaction: The retrieved Transaction
 //   - error: An error if any
-func (provider *Provider) TransactionByHash(
+func TransactionByHash(
 	ctx context.Context,
+	c callCloser,
 	hash *felt.Felt,
 ) (*BlockTransaction, error) {
 	var tx BlockTransaction
-	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
+	if err := do(ctx, c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 

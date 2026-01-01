@@ -17,13 +17,14 @@ import (
 // Returns:
 //   - ClassOutput: The output of the class.
 //   - error: An error if any occurred during the execution.
-func (provider *Provider) Class(
+func Class(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 	classHash *felt.Felt,
 ) (ClassOutput, error) {
 	var rawClass map[string]any
-	if err := do(ctx, provider.c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
+	if err := do(ctx, c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 

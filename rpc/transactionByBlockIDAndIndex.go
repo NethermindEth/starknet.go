@@ -16,14 +16,15 @@ import (
 // Returns:
 //   - BlockTransaction: The retrieved Transaction object
 //   - error: An error, if any
-func (provider *Provider) TransactionByBlockIDAndIndex(
+func TransactionByBlockIDAndIndex(
 	ctx context.Context,
+	c callCloser,
 	blockID BlockID,
 	index uint64,
 ) (*BlockTransaction, error) {
 	var tx BlockTransaction
 	if err := do(
-		ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
+		ctx, c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}

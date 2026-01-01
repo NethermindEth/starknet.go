@@ -15,15 +15,11 @@ import (
 // Returns:
 //   - string: The chain ID
 //   - error: An error if any occurred during the execution
-func (provider *Provider) ChainID(ctx context.Context) (string, error) {
-	if provider.chainID != "" {
-		return provider.chainID, nil
-	}
+func ChainID(ctx context.Context, c callCloser) (string, error) {
 	var result string
-	if err := do(ctx, provider.c, "starknet_chainId", &result); err != nil {
+	if err := do(ctx, c, "starknet_chainId", &result); err != nil {
 		return "", rpcerr.UnwrapToRPCErr(err)
 	}
-	provider.chainID = internalUtils.HexToShortStr(result)
 
-	return provider.chainID, nil
+	return internalUtils.HexToShortStr(result), nil
 }

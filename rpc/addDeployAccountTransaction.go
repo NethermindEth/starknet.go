@@ -15,13 +15,14 @@ import (
 // Returns:
 //   - AddDeployAccountTransactionResponse: the response of adding the deploy
 //     account transaction or an error
-func (provider *Provider) AddDeployAccountTransaction(
+func AddDeployAccountTransaction(
 	ctx context.Context,
+	c callCloser,
 	deployAccountTransaction *BroadcastDeployAccountTxnV3,
 ) (AddDeployAccountTransactionResponse, error) {
 	var result AddDeployAccountTransactionResponse
 	if err := do(
-		ctx, provider.c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction,
+		ctx, c, "starknet_addDeployAccountTransaction", &result, deployAccountTransaction,
 	); err != nil {
 		return AddDeployAccountTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,

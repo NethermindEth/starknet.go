@@ -16,14 +16,15 @@ import (
 // Returns:
 //   - MessageFeeEstimation: the fee estimated for the message
 //   - error: an error if any occurred during the execution
-func (provider *Provider) EstimateMessageFee(
+func EstimateMessageFee(
 	ctx context.Context,
+	c callCloser,
 	msg MsgFromL1,
 	blockID BlockID,
 ) (MessageFeeEstimation, error) {
 	var raw MessageFeeEstimation
 	if err := do(
-		ctx, provider.c, "starknet_estimateMessageFee", &raw, msg, blockID,
+		ctx, c, "starknet_estimateMessageFee", &raw, msg, blockID,
 	); err != nil {
 		return raw, rpcerr.UnwrapToRPCErr(err,
 			ErrContractError,
