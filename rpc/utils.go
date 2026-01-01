@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // IsCompatible compares the version of the Starknet JSON-RPC Specification
@@ -119,4 +120,46 @@ func EstimateTip(
 	tip = U64("0x" + strconv.FormatUint(uint64(multipliedAverageTip), 16))
 
 	return tip, nil
+}
+
+// WithBlockNumber returns a BlockID with the given block number.
+//
+// Parameters:
+//   - n: The block number to use for the BlockID.
+//
+// Returns:
+//   - BlockID: A BlockID struct with the specified block number
+func WithBlockNumber(n uint64) BlockID {
+	var blockID BlockID
+	blockID.Number = &n
+
+	return blockID
+}
+
+// WithBlockHash returns a BlockID with the given hash.
+//
+// Parameters:
+//   - h: The hash to use for the BlockID.
+//
+// Returns:
+//   - BlockID: A BlockID struct with the specified hash
+func WithBlockHash(h *felt.Felt) BlockID {
+	var blockID BlockID
+	blockID.Hash = h
+
+	return blockID
+}
+
+// WithBlockTag creates a new BlockID with the specified tag.
+//
+// Parameters:
+//   - tag: The tag for the BlockID
+//
+// Returns:
+//   - BlockID: A BlockID struct with the specified tag
+func WithBlockTag(tag BlockTag) BlockID {
+	var blockID BlockID
+	blockID.Tag = tag
+
+	return blockID
 }
