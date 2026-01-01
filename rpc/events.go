@@ -15,8 +15,6 @@ import (
 // Returns
 //   - eventChunk: The retrieved events
 //   - error: An error if any
-//
-
 func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error) {
 	var result EventChunk
 	if err := do(ctx, provider.c, "starknet_getEvents", &result, input); err != nil {
