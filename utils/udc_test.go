@@ -30,7 +30,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 				new(felt.Felt).SetUint64(100),
 				new(felt.Felt).SetUint64(200),
 			},
-			opts:                  nil,
+			opts:                  &UDCOptions{UDCVersion: UDCCairoV0},
 			expectedUDCAddress:    udcAddressCairoV0,
 			expectedFunctionName:  "deployContract",
 			expectedCallDataLen:   6, // classHash + salt + originInd + calldataLen + 2 constructor args
@@ -40,7 +40,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 			name:                  "UDC Cairo V0 with custom salt",
 			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{new(felt.Felt).SetUint64(100)},
-			opts:                  &UDCOptions{Salt: new(felt.Felt).SetUint64(999)},
+			opts:                  &UDCOptions{Salt: new(felt.Felt).SetUint64(999), UDCVersion: UDCCairoV0},
 			expectedUDCAddress:    udcAddressCairoV0,
 			expectedFunctionName:  "deployContract",
 			expectedCallDataLen:   5, // classHash + salt + originInd + calldataLen + 1 constructor arg
@@ -50,7 +50,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 			name:                  "UDC Cairo V0 with origin independent",
 			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{},
-			opts:                  &UDCOptions{OriginIndependent: true},
+			opts:                  &UDCOptions{OriginIndependent: true, UDCVersion: UDCCairoV0},
 			expectedUDCAddress:    udcAddressCairoV0,
 			expectedFunctionName:  "deployContract",
 			expectedCallDataLen:   4, // classHash + salt + originInd + calldataLen
@@ -98,8 +98,8 @@ func TestBuildUDCCalldata(t *testing.T) {
 			classHash:             internalUtils.DeadBeef,
 			constructorCalldata:   []*felt.Felt{},
 			opts:                  nil,
-			expectedUDCAddress:    udcAddressCairoV0,
-			expectedFunctionName:  "deployContract",
+			expectedUDCAddress:    udcAddressCairoV2,
+			expectedFunctionName:  "deploy_contract",
 			expectedCallDataLen:   4, // classHash + salt + originInd + calldataLen
 			checkCallDataContents: true,
 		},
@@ -175,11 +175,11 @@ func checkCallDataContents(
 	}
 
 	// Check the rest based on UDC version
-	if opts != nil && opts.UDCVersion == UDCCairoV2 {
+	if opts == nil || opts.UDCVersion == UDCCairoV2 {
 		// Cairo V2: [classHash, salt, originInd, calldataLen, ...constructorCalldata]
 		originInd := callData[2]
 		expectedOriginInd := new(felt.Felt).SetUint64(0)
-		if opts.OriginIndependent {
+		if opts != nil && opts.OriginIndependent {
 			expectedOriginInd.SetUint64(1)
 		}
 		assert.Equal(t, expectedOriginInd, originInd)
