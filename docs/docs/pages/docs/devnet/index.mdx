@@ -2,30 +2,6 @@
 
 The DevNet package provides a client for interacting with Starknet DevNet - a local Starknet node for testing and development. This package enables developers to test smart contracts locally without deploying to testnets, with instant block times and full control over the network state.
 
-:::danger DevNet Package is Broken
-
-**The DevNet package in starknet.go v0.17.0 is BROKEN and cannot work with any available DevNet version.**
-
-The `Accounts()`, `Mint()`, and `FeeToken()` methods were designed for the deprecated Python starknet-devnet which:
-- Had `/predeployed_accounts`, `/mint`, and `/fee_token` endpoints
-- Is **completely unavailable** (removed from Docker Hub and PyPI)
-- Has been replaced by starknet-devnet-rs (Rust version)
-
-The current **starknet-devnet-rs does NOT have these endpoints**, causing EOF errors.
-
-**Only working methods:**
-- ✅ `NewDevNet()` - Creates client instance
-- ✅ `IsAlive()` - Checks if DevNet is running
-- ❌ `Accounts()` - **BROKEN** (EOF error)
-- ❌ `Mint()` - **BROKEN** (endpoint doesn't exist)
-- ❌ `FeeToken()` - **BROKEN** (endpoint doesn't exist)
-
-**Required Workaround**: Use the [RPC provider](/docs/rpc/) directly to interact with DevNet. Get account credentials from DevNet startup logs:
-
-```bash
-docker logs starknet-devnet | grep "Account address"
-```
-:::
 
 ## Overview
 
@@ -34,7 +10,6 @@ The DevNet package is designed to work with [starknet-devnet-rs](https://github.
 - **Network Management**: Connect to and monitor DevNet instances
 - **Test Account Access**: Retrieve pre-funded accounts for testing
 - **Token Minting**: Create tokens for test scenarios
-- **Fee Token Information**: Query the network's fee token details
 - **Health Monitoring**: Verify DevNet availability and responsiveness
 
 ## Key Components
@@ -44,7 +19,6 @@ The DevNet package is designed to work with [starknet-devnet-rs](https://github.
 - [IsAlive](/docs/devnet/methods/is-alive) - Check if DevNet is running and accessible
 - [Accounts](/docs/devnet/methods/accounts) - Retrieve pre-funded test accounts
 - [Mint](/docs/devnet/methods/mint) - Mint tokens to any address
-- [FeeToken](/docs/devnet/methods/fee-token) - Get fee token metadata
 
 ## Getting Started
 
@@ -54,51 +28,46 @@ To use the DevNet package, first ensure you have a running DevNet instance, then
 import "github.com/NethermindEth/starknet.go/devnet"
 ```
 
-## Quick Example (Working with RPC)
-
-Due to API incompatibility, use the RPC provider to interact with DevNet:
+## Quick Example
 
 ```go
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"math/big"
 
 	"github.com/NethermindEth/starknet.go/devnet"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/utils"
 )
 
 func main() {
-	// Check if DevNet is running
+	// Create DevNet client
 	devNet := devnet.NewDevNet()
+
+	// Check if DevNet is running
 	if !devNet.IsAlive() {
 		log.Fatal("DevNet is not running. Start it with: starknet-devnet")
 	}
-	fmt.Println("✓ DevNet is running")
+	fmt.Println("DevNet is running")
 
-	// Use RPC provider to interact with DevNet
-	provider, err := rpc.NewProvider(context.Background(), "http://localhost:5050/rpc")
+	// Get pre-funded test accounts
+	accounts, err := devNet.Accounts()
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("Found %d test accounts\n", len(accounts))
 
-	// Get chain ID to verify connection
-	chainID, err := provider.ChainID(context.Background())
+	// Mint tokens to an address
+	address, _ := utils.HexToFelt(accounts[0].Address)
+	amount := big.NewInt(1000000000000000000) // 1 ETH in wei
+
+	mintResp, err := devNet.Mint(address, amount)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("Connected to DevNet - Chain ID: %s\n", chainID)
-
-	// Get latest block number
-	blockNumber, err := provider.BlockNumber(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Latest block: %d\n", blockNumber)
+	fmt.Printf("Minted tokens. New balance: %s %s\n", mintResp.NewBalance, mintResp.Unit)
 }
 ```
 
