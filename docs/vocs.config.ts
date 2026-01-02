@@ -4,8 +4,9 @@ import { sidebar } from './sidebar'
 export default defineConfig({
   title: 'starknet.go',
   titleTemplate: '%s · starknet.go',
-  
-  
+  baseUrl: 'https://starknet-go.nethermind.io',
+  description: 'Get the gopher Starkpilled - The Go SDK for Starknet',
+
   editLink: {
     pattern: 'https://github.com/NethermindEth/starknet.go/edit/main/www/docs/pages/:path',
     text: 'Suggest changes to this page',
