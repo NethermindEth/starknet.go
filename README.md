@@ -35,8 +35,12 @@
 
 <h1 align="center">Get the gopher Starkpilled</h1>
 
-<a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
+<a href="https://starknet-go.nethermind.io">
 <img src="https://img.shields.io/badge/Documentation-Website-yellow"
+ height="50" />
+</a>
+<a href="https://pkg.go.dev/github.com/NethermindEth/starknet.go">
+<img src="https://img.shields.io/badge/Go_Reference-pkg.go.dev-blue"
  height="50" />
 </a>
 <br><br>
