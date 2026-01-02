@@ -17,8 +17,9 @@ import (
 // Returns
 //   - []*felt.Felt: the result of the function call
 //   - error: an error if any occurred during the execution
-func (provider *Provider) Call(
+func Call(
 	ctx context.Context,
+	c callCloser,
 	request FunctionCall,
 	blockID BlockID,
 ) ([]*felt.Felt, error) {
@@ -27,7 +28,7 @@ func (provider *Provider) Call(
 	}
 
 	var result []*felt.Felt
-	if err := do(ctx, provider.c, "starknet_call", &result, request, blockID); err != nil {
+	if err := do(ctx, c, "starknet_call", &result, request, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrContractNotFound,
