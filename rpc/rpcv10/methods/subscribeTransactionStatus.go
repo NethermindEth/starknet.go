@@ -6,6 +6,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -25,7 +26,7 @@ import (
 //   - error: An error, if any
 func SubscribeTransactionStatus(
 	ctx context.Context,
-	ws Subscriber,
+	ws rpc.Subscriber,
 	newStatus chan<- *rpcv10.NewTxnStatus,
 	transactionHash *felt.Felt,
 ) (*client.ClientSubscription, error) {

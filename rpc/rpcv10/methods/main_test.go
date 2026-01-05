@@ -1,7 +1,5 @@
 package methods
 
-// @todo remove this file later
-
 import (
 	"os"
 	"testing"
