@@ -4,8 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/cookiejar"
 
+	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/gorilla/websocket"
+	"golang.org/x/net/publicsuffix"
 )
 
 // @todo see docs
@@ -73,4 +78,47 @@ func DoAsObject(ctx context.Context, c rpc.Caller, method string, data, arg inte
 	}
 
 	return nil
+}
+
+// @new
+func NewHTTPClient(
+	ctx context.Context,
+	url string,
+	options ...client.ClientOption,
+) (*client.Client, error) {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return nil, err
+	}
+	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
+	// prepend the custom client to allow users to override
+	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
+	c, err := client.DialOptions(ctx, url, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+// @new
+func NewWSClient(
+	ctx context.Context,
+	url string,
+	options ...client.ClientOption,
+) (*client.Client, error) {
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return nil, err
+	}
+	dialer := websocket.Dialer{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
+
+	// prepend the custom client to allow users to override
+	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
+	c, err := client.DialOptions(ctx, url, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }

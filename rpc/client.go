@@ -2,11 +2,8 @@ package rpc
 
 import (
 	"context"
-	"net/http"
-	"net/http/cookiejar"
 
 	"github.com/NethermindEth/starknet.go/client"
-	"golang.org/x/net/publicsuffix"
 )
 
 // @todo add description
@@ -26,6 +23,7 @@ type Caller interface {
 		method string,
 		args ...interface{},
 	) error
+	// @todo remove close from http
 	Close()
 }
 
@@ -55,25 +53,4 @@ type Subscriber interface {
 		args ...interface{},
 	) (*client.ClientSubscription, error)
 	Close()
-}
-
-// @new
-func NewClient(
-	ctx context.Context,
-	url string,
-	options ...client.ClientOption,
-) (*client.Client, error) {
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
-	if err != nil {
-		return nil, err
-	}
-	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
-	// prepend the custom client to allow users to override
-	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
-	c, err := client.DialOptions(ctx, url, options...)
-	if err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }

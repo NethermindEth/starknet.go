@@ -74,7 +74,7 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		testConfig.Base = base
 	}
 
-	client, err := rpc.NewClient(t.Context(), testConfig.Base)
+	client, err := NewHTTPClient(t.Context(), testConfig.Base)
 	if err != nil {
 		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
 	}
@@ -97,7 +97,7 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 			testConfig.WsBase = wsBase
 		}
 
-		wsClient, err := rpc.NewClient(t.Context(), testConfig.WsBase)
+		wsClient, err := NewWSClient(t.Context(), testConfig.WsBase)
 		if err != nil {
 			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.WsBase, err)
 		}

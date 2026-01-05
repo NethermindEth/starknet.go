@@ -6,15 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/http/cookiejar"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/gorilla/websocket"
-	"golang.org/x/net/publicsuffix"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 )
 
 // rpcVersion is the version of the Starknet JSON-RPC specification that
@@ -33,18 +31,18 @@ var (
 
 // Provider provides the provider for starknet.go/rpc implementation.
 type Provider struct {
-	c       callCloser
+	c       rpc.Caller
 	chainID string
 }
 
 // WsProvider provides the provider for websocket starknet.go/rpc implementation.
 type WsProvider struct {
-	c wsConn
+	s rpc.Subscriber
 }
 
 // Close closes the client, aborting any in-flight requests.
 func (ws *WsProvider) Close() {
-	ws.c.Close()
+	ws.s.Close()
 }
 
 // NewProvider creates a new HTTP rpc Provider instance.
@@ -65,16 +63,9 @@ func NewProvider(
 	url string,
 	options ...client.ClientOption,
 ) (*Provider, error) {
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	c, err := internal.NewHTTPClient(ctx, url, options...)
 	if err != nil {
-		return nil, err
-	}
-	httpClient := &http.Client{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
-	// prepend the custom client to allow users to override
-	options = append([]client.ClientOption{client.WithHTTPClient(httpClient)}, options...)
-	c, err := client.DialOptions(ctx, url, options...)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
 	}
 
 	provider := &Provider{c: c, chainID: ""}
@@ -100,20 +91,12 @@ func NewWebsocketProvider(
 	url string,
 	options ...client.ClientOption,
 ) (*WsProvider, error) {
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	s, err := internal.NewWSClient(ctx, url, options...)
 	if err != nil {
-		return nil, err
-	}
-	dialer := websocket.Dialer{Jar: jar} //nolint:exhaustruct // Only the Jar field is used.
-
-	// prepend the custom client to allow users to override
-	options = append([]client.ClientOption{client.WithWebsocketDialer(dialer)}, options...)
-	c, err := client.DialOptions(ctx, url, options...)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create Websocket client: %w", err)
 	}
 
-	return &WsProvider{c: c}, nil
+	return &WsProvider{s: s}, nil
 }
 
 //go:generate mockgen -destination=../internal/tests/mocks/rpcv10mock/rpc.go -package=rpcv10mock -source=provider.go
