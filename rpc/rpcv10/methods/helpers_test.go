@@ -1,20 +1,12 @@
 package methods
 
 import (
-	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/require"
 )
-
-func TestMain(m *testing.M) {
-	tests.LoadEnv()
-
-	os.Exit(m.Run())
-}
 
 // GetCommonBlockIDs returns a list of common block IDs to use in some RPC tests.
 // It includes all block tags, a range of block numbers and the latest block hash.
