@@ -1,4 +1,4 @@
-package rpc
+package internal
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/clientmock"
-	"github.com/stretchr/testify/require"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"go.uber.org/mock/gomock"
 )
 
@@ -18,12 +18,14 @@ func TestMain(m *testing.M) {
 
 // TestSetup is a type that is used to store setup data for the RPC tests.
 type TestSetup struct {
-	Base     string
-	Provider *Provider
+	Base string
+	// @todo rename
+	Provider rpc.Caller
 	RPCSpy   tests.RPCSpyer
 
-	WsBase     string
-	WsProvider *WsProvider
+	WsBase string
+	// @todo rename
+	WsProvider rpc.Subscriber
 	WSSpy      tests.WSSpyer
 
 	// Only present in mock environment
@@ -53,14 +55,10 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		mockClient := clientmock.NewMockClient(mockCtrl)
 
 		spy := tests.NewRPCSpy(mockClient)
-		provider := &Provider{
-			c: spy,
-		}
+		provider := spy
 
 		wsSpy := tests.NewWSSpy(mockClient)
-		wsProvider := &WsProvider{
-			c: wsSpy,
-		}
+		wsProvider := wsSpy
 
 		testConfig.MockClient = mockClient
 		testConfig.Provider = provider
@@ -76,18 +74,17 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 		testConfig.Base = base
 	}
 
-	provider, err := NewProvider(t.Context(), testConfig.Base)
+	client, err := rpc.NewClient(t.Context(), testConfig.Base)
 	if err != nil {
 		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
 	}
 
-	spy := tests.NewRPCSpy(provider.c)
+	spy := tests.NewRPCSpy(client)
 	testConfig.RPCSpy = spy
-	provider.c = spy
 
-	testConfig.Provider = provider
+	testConfig.Provider = spy
 	t.Cleanup(func() {
-		testConfig.Provider.c.Close()
+		testConfig.Provider.Close()
 	})
 
 	if tests.TEST_ENV == tests.DevnetEnv {
@@ -100,18 +97,17 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 			testConfig.WsBase = wsBase
 		}
 
-		wsClient, err := NewWebsocketProvider(t.Context(), testConfig.WsBase)
+		wsClient, err := rpc.NewClient(t.Context(), testConfig.WsBase)
 		if err != nil {
 			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.WsBase, err)
 		}
 
-		spy := tests.NewWSSpy(wsClient.c)
+		spy := tests.NewWSSpy(wsClient)
 		testConfig.WSSpy = spy
-		wsClient.c = spy
 
-		testConfig.WsProvider = wsClient
+		testConfig.WsProvider = spy
 		t.Cleanup(func() {
-			testConfig.WsProvider.c.Close()
+			testConfig.WsProvider.Close()
 		})
 	}
 
@@ -121,45 +117,4 @@ func BeforeEach(t *testing.T, isWs bool) TestSetup {
 	testConfig.AccountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
 	return testConfig
-}
-
-// GetCommonBlockIDs returns a list of common block IDs to use in some RPC tests.
-// It includes all block tags, a range of block numbers and the latest block hash.
-func GetCommonBlockIDs(t *testing.T, provider *Provider) []BlockID {
-	t.Helper()
-
-	// *** all valid block tags ***
-	commonBlockIDs := []BlockID{
-		WithBlockTag(BlockTagLatest),
-		WithBlockTag(BlockTagPreConfirmed),
-		WithBlockTag(BlockTagL1Accepted),
-	}
-
-	// *** getting the common block number range ***
-
-	// 5 blocks from the first 1M blocks of the network
-	// (a lot of changes in the first blocks)
-	commonBlockIDs = append(commonBlockIDs, []BlockID{
-		WithBlockNumber(0),
-		WithBlockNumber(200_000),
-		WithBlockNumber(400_000),
-		WithBlockNumber(600_000),
-		WithBlockNumber(800_000),
-		WithBlockNumber(1_000_000),
-	}...)
-
-	// get the latest block number of the network
-	blockHashAndNumber, err := provider.BlockHashAndNumber(t.Context())
-	require.NoError(t, err, "failed to get the block number")
-
-	// after the block 1_000_000, we add one block every 500_000 blocks
-	// until the latest block
-	for i := uint64(1_500_000); i < blockHashAndNumber.Number; i += 500_000 {
-		commonBlockIDs = append(commonBlockIDs, WithBlockNumber(i))
-	}
-
-	// add the latest block hash
-	commonBlockIDs = append(commonBlockIDs, WithBlockHash(blockHashAndNumber.Hash))
-
-	return commonBlockIDs
 }
