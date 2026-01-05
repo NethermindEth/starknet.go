@@ -18,7 +18,7 @@ import (
 func BlockNumber(ctx context.Context, c callCloser) (uint64, error) {
 	var blockNumber uint64
 	if err := do(ctx, c, "starknet_blockNumber", &blockNumber); err != nil {
-		if errors.Is(err, errNotFound) {
+		if errors.Is(err, errors.New("not found")) {
 			return 0, ErrNoBlocks
 		}
 

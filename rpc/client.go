@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/NethermindEth/starknet.go/client"
 )
@@ -76,7 +77,7 @@ func do(
 		return err
 	}
 	if len(raw) == 0 {
-		return errNotFound
+		return errors.New("not found")
 	}
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
@@ -106,7 +107,7 @@ func doAsObject(ctx context.Context, call callCloser, method string, data, arg i
 		return err
 	}
 	if len(raw) == 0 {
-		return errNotFound
+		return errors.New("not found")
 	}
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
