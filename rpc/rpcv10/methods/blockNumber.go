@@ -2,7 +2,6 @@ package methods
 
 import (
 	"context"
-	"errors"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc"
@@ -21,11 +20,7 @@ import (
 func BlockNumber(ctx context.Context, c rpc.Caller) (uint64, error) {
 	var blockNumber uint64
 	if err := internal.Do(ctx, c, "starknet_blockNumber", &blockNumber); err != nil {
-		if errors.Is(err, errors.New("not found")) {
-			return 0, rpcv10.ErrNoBlocks
-		}
-
-		return 0, rpcerr.UnwrapToRPCErr(err)
+		return 0, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrNoBlocks)
 	}
 
 	return blockNumber, nil

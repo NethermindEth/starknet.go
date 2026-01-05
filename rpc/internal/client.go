@@ -13,6 +13,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
+var errNotFound = errors.New("not found")
+
 // @todo see docs
 
 // Do is a function that performs a remote procedure call (RPC) using the
@@ -41,7 +43,7 @@ func Do(
 		return err
 	}
 	if len(raw) == 0 {
-		return errors.New("not found")
+		return errNotFound
 	}
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err
@@ -71,7 +73,7 @@ func DoAsObject(ctx context.Context, c rpc.Caller, method string, data, arg inte
 		return err
 	}
 	if len(raw) == 0 {
-		return errors.New("not found")
+		return errNotFound
 	}
 	if err := json.Unmarshal(raw, &data); err != nil {
 		return err

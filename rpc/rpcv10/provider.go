@@ -15,14 +15,11 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 )
 
-// rpcVersion is the version of the Starknet JSON-RPC specification that
-// this SDK is compatible with.
-// This should be updated when supporting new versions of the RPC specification.
-var rpcVersion = semver.MustParse("0.10.0")
-
-// ErrNotFound is returned by API methods if the requested item does not exist.
 var (
-	errNotFound = errors.New("not found")
+	// rpcVersion is the version of the Starknet JSON-RPC specification that
+	// this SDK is compatible with.
+	// This should be updated when supporting new versions of the RPC specification.
+	rpcVersion = semver.MustParse("0.10.0")
 
 	// ErrIncompatibleVersion is returned when the JSON-RPC specification  implemented
 	// by the node is different from the version implemented by the Provider type.
