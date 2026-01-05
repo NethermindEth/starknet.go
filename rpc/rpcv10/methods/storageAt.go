@@ -7,6 +7,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -23,14 +25,14 @@ import (
 //   - error: An error if any occurred during the execution
 func StorageAt(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	contractAddress *felt.Felt,
 	key string,
 	blockID rpcv10.BlockID,
 ) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID,
 	); err != nil {
 		return "", rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)

@@ -26,7 +26,7 @@ import (
 //   - error: An error, if any
 func SubscribeNewTransactions(
 	ctx context.Context,
-	ws wsConn,
+	ws Subscriber,
 	newTxns chan<- *rpcv10.TxnWithHashAndStatus,
 	options *rpcv10.SubNewTxnsInput,
 ) (*client.ClientSubscription, error) {

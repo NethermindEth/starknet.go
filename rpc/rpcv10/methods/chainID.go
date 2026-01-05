@@ -5,6 +5,8 @@ import (
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 )
 
 // ChainID returns the chain ID for transaction replay protection.
@@ -15,9 +17,9 @@ import (
 // Returns:
 //   - string: The chain ID
 //   - error: An error if any occurred during the execution
-func ChainID(ctx context.Context, c callCloser) (string, error) {
+func ChainID(ctx context.Context, c rpc.Caller) (string, error) {
 	var result string
-	if err := do(ctx, c, "starknet_chainId", &result); err != nil {
+	if err := internal.Do(ctx, c, "starknet_chainId", &result); err != nil {
 		return "", rpcerr.UnwrapToRPCErr(err)
 	}
 

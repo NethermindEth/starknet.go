@@ -5,6 +5,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -20,12 +22,12 @@ import (
 //   - error: An error if any occurred during the execution
 func ClassHashAt(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var result *felt.Felt
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_getClassHashAt", &result, blockID, contractAddress,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)

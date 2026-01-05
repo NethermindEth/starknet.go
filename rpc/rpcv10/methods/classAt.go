@@ -7,6 +7,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -22,12 +24,12 @@ import (
 //   - error: An error if any occurred during the execution
 func ClassAt(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 	contractAddress *felt.Felt,
 ) (rpcv10.ClassOutput, error) {
 	var rawClass map[string]any
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_getClassAt", &rawClass, blockID, contractAddress,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)

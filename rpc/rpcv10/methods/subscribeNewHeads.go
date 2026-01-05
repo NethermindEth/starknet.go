@@ -23,7 +23,7 @@ import (
 //   - error: An error, if any
 func SubscribeNewHeads(
 	ctx context.Context,
-	ws wsConn,
+	ws Subscriber,
 	headers chan<- *rpcv10.BlockHeader,
 	subBlockID rpcv10.SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {

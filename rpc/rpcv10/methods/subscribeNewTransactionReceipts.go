@@ -27,7 +27,7 @@ import (
 //   - error: An error, if any
 func SubscribeNewTransactionReceipts(
 	ctx context.Context,
-	ws wsConn,
+	ws Subscriber,
 	txnReceipts chan<- *rpcv10.TransactionReceiptWithBlockInfo,
 	options *rpcv10.SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {

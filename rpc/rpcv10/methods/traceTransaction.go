@@ -6,6 +6,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -20,11 +22,11 @@ import (
 //   - error: an error if the transaction trace cannot be retrieved
 func TraceTransaction(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	transactionHash *felt.Felt,
 ) (rpcv10.TxnTrace, error) {
 	var rawTxnTrace map[string]any
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_traceTransaction", &rawTxnTrace, transactionHash,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)

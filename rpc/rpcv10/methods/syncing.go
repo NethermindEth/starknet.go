@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -15,9 +17,9 @@ import (
 // Returns:
 //   - *SyncStatus: The synchronisation status
 //   - error: An error if any occurred during the execution
-func Syncing(ctx context.Context, c callCloser) (rpcv10.SyncStatus, error) {
+func Syncing(ctx context.Context, c rpc.Caller) (rpcv10.SyncStatus, error) {
 	var result rpcv10.SyncStatus
-	if err := do(ctx, c, "starknet_syncing", &result); err != nil {
+	if err := internal.Do(ctx, c, "starknet_syncing", &result); err != nil {
 		return rpcv10.SyncStatus{}, rpcerr.UnwrapToRPCErr(err)
 	}
 

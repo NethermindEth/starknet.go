@@ -25,7 +25,7 @@ import (
 //   - error: An error, if any
 func SubscribeTransactionStatus(
 	ctx context.Context,
-	ws wsConn,
+	ws Subscriber,
 	newStatus chan<- *rpcv10.NewTxnStatus,
 	transactionHash *felt.Felt,
 ) (*client.ClientSubscription, error) {

@@ -5,6 +5,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -19,11 +21,11 @@ import (
 //   - error: An error, if any
 func BlockWithTxHashes(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 ) (interface{}, error) {
 	var result rpcv10.BlockTxHashes
-	if err := do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
+	if err := internal.Do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 

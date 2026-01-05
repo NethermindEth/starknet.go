@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -20,11 +22,11 @@ import (
 //   - error, if one arose.
 func MessagesStatus(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	transactionHash rpcv10.NumAsHex,
 ) ([]rpcv10.MessageStatus, error) {
 	var response []rpcv10.MessageStatus
-	err := do(ctx, c, "starknet_getMessagesStatus", &response, transactionHash)
+	err := internal.Do(ctx, c, "starknet_getMessagesStatus", &response, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}

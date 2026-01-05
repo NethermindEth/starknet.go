@@ -28,7 +28,7 @@ import (
 //   - error: An error, if any
 func SubscribeEvents(
 	ctx context.Context,
-	ws wsConn,
+	ws Subscriber,
 	events chan<- *rpcv10.EmittedEventWithFinalityStatus,
 	options *rpcv10.EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {

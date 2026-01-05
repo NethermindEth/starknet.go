@@ -5,17 +5,19 @@ import (
 	"encoding/json"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Get block information with full transactions and receipts given the block id
 func GetBlockWithReceipts(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 ) (interface{}, error) {
 	var result json.RawMessage
-	if err := do(ctx, c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
+	if err := internal.Do(ctx, c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 

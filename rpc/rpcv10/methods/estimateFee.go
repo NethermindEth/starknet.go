@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -26,13 +28,13 @@ import (
 //   - error: An error if any occurred during the execution
 func EstimateFee(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	requests []rpcv10.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,
 	blockID rpcv10.BlockID,
 ) ([]rpcv10.FeeEstimation, error) {
 	var raw []rpcv10.FeeEstimation
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(

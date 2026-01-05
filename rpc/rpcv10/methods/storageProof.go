@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -23,7 +25,7 @@ import (
 //   - error: an error if any occurred during the execution
 func StorageProof(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	storageProofInput rpcv10.StorageProofInput,
 ) (*rpcv10.StorageProofResult, error) {
 	err := checkForPreConfirmed(storageProofInput.BlockID)
@@ -32,7 +34,7 @@ func StorageProof(
 	}
 
 	var raw rpcv10.StorageProofResult
-	if err := doAsObject(
+	if err := internal.DoAsObject(
 		ctx, c, "starknet_getStorageProof", &raw, storageProofInput,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)

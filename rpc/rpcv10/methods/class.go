@@ -5,6 +5,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -20,12 +22,12 @@ import (
 //   - error: An error if any occurred during the execution.
 func Class(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 	classHash *felt.Felt,
 ) (rpcv10.ClassOutput, error) {
 	var rawClass map[string]any
-	if err := do(ctx, c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
+	if err := internal.Do(ctx, c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 

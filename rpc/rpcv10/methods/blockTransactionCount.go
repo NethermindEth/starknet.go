@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -18,11 +20,11 @@ import (
 //   - error: An error, if any
 func BlockTransactionCount(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 ) (uint64, error) {
 	var result uint64
-	if err := do(ctx, c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
+	if err := internal.Do(ctx, c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
 		return 0, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 

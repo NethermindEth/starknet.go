@@ -5,6 +5,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -20,11 +22,11 @@ import (
 //   - error, if one arose.
 func TransactionStatus(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	transactionHash *felt.Felt,
 ) (*rpcv10.TxnStatusResult, error) {
 	var receipt rpcv10.TxnStatusResult
-	err := do(ctx, c, "starknet_getTransactionStatus", &receipt, transactionHash)
+	err := internal.Do(ctx, c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}

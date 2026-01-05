@@ -5,6 +5,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -19,11 +21,11 @@ import (
 //   - error: an error if any
 func GetTransactionReceipt(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	transactionHash *felt.Felt,
 ) (*rpcv10.TransactionReceiptWithBlockInfo, error) {
 	var receipt rpcv10.TransactionReceiptWithBlockInfo
-	err := do(ctx, c, "starknet_getTransactionReceipt", &receipt, transactionHash)
+	err := internal.Do(ctx, c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -18,7 +20,7 @@ import (
 //   - error: an error if there was a problem retrieving the traces.
 func TraceBlockTransactions(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 ) ([]rpcv10.Trace, error) {
 	err := checkForPreConfirmed(blockID)
@@ -27,7 +29,7 @@ func TraceBlockTransactions(
 	}
 
 	var output []rpcv10.Trace
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_traceBlockTransactions", &output, blockID,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)

@@ -5,6 +5,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -20,7 +22,7 @@ import (
 //   - error: an error if any occurred during the execution
 func Call(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	request rpcv10.FunctionCall,
 	blockID rpcv10.BlockID,
 ) ([]*felt.Felt, error) {
@@ -29,7 +31,7 @@ func Call(
 	}
 
 	var result []*felt.Felt
-	if err := do(ctx, c, "starknet_call", &result, request, blockID); err != nil {
+	if err := internal.Do(ctx, c, "starknet_call", &result, request, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
 			ErrContractNotFound,

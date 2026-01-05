@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 )
 
 // SpecVersion returns the version of the Starknet JSON-RPC specification being
@@ -16,9 +18,9 @@ import (
 //   - string: The version of the Starknet JSON-RPC specification
 //     implemented by the node.
 //   - error: An error if the request fails.
-func SpecVersion(ctx context.Context, c callCloser) (string, error) {
+func SpecVersion(ctx context.Context, c rpc.Caller) (string, error) {
 	var result string
-	err := do(ctx, c, "starknet_specVersion", &result)
+	err := internal.Do(ctx, c, "starknet_specVersion", &result)
 	if err != nil {
 		return "", rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -19,12 +21,12 @@ import (
 //   - error: An error, if any
 func TransactionByBlockIDAndIndex(
 	ctx context.Context,
-	c callCloser,
+	c rpc.Caller,
 	blockID rpcv10.BlockID,
 	index uint64,
 ) (*rpcv10.BlockTransaction, error) {
 	var tx rpcv10.BlockTransaction
-	if err := do(
+	if err := internal.Do(
 		ctx, c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
