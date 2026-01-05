@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,7 @@ func TestSubscribeEvents(t *testing.T) {
 	)
 
 	t.Parallel()
-	testConfig := BeforeEach(t, true)
+	testConfig := internal.BeforeEach(t, true)
 
 	// STRK Token
 	fromAddress := internalUtils.TestHexToFelt(
@@ -156,7 +157,7 @@ func TestSubscribeEvents(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
 			t.Parallel()
-			tsetup := BeforeEach(t, true)
+			tsetup := internal.BeforeEach(t, true)
 
 			if tests.TEST_ENV == tests.MockEnv {
 				tsetup.MockClient.EXPECT().
@@ -267,7 +268,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 	t.Run("with default options - nil input", func(t *testing.T) {
 		t.Parallel()
-		tsetup := BeforeEach(t, true)
+		tsetup := internal.BeforeEach(t, true)
 
 		if tests.TEST_ENV == tests.MockEnv {
 			tsetup.MockClient.EXPECT().
@@ -350,7 +351,7 @@ func TestUnsubscribe(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv, tests.IntegrationEnv)
 	t.Parallel()
 
-	testConfig := BeforeEach(t, true)
+	testConfig := internal.BeforeEach(t, true)
 	wsProvider := testConfig.WsProvider
 
 	events := make(chan *rpcv10.EmittedEventWithFinalityStatus)

@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -84,7 +85,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(test.description, func(t *testing.T) {
 			t.Parallel()
-			tsetup := BeforeEach(t, true)
+			tsetup := internal.BeforeEach(t, true)
 
 			if tests.TEST_ENV == tests.MockEnv {
 				tsetup.MockClient.EXPECT().
@@ -180,7 +181,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 	t.Run("with default options - nil input", func(t *testing.T) {
 		t.Parallel()
-		tsetup := BeforeEach(t, true)
+		tsetup := internal.BeforeEach(t, true)
 
 		if tests.TEST_ENV == tests.MockEnv {
 			tsetup.MockClient.EXPECT().

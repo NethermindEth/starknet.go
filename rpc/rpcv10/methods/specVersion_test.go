@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -14,7 +15,7 @@ import (
 func TestSpecVersion(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv, tests.IntegrationEnv)
 
-	testConfig := BeforeEach(t, false)
+	testConfig := internal.BeforeEach(t, false)
 
 	if tests.TEST_ENV == tests.MockEnv {
 		testConfig.MockClient.EXPECT().

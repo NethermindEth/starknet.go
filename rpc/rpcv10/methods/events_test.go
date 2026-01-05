@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,7 +23,7 @@ func TestEvents(t *testing.T) {
 		tests.TestnetEnv,
 	)
 
-	testConfig := BeforeEach(t, false)
+	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
 		description   string

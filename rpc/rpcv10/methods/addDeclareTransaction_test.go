@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -141,7 +142,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
-			testConfig := BeforeEach(t, false)
+			testConfig := internal.BeforeEach(t, false)
 
 			if tests.TEST_ENV == tests.MockEnv {
 				testConfig.MockClient.EXPECT().

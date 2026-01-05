@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		t.Parallel()
 
 		// getting a random new PRE_CONFIRMED transaction
-		tempSetup := BeforeEach(t, true) // to avoid race condition (BeforeEach
+		tempSetup := internal.BeforeEach(t, true) // to avoid race condition (BeforeEach
 		// must be called once per subscription)
 		txns := make(chan *rpcv10.TxnWithHashAndStatus)
 		sub, err := SubscribeNewTransactions(
@@ -51,7 +52,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		txn := <-txns
 		require.NotNil(t, txn)
 
-		tsetup := BeforeEach(t, true)
+		tsetup := internal.BeforeEach(t, true)
 
 		status := make(chan *rpcv10.NewTxnStatus)
 		sub2, err := SubscribeTransactionStatus(
@@ -100,7 +101,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		for _, hash := range testSet {
 			t.Run(hash.String(), func(t *testing.T) {
 				t.Parallel()
-				tsetup := BeforeEach(t, true)
+				tsetup := internal.BeforeEach(t, true)
 
 				tsetup.MockClient.EXPECT().
 					SubscribeWithSliceArgs(

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -20,7 +21,7 @@ func TestBlockNumber(t *testing.T) {
 		tests.TestnetEnv,
 	)
 
-	testConfig := BeforeEach(t, false)
+	testConfig := internal.BeforeEach(t, false)
 
 	if tests.TEST_ENV == tests.MockEnv {
 		testConfig.MockClient.EXPECT().

@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,7 @@ import (
 // TestSimulateTransaction tests the SimulateTransaction function.
 func TestSimulateTransaction(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
-	testConfig := BeforeEach(t, false)
+	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
 		BlockID         rpcv10.BlockID          `json:"block_id"`

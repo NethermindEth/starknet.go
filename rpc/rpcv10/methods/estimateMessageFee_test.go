@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +18,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	// TODO: add integration testcase
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	testConfig := BeforeEach(t, false)
+	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
 		Description string

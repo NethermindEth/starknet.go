@@ -8,7 +8,6 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/require"
 )
@@ -17,22 +16,6 @@ func TestMain(m *testing.M) {
 	tests.LoadEnv()
 
 	os.Exit(m.Run())
-}
-
-// TestSetup is a type that is used to store setup data for the RPC tests.
-type TestSetup = internal.TestSetup
-
-// BeforeEach initialises the environment setup before running the tests.
-// It must be called inside subtests if that's the case.
-//
-// Parameters:
-//   - t: The testing.T object
-//   - isWs: a boolean value to check if the test will use the websocket provider
-//
-// Returns:
-//   - TestSetup: the TestSetup struct containing the setup data
-func BeforeEach(t *testing.T, isWs bool) TestSetup {
-	return internal.BeforeEach(t, isWs)
 }
 
 // GetCommonBlockIDs returns a list of common block IDs to use in some RPC tests.
