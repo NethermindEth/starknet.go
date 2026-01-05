@@ -197,7 +197,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 
 			resp, err := AddDeployAccountTransaction(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.DeployTxn,
 			)
 			if test.ExpectedError != nil {

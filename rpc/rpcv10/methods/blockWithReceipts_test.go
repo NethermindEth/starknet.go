@@ -118,7 +118,7 @@ func TestBlockWithReceipts(t *testing.T) {
 					).
 					Times(1)
 			}
-			result, err := GetBlockWithReceipts(t.Context(), testConfig.Provider.c, test.BlockID)
+			result, err := GetBlockWithReceipts(t.Context(), testConfig.Provider, test.BlockID)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedErr.Error())

@@ -32,7 +32,10 @@ func TestSpecVersion(t *testing.T) {
 			Times(1)
 	}
 
-	resp, err := testConfig.Provider.SpecVersion(t.Context())
+	resp, err := SpecVersion(
+		t.Context(),
+		testConfig.Provider,
+	)
 	require.NoError(t, err)
 
 	rawExpectedResp := testConfig.RPCSpy.LastResponse()

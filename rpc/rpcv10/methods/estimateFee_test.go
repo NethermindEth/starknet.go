@@ -206,7 +206,7 @@ func TestEstimateFee(t *testing.T) {
 
 			resp, err := EstimateFee(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.txs,
 				test.simFlags,
 				test.blockID,

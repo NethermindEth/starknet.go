@@ -244,7 +244,7 @@ func TestAddDeclareTransaction(t *testing.T) {
 
 			resp, err := AddDeclareTransaction(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.DeclareTxn,
 			)
 			if test.ExpectedError != nil {

@@ -48,7 +48,7 @@ func TestBlockHashAndNumber(t *testing.T) {
 
 	blockHashAndNumber, err := BlockHashAndNumber(
 		t.Context(),
-		testConfig.Provider.c,
+		testConfig.Provider,
 	)
 	require.NoError(t, err, "BlockHashAndNumber should not return an error")
 

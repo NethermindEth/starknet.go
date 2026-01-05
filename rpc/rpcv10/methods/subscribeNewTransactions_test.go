@@ -144,7 +144,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			txns := make(chan *rpcv10.TxnWithHashAndStatus)
 			sub, err := SubscribeNewTransactions(
 				t.Context(),
-				tsetup.WsProvider.c,
+				tsetup.WsProvider,
 				txns,
 				test.input,
 			)
@@ -232,7 +232,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		txns := make(chan *rpcv10.TxnWithHashAndStatus)
 		sub, err := SubscribeNewTransactions(
 			t.Context(),
-			tsetup.WsProvider.c,
+			tsetup.WsProvider,
 			txns,
 			nil,
 		)

@@ -149,7 +149,7 @@ func TestClass(t *testing.T) {
 
 			resp, err := Class(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.BlockID,
 				test.ClassHash,
 			)

@@ -122,7 +122,7 @@ func TestBlockWithTxs(t *testing.T) {
 
 			blockWithTxsInterface, err := BlockWithTxs(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.BlockID,
 			)
 			if test.ExpectedErr != nil {

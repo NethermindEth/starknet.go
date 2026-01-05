@@ -109,7 +109,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 
 			tx, err := TransactionByBlockIDAndIndex(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.BlockID,
 				test.Index,
 			)

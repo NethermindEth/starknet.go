@@ -104,7 +104,7 @@ func TestBlockTransactionCount(t *testing.T) {
 
 			count, err := BlockTransactionCount(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.BlockID,
 			)
 			if test.ExpectedErr != nil {

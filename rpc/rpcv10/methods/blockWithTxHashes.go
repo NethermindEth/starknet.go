@@ -30,7 +30,7 @@ func BlockWithTxHashes(
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
 		return &rpcv10.PreConfirmedBlockTxHashes{
-			rpcv10.PreConfirmedBlockHeader{
+			PreConfirmedBlockHeader: rpcv10.PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -40,7 +40,7 @@ func BlockWithTxHashes(
 				L1DataGasPrice:   result.L1DataGasPrice,
 				L1DAMode:         result.L1DAMode,
 			},
-			result.Transactions,
+			Transactions: result.Transactions,
 		}, nil
 	}
 

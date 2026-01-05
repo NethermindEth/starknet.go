@@ -106,8 +106,9 @@ func TestTransactionTrace(t *testing.T) {
 					Times(1)
 			}
 
-			resp, err := testConfig.Provider.TraceTransaction(
+			resp, err := TraceTransaction(
 				t.Context(),
+				testConfig.Provider,
 				test.TransactionHash,
 			)
 			if test.ExpectedError != nil {

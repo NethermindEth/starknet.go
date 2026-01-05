@@ -198,7 +198,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 
 			resp, err := AddInvokeTransaction(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.InvokeTxn,
 			)
 			if test.ExpectedError != nil {

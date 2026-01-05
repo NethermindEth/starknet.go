@@ -153,7 +153,7 @@ func TestClassAt(t *testing.T) {
 
 			resp, err := ClassAt(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.Block,
 				test.ContractAddress,
 			)

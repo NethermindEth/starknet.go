@@ -69,7 +69,10 @@ func TestSubscribeEvents(t *testing.T) {
 				},
 			)
 	}
-	blockNumber, err := testConfig.Provider.BlockNumber(t.Context())
+	blockNumber, err := BlockNumber(
+		t.Context(),
+		testConfig.Provider,
+	)
 	require.NoError(t, err)
 
 	type testSetType struct {
@@ -212,8 +215,9 @@ func TestSubscribeEvents(t *testing.T) {
 			}
 
 			events := make(chan *rpcv10.EmittedEventWithFinalityStatus)
-			sub, err := tsetup.WsProvider.SubscribeEvents(
+			sub, err := SubscribeEvents(
 				t.Context(),
+				tsetup.WsProvider,
 				events,
 				test.input,
 			)
@@ -299,8 +303,9 @@ func TestSubscribeEvents(t *testing.T) {
 		}
 
 		events := make(chan *rpcv10.EmittedEventWithFinalityStatus)
-		sub, err := tsetup.WsProvider.SubscribeEvents(
+		sub, err := SubscribeEvents(
 			t.Context(),
+			tsetup.WsProvider,
 			events,
 			nil,
 		)
@@ -349,7 +354,12 @@ func TestUnsubscribe(t *testing.T) {
 	wsProvider := testConfig.WsProvider
 
 	events := make(chan *rpcv10.EmittedEventWithFinalityStatus)
-	sub, err := wsProvider.SubscribeEvents(t.Context(), events, nil)
+	sub, err := SubscribeEvents(
+		t.Context(),
+		wsProvider,
+		events,
+		nil,
+	)
 	require.NoError(t, err)
 	require.NotNil(t, sub)
 

@@ -113,7 +113,7 @@ func TestCompiledCasm(t *testing.T) {
 			// getting the result from the provider and asserting equality
 			result, err := CompiledCasm(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.ClassHash,
 			)
 			if test.ExpectedError != nil {

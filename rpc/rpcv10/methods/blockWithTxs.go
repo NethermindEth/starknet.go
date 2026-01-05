@@ -25,7 +25,7 @@ func BlockWithTxs(ctx context.Context, c callCloser, blockID rpcv10.BlockID) (in
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
 		return &rpcv10.PreConfirmedBlock{
-			rpcv10.PreConfirmedBlockHeader{
+			PreConfirmedBlockHeader: rpcv10.PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -35,7 +35,7 @@ func BlockWithTxs(ctx context.Context, c callCloser, blockID rpcv10.BlockID) (in
 				L1DataGasPrice:   result.L1DataGasPrice,
 				L1DAMode:         result.L1DAMode,
 			},
-			result.Transactions,
+			Transactions: result.Transactions,
 		}, nil
 	}
 

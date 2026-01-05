@@ -84,7 +84,7 @@ func TestMessagesStatus(t *testing.T) {
 					Times(1)
 			}
 
-			resp, err := MessagesStatus(t.Context(), testConfig.Provider.c, test.TxHash)
+			resp, err := MessagesStatus(t.Context(), testConfig.Provider, test.TxHash)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedErr.Error())

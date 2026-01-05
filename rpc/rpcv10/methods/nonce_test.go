@@ -125,7 +125,7 @@ func TestNonce(t *testing.T) {
 
 			nonce, err := Nonce(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.Block,
 				test.ContractAddress,
 			)

@@ -114,7 +114,11 @@ func TestTransactionStatus(t *testing.T) {
 					Times(1)
 			}
 
-			resp, err := testConfig.Provider.TransactionStatus(t.Context(), test.TxnHash)
+			resp, err := TransactionStatus(
+				t.Context(),
+				testConfig.Provider,
+				test.TxnHash,
+			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedError.Error())

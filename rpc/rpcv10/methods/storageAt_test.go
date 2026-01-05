@@ -146,7 +146,7 @@ func TestStorageAt(t *testing.T) {
 
 			value, err := StorageAt(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.ContractAddress,
 				test.StorageKey,
 				test.Block,

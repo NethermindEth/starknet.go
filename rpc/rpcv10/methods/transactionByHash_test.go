@@ -83,7 +83,11 @@ func TestTransactionByHash(t *testing.T) {
 					Times(1)
 			}
 
-			tx, err := testConfig.Provider.TransactionByHash(t.Context(), test.TxHash)
+			tx, err := TransactionByHash(
+				t.Context(),
+				testConfig.Provider,
+				test.TxHash,
+			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedError.Error())

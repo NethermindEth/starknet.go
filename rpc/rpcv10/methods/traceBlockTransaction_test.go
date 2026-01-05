@@ -95,7 +95,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 			resp, err := TraceBlockTransactions(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.BlockID,
 			)
 			if test.ExpectedErr != nil {

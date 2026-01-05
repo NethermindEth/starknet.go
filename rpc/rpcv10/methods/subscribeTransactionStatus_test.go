@@ -39,7 +39,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		txns := make(chan *rpcv10.TxnWithHashAndStatus)
 		sub, err := SubscribeNewTransactions(
 			t.Context(),
-			tempSetup.WsProvider.c,
+			tempSetup.WsProvider,
 			txns,
 			&rpcv10.SubNewTxnsInput{
 				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusPreConfirmed},
@@ -53,9 +53,10 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 		tsetup := BeforeEach(t, true)
 
-		status := make(chan *rpcv10.TxnStatusResult)
-		sub2, err := tsetup.WsProvider.SubscribeTransactionStatus(
+		status := make(chan *rpcv10.NewTxnStatus)
+		sub2, err := SubscribeTransactionStatus(
 			t.Context(),
+			tsetup.WsProvider,
 			status,
 			txn.Hash,
 		)
@@ -177,7 +178,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 				status := make(chan *rpcv10.NewTxnStatus)
 				sub, err := SubscribeTransactionStatus(
 					t.Context(),
-					tsetup.WsProvider.c,
+					tsetup.WsProvider,
 					status,
 					hash,
 				)

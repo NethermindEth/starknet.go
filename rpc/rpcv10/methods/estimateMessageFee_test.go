@@ -163,7 +163,7 @@ func TestEstimateMessageFee(t *testing.T) {
 
 			resp, err := EstimateMessageFee(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.MsgFromL1,
 				test.BlockID,
 			)

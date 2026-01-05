@@ -133,7 +133,7 @@ func TestClassHashAt(t *testing.T) {
 
 			classhash, err := ClassHashAt(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.Block,
 				test.ContractAddress,
 			)

@@ -162,7 +162,7 @@ func TestEvents(t *testing.T) {
 
 			events, err := Events(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				rpcv10.EventsInput{
 					EventFilter:       test.eventFilter,
 					ResultPageRequest: test.resPageReq,

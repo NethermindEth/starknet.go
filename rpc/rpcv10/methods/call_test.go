@@ -180,7 +180,7 @@ func TestCall(t *testing.T) {
 			}
 			output, err := Call(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.FunctionCall,
 				test.BlockID,
 			)

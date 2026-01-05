@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
-	"github.com/NethermindEth/starknet.go/internal/tests/mocks/clientmock"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 )
 
 func TestMain(m *testing.M) {
@@ -20,22 +20,7 @@ func TestMain(m *testing.M) {
 }
 
 // TestSetup is a type that is used to store setup data for the RPC tests.
-type TestSetup struct {
-	Base     string
-	Provider *Provider
-	RPCSpy   tests.RPCSpyer
-
-	WsBase     string
-	WsProvider *WsProvider
-	WSSpy      tests.WSSpyer
-
-	// Only present in mock environment
-	MockClient *clientmock.MockClient
-
-	AccountAddress string
-	PrivKey        string
-	PubKey         string
-}
+type TestSetup = internal.TestSetup
 
 // BeforeEach initialises the environment setup before running the tests.
 // It must be called inside subtests if that's the case.
@@ -47,88 +32,12 @@ type TestSetup struct {
 // Returns:
 //   - TestSetup: the TestSetup struct containing the setup data
 func BeforeEach(t *testing.T, isWs bool) TestSetup {
-	t.Helper()
-
-	var testConfig TestSetup
-
-	if tests.TEST_ENV == tests.MockEnv {
-		mockCtrl := gomock.NewController(t)
-		mockClient := clientmock.NewMockClient(mockCtrl)
-
-		spy := tests.NewRPCSpy(mockClient)
-		provider := &Provider{
-			c: spy,
-		}
-
-		wsSpy := tests.NewWSSpy(mockClient)
-		wsProvider := &WsProvider{
-			c: wsSpy,
-		}
-
-		testConfig.MockClient = mockClient
-		testConfig.Provider = provider
-		testConfig.RPCSpy = spy
-		testConfig.WsProvider = wsProvider
-		testConfig.WSSpy = wsSpy
-
-		return testConfig
-	}
-
-	base := os.Getenv("HTTP_PROVIDER_URL")
-	if base != "" {
-		testConfig.Base = base
-	}
-
-	provider, err := NewProvider(t.Context(), testConfig.Base)
-	if err != nil {
-		t.Fatalf("failed to connect to the %s provider: %v", testConfig.Base, err)
-	}
-
-	spy := tests.NewRPCSpy(provider.c)
-	testConfig.RPCSpy = spy
-	provider.c = spy
-
-	testConfig.Provider = provider
-	t.Cleanup(func() {
-		testConfig.Provider.c.Close()
-	})
-
-	if tests.TEST_ENV == tests.DevnetEnv {
-		return testConfig
-	}
-
-	if isWs {
-		wsBase := os.Getenv("WS_PROVIDER_URL")
-		if wsBase != "" {
-			testConfig.WsBase = wsBase
-		}
-
-		wsClient, err := NewWebsocketProvider(t.Context(), testConfig.WsBase)
-		if err != nil {
-			t.Fatalf("failed to connect to the %s websocket provider: %v", testConfig.WsBase, err)
-		}
-
-		spy := tests.NewWSSpy(wsClient.c)
-		testConfig.WSSpy = spy
-		wsClient.c = spy
-
-		testConfig.WsProvider = wsClient
-		t.Cleanup(func() {
-			testConfig.WsProvider.c.Close()
-		})
-	}
-
-	// load the test account data, only required for some tests
-	testConfig.PrivKey = os.Getenv("STARKNET_PRIVATE_KEY")
-	testConfig.PubKey = os.Getenv("STARKNET_PUBLIC_KEY")
-	testConfig.AccountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
-
-	return testConfig
+	return internal.BeforeEach(t, isWs)
 }
 
 // GetCommonBlockIDs returns a list of common block IDs to use in some RPC tests.
 // It includes all block tags, a range of block numbers and the latest block hash.
-func GetCommonBlockIDs(t *testing.T, provider *Provider) []rpcv10.BlockID {
+func GetCommonBlockIDs(t *testing.T, caller rpc.Caller) []rpcv10.BlockID {
 	t.Helper()
 
 	// *** all valid block tags ***
@@ -152,7 +61,7 @@ func GetCommonBlockIDs(t *testing.T, provider *Provider) []rpcv10.BlockID {
 	}...)
 
 	// get the latest block number of the network
-	blockHashAndNumber, err := BlockHashAndNumber(t.Context(), provider.c)
+	blockHashAndNumber, err := BlockHashAndNumber(t.Context(), caller)
 	require.NoError(t, err, "failed to get the block number")
 
 	// after the block 1_000_000, we add one block every 500_000 blocks

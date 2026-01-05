@@ -84,8 +84,9 @@ func TestTransactionReceipt(t *testing.T) {
 					Times(1)
 			}
 
-			txReceiptWithBlockInfo, err := testConfig.Provider.TransactionReceipt(
+			txReceiptWithBlockInfo, err := GetTransactionReceipt(
 				t.Context(),
+				testConfig.Provider,
 				test.TxnHash,
 			)
 			if test.ExpectedError != nil {

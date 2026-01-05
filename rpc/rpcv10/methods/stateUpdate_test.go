@@ -120,7 +120,11 @@ func TestStateUpdate(t *testing.T) {
 					Times(1)
 			}
 
-			stateUpdate, err := provider.StateUpdate(t.Context(), test.BlockID)
+			stateUpdate, err := GetStateUpdate(
+				t.Context(),
+				provider,
+				test.BlockID,
+			)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedErr.Error())

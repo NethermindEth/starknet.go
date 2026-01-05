@@ -46,7 +46,10 @@ func TestSyncing(t *testing.T) {
 			Times(1)
 	}
 
-	sync, err := testConfig.Provider.Syncing(t.Context())
+	sync, err := Syncing(
+		t.Context(),
+		testConfig.Provider,
+	)
 	require.NoError(t, err)
 
 	if sync.IsSyncing {

@@ -129,7 +129,7 @@ func TestSimulateTransaction(t *testing.T) {
 
 			resp, err := SimulateTransactions(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.BlockID,
 				test.Txns,
 				test.SimulationFlags,

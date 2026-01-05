@@ -128,7 +128,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 			sub, err := SubscribeNewHeads(
 				t.Context(),
-				tsetup.WsProvider.c,
+				tsetup.WsProvider,
 				headers,
 				test.subBlockID,
 			)

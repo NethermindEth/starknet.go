@@ -41,7 +41,10 @@ func TestBlockNumber(t *testing.T) {
 			Times(1)
 	}
 
-	blockNumber, err := BlockNumber(t.Context(), testConfig.Provider.c)
+	blockNumber, err := BlockNumber(
+		t.Context(),
+		testConfig.Provider,
+	)
 	require.NoError(t, err)
 
 	rawExpectedResp := testConfig.RPCSpy.LastResponse()

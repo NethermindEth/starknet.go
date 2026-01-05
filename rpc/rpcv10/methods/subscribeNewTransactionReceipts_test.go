@@ -130,7 +130,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 			receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
 			sub, err := SubscribeNewTransactionReceipts(
 				t.Context(),
-				tsetup.WsProvider.c,
+				tsetup.WsProvider,
 				receipts,
 				test.input,
 			)
@@ -218,7 +218,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
 		sub, err := SubscribeNewTransactionReceipts(
 			t.Context(),
-			tsetup.WsProvider.c,
+			tsetup.WsProvider,
 			receipts,
 			nil,
 		)

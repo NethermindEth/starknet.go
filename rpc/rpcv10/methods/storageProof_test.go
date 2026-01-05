@@ -309,7 +309,7 @@ func TestStorageProof(t *testing.T) {
 
 			result, err := StorageProof(
 				t.Context(),
-				testConfig.Provider.c,
+				testConfig.Provider,
 				test.StorageProofInput,
 			)
 			if test.ExpectedError != nil {

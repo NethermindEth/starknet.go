@@ -46,7 +46,10 @@ func TestChainID(t *testing.T) {
 			Times(1)
 	}
 
-	chain, err := ChainID(t.Context(), testConfig.Provider.c)
+	chain, err := ChainID(
+		t.Context(),
+		testConfig.Provider,
+	)
 	require.NoError(t, err)
 	require.Equal(t, testCase, chain)
 }
