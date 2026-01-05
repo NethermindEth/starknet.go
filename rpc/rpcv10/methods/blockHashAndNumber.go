@@ -23,7 +23,7 @@ func BlockHashAndNumber(
 ) (*rpcv10.BlockHashAndNumberOutput, error) {
 	var block rpcv10.BlockHashAndNumberOutput
 	if err := internal.Do(ctx, c, "starknet_blockHashAndNumber", &block); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrNoBlocks)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrNoBlocks)
 	}
 
 	return &block, nil

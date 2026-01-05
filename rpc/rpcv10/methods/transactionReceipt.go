@@ -27,7 +27,7 @@ func GetTransactionReceipt(
 	var receipt rpcv10.TransactionReceiptWithBlockInfo
 	err := internal.Do(ctx, c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
 	}
 
 	return &receipt, nil

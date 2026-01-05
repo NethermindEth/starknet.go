@@ -26,7 +26,7 @@ func GetStateUpdate(
 ) (*rpcv10.StateUpdateOutput, error) {
 	var state rpcv10.StateUpdateOutput
 	if err := internal.Do(ctx, c, "starknet_getStateUpdate", &state, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
 	}
 
 	return &state, nil

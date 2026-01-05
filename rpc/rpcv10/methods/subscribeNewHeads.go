@@ -41,7 +41,7 @@ func SubscribeNewHeads(
 	}
 
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTooManyBlocksBack, rpcv10.ErrBlockNotFound)
 	}
 
 	return sub, nil

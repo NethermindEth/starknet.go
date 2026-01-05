@@ -34,10 +34,10 @@ func Call(
 	if err := internal.Do(ctx, c, "starknet_call", &result, request, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			ErrContractNotFound,
-			ErrEntrypointNotFound,
-			ErrContractError,
-			ErrBlockNotFound,
+			rpcv10.ErrContractNotFound,
+			rpcv10.ErrEntrypointNotFound,
+			rpcv10.ErrContractError,
+			rpcv10.ErrBlockNotFound,
 		)
 	}
 

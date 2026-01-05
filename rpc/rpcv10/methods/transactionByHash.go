@@ -26,7 +26,7 @@ func TransactionByHash(
 ) (*rpcv10.BlockTransaction, error) {
 	var tx rpcv10.BlockTransaction
 	if err := internal.Do(ctx, c, "starknet_getTransactionByHash", &tx, hash); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
 	}
 
 	return &tx, nil

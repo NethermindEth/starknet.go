@@ -29,16 +29,16 @@ func AddDeployAccountTransaction(
 	); err != nil {
 		return rpcv10.AddDeployAccountTransactionResponse{}, rpcerr.UnwrapToRPCErr(
 			err,
-			ErrInsufficientAccountBalance,
-			ErrInsufficientResourcesForValidate,
-			ErrInvalidTransactionNonce,
-			ErrReplacementTransactionUnderpriced,
-			ErrFeeBelowMinimum,
-			ErrValidationFailure,
-			ErrNonAccount,
-			ErrDuplicateTx,
-			ErrUnsupportedTxVersion,
-			ErrClassHashNotFound,
+			rpcv10.ErrInsufficientAccountBalance,
+			rpcv10.ErrInsufficientResourcesForValidate,
+			rpcv10.ErrInvalidTransactionNonce,
+			rpcv10.ErrReplacementTransactionUnderpriced,
+			rpcv10.ErrFeeBelowMinimum,
+			rpcv10.ErrValidationFailure,
+			rpcv10.ErrNonAccount,
+			rpcv10.ErrDuplicateTx,
+			rpcv10.ErrUnsupportedTxVersion,
+			rpcv10.ErrClassHashNotFound,
 		)
 	}
 

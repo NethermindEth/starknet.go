@@ -28,7 +28,7 @@ func MessagesStatus(
 	var response []rpcv10.MessageStatus
 	err := internal.Do(ctx, c, "starknet_getMessagesStatus", &response, transactionHash)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
 	}
 
 	return response, nil

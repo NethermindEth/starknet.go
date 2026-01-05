@@ -32,7 +32,7 @@ func SubscribeNewTransactions(
 ) (*client.ClientSubscription, error) {
 	sub, err := ws.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTooManyAddressesInFilter)
 	}
 
 	return sub, nil

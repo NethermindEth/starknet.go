@@ -10,7 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -28,7 +28,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		input         *rpcv10.SubNewTxnReceiptsInput
+		input         *SubNewTxnReceiptsInput
 		expectedError error
 	}
 
@@ -40,35 +40,35 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 	template := []testSetType{
 		{
 			description: "from address only",
-			input: &rpcv10.SubNewTxnReceiptsInput{
+			input: &SubNewTxnReceiptsInput{
 				SenderAddress: []*felt.Felt{randAddress},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
-			input: &rpcv10.SubNewTxnReceiptsInput{
-				FinalityStatus: []rpcv10.TxnFinalityStatus{rpcv10.TxnFinalityStatusPreConfirmed},
+			input: &SubNewTxnReceiptsInput{
+				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
-			input: &rpcv10.SubNewTxnReceiptsInput{
-				FinalityStatus: []rpcv10.TxnFinalityStatus{rpcv10.TxnFinalityStatusAcceptedOnL2},
+			input: &SubNewTxnReceiptsInput{
+				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
-			input: &rpcv10.SubNewTxnReceiptsInput{
+			input: &SubNewTxnReceiptsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []rpcv10.TxnFinalityStatus{
-					rpcv10.TxnFinalityStatusAcceptedOnL2,
-					rpcv10.TxnFinalityStatusPreConfirmed,
+				FinalityStatus: []TxnFinalityStatus{
+					TxnFinalityStatusAcceptedOnL2,
+					TxnFinalityStatusPreConfirmed,
 				},
 			},
 		},
 		{
 			description: "error: too many addresses",
-			input: &rpcv10.SubNewTxnReceiptsInput{
+			input: &SubNewTxnReceiptsInput{
 				SenderAddress: tooManyAddresses,
 			},
 			expectedError: ErrTooManyAddressesInFilter,
@@ -98,7 +98,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					).
 					DoAndReturn(func(_, _, _, channel any, arg any) (*client.ClientSubscription, error) {
 						ch := channel.(chan json.RawMessage)
-						input := arg.(*rpcv10.SubNewTxnReceiptsInput)
+						input := arg.(*SubNewTxnReceiptsInput)
 
 						if len(input.SenderAddress) > 1000 {
 							return nil, RPCError{
@@ -128,7 +128,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					})
 			}
 
-			receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
+			receipts := make(chan *TransactionReceiptWithBlockInfo)
 			sub, err := SubscribeNewTransactionReceipts(
 				t.Context(),
 				tsetup.WsProvider,
@@ -216,7 +216,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				})
 		}
 
-		receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
+		receipts := make(chan *TransactionReceiptWithBlockInfo)
 		sub, err := SubscribeNewTransactionReceipts(
 			t.Context(),
 			tsetup.WsProvider,

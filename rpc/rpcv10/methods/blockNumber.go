@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // BlockNumber returns the block number of the current block.
@@ -21,7 +22,7 @@ func BlockNumber(ctx context.Context, c rpc.Caller) (uint64, error) {
 	var blockNumber uint64
 	if err := internal.Do(ctx, c, "starknet_blockNumber", &blockNumber); err != nil {
 		if errors.Is(err, errors.New("not found")) {
-			return 0, ErrNoBlocks
+			return 0, rpcv10.ErrNoBlocks
 		}
 
 		return 0, rpcerr.UnwrapToRPCErr(err)

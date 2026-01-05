@@ -30,7 +30,7 @@ func Nonce(
 	if err := internal.Do(
 		ctx, c, "starknet_getNonce", &nonce, blockID, contractAddress,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
 	}
 
 	return nonce, nil

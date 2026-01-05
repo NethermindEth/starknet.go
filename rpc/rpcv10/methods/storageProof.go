@@ -37,7 +37,11 @@ func StorageProof(
 	if err := internal.DoAsObject(
 		ctx, c, "starknet_getStorageProof", &raw, storageProofInput,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound, ErrStorageProofNotSupported)
+		return nil, rpcerr.UnwrapToRPCErr(
+			err,
+			rpcv10.ErrBlockNotFound,
+			rpcv10.ErrStorageProofNotSupported,
+		)
 	}
 
 	return &raw, nil

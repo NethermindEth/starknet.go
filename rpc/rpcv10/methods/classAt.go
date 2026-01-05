@@ -32,7 +32,7 @@ func ClassAt(
 	if err := internal.Do(
 		ctx, c, "starknet_getClassAt", &rawClass, blockID, contractAddress,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
 	}
 
 	return typecastClassOutput(rawClass)
@@ -48,7 +48,7 @@ func ClassAt(
 func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 	}
 
 	// if contract_class_version exists, then it's a ContractClass type
@@ -56,7 +56,7 @@ func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 		var contractClass contracts.ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return &contractClass, nil
@@ -64,7 +64,7 @@ func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 	var depContractClass contracts.DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 	}
 
 	return &depContractClass, nil

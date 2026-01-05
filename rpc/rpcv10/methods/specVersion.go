@@ -6,6 +6,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // SpecVersion returns the version of the Starknet JSON-RPC specification being
@@ -22,7 +23,7 @@ func SpecVersion(ctx context.Context, c rpc.Caller) (string, error) {
 	var result string
 	err := internal.Do(ctx, c, "starknet_specVersion", &result)
 	if err != nil {
-		return "", rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return "", rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 	}
 
 	return result, nil

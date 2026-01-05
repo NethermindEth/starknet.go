@@ -30,7 +30,7 @@ func ClassHashAt(
 	if err := internal.Do(
 		ctx, c, "starknet_getClassHashAt", &result, blockID, contractAddress,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
 	}
 
 	return result, nil

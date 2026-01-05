@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Get the CASM code resulting from compiling a given class
@@ -26,7 +27,11 @@ func CompiledCasm(
 ) (*contracts.CasmClass, error) {
 	var result contracts.CasmClass
 	if err := internal.Do(ctx, c, "starknet_getCompiledCasm", &result, classHash); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrCompilationError)
+		return nil, rpcerr.UnwrapToRPCErr(
+			err,
+			rpcv10.ErrClassHashNotFound,
+			rpcv10.ErrCompilationError,
+		)
 	}
 
 	return &result, nil

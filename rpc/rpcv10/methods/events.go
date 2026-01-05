@@ -27,10 +27,10 @@ func Events(
 	if err := internal.Do(ctx, c, "starknet_getEvents", &result, input); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			ErrPageSizeTooBig,
-			ErrInvalidContinuationToken,
-			ErrBlockNotFound,
-			ErrTooManyKeysInFilter,
+			rpcv10.ErrPageSizeTooBig,
+			rpcv10.ErrInvalidContinuationToken,
+			rpcv10.ErrBlockNotFound,
+			rpcv10.ErrTooManyKeysInFilter,
 		)
 	}
 

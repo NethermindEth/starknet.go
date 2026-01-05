@@ -25,7 +25,7 @@ func BlockTransactionCount(
 ) (uint64, error) {
 	var result uint64
 	if err := internal.Do(ctx, c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
-		return 0, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return 0, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
 	}
 
 	return result, nil

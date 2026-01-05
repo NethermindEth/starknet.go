@@ -42,7 +42,7 @@ func SimulateTransactions(
 	if err := internal.Do(
 		ctx, c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTxnExec, rpcv10.ErrBlockNotFound)
 	}
 
 	return output, nil

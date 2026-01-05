@@ -29,7 +29,7 @@ func TransactionByBlockIDAndIndex(
 	if err := internal.Do(
 		ctx, c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrInvalidTxnIndex, rpcv10.ErrBlockNotFound)
 	}
 
 	return &tx, nil

@@ -22,7 +22,7 @@ import (
 func BlockWithTxs(ctx context.Context, c rpc.Caller, blockID rpcv10.BlockID) (interface{}, error) {
 	var result rpcv10.Block
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {

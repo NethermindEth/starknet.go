@@ -35,7 +35,7 @@ func StorageAt(
 	if err := internal.Do(
 		ctx, c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID,
 	); err != nil {
-		return "", rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return "", rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
 	}
 
 	return value, nil

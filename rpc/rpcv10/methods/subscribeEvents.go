@@ -36,9 +36,9 @@ func SubscribeEvents(
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			ErrTooManyKeysInFilter,
-			ErrTooManyBlocksBack,
-			ErrBlockNotFound,
+			rpcv10.ErrTooManyKeysInFilter,
+			rpcv10.ErrTooManyBlocksBack,
+			rpcv10.ErrBlockNotFound,
 		)
 	}
 

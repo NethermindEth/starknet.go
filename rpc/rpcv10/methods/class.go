@@ -28,7 +28,7 @@ func Class(
 ) (rpcv10.ClassOutput, error) {
 	var rawClass map[string]any
 	if err := internal.Do(ctx, c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrClassHashNotFound, rpcv10.ErrBlockNotFound)
 	}
 
 	return typecastClassOutput(rawClass)

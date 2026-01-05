@@ -10,7 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -78,72 +78,72 @@ func TestSubscribeEvents(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		input         *rpcv10.EventSubscriptionInput
+		input         *EventSubscriptionInput
 		expectedError error
 	}
 
 	template := []testSetType{
 		{
 			description: "from address only",
-			input: &rpcv10.EventSubscriptionInput{
+			input: &EventSubscriptionInput{
 				FromAddress: fromAddress,
 			},
 		},
 		{
 			description: "keys only",
-			input: &rpcv10.EventSubscriptionInput{
+			input: &EventSubscriptionInput{
 				Keys: [][]*felt.Felt{{key}},
 			},
 		},
 		{
 			description: "with block ID only",
-			input: &rpcv10.EventSubscriptionInput{
-				SubBlockID: rpcv10.SubscriptionBlockID{
-					Tag: rpcv10.BlockTagLatest,
+			input: &EventSubscriptionInput{
+				SubBlockID: SubscriptionBlockID{
+					Tag: BlockTagLatest,
 				},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
-			input: &rpcv10.EventSubscriptionInput{
-				FinalityStatus: rpcv10.TxnFinalityStatusPreConfirmed,
+			input: &EventSubscriptionInput{
+				FinalityStatus: TxnFinalityStatusPreConfirmed,
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
-			input: &rpcv10.EventSubscriptionInput{
-				FinalityStatus: rpcv10.TxnFinalityStatusAcceptedOnL2,
+			input: &EventSubscriptionInput{
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
 			description: "all filters",
-			input: &rpcv10.EventSubscriptionInput{
+			input: &EventSubscriptionInput{
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
-				SubBlockID:     new(rpcv10.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-				FinalityStatus: rpcv10.TxnFinalityStatusAcceptedOnL2,
+				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
 			description: "error: too many keys",
-			input: &rpcv10.EventSubscriptionInput{
+			input: &EventSubscriptionInput{
 				Keys: tooManyKeys,
 			},
-			expectedError: rpcv10.ErrTooManyKeysInFilter,
+			expectedError: ErrTooManyKeysInFilter,
 		},
 		{
 			description: "error: too many blocks back",
-			input: &rpcv10.EventSubscriptionInput{
-				SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockNumber(3_000_000),
+			input: &EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(3_000_000),
 			},
-			expectedError: rpcv10.ErrTooManyBlocksBack,
+			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description: "error: block not found",
-			input: &rpcv10.EventSubscriptionInput{
-				SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+			input: &EventSubscriptionInput{
+				SubBlockID: new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			},
-			expectedError: rpcv10.ErrBlockNotFound,
+			expectedError: ErrBlockNotFound,
 		},
 	}
 
@@ -170,7 +170,7 @@ func TestSubscribeEvents(t *testing.T) {
 					).
 					DoAndReturn(func(_, _, _, channel any, arg any) (*client.ClientSubscription, error) {
 						ch := channel.(chan json.RawMessage)
-						input := arg.(*rpcv10.EventSubscriptionInput)
+						input := arg.(*EventSubscriptionInput)
 
 						if input.SubBlockID.Number != nil && *input.SubBlockID.Number == 3_000_000 {
 							return nil, RPCError{
@@ -215,7 +215,7 @@ func TestSubscribeEvents(t *testing.T) {
 					})
 			}
 
-			events := make(chan *rpcv10.EmittedEventWithFinalityStatus)
+			events := make(chan *EmittedEventWithFinalityStatus)
 			sub, err := SubscribeEvents(
 				t.Context(),
 				tsetup.WsProvider,
@@ -303,7 +303,7 @@ func TestSubscribeEvents(t *testing.T) {
 				})
 		}
 
-		events := make(chan *rpcv10.EmittedEventWithFinalityStatus)
+		events := make(chan *EmittedEventWithFinalityStatus)
 		sub, err := SubscribeEvents(
 			t.Context(),
 			tsetup.WsProvider,
@@ -354,7 +354,7 @@ func TestUnsubscribe(t *testing.T) {
 	testConfig := internal.BeforeEach(t, true)
 	wsProvider := testConfig.WsProvider
 
-	events := make(chan *rpcv10.EmittedEventWithFinalityStatus)
+	events := make(chan *EmittedEventWithFinalityStatus)
 	sub, err := SubscribeEvents(
 		t.Context(),
 		wsProvider,

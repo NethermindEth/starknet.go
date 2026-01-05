@@ -9,7 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -27,7 +27,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		subBlockID    rpcv10.SubscriptionBlockID
+		subBlockID    SubscriptionBlockID
 		expectedError error
 	}
 
@@ -37,16 +37,16 @@ func TestSubscribeNewHeads(t *testing.T) {
 		},
 		{
 			description: "with tag latest",
-			subBlockID:  new(rpcv10.SubscriptionBlockID).WithLatestTag(),
+			subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
 		},
 		{
 			description:   "error - too many blocks back",
-			subBlockID:    new(rpcv10.SubscriptionBlockID).WithBlockNumber(3_000_000),
+			subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description:   "error - block not found",
-			subBlockID:    new(rpcv10.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+			subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			expectedError: ErrBlockNotFound,
 		},
 	}
@@ -54,16 +54,16 @@ func TestSubscribeNewHeads(t *testing.T) {
 		tests.MockEnv: {
 			{
 				description: "with tag latest",
-				subBlockID:  new(rpcv10.SubscriptionBlockID).WithLatestTag(),
+				subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
 			},
 			{
 				description:   "error - too many blocks back",
-				subBlockID:    new(rpcv10.SubscriptionBlockID).WithBlockNumber(3_000_000),
+				subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				description:   "error - block not found",
-				subBlockID:    new(rpcv10.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -88,7 +88,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 					).
 					DoAndReturn(func(_, _, _, channel any, args ...any) (*client.ClientSubscription, error) {
 						ch := channel.(chan json.RawMessage)
-						subBlockID := args[0].(rpcv10.SubscriptionBlockID)
+						subBlockID := args[0].(SubscriptionBlockID)
 
 						if subBlockID.Number != nil && *subBlockID.Number == 3_000_000 {
 							return nil, RPCError{
@@ -125,7 +125,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 					})
 			}
 
-			headers := make(chan *rpcv10.BlockHeader)
+			headers := make(chan *BlockHeader)
 
 			sub, err := SubscribeNewHeads(
 				t.Context(),

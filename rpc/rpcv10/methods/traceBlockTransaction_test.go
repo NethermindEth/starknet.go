@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -21,50 +21,50 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID     rpcv10.BlockID
+		BlockID     BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: rpcv10.ErrInvalidBlockID,
+				ExpectedErr: ErrInvalidBlockID,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: rpcv10.WithBlockNumber(99433),
+				BlockID: WithBlockNumber(99433),
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagL1Accepted),
+				BlockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
-				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: rpcv10.ErrInvalidBlockID,
+				ExpectedErr: ErrInvalidBlockID,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
-			if tests.TEST_ENV == tests.MockEnv && test.BlockID.Tag != rpcv10.BlockTagPreConfirmed {
+			if tests.TEST_ENV == tests.MockEnv && test.BlockID.Tag != BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
 						t.Context(),
@@ -74,7 +74,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(rpcv10.BlockID)
+						blockID := args[0].(BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

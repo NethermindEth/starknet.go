@@ -39,9 +39,9 @@ func EstimateFee(
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			ErrBlockNotFound,
-			ErrContractNotFound,
-			ErrTxnExec,
+			rpcv10.ErrBlockNotFound,
+			rpcv10.ErrContractNotFound,
+			rpcv10.ErrTxnExec,
 		)
 	}
 

@@ -39,7 +39,7 @@ func SubscribeNewTransactionReceipts(
 		options,
 	)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTooManyAddressesInFilter)
 	}
 
 	return sub, nil

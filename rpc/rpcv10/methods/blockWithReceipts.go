@@ -18,26 +18,26 @@ func GetBlockWithReceipts(
 ) (interface{}, error) {
 	var result json.RawMessage
 	if err := internal.Do(ctx, c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
 	}
 
 	var m map[string]interface{}
 	if err := json.Unmarshal(result, &m); err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 	}
 
 	// Pre_confirmedBlockWithReceipts doesn't contain a "status" field
 	if _, ok := m["status"]; ok {
 		var block rpcv10.BlockWithReceipts
 		if err := json.Unmarshal(result, &block); err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return &block, nil
 	} else {
 		var preConfirmedBlock rpcv10.PreConfirmedBlockWithReceipts
 		if err := json.Unmarshal(result, &preConfirmedBlock); err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return &preConfirmedBlock, nil

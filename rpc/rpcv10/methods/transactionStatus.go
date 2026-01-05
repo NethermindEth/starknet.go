@@ -28,7 +28,7 @@ func TransactionStatus(
 	var receipt rpcv10.TxnStatusResult
 	err := internal.Do(ctx, c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
 	}
 
 	return &receipt, nil

@@ -29,12 +29,12 @@ func TraceTransaction(
 	if err := internal.Do(
 		ctx, c, "starknet_traceTransaction", &rawTxnTrace, transactionHash,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound, rpcv10.ErrNoTraceAvailable)
 	}
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)
 	if err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 	}
 
 	switch rawTxnTrace["type"] {
@@ -42,7 +42,7 @@ func TraceTransaction(
 		var trace rpcv10.InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -50,7 +50,7 @@ func TraceTransaction(
 		var trace rpcv10.DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -58,7 +58,7 @@ func TraceTransaction(
 		var trace rpcv10.DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return trace, nil
@@ -66,11 +66,11 @@ func TraceTransaction(
 		var trace rpcv10.L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
 		}
 
 		return trace, nil
 	}
 
-	return nil, rpcerr.Err(rpcerr.InternalError, StringErrData("Unknown transaction type"))
+	return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData("Unknown transaction type"))
 }

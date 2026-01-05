@@ -30,9 +30,9 @@ func EstimateMessageFee(
 		ctx, c, "starknet_estimateMessageFee", &raw, msg, blockID,
 	); err != nil {
 		return raw, rpcerr.UnwrapToRPCErr(err,
-			ErrContractError,
-			ErrContractNotFound,
-			ErrBlockNotFound,
+			rpcv10.ErrContractError,
+			rpcv10.ErrContractNotFound,
+			rpcv10.ErrBlockNotFound,
 		)
 	}
 

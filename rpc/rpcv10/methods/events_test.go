@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -27,16 +27,16 @@ func TestEvents(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		eventFilter   rpcv10.EventFilter
-		resPageReq    rpcv10.ResultPageRequest
+		eventFilter   EventFilter
+		resPageReq    ResultPageRequest
 		expectedError error
 	}
 
 	// for this method, it seems the same data works for all the networks,
 	// so we can use a single test set
-	evFilter := rpcv10.EventFilter{
-		FromBlock: rpcv10.WithBlockNumber(2000000),
-		ToBlock:   rpcv10.WithBlockNumber(2000100),
+	evFilter := EventFilter{
+		FromBlock: WithBlockNumber(2000000),
+		ToBlock:   WithBlockNumber(2000100),
 		Address: internalUtils.TestHexToFelt(
 			t,
 			"0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
@@ -61,24 +61,24 @@ func TestEvents(t *testing.T) {
 	tooManyKeysFilter.Keys = tooManyKeys
 
 	invalidBlockFilter := evFilter
-	invalidBlockFilter.FromBlock = rpcv10.WithBlockHash(internalUtils.DeadBeef)
+	invalidBlockFilter.FromBlock = WithBlockHash(internalUtils.DeadBeef)
 
 	testSets := []testSetType{
 		{
 			description: "normal call",
 			eventFilter: evFilter,
-			resPageReq:  rpcv10.ResultPageRequest{ChunkSize: 10},
+			resPageReq:  ResultPageRequest{ChunkSize: 10},
 		},
 		{
 			description:   "invalid chunk size",
 			eventFilter:   evFilter,
-			resPageReq:    rpcv10.ResultPageRequest{ChunkSize: 10000000000},
+			resPageReq:    ResultPageRequest{ChunkSize: 10000000000},
 			expectedError: ErrPageSizeTooBig,
 		},
 		{
 			description: "invalid continuation token",
 			eventFilter: evFilter,
-			resPageReq: rpcv10.ResultPageRequest{
+			resPageReq: ResultPageRequest{
 				ChunkSize:         10,
 				ContinuationToken: "deadbeef",
 			},
@@ -87,13 +87,13 @@ func TestEvents(t *testing.T) {
 		{
 			description:   "too many keys in filter",
 			eventFilter:   tooManyKeysFilter,
-			resPageReq:    rpcv10.ResultPageRequest{ChunkSize: 10},
+			resPageReq:    ResultPageRequest{ChunkSize: 10},
 			expectedError: ErrTooManyKeysInFilter,
 		},
 		{
 			description:   "invalid block",
 			eventFilter:   invalidBlockFilter,
-			resPageReq:    rpcv10.ResultPageRequest{ChunkSize: 10},
+			resPageReq:    ResultPageRequest{ChunkSize: 10},
 			expectedError: ErrBlockNotFound,
 		},
 	}
@@ -113,7 +113,7 @@ func TestEvents(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getEvents",
-						rpcv10.EventsInput{
+						EventsInput{
 							EventFilter:       test.eventFilter,
 							ResultPageRequest: test.resPageReq,
 						},
@@ -164,7 +164,7 @@ func TestEvents(t *testing.T) {
 			events, err := Events(
 				t.Context(),
 				testConfig.Provider,
-				rpcv10.EventsInput{
+				EventsInput{
 					EventFilter:       test.eventFilter,
 					ResultPageRequest: test.resPageReq,
 				},

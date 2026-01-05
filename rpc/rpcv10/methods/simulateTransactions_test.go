@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -19,18 +19,18 @@ func TestSimulateTransaction(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
-		BlockID         rpcv10.BlockID          `json:"block_id"`
-		Txns            []rpcv10.BroadcastTxn   `json:"transactions"`
-		SimulationFlags []rpcv10.SimulationFlag `json:"simulation_flags"`
+		BlockID         BlockID          `json:"block_id"`
+		Txns            []BroadcastTxn   `json:"transactions"`
+		SimulationFlags []SimulationFlag `json:"simulation_flags"`
 	}
 	input := internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
 		t, "./testData/trace/sepoliaSimulateInvokeTx.json", "params")
 
 	type testSetType struct {
 		Description     string
-		BlockID         rpcv10.BlockID
-		Txns            []rpcv10.BroadcastTxn
-		SimulationFlags []rpcv10.SimulationFlag
+		BlockID         BlockID
+		Txns            []BroadcastTxn
+		SimulationFlags []SimulationFlag
 		ExpectedError   *RPCError
 	}
 
@@ -40,20 +40,20 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []rpcv10.SimulationFlag{rpcv10.SkipValidate, rpcv10.SkipFeeCharge},
+				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
 			},
 			{
 				Description:     "block not found",
-				BlockID:         rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:         WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+				BlockID:         WithBlockTag(BlockTagPreConfirmed),
 				Txns:            input.Txns,
-				SimulationFlags: []rpcv10.SimulationFlag{},
+				SimulationFlags: []SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 		},
@@ -68,18 +68,18 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []rpcv10.SimulationFlag{rpcv10.SkipValidate, rpcv10.SkipFeeCharge},
+				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+				BlockID:         WithBlockTag(BlockTagPreConfirmed),
 				Txns:            input.Txns,
-				SimulationFlags: []rpcv10.SimulationFlag{},
+				SimulationFlags: []SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 			{
 				Description:     "block not found",
-				BlockID:         rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:         WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
@@ -101,7 +101,7 @@ func TestSimulateTransaction(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(rpcv10.BlockID)
+						blockID := args[0].(BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -110,7 +110,7 @@ func TestSimulateTransaction(t *testing.T) {
 							}
 						}
 
-						if blockID.Tag == rpcv10.BlockTagPreConfirmed {
+						if blockID.Tag == BlockTagPreConfirmed {
 							return RPCError{
 								Code:    41,
 								Message: "Transaction execution error",

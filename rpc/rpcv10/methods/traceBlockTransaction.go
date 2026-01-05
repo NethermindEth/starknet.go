@@ -32,7 +32,7 @@ func TraceBlockTransactions(
 	if err := internal.Do(
 		ctx, c, "starknet_traceBlockTransactions", &output, blockID,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
 	}
 
 	return output, nil

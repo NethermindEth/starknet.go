@@ -26,7 +26,7 @@ func BlockWithTxHashes(
 ) (interface{}, error) {
 	var result rpcv10.BlockTxHashes
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
 	}
 
 	// if header.Hash == nil it's a pre_confirmed block
