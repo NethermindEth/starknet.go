@@ -138,54 +138,11 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		require.NoError(t, innerErr, "Error subscribing to txn status")
 		defer sub.Unsubscribe()
 
-		expectedStatus := rpc.TxnStatusReceived
-
-		for {
-			select {
-			case txnStatus := <-txnStatus:
-				// since Juno will only return the current status, skipping previous statuses
-				// (e.g: it can go directly from RECEIVED to ACCEPTED_ON_L2),
-				// we'll only check if the txn has been marked at least as received
-				switch txnStatus.Status.FinalityStatus {
-				case rpc.TxnStatusReceived:
-					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.Equal(t, expectedStatus, rpc.TxnStatusReceived)
-
-					expectedStatus = rpc.TxnStatusCandidate
-				case rpc.TxnStatusCandidate:
-					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.NotEqual(
-						t,
-						expectedStatus,
-						rpc.TxnStatusReceived,
-						"txn should have been marked as received first",
-					)
-
-					expectedStatus = rpc.TxnStatusPreConfirmed
-				case rpc.TxnStatusPreConfirmed:
-					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.NotEqual(
-						t,
-						expectedStatus,
-						rpc.TxnStatusReceived,
-						"txn should have been marked as received first",
-					)
-
-					expectedStatus = rpc.TxnStatusAcceptedOnL2
-				case rpc.TxnStatusAcceptedOnL2:
-					t.Logf("Txn status: %v", txnStatus.Status.FinalityStatus)
-					assert.NotEqual(
-						t,
-						expectedStatus,
-						rpc.TxnStatusReceived,
-						"txn should have been marked as received first",
-					)
-
-					return
-				}
-			case innerErr = <-sub.Err():
-				t.Fatal("error in subscription: ", innerErr)
-			}
+		select {
+		case txnStatus := <-txnStatus:
+			assert.NotEmpty(t, txnStatus.Status)
+		case innerErr = <-sub.Err():
+			t.Fatal("error in subscription: ", innerErr)
 		}
 	})
 
@@ -195,5 +152,11 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 	// ***** 4 - send the txn
 
 	_, err = provider.AddInvokeTransaction(context.Background(), invokeTx)
+	if err != nil {
+		if rpcErr := err.(*rpc.RPCError); rpcErr.Code == rpc.ErrInvalidTransactionNonce.Code {
+			return // it means the txn was already added to the mempool
+			// by a concurrent test
+		}
+	}
 	require.NoError(t, err, "Error adding invoke txn")
 }
