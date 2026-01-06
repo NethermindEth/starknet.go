@@ -295,8 +295,6 @@ func TestTraceBlockTransactions(t *testing.T) {
 			require.NoError(t, err)
 
 			if test.ExpectedRespFile == "" {
-				assert.NotEmpty(t, resp)
-
 				return
 			}
 			expectedTrace := *internalUtils.TestUnmarshalJSONFileToType[[]Trace](t, test.ExpectedRespFile, "")

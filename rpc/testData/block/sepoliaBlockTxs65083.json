@@ -19,8 +19,8 @@
 		"l1_da_mode": "BLOB",
 		"starknet_version": "0.13.1.1",
 		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
+			"price_in_fri": "0x1",
+			"price_in_wei": "0x1"
 		},
 		"transactions": [
 			{

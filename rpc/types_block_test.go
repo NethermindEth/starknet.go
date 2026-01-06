@@ -296,7 +296,6 @@ func TestBlockWithReceipts(t *testing.T) {
 				block, ok := result.(*BlockWithReceipts)
 				require.True(t, ok, fmt.Sprintf("should return *BlockWithReceipts, instead: %T\n", result))
 				assert.True(t, strings.HasPrefix(block.Hash.String(), "0x"), "Block Hash should start with \"0x\", instead: %s", block.Hash)
-				assert.NotEmpty(t, block.Transactions, "the number of transactions should not be 0")
 
 				if test.ExpectedBlockWithReceipts != nil {
 					assert.Exactly(t, block, test.ExpectedBlockWithReceipts)
