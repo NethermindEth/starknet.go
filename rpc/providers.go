@@ -8,12 +8,26 @@ import (
 )
 
 // @new
-func NewRPCv10Provider(
+func NewProviderV10(
 	ctx context.Context,
 	url string,
 	options ...client.ClientOption,
 ) (*rpcv10.Provider, error) {
 	provider, err := rpcv10.NewProvider(ctx, url, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	return provider, nil
+}
+
+// @new
+func NewWSProviderV10(
+	ctx context.Context,
+	url string,
+	options ...client.ClientOption,
+) (*rpcv10.WsProvider, error) {
+	provider, err := rpcv10.NewWebsocketProvider(ctx, url, options...)
 	if err != nil {
 		return nil, err
 	}
