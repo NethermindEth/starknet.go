@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -22,7 +22,7 @@ import (
 //   - error, if one arose.
 func TransactionStatus(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	transactionHash *felt.Felt,
 ) (*rpcv10.TxnStatusResult, error) {
 	var receipt rpcv10.TxnStatusResult

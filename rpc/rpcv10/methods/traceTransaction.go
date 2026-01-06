@@ -6,7 +6,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -22,7 +22,7 @@ import (
 //   - error: an error if the transaction trace cannot be retrieved
 func TraceTransaction(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	transactionHash *felt.Felt,
 ) (rpcv10.TxnTrace, error) {
 	var rawTxnTrace map[string]any

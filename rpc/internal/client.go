@@ -8,7 +8,7 @@ import (
 	"net/http/cookiejar"
 
 	"github.com/NethermindEth/starknet.go/client"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/gorilla/websocket"
 	"golang.org/x/net/publicsuffix"
 )
@@ -32,7 +32,7 @@ var errNotFound = errors.New("not found")
 //   - error: an error if any occurred during the function call
 func Do(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	method string,
 	data interface{},
 	args ...interface{},
@@ -66,7 +66,12 @@ func Do(
 //
 // Returns:
 //   - error: an error if any occurred during the function call
-func DoAsObject(ctx context.Context, c rpc.Caller, method string, data, arg interface{}) error {
+func DoAsObject(
+	ctx context.Context,
+	c callers.Caller,
+	method string,
+	data, arg interface{},
+) error {
 	var raw json.RawMessage
 	err := c.CallContext(ctx, &raw, method, arg)
 	if err != nil {

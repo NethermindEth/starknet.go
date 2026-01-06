@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -19,7 +19,11 @@ import (
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
-func BlockWithTxs(ctx context.Context, c rpc.Caller, blockID rpcv10.BlockID) (interface{}, error) {
+func BlockWithTxs(
+	ctx context.Context,
+	c callers.Caller,
+	blockID rpcv10.BlockID,
+) (interface{}, error) {
 	var result rpcv10.Block
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)

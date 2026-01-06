@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -20,7 +20,7 @@ import (
 //   - error: an error if any
 func AddInvokeTransaction(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	invokeTxn *rpcv10.BroadcastInvokeTxnV3,
 ) (rpcv10.AddInvokeTransactionResponse, error) {
 	var output rpcv10.AddInvokeTransactionResponse

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -17,7 +17,7 @@ import (
 // Returns:
 //   - uint64: The block number
 //   - error: An error if any
-func BlockNumber(ctx context.Context, c rpc.Caller) (uint64, error) {
+func BlockNumber(ctx context.Context, c callers.Caller) (uint64, error) {
 	var blockNumber uint64
 	if err := internal.Do(ctx, c, "starknet_blockNumber", &blockNumber); err != nil {
 		return 0, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrNoBlocks)

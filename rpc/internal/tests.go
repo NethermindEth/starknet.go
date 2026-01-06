@@ -6,7 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/clientmock"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"go.uber.org/mock/gomock"
 )
 
@@ -20,12 +20,12 @@ func TestMain(m *testing.M) {
 type TestSetup struct {
 	Base string
 	// @todo rename
-	Provider rpc.Caller
+	Provider callers.Caller
 	RPCSpy   tests.RPCSpyer
 
 	WsBase string
 	// @todo rename
-	WsProvider rpc.Subscriber
+	WsProvider callers.Subscriber
 	WSSpy      tests.WSSpyer
 
 	// Only present in mock environment

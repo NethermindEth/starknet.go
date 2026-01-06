@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -29,7 +29,7 @@ import (
 //   - error: An error, if any
 func SubscribeEvents(
 	ctx context.Context,
-	ws rpc.Subscriber,
+	ws callers.Subscriber,
 	events chan<- *rpcv10.EmittedEventWithFinalityStatus,
 	options *rpcv10.EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {

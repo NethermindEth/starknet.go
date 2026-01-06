@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
@@ -24,7 +24,7 @@ import (
 //   - error: An error, if any
 func SubscribeNewHeads(
 	ctx context.Context,
-	ws rpc.Subscriber,
+	ws callers.Subscriber,
 	headers chan<- *rpcv10.BlockHeader,
 	subBlockID rpcv10.SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {

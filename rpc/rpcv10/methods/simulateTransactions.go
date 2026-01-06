@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -33,7 +33,7 @@ import (
 //   - error: An error if any occurred during the execution
 func SimulateTransactions(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	blockID rpcv10.BlockID,
 	txns []rpcv10.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,

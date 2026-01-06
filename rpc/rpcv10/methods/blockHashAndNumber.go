@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -19,7 +19,7 @@ import (
 //   - error: An error if any
 func BlockHashAndNumber(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 ) (*rpcv10.BlockHashAndNumberOutput, error) {
 	var block rpcv10.BlockHashAndNumberOutput
 	if err := internal.Do(ctx, c, "starknet_blockHashAndNumber", &block); err != nil {

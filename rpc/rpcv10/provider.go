@@ -11,7 +11,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 )
 
@@ -28,13 +28,13 @@ var (
 
 // Provider provides the provider for starknet.go/rpc implementation.
 type Provider struct {
-	c       rpc.Caller
+	c       callers.Caller
 	chainID string
 }
 
 // WsProvider provides the provider for websocket starknet.go/rpc implementation.
 type WsProvider struct {
-	s rpc.Subscriber
+	s callers.Subscriber
 }
 
 // Close closes the client, aborting any in-flight requests.

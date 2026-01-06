@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -20,7 +20,7 @@ import (
 //   - error: An error if any
 func Events(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	input rpcv10.EventsInput,
 ) (*rpcv10.EventChunk, error) {
 	var result rpcv10.EventChunk

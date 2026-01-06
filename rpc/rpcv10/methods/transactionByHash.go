@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -21,7 +21,7 @@ import (
 //   - error: An error if any
 func TransactionByHash(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	hash *felt.Felt,
 ) (*rpcv10.BlockTransaction, error) {
 	var tx rpcv10.BlockTransaction

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -21,7 +21,7 @@ import (
 //   - error: an error if any occurred during the execution
 func EstimateMessageFee(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	msg rpcv10.MsgFromL1,
 	blockID rpcv10.BlockID,
 ) (rpcv10.MessageFeeEstimation, error) {

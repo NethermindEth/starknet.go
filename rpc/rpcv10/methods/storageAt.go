@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
@@ -25,7 +25,7 @@ import (
 //   - error: An error if any occurred during the execution
 func StorageAt(
 	ctx context.Context,
-	c rpc.Caller,
+	c callers.Caller,
 	contractAddress *felt.Felt,
 	key string,
 	blockID rpcv10.BlockID,

@@ -3,14 +3,14 @@ package methods
 import (
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/require"
 )
 
 // GetCommonBlockIDs returns a list of common block IDs to use in some RPC tests.
 // It includes all block tags, a range of block numbers and the latest block hash.
-func GetCommonBlockIDs(t *testing.T, caller rpc.Caller) []rpcv10.BlockID {
+func GetCommonBlockIDs(t *testing.T, caller callers.Caller) []rpcv10.BlockID {
 	t.Helper()
 
 	// *** all valid block tags ***
