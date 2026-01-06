@@ -456,7 +456,7 @@ func TestEstimateMessageFee(t *testing.T) {
 					L1GasConsumed:     internalUtils.TestHexToFelt(t, "0x4ed3"),
 					L1GasPrice:        internalUtils.TestHexToFelt(t, "0x7e15d2b5"),
 					L2GasConsumed:     internalUtils.TestHexToFelt(t, "0x0"),
-					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x0"),
+					L2GasPrice:        internalUtils.TestHexToFelt(t, "0x1"),
 					L1DataGasConsumed: internalUtils.TestHexToFelt(t, "0x80"),
 					L1DataGasPrice:    internalUtils.TestHexToFelt(t, "0x1"),
 					OverallFee:        internalUtils.TestHexToFelt(t, "0x26d2922fd1af"),

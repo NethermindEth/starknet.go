@@ -12,16 +12,16 @@
 			"price_in_fri": "0xdf0413d3c777",
 			"price_in_wei": "0x185f2d3eb5"
 		},
-		"l2_gas_price": {
-			"price_in_fri": "0x0",
-			"price_in_wei": "0x0"
-		},
 		"l1_data_gas_price": {
 			"price_in_fri": "0xa41c1219f8849",
 			"price_in_wei": "0x11ef315a9ab"
 		},
 		"l1_da_mode": "BLOB",
 		"starknet_version": "0.13.1.1",
+		"l2_gas_price": {
+			"price_in_fri": "0x1",
+			"price_in_wei": "0x1"
+		},
 		"transactions": [
 			"0x5e3fcf2f7dc0f3786a7406dc271cc54a00ba4658f9d0567b25b8e2a90a6250f",
 			"0x603fec12cfbc73bcf411fdf6f7780d4698c71b989002192a1277025235b23b9",
