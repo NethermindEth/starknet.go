@@ -227,8 +227,8 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					Times(1)
 				mockRPCProvider.EXPECT().
 					BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
-					Return(&rpc.Block{}, nil).Times(1)
-				mockRPCProvider.EXPECT().
+					Return(&rpc.BlockWithTxsOutput{Block: &rpc.Block{}}, nil).Times(1)
+					mockRPCProvider.EXPECT().
 					EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 					Return([]rpc.FeeEstimation{
 						{
@@ -251,8 +251,10 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					// Starknet version and decide whether to use the Blake2s hash function
 					mockRPCProvider.EXPECT().
 						BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
-						Return(&rpc.BlockTxHashes{
-							BlockHeader: rpc.BlockHeader{StarknetVersion: test.starknetVersion},
+						Return(&rpc.BlockWithTxHashesOutput{
+							Block: &rpc.BlockTxHashes{
+								BlockHeader: rpc.BlockHeader{StarknetVersion: test.starknetVersion},
+							},
 						}, nil).Times(1)
 				}
 
@@ -529,17 +531,19 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		// called when estimating the tip
 		mockRPCProvider.EXPECT().
 			BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
-			Return(&rpc.Block{
-				BlockHeader: rpc.BlockHeader{},
-				Status:      rpc.BlockStatusAcceptedOnL2,
-				Transactions: []rpc.BlockTransaction{
-					{
-						Hash:        internalUtils.DeadBeef,
-						Transaction: fakeTxn,
-					},
-					{
-						Hash:        internalUtils.DeadBeef,
-						Transaction: fakeTxn,
+			Return(&rpc.BlockWithTxsOutput{
+				Block: &rpc.Block{
+					BlockHeader: rpc.BlockHeader{},
+					Status:      rpc.BlockStatusAcceptedOnL2,
+					Transactions: []rpc.BlockTransaction{
+						{
+							Hash:        internalUtils.DeadBeef,
+							Transaction: fakeTxn,
+						},
+						{
+							Hash:        internalUtils.DeadBeef,
+							Transaction: fakeTxn,
+						},
 					},
 				},
 			}, nil).Times(3)
@@ -571,8 +575,10 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			mockRPCProvider.EXPECT().
 				BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
-				Return(&rpc.BlockTxHashes{
-					BlockHeader: rpc.BlockHeader{StarknetVersion: "0.14.1"},
+				Return(&rpc.BlockWithTxHashesOutput{
+					Block: &rpc.BlockTxHashes{
+						BlockHeader: rpc.BlockHeader{StarknetVersion: "0.14.1"},
+					},
 				}, nil).Times(1)
 			mockRPCProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {

@@ -5,8 +5,7 @@ Gets a block with all its transactions included as full transaction objects. Unl
 ## Method Signature
 
 ```go
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
-```
+func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (*BlockWithTxsOutput, error)```
 
 **Source:** [block.go:L188-L211](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L188-L211)
 
@@ -17,7 +16,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 
 ## Returns
 
-- `interface{}`: The retrieved block (either `*Block` or `*PreConfirmedBlock`)
+- `*BlockWithTxsOutput`: The retrieved block output (either `Block` or `PreConfirmed`)
 - `error`: Error if the request fails
 
 ## Type Definitions
@@ -109,9 +108,19 @@ func main() {
 
     // Get latest block with full transaction details
     blockID := rpc.WithBlockTag("latest")
-    block, err := provider.BlockWithTxs(context.Background(), blockID)
+    blockOutput, err := provider.BlockWithTxs(context.Background(), blockID)
     if err != nil {
         log.Fatal(err)
+    }
+
+    var block any
+    switch {
+    case blockOutput.Block != nil:
+        block = blockOutput.Block
+    case blockOutput.PreConfirmed != nil:
+        block = blockOutput.PreConfirmed
+    default:
+        log.Fatal("Unexpected block output")
     }
 
     // Pretty print the result
@@ -126,7 +135,7 @@ Create a `.env` file in your project root and install the godotenv package to ru
 ## Error Handling
 
 ```go
-block, err := provider.BlockWithTxs(ctx, blockID)
+blockOutput, err := provider.BlockWithTxs(ctx, blockID)
 if err != nil {
     switch {
     case errors.Is(err, rpc.ErrBlockNotFound):
@@ -134,6 +143,11 @@ if err != nil {
     default:
         log.Printf("Failed to get block: %v", err)
     }
+    return
+}
+
+if blockOutput.Block == nil && blockOutput.PreConfirmed == nil {
+    log.Printf("Unexpected block output")
     return
 }
 

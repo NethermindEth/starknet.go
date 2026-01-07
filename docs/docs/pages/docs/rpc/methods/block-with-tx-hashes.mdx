@@ -8,7 +8,7 @@ Gets a block with only transaction hashes instead of full transaction details. T
 func (provider *Provider) BlockWithTxHashes(
     ctx context.Context,
     blockID BlockID,
-) (interface{}, error)
+) (*BlockWithTxHashesOutput, error)
 ```
 
 **Source:** [block.go:L105-L132](https://github.com/NethermindEth/starknet.go/blob/main/rpc/block.go#L105-L132)
@@ -20,7 +20,7 @@ func (provider *Provider) BlockWithTxHashes(
 
 ## Returns
 
-- `interface{}`: The retrieved block (either `*BlockTxHashes` or `*PreConfirmedBlockTxHashes`)
+- `*BlockWithTxHashesOutput`: The retrieved block output (either `Block` or `PreConfirmed`)
 - `error`: Error if the request fails
 :::note
 The method can return either a confirmed block (`BlockTxHashes`) or a pre-confirmed block (`PreConfirmedBlockTxHashes`) depending on the block status. This can return `ErrBlockNotFound` if the specified block doesn't exist.
@@ -113,9 +113,19 @@ func main() {
 
     // Get latest block with transaction hashes
     blockID := rpc.WithBlockTag("latest")
-    block, err := provider.BlockWithTxHashes(context.Background(), blockID)
+    blockOutput, err := provider.BlockWithTxHashes(context.Background(), blockID)
     if err != nil {
         log.Fatal(err)
+    }
+
+    var block any
+    switch {
+    case blockOutput.Block != nil:
+        block = blockOutput.Block
+    case blockOutput.PreConfirmed != nil:
+        block = blockOutput.PreConfirmed
+    default:
+        log.Fatal("Unexpected block output")
     }
 
     // Pretty print the result
@@ -131,7 +141,7 @@ Create a `.env` file in your project root and install the godotenv package to ru
 ## Error Handling
 
 ```go
-block, err := provider.BlockWithTxHashes(ctx, blockID)
+blockOutput, err := provider.BlockWithTxHashes(ctx, blockID)
 if err != nil {
     switch {
     case errors.Is(err, rpc.ErrBlockNotFound):
@@ -139,6 +149,11 @@ if err != nil {
     default:
         log.Printf("Failed to get block: %v", err)
     }
+    return
+}
+
+if blockOutput.Block == nil && blockOutput.PreConfirmed == nil {
+    log.Printf("Unexpected block output")
     return
 }
 

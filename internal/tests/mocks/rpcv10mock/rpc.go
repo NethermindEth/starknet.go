@@ -150,10 +150,10 @@ func (mr *MockRPCProviderMockRecorder) BlockWithReceipts(ctx, blockID any) *gomo
 }
 
 // BlockWithTxHashes mocks base method.
-func (m *MockRPCProvider) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithTxHashes(ctx context.Context, blockID rpc.BlockID) (*rpc.BlockWithTxHashesOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockWithTxHashes", ctx, blockID)
-	ret0, _ := ret[0].(any)
+	ret0, _ := ret[0].(*rpc.BlockWithTxHashesOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -165,10 +165,10 @@ func (mr *MockRPCProviderMockRecorder) BlockWithTxHashes(ctx, blockID any) *gomo
 }
 
 // BlockWithTxs mocks base method.
-func (m *MockRPCProvider) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (*rpc.BlockWithTxsOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockWithTxs", ctx, blockID)
-	ret0, _ := ret[0].(any)
+	ret0, _ := ret[0].(*rpc.BlockWithTxsOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

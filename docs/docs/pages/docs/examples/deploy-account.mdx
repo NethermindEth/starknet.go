@@ -4,34 +4,25 @@ This guide demonstrates how to deploy a new account on Starknet using Starknet.g
 
 ## Prerequisites
 
-- Go 1.23 or higher
+- Go 1.18 or higher
 - Starknet.go installed
-- A Starknet RPC endpoint (from [Alchemy](https://www.alchemy.com/starknet), [Infura](https://www.infura.io/), or your own [Juno](https://github.com/NethermindEth/juno) node)
+- A Starknet node URL (voyager rpc)
 
 ## Overview
 
-This example uses a pre-existing OpenZeppelin account class on the Sepolia network to deploy a new account contract.
+This example uses a pre-existing class on the Sepolia network to deploy a new account contract. To successfully run this example, you will need: 1) a Sepolia endpoint, and 2) some Sepolia ETH to fund the precomputed address.
 
 Steps:
-1. Create a `.env` file with your RPC URL
-2. Run the example to generate keys and precompute the address
-3. Fund the precomputed address using a [Starknet faucet](https://starknet-faucet.vercel.app/)
-4. Press Enter to deploy the account
-5. Wait for transaction confirmation
+1. Rename the ".env.template" file located at the root of the "examples" folder to ".env"
+1. Uncomment, and assign your Sepolia testnet endpoint to the `RPC_PROVIDER_URL` variable in the ".env" file
+1. Make sure you are in the "deployAccount" directory
+1. Execute `go run main.go`
+1. Fund the precomputed address using a starknet faucet, eg https://starknet-faucet.vercel.app/
+1. Press any key, then enter
 
-At this point your account should be deployed on testnet, and you can use a block explorer like [Voyager](https://sepolia.voyager.online/) to view your transaction.
+At this point your account should be deployed on testnet, and you can use a block explorer like [Voyager](https://sepolia.voyager.online/) to view your transaction using the transaction hash.
 
-## Setup
 
-Create a `.env` file in your project root:
-
-```bash
-STARKNET_RPC_URL=<your-rpc-endpoint-url>
-```
-
-:::note
-Make sure your RPC provider supports the JSON-RPC spec version that matches your starknet.go version (e.g., starknet.go v0.17.x requires RPC spec v0.9.0).
-:::
 
 ## Code Example
 
@@ -41,46 +32,45 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"strings"
-	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/utils"
-	"github.com/joho/godotenv"
+
+	setup "github.com/NethermindEth/starknet.go/examples/internal"
 )
 
-// OpenZeppelin Account Class Hash in Sepolia
-var predeployedClassHash = "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f"
+var (
+	// OpenZeppelin Account Class Hash in Sepolia
+	predeployedClassHash = "0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f"
+)
 
+// main initializes the client, sets up the temporary account, precomputes the address of the new account,
+// estimates deployment fees, and prepares for the account deployment transaction.
+//
+// It loads environment variables, initializes a Starknet RPC client, generates random cryptographic keys,
+// sets up an account with the generated keys, precomputes the address of a new account, estimates deployment fees,
+// and prepares for the account deployment transaction.
 func main() {
-	// Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("Warning: .env file not found, using environment variables")
-	}
+	// Load variables from '.env' file
+	rpcProviderUrl := setup.GetRpcProviderUrl()
 
-	rpcURL := os.Getenv("STARKNET_RPC_URL")
-	if rpcURL == "" {
-		panic("STARKNET_RPC_URL environment variable is not set")
-	}
-
-	ctx := context.Background()
-
-	// Initialize the client
-	client, err := rpc.NewProvider(ctx, rpcURL)
+	// Initialise the client.
+	client, err := rpc.NewProvider(rpcProviderUrl)
 	if err != nil {
 		panic(err)
 	}
 
-	// Generate random keys for the new account
+	// Get random keys for being able to sign the deploy transaction.
+	// These keys will always be used to sign transactions in the new account.
 	ks, pub, privKey := account.GetRandomKeys()
 	fmt.Printf("Generated public key: %v\n", pub)
 	fmt.Printf("Generated private key: %v\n", privKey)
 
-	// Set up the account (using pub as temporary address)
-	accnt, err := account.NewAccount(client, pub, pub.String(), ks, account.CairoV2)
+	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
+	// as for this case we only need the 'ks' to sign the deploy transaction.
+	accnt, err := account.NewAccount(client, pub, pub.String(), ks, 2)
 	if err != nil {
 		panic(err)
 	}
@@ -90,130 +80,61 @@ func main() {
 		panic(err)
 	}
 
-	// Build and estimate fees for the deploy account transaction
-	deployAccountTxn, precomputedAddress, err := accnt.BuildAndEstimateDeployAccountTxn(
-		ctx,
-		pub,
-		classHash,
-		[]*felt.Felt{pub},
-		nil,
-	)
+	// Build and estimate fees for the deploy account transaction, and precompute the address of the new account.
+	// In our case, the OZ account constructor requires the public key of the account as calldata, so we pass it as calldata.
+	// The multiplier for the fee estimation is 1.5, as we want to be sure that the transaction will be accepted.
+	deployAccountTxn, precomputedAddress, err := accnt.BuildAndEstimateDeployAccountTxn(context.Background(), pub, classHash, []*felt.Felt{pub}, 1.5)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Precomputed address: %s\n", precomputedAddress.String())
+	fmt.Println("PrecomputedAddress:", setup.PadZerosInFelt(precomputedAddress))
 
-	// Save the generated credentials to the .env file
-	if err := saveCredentialsToEnv(privKey, pub, precomputedAddress); err != nil {
-		fmt.Printf("Warning: Failed to save credentials to .env: %v\n", err)
-	} else {
-		fmt.Println("Credentials saved to .env file")
-	}
-
-	// Calculate fee in STRK
-	overallFee, err := utils.ResBoundsMapToOverallFee(
-		deployAccountTxn.ResourceBounds,
-		1,
-		deployAccountTxn.Tip,
-	)
+	// Convert the estimated fee to STRK. The multiplier is 1, as we already estimated the fee in BuildAndEstimateDeployAccountTxn multiplying by 1.5.
+	overallFee, err := utils.ResBoundsMapToOverallFee(deployAccountTxn.ResourceBounds, 1)
 	if err != nil {
 		panic(err)
 	}
 	feeInSTRK := utils.FRIToSTRK(overallFee)
 
-	// Wait for user to fund the account
-	fmt.Println("\nThe account needs STRK to deploy.")
-	fmt.Printf("Send approximately %f STRK to: %s\n", feeInSTRK, precomputedAddress.String())
-	fmt.Println("You can use the Starknet faucet: https://starknet-faucet.vercel.app/")
-	fmt.Println("\nPress Enter after funding the account...")
-	fmt.Scanln()
+	// At this point you need to add funds to precomputed address to use it.
+	var input string
+
+	fmt.Println("\nThe `precomputedAddress` account needs to have enough STRK to perform a transaction.")
+	fmt.Printf("You can use the starknet faucet or send STRK to your `precomputedAddress`. You need approximately %f STRK. \n", feeInSTRK)
+	fmt.Println("When your account has been funded, press any key, then `enter` to continue: ")
+	fmt.Scan(&input)
 
 	// Send transaction to the network
-	resp, err := accnt.SendTransaction(ctx, deployAccountTxn)
+	resp, err := accnt.SendTransaction(context.Background(), deployAccountTxn)
 	if err != nil {
-		fmt.Println("Error sending transaction:")
+		fmt.Println("Error returned from SendTransaction: ")
 		panic(err)
 	}
 
-	fmt.Println("Deploy transaction submitted!")
-	fmt.Printf("Transaction hash: %s\n", resp.Hash.String())
-	fmt.Printf("Contract address: %s\n", resp.ContractAddress.String())
-
-	// Wait for transaction confirmation
-	fmt.Print("Waiting for confirmation")
-	receipt, err := waitForTransaction(ctx, client, resp.Hash)
-	if err != nil {
-		fmt.Printf("\nWarning: Could not confirm transaction: %v\n", err)
-		fmt.Println("Check the transaction status on Voyager or Starkscan.")
-	} else {
-		fmt.Printf("\n\nAccount deployed successfully!\n")
-		fmt.Printf("Block number: %d\n", receipt.BlockNumber)
-		fmt.Printf("Status: %s\n", receipt.FinalityStatus)
-	}
-}
-
-// saveCredentialsToEnv saves the generated account credentials to the .env file
-func saveCredentialsToEnv(privKey, pubKey, address *felt.Felt) error {
-	envMap := make(map[string]string)
-	if data, err := os.ReadFile(".env"); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
-			if parts := strings.SplitN(line, "=", 2); len(parts) == 2 {
-				envMap[parts[0]] = parts[1]
-			}
-		}
-	}
-
-	envMap["ACCOUNT_PRIVATE_KEY"] = privKey.String()
-	envMap["ACCOUNT_PUBLIC_KEY"] = pubKey.String()
-	envMap["ACCOUNT_ADDRESS"] = address.String()
-
-	var content strings.Builder
-	for key, value := range envMap {
-		content.WriteString(fmt.Sprintf("%s=%s\n", key, value))
-	}
-
-	return os.WriteFile(".env", []byte(content.String()), 0644)
-}
-
-// waitForTransaction polls the network until the transaction is confirmed
-func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, error) {
-	for i := 0; i < 60; i++ {
-		receipt, err := client.TransactionReceipt(ctx, txHash)
-		if err == nil {
-			if receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL2 ||
-				receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL1 {
-				return receipt, nil
-			}
-		}
-		time.Sleep(5 * time.Second)
-		fmt.Print(".")
-	}
-	return nil, fmt.Errorf("transaction confirmation timeout")
+	fmt.Println("BroadcastDeployAccountTxn successfully submitted! Wait a few minutes to see it in Voyager.")
+	fmt.Printf("Transaction hash: %v \n", resp.TransactionHash)
+	fmt.Printf("Contract address: %v \n", setup.PadZerosInFelt(resp.ContractAddress))
 }
 ```
 
 ## Explanation
 
-1. Load the RPC URL from environment variables
-2. Initialize a Starknet RPC client with context
-3. Generate random cryptographic keys using `account.GetRandomKeys()`
-4. Create an account instance to sign the deploy transaction
-5. Build and estimate fees for the deployment
-6. Save credentials to `.env` for future use
-7. Wait for user to fund the precomputed address
-8. Send the deploy transaction
-9. Poll for transaction confirmation
+1. First, we initialize a new Starknet client with your node URL
+2. Create a new account instance using your private key
+3. Deploy the account to the network
+4. The transaction hash is returned upon successful deployment
 
 ## Best Practices
 
 - Always store private keys securely
 - Use environment variables for sensitive information
-- Save generated credentials immediately after creation
-- Wait for transaction confirmation before proceeding
+- Handle errors appropriately
+- Consider using a testnet for development
 
 ## Common Issues
 
-- **RPC spec version mismatch**: Ensure your RPC provider version matches starknet.go requirements
-- **Insufficient funds**: The precomputed address needs STRK before deployment
-- **Transaction timeout**: Network congestion may cause delays; check block explorers
+- Invalid private key format
+- Insufficient funds for deployment
+- Network connectivity issues
+- Transaction timeout 

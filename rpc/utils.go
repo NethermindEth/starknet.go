@@ -67,18 +67,22 @@ func EstimateTip(
 		return tip, fmt.Errorf("failed to get latest block: %w", err)
 	}
 
-	latestBlock, ok := rawLatestBlock.(*Block)
-	if !ok {
-		return tip, fmt.Errorf("unexpected block type: %T", rawLatestBlock)
+	var transactions []BlockTransaction
+	switch {
+	case rawLatestBlock.Block != nil:
+		transactions = rawLatestBlock.Block.Transactions
+	case rawLatestBlock.PreConfirmed != nil:
+		transactions = rawLatestBlock.PreConfirmed.Transactions
+	default:
+		return tip, fmt.Errorf("unexpected block output: %+v", rawLatestBlock)
 	}
-
 	var tipStruct struct {
 		Tip U64 `json:"tip"`
 	}
 
 	tipCounter := new(big.Int)
 	// sum up the tips from all transactions
-	for _, transaction := range latestBlock.Transactions {
+	for _, transaction := range transactions {
 		// L1Handler transactions don't have a tip
 		if transaction.GetType() == TransactionTypeL1Handler {
 			continue
@@ -107,7 +111,7 @@ func EstimateTip(
 		return U64("0x0"), nil
 	}
 
-	bigLength := new(big.Int).SetUint64(uint64(len(latestBlock.Transactions)))
+	bigLength := new(big.Int).SetUint64(uint64(len(transactions)))
 
 	averageTip := tipCounter.Div(tipCounter, bigLength).Uint64()
 

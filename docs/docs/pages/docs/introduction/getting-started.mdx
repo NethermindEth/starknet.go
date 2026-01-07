@@ -4,10 +4,9 @@ This guide walks you through creating your first Starknet.go application. You'll
 
 ## Prerequisites
 
-- Go 1.23 or higher installed
+- Go 1.20 or higher installed
 - [Starknet.go installed](/docs/introduction/installation) in your project
 - Basic understanding of Go programming
-- A Starknet RPC endpoint (you can get one from [Alchemy](https://www.alchemy.com/starknet), [Infura](https://www.infura.io/), or run your own [Juno](https://github.com/NethermindEth/juno) node)
 
 ## Your First Application
 
@@ -23,25 +22,14 @@ cd my-starknet-app
 go mod init my-starknet-app
 ```
 
-Add Starknet.go and godotenv dependencies:
+Add Starknet.go dependency:
 
 ```bash
 go get github.com/NethermindEth/starknet.go
-go get github.com/joho/godotenv
 go mod tidy
 ```
 
-### Step 2: Configure Environment
-
-Create a `.env` file in your project root:
-
-```bash
-STARKNET_RPC_URL=<your-rpc-endpoint-url>
-```
-:::note
-Replace `<your-rpc-endpoint-url>` with your actual RPC endpoint URL. Make sure your RPC provider supports the JSON-RPC spec version that matches your starknet.go version (e.g., starknet.go v0.17.x requires RPC spec v0.9.0).
-:::
-### Step 3: Create the Application
+### Step 2: Create the Application
 
 Create `main.go` with the following code:
 
@@ -52,39 +40,24 @@ import (
     "context"
     "fmt"
     "log"
-    "os"
 
     "github.com/NethermindEth/starknet.go/rpc"
-    "github.com/joho/godotenv"
 )
 
 func main() {
-    // Load environment variables from .env file
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
-
-    rpcURL := os.Getenv("STARKNET_RPC_URL")
-    if rpcURL == "" {
-        log.Fatal("STARKNET_RPC_URL environment variable is not set")
-    }
-
-    ctx := context.Background()
-
-    // Connect to Starknet
-    client, err := rpc.NewProvider(ctx, rpcURL)
+    // Connect to Starknet Sepolia testnet
+    client, err := rpc.NewProvider("https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
     if err != nil {
         log.Fatal("Failed to create client:", err)
     }
 
     // Get chain information
-    chainID, err := client.ChainID(ctx)
+    chainID, err := client.ChainID(context.Background())
     if err != nil {
         log.Fatal("Failed to get chain ID:", err)
     }
 
-    blockNumber, err := client.BlockNumber(ctx)
+    blockNumber, err := client.BlockNumber(context.Background())
     if err != nil {
         log.Fatal("Failed to get block number:", err)
     }
@@ -95,7 +68,7 @@ func main() {
 }
 ```
 
-### Step 4: Run the Application
+### Step 3: Run the Application
 
 ```bash
 go run main.go
@@ -110,9 +83,7 @@ Latest block: 1506321
 
 ## Understanding the Code
 
-**Environment Variables**: Using `.env` files keeps sensitive configuration like RPC URLs out of your source code. The `godotenv` package loads these variables at runtime.
-
-**RPC Client**: The `rpc.NewProvider()` function creates a client that communicates with Starknet nodes via JSON-RPC. It requires a context and the RPC endpoint URL.
+**RPC Client**: The `rpc.NewProvider()` function creates a client that communicates with Starknet nodes via JSON-RPC.
 
 **Context**: Go's context package manages request timeouts and cancellation. Use `context.Background()` for simple operations.
 

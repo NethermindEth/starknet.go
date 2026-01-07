@@ -497,14 +497,19 @@ func shouldUseBlake2sHash(ctx context.Context, provider rpc.RPCProvider) (bool, 
 		return false, fmt.Errorf("failed to get block with tx hashes: %w", err)
 	}
 
-	blockTxHashes, ok := block.(*rpc.BlockTxHashes)
-	if !ok {
-		return false, fmt.Errorf("block is not a BlockTxHashes: %T", block)
+	var starknetVersion string
+	switch {
+	case block.Block != nil:
+		starknetVersion = block.Block.StarknetVersion
+	case block.PreConfirmed != nil:
+		starknetVersion = block.PreConfirmed.StarknetVersion
+	default:
+		return false, fmt.Errorf("unexpected block output: %+v", block)
 	}
 
 	upgradeVersion := semver.MustParse("0.14.1")
 
-	currentVersion, err := semver.NewVersion(blockTxHashes.StarknetVersion)
+	currentVersion, err := semver.NewVersion(starknetVersion)
 	if err != nil {
 		return false, fmt.Errorf("failed to parse block's starknet version: %w", err)
 	}

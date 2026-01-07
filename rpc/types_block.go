@@ -25,6 +25,11 @@ type PreConfirmedBlock struct {
 	Transactions []BlockTransaction `json:"transactions"`
 }
 
+type BlockWithTxsOutput struct {
+	Block        *Block
+	PreConfirmed *PreConfirmedBlock
+}
+
 // encoding/json doesn't support inlining fields
 type BlockWithReceipts struct {
 	BlockHeader
@@ -79,6 +84,11 @@ type BlockTxHashes struct {
 type PreConfirmedBlockTxHashes struct {
 	PreConfirmedBlockHeader
 	Transactions []*felt.Felt `json:"transactions"`
+}
+
+type BlockWithTxHashesOutput struct {
+	Block        *BlockTxHashes
+	PreConfirmed *PreConfirmedBlockTxHashes
 }
 
 type BlockHeader struct {

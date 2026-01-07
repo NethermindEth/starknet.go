@@ -98,14 +98,14 @@ func WithBlockTag(tag BlockTag) BlockID {
 //   - blockID: The ID of the block to retrieve the transactions from
 //
 // Returns:
-//   - interface{}: The retrieved block
+//   - *BlockWithTxHashesOutput: The retrieved block (confirmed or pre-confirmed)
 //   - error: An error, if any
 //
 //nolint:dupl // Similar to BlockWithTxs, but it's a different method.
 func (provider *Provider) BlockWithTxHashes(
 	ctx context.Context,
 	blockID BlockID,
-) (interface{}, error) {
+) (*BlockWithTxHashesOutput, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
@@ -113,23 +113,25 @@ func (provider *Provider) BlockWithTxHashes(
 
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &PreConfirmedBlockTxHashes{
-			PreConfirmedBlockHeader{
-				Number:           result.Number,
-				Timestamp:        result.Timestamp,
-				SequencerAddress: result.SequencerAddress,
-				L1GasPrice:       result.L1GasPrice,
-				L2GasPrice:       result.L2GasPrice,
-				StarknetVersion:  result.StarknetVersion,
-				L1DataGasPrice:   result.L1DataGasPrice,
-				L1DAMode:         result.L1DAMode,
+		return &BlockWithTxHashesOutput{
+			PreConfirmed: &PreConfirmedBlockTxHashes{
+				PreConfirmedBlockHeader{
+					Number:           result.Number,
+					Timestamp:        result.Timestamp,
+					SequencerAddress: result.SequencerAddress,
+					L1GasPrice:       result.L1GasPrice,
+					L2GasPrice:       result.L2GasPrice,
+					StarknetVersion:  result.StarknetVersion,
+					L1DataGasPrice:   result.L1DataGasPrice,
+					L1DAMode:         result.L1DAMode,
+				},
+				result.Transactions,
 			},
-			result.Transactions,
 		}, nil
 	}
-
-	return &result, nil
+	return &BlockWithTxHashesOutput{Block: &result}, nil
 }
+
 
 // StateUpdate is a function that performs a state update operation
 // (gets the information about the result of executing the requested block).
@@ -181,33 +183,35 @@ func (provider *Provider) BlockTransactionCount(
 //   - blockID: The ID of the block to retrieve
 //
 // Returns:
-//   - interface{}: The retrieved block
+//   - *BlockWithTxsOutput: The retrieved block (confirmed or pre-confirmed)
 //   - error: An error, if any
 //
 //nolint:dupl // Similar to BlockWithTxHashes, but it's a different method.
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (*BlockWithTxsOutput, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &PreConfirmedBlock{
-			PreConfirmedBlockHeader{
-				Number:           result.Number,
-				Timestamp:        result.Timestamp,
-				SequencerAddress: result.SequencerAddress,
-				L1GasPrice:       result.L1GasPrice,
-				L2GasPrice:       result.L2GasPrice,
-				StarknetVersion:  result.StarknetVersion,
-				L1DataGasPrice:   result.L1DataGasPrice,
-				L1DAMode:         result.L1DAMode,
+		return &BlockWithTxsOutput{
+			PreConfirmed: &PreConfirmedBlock{
+				PreConfirmedBlockHeader{
+					Number:           result.Number,
+					Timestamp:        result.Timestamp,
+					SequencerAddress: result.SequencerAddress,
+					L1GasPrice:       result.L1GasPrice,
+					L2GasPrice:       result.L2GasPrice,
+					StarknetVersion:  result.StarknetVersion,
+					L1DataGasPrice:   result.L1DataGasPrice,
+					L1DAMode:         result.L1DAMode,
+				},
+				result.Transactions,
 			},
-			result.Transactions,
 		}, nil
 	}
 
-	return &result, nil
+	return &BlockWithTxsOutput{Block: &result}, nil
 }
 
 // Get block information with full transactions and receipts given the block id

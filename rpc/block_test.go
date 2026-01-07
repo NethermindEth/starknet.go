@@ -214,19 +214,22 @@ func TestBlockWithTxHashes(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+			require.NotNil(t, result)
 			rawExpectedBlock := testConfig.RPCSpy.LastResponse()
 
-			switch block := result.(type) {
-			case *BlockTxHashes:
-				rawBlock, err := json.Marshal(block)
+			switch {
+			case result.Block != nil:
+				rawBlock, err := json.Marshal(result.Block)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
-			case *PreConfirmedBlockTxHashes:
-				rawBlock, err := json.Marshal(block)
+				assert.Nil(t, result.PreConfirmed)
+			case result.PreConfirmed != nil:
+				rawBlock, err := json.Marshal(result.PreConfirmed)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
+				assert.Nil(t, result.Block)
 			default:
-				t.Fatalf("unexpected block type, found: %T\n", block)
+				t.Fatalf("unexpected block result: both block fields are nil")
 			}
 		})
 	}
@@ -339,7 +342,7 @@ func TestBlockWithTxs(t *testing.T) {
 					Times(1)
 			}
 
-			blockWithTxsInterface, err := provider.BlockWithTxs(
+			blockWithTxsOutput, err := provider.BlockWithTxs(
 				t.Context(),
 				test.BlockID,
 			)
@@ -350,18 +353,22 @@ func TestBlockWithTxs(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-
+			require.NotNil(t, blockWithTxsOutput)
 			rawExpectedBlock := testConfig.RPCSpy.LastResponse()
 
-			switch block := blockWithTxsInterface.(type) {
-			case *PreConfirmedBlock:
-				rawBlock, err := json.Marshal(block)
+			switch {
+			case blockWithTxsOutput.Block != nil:
+				rawBlock, err := json.Marshal(blockWithTxsOutput.Block)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
-			case *Block:
-				rawBlock, err := json.Marshal(block)
+				assert.Nil(t, blockWithTxsOutput.PreConfirmed)
+			case blockWithTxsOutput.PreConfirmed != nil:
+				rawBlock, err := json.Marshal(blockWithTxsOutput.PreConfirmed)
 				require.NoError(t, err)
 				assert.JSONEq(t, string(rawExpectedBlock), string(rawBlock))
+				assert.Nil(t, blockWithTxsOutput.Block)
+			default:
+				t.Fatalf("unexpected block result: both block fields are nil")
 			}
 		})
 	}

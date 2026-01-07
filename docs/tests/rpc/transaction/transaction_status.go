@@ -1,13 +1,14 @@
 package main
- 
+
 import (
-    "context"
-    "fmt"
-    "log"
-    "os"
- 
-    "github.com/NethermindEth/starknet.go/rpc"
-    "github.com/joho/godotenv"
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/joho/godotenv"
 )
  
 func main() {
@@ -37,28 +38,34 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
- 
-    block, ok := blockResult.(*rpc.BlockTxHashes)
-    if !ok {
-        log.Fatal("Unexpected block type")
+
+    var transactionHashes   []*felt.Felt
+
+    switch {
+	case blockResult.Block != nil:
+		transactionHashes = blockResult.Block.Transactions
+	case blockResult.PreConfirmed != nil:
+		transactionHashes = blockResult.PreConfirmed.Transactions
+	default:
+		log.Fatal("Unexpected block output")
+	}
+
+    if len(transactionHashes) == 0 {
+        log.Fatal("No transaction in latest block")
     }
- 
-    if len(block.Transactions) == 0 {
-        log.Fatal("No transactions in latest block")
-    }
- 
-    txHash := block.Transactions[0]
- 
-    // Get transaction status
-    status, err := provider.TransactionStatus(ctx, txHash)
-    if err != nil {
-        log.Fatal(err)
-    }
- 
-    fmt.Printf("Transaction Hash: %s\n", txHash)
-    fmt.Printf("Finality Status: %s\n", status.FinalityStatus)
-    fmt.Printf("Execution Status: %s\n", status.ExecutionStatus)
-    if status.FailureReason != "" {
-        fmt.Printf("Failure Reason: %s\n", status.FailureReason)
-    }
+
+    txHash := transactionHashes[0]
+
+	// Get transaction status
+	status, err := provider.TransactionStatus(ctx, txHash)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Transaction Hash: %s\n", txHash)
+	fmt.Printf("Finality Status: %s\n", status.FinalityStatus)
+	fmt.Printf("Execution Status: %s\n", status.ExecutionStatus)
+	if status.FailureReason != "" {
+		fmt.Printf("Failure Reason: %s\n", status.FailureReason)
+	}
 }
