@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 type MsgToL1 struct {
@@ -246,4 +247,40 @@ type TransactionReceiptWithBlockInfo struct {
 	// If this field is missing, it means the receipt belongs to the pre-confirmed block
 	BlockHash   *felt.Felt `json:"block_hash,omitempty"`
 	BlockNumber uint       `json:"block_number"`
+}
+
+// EventWith returns the first event matching the given event key/selector name.
+// Returns nil if no matching event is found.
+//
+// The function converts the eventKey string to a selector, then searches through
+// the receipt's events for an event whose first key matches the selector.
+//
+// Parameters:
+//   - eventKey: The event name to search for (e.g., "Transfer", "Approval")
+//
+// Returns:
+//   - *Event: A pointer to the first matching event, or nil if not found
+//
+// Example:
+//
+//	receipt, _ := provider.TransactionReceipt(ctx, txHash)
+//	transferEvent := receipt.EventWith("Transfer")
+//	if transferEvent != nil {
+//	    fmt.Println("Found transfer event from:", transferEvent.FromAddress)
+//	}
+func (r *TransactionReceiptWithBlockInfo) EventWith(eventKey string) *Event {
+	if len(r.Events) == 0 {
+		return nil
+	}
+
+	selector := internalUtils.GetSelectorFromNameFelt(eventKey)
+	selectorStr := selector.String()
+
+	for i := range r.Events {
+		if len(r.Events[i].Keys) > 0 && r.Events[i].Keys[0].String() == selectorStr {
+			return &r.Events[i]
+		}
+	}
+
+	return nil
 }
