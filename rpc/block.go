@@ -98,14 +98,14 @@ func WithBlockTag(tag BlockTag) BlockID {
 //   - blockID: The ID of the block to retrieve the transactions from
 //
 // Returns:
-//   - interface{}: The retrieved block
+//   - BlockWithTxHashesResult: The retrieved block (*BlockTxHashes or *PreConfirmedBlockTxHashes)
 //   - error: An error, if any
 //
 //nolint:dupl // Similar to BlockWithTxs, but it's a different method.
 func (provider *Provider) BlockWithTxHashes(
 	ctx context.Context,
 	blockID BlockID,
-) (interface{}, error) {
+) (BlockWithTxHashesResult, error) {
 	var result BlockTxHashes
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
@@ -181,11 +181,11 @@ func (provider *Provider) BlockTransactionCount(
 //   - blockID: The ID of the block to retrieve
 //
 // Returns:
-//   - interface{}: The retrieved block
+//   - BlockWithTxsResult: The retrieved block (*Block or *PreConfirmedBlock)
 //   - error: An error, if any
 //
 //nolint:dupl // Similar to BlockWithTxHashes, but it's a different method.
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (BlockWithTxsResult, error) {
 	var result Block
 	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)

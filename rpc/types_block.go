@@ -13,6 +13,18 @@ import (
 
 var ErrInvalidBlockID = errors.New("invalid blockid")
 
+// BlockWithTxsResult is returned by BlockWithTxs method.
+// It can be either *Block (confirmed block) or *PreConfirmedBlock (pre-confirmed block).
+type BlockWithTxsResult interface {
+	blockWithTxsResult() // unexported marker method
+}
+
+// BlockWithTxHashesResult is returned by BlockWithTxHashes method.
+// It can be either *BlockTxHashes (confirmed block) or *PreConfirmedBlockTxHashes (pre-confirmed block).
+type BlockWithTxHashesResult interface {
+	blockWithTxHashesResult() // unexported marker method
+}
+
 type Block struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
@@ -20,10 +32,14 @@ type Block struct {
 	Transactions []BlockTransaction `json:"transactions"`
 }
 
+func (*Block) blockWithTxsResult() {}
+
 type PreConfirmedBlock struct {
 	PreConfirmedBlockHeader
 	Transactions []BlockTransaction `json:"transactions"`
 }
+
+func (*PreConfirmedBlock) blockWithTxsResult() {}
 
 // encoding/json doesn't support inlining fields
 type BlockWithReceipts struct {
@@ -76,10 +92,14 @@ type BlockTxHashes struct {
 	Transactions []*felt.Felt `json:"transactions"`
 }
 
+func (*BlockTxHashes) blockWithTxHashesResult() {}
+
 type PreConfirmedBlockTxHashes struct {
 	PreConfirmedBlockHeader
 	Transactions []*felt.Felt `json:"transactions"`
 }
+
+func (*PreConfirmedBlockTxHashes) blockWithTxHashesResult() {}
 
 type BlockHeader struct {
 	// The root of Merkle Patricia trie for events in the block
