@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -67,8 +68,8 @@ func main() {
 	fmt.Printf("Precomputed address: %s\n", precomputedAddress.String())
 
 	// Save the generated credentials to the .env file
-	if err := saveCredentialsToEnv(privKey, pub, precomputedAddress, classHash); err != nil {
-		fmt.Printf("Warning: Failed to save credentials to .env: %v\n", err)
+	if saveErr := saveCredentialsToEnv(privKey, pub, precomputedAddress, classHash); saveErr != nil {
+		fmt.Printf("Warning: Failed to save credentials to .env: %v\n", saveErr)
 	} else {
 		fmt.Println("Credentials saved to .env file")
 	}
@@ -90,7 +91,7 @@ func main() {
 	fmt.Printf("Send approximately %f STRK to: %s\n", feeInSTRK, precomputedAddress.String())
 	fmt.Println("You can use the Starknet faucet: https://starknet-faucet.vercel.app/")
 	fmt.Println("\nPress Enter after funding the account...")
-	fmt.Scanln(&input)
+	_, _ = fmt.Scanln(&input)
 
 	// Send transaction to the network
 	resp, err := accnt.SendTransaction(ctx, deployAccountTxn)
@@ -140,14 +141,18 @@ func saveCredentialsToEnv(privKey, pubKey, address, classHash *felt.Felt) error 
 		content.WriteString(fmt.Sprintf("%s=%s\n", key, value))
 	}
 
-	return os.WriteFile(".env", []byte(content.String()), 0644)
+	return os.WriteFile(".env", []byte(content.String()), 0o644)
 }
 
 // waitForTransaction polls the network until the transaction is confirmed or times out
-func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.Felt) (*rpc.TransactionReceiptWithBlockInfo, error) {
+func waitForTransaction(
+	ctx context.Context,
+	client *rpc.Provider,
+	txHash *felt.Felt,
+) (*rpc.TransactionReceiptWithBlockInfo, error) {
 	timeout := 60 // 5 seconds * 60 = 5 minutes
 
-	for i := 0; i < timeout; i++ {
+	for range timeout {
 		receipt, err := client.TransactionReceipt(ctx, txHash)
 		if err == nil {
 			if receipt.FinalityStatus == rpc.TxnFinalityStatusAcceptedOnL2 ||
@@ -159,5 +164,5 @@ func waitForTransaction(ctx context.Context, client *rpc.Provider, txHash *felt.
 		fmt.Print(".")
 	}
 
-	return nil, fmt.Errorf("transaction confirmation timeout")
+	return nil, errors.New("transaction confirmation timeout")
 }
