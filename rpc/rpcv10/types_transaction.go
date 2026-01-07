@@ -249,30 +249,6 @@ type DeployAccountTxnV3 struct {
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
-// remarshal is a function that takes in an interface{} value 'v' and an
-// interface{} value 'dst'. It marshals the 'v' value to JSON using the
-// json.Marshal function and then unmarshals the JSON data to 'dst' using the
-// json.Unmarshal function.
-//
-// Parameters:
-//   - v: The interface{} value to be marshalled
-//   - dst: The interface{} value to be unmarshaled
-//
-// Returns:
-//   - error: An error if the marshalling or unmarshaling process fails
-func remarshal(v, dst any) error {
-	data, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(data, dst); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // string must be NUM_AS_HEX
 type TransactionVersion string
 
