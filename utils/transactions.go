@@ -239,10 +239,12 @@ func BuildDeployAccountTxn(
 //
 // Returns:
 //   - []*rpc.FunctionCall: A new function calls
-func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []rpc.FunctionCall {
-	functionCalls := make([]rpc.FunctionCall, len(invokeFuncCalls))
+func InvokeFuncCallsToFunctionCalls(
+	invokeFuncCalls []types.InvokeFunctionCall,
+) []types.FunctionCall {
+	functionCalls := make([]types.FunctionCall, len(invokeFuncCalls))
 	for i, call := range invokeFuncCalls {
-		functionCalls[i] = rpc.FunctionCall{
+		functionCalls[i] = types.FunctionCall{
 			ContractAddress:    call.ContractAddress,
 			EntryPointSelector: GetSelectorFromNameFelt(call.FunctionName),
 			Calldata:           call.CallData,

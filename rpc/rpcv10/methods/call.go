@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Call calls the Starknet Provider's function with the given (Starknet) request and block ID.
@@ -23,7 +24,7 @@ import (
 func Call(
 	ctx context.Context,
 	c callers.Caller,
-	request rpcv10.FunctionCall,
+	request types.FunctionCall,
 	blockID rpcv10.BlockID,
 ) ([]*felt.Felt, error) {
 	if request.Calldata == nil {

@@ -5,6 +5,8 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/NethermindEth/juno/core/felt"
 )
 
 // 64 bit unsigned integers, represented by hex string of length at most 16
@@ -48,3 +50,23 @@ func (u U128) ToBigInt() (*big.Int, error) {
 }
 
 // @changed this entire pkg is new and contains migrated code
+
+// FunctionCall function call information
+type FunctionCall struct {
+	ContractAddress    *felt.Felt `json:"contract_address"`
+	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
+
+	// Calldata The parameters passed to the function
+	Calldata []*felt.Felt `json:"calldata"`
+}
+
+// InvokeFunctionCall represents a function call to be invoked on a contract.
+// It's a helper type used to build a FunctionCall for a v3 Invoke transaction.
+type InvokeFunctionCall struct {
+	// The address of the contract to invoke
+	ContractAddress *felt.Felt
+	// The name of the function to invoke
+	FunctionName string
+	// The parameters passed to the function
+	CallData []*felt.Felt
+}

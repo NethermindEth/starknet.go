@@ -9,6 +9,8 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
+// @todo implement all the methods
+
 func (provider *Provider) AddInvokeTransaction(
 	ctx context.Context,
 	invokeTxn *types.BroadcastInvokeTxnV3,
@@ -67,7 +69,7 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 
 func (provider *Provider) Call(
 	ctx context.Context,
-	call FunctionCall,
+	call types.FunctionCall,
 	block BlockID,
 ) ([]*felt.Felt, error) {
 	return nil, nil

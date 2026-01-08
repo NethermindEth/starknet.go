@@ -93,7 +93,7 @@ const (
 )
 
 type FnInvocation struct {
-	FunctionCall
+	types.FunctionCall
 
 	// The address of the invoking contract. 0 for the root invocation
 	CallerAddress *felt.Felt `json:"caller_address"`
