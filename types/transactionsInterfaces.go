@@ -1,4 +1,4 @@
-package rpcv10
+package types
 
 import (
 	"encoding/json"
