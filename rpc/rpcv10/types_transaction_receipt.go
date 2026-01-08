@@ -144,69 +144,6 @@ type TransactionReceipt struct {
 	RevertReason string `json:"revert_reason,omitempty"`
 }
 
-type TransactionType string
-
-const (
-	TransactionTypeDeclare       TransactionType = "DECLARE"
-	TransactionTypeDeployAccount TransactionType = "DEPLOY_ACCOUNT"
-	TransactionTypeDeploy        TransactionType = "DEPLOY"
-	TransactionTypeInvoke        TransactionType = "INVOKE"
-	TransactionTypeL1Handler     TransactionType = "L1_HANDLER"
-)
-
-// UnmarshalJSON unmarshals the JSON data into a TransactionType.
-//
-// The function modifies the value of the TransactionType pointer tt based on the
-// unmarshaled data.
-// The supported JSON values and their corresponding TransactionType values are:
-//   - "DECLARE" maps to TransactionType_Declare
-//   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
-//   - "DEPLOY" maps to TransactionType_Deploy
-//   - "INVOKE" maps to TransactionType_Invoke
-//   - "L1_HANDLER" maps to TransactionType_L1Handler
-//
-// If none of the supported values match the input data, the function returns an error.
-//
-//	nil if the unmarshaling is successful.
-//
-// Parameters:
-//   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
-//
-// Returns:
-//   - error: an error if the unmarshaling fails
-func (tt *TransactionType) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-
-	switch unquoted {
-	case "DECLARE":
-		*tt = TransactionTypeDeclare
-	case "DEPLOY_ACCOUNT":
-		*tt = TransactionTypeDeployAccount
-	case "DEPLOY":
-		*tt = TransactionTypeDeploy
-	case "INVOKE":
-		*tt = TransactionTypeInvoke
-	case "L1_HANDLER":
-		*tt = TransactionTypeL1Handler
-	default:
-		return fmt.Errorf("unsupported transaction type: %s", data)
-	}
-
-	return nil
-}
-
-// MarshalJSON marshals the TransactionType to JSON.
-//
-// Returns:
-//   - []byte: a byte slice
-//   - error: an error if any
-func (tt TransactionType) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(tt))), nil
-}
-
 type ExecutionResources struct {
 	// l1 gas consumed by this transaction, used for l2-->l1 messages and state
 	// updates if blobs are not used

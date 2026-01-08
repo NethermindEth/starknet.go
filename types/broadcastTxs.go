@@ -1,4 +1,4 @@
-package rpcv10
+package types
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
