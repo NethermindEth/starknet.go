@@ -126,7 +126,7 @@ func (provider *Provider) EstimateFee(
 	requests []types.BroadcastTxn,
 	simulationFlags []SimulationFlag,
 	blockID BlockID,
-) ([]FeeEstimation, error) {
+) ([]types.FeeEstimation, error) {
 	return nil, nil
 }
 
@@ -134,8 +134,8 @@ func (provider *Provider) EstimateMessageFee(
 	ctx context.Context,
 	msg MsgFromL1,
 	blockID BlockID,
-) (MessageFeeEstimation, error) {
-	return MessageFeeEstimation{}, nil
+) (types.MessageFeeEstimation, error) {
+	return types.MessageFeeEstimation{}, nil
 }
 
 func (provider *Provider) Events(ctx context.Context, input EventsInput) (*EventChunk, error) {

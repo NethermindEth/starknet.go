@@ -2,6 +2,7 @@ package account
 
 import (
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -22,7 +23,7 @@ type TxnOptions struct {
 	TipMultiplier float64
 	// A custom tip amount in FRI for the transaction in hexadecimal format.
 	// If not set, the tip will be automatically estimated for the transaction.
-	CustomTip rpc.U64
+	CustomTip types.U64
 
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version

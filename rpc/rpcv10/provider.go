@@ -97,7 +97,7 @@ func NewWebsocketProvider(
 	return &WsProvider{s: s}, nil
 }
 
-//go:generate mockgen -destination=../internal/tests/mocks/rpcv10mock/rpc.go -package=rpcv10mock -source=provider.go
+//go:generate mockgen -destination=../../internal/tests/mocks/rpcv10mock/rpc.go -package=rpcv10mock -source=provider.go
 type RPCProvider interface {
 	AddInvokeTransaction(
 		ctx context.Context,
@@ -132,12 +132,12 @@ type RPCProvider interface {
 		requests []types.BroadcastTxn,
 		simulationFlags []SimulationFlag,
 		blockID BlockID,
-	) ([]FeeEstimation, error)
+	) ([]types.FeeEstimation, error)
 	EstimateMessageFee(
 		ctx context.Context,
 		msg MsgFromL1,
 		blockID BlockID,
-	) (MessageFeeEstimation, error)
+	) (types.MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	MessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
 	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)

@@ -7,7 +7,6 @@ import (
 
 	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -268,15 +267,15 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		feeEstimation rpc.FeeEstimation
+		feeEstimation types.FeeEstimation
 		multiplier    float64
 		expected      types.ResourceBoundsMapping
 		feeLimit      FeeLimits // Only used in the `CustomFeeEstToResBoundsMap` test.
 	}{
 		{
 			name: "Basic calculation with multiplier 1.0",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
@@ -303,8 +302,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Multiplier less than 1",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -356,8 +355,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "With multiplier 1.5",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
@@ -384,8 +383,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Very large fractional values, within the uint128 and uint64 ranges",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -439,8 +438,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Zero values",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(0)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(0)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(0)),
@@ -467,8 +466,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Overflow",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -522,8 +521,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Negative multiplier",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -603,15 +602,15 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 	// All previous tests + new test with custom fee limits.
 	tests = append(tests, []struct {
 		name          string
-		feeEstimation rpc.FeeEstimation
+		feeEstimation types.FeeEstimation
 		multiplier    float64
 		expected      types.ResourceBoundsMapping
 		feeLimit      FeeLimits
 	}{
 		{
 			name: "With fee limit + multiplier 1.5",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(1_000_000)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(500_000)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(1_000_000_000)),
@@ -652,8 +651,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "overflows, with only one limit set",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(maxUint128BigInt),
 					L1GasConsumed:     BigIntToFelt(maxUint128BigInt),
 					L1DataGasPrice:    BigIntToFelt(maxUint128BigInt),

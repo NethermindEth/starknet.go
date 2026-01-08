@@ -24,7 +24,7 @@ const (
 
 type SimulatedTransaction struct {
 	TxnTrace      `json:"transaction_trace"`
-	FeeEstimation `json:"fee_estimation"`
+	FeeEstimation types.FeeEstimation `json:"fee_estimation"`
 }
 
 type TxnTrace interface{}
@@ -173,7 +173,7 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var feeEstimation FeeEstimation
+	var feeEstimation types.FeeEstimation
 
 	if feeEstimationData, ok := dec["fee_estimation"]; ok {
 		err = remarshal(feeEstimationData, &feeEstimation)

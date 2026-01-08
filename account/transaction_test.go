@@ -16,6 +16,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +38,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Build and send invoke txn
-	resp, err := acc.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
+	resp, err := acc.BuildAndSendInvokeTxn(t.Context(), []types.InvokeFunctionCall{
 		{
 			// same ERC20 contract as in examples/simpleInvoke
 			ContractAddress: internalUtils.TestHexToFelt(
@@ -230,9 +231,9 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					Return(&rpc.Block{}, nil).Times(1)
 				mockRPCProvider.EXPECT().
 					EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-					Return([]rpc.FeeEstimation{
+					Return([]types.FeeEstimation{
 						{
-							FeeEstimationCommon: rpc.FeeEstimationCommon{
+							FeeEstimationCommon: types.FeeEstimationCommon{
 								L1GasPrice:        new(felt.Felt).SetUint64(10),
 								L1GasConsumed:     new(felt.Felt).SetUint64(100),
 								L1DataGasPrice:    new(felt.Felt).SetUint64(5),
@@ -364,7 +365,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
-	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeployAccountTxnV3).Tip)
+	assert.NotEqual(t, "0x0", txn.Transaction.(types.DeployAccountTxnV3).Tip)
 }
 
 // a helper function that transfers STRK tokens to a given address and waits for confirmation,
@@ -378,7 +379,7 @@ func transferSTRKAndWaitConfirmation(
 	// Build and send invoke txn
 	u256Amount, err := internalUtils.HexToU256Felt(amount.String())
 	require.NoError(t, err, "Error converting amount to u256")
-	resp, err := acc.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
+	resp, err := acc.BuildAndSendInvokeTxn(t.Context(), []types.InvokeFunctionCall{
 		{
 			// STRK contract address in Sepolia
 			ContractAddress: internalUtils.TestHexToFelt(
@@ -496,18 +497,18 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		mockRPCProvider.EXPECT().
 			EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			DoAndReturn(
-				func(_, request, _, _ any) ([]rpc.FeeEstimation, error) {
-					reqArr, ok := request.([]rpc.BroadcastTxn)
+				func(_, request, _, _ any) ([]types.FeeEstimation, error) {
+					reqArr, ok := request.([]types.BroadcastTxn)
 					require.True(t, ok)
-					txn, ok := reqArr[0].(rpc.Transaction)
+					txn, ok := reqArr[0].(types.Transaction)
 					require.True(t, ok)
 
 					// assert that the transaction being estimated has the query bit version
-					assert.Equal(t, txn.GetVersion(), rpc.TransactionV3WithQueryBit)
+					assert.Equal(t, txn.GetVersion(), types.TransactionV3WithQueryBit)
 
-					return []rpc.FeeEstimation{
+					return []types.FeeEstimation{
 						{
-							FeeEstimationCommon: rpc.FeeEstimationCommon{
+							FeeEstimationCommon: types.FeeEstimationCommon{
 								L1GasPrice:        new(felt.Felt).SetUint64(10),
 								L1GasConsumed:     new(felt.Felt).SetUint64(100),
 								L1DataGasPrice:    new(felt.Felt).SetUint64(5),
@@ -522,7 +523,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			Times(3)
 
 		// modified txn with a 10000 tip
-		fakeTxn := internalUtils.TestUnmarshalJSONFileToType[rpc.InvokeTxnV3](
+		fakeTxn := internalUtils.TestUnmarshalJSONFileToType[types.InvokeTxnV3](
 			t,
 			"./testData/fakeInvokeTxn.json",
 		)
@@ -547,17 +548,17 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
 			mockRPCProvider.EXPECT().AddInvokeTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddInvokeTransactionResponse, error) {
-					bcTxn, ok := txn.(*rpc.BroadcastInvokeTxnV3)
+					bcTxn, ok := txn.(*types.BroadcastInvokeTxnV3)
 					require.True(t, ok)
 
 					// assert that the transaction being added does NOT have the query bit version
-					assert.Equal(t, bcTxn.GetVersion(), rpc.TransactionV3)
+					assert.Equal(t, bcTxn.GetVersion(), types.TransactionV3)
 
 					return rpc.AddInvokeTransactionResponse{}, nil
 				},
 			)
 
-			_, err = acnt.BuildAndSendInvokeTxn(t.Context(), []rpc.InvokeFunctionCall{
+			_, err = acnt.BuildAndSendInvokeTxn(t.Context(), []types.InvokeFunctionCall{
 				{
 					ContractAddress: internalUtils.DeadBeef,
 					FunctionName:    "transfer",
@@ -576,11 +577,11 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				}, nil).Times(1)
 			mockRPCProvider.EXPECT().AddDeclareTransaction(gomock.Any(), gomock.Any()).DoAndReturn(
 				func(_, txn any) (rpc.AddDeclareTransactionResponse, error) {
-					bcTxn, ok := txn.(*rpc.BroadcastDeclareTxnV3)
+					bcTxn, ok := txn.(*types.BroadcastDeclareTxnV3)
 					require.True(t, ok)
 
 					// assert that the transaction being added does NOT have the query bit version
-					assert.Equal(t, bcTxn.GetVersion(), rpc.TransactionV3)
+					assert.Equal(t, bcTxn.GetVersion(), types.TransactionV3)
 
 					return rpc.AddDeclareTransactionResponse{}, nil
 				},
@@ -610,7 +611,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
-			assert.Equal(t, txn.Version, rpc.TransactionV3)
+			assert.Equal(t, txn.Version, types.TransactionV3)
 		})
 	})
 
@@ -640,7 +641,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
-			assert.Equal(t, txn.GetVersion(), rpc.TransactionV3)
+			assert.Equal(t, txn.GetVersion(), types.TransactionV3)
 		})
 
 		t.Run("BuildAndSendInvokeTxn", func(t *testing.T) {
@@ -668,7 +669,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
-			assert.Equal(t, txn.GetVersion(), rpc.TransactionV3)
+			assert.Equal(t, txn.GetVersion(), types.TransactionV3)
 		})
 
 		t.Run("BuildAndEstimateDeployAccountTxn", func(t *testing.T) {
@@ -695,7 +696,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			require.NotNil(t, txn)
 
 			// assert the returned transaction does NOT have the query bit version
-			assert.Equal(t, txn.Version, rpc.TransactionV3)
+			assert.Equal(t, txn.Version, types.TransactionV3)
 		})
 	})
 }
@@ -721,7 +722,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
 		PrivKey              *felt.Felt
-		InvokeTx             rpc.BroadcastInvokeTxnV3
+		InvokeTx             types.BroadcastInvokeTxnV3
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.TestnetEnv: {
@@ -733,24 +734,24 @@ func TestSendInvokeTxn(t *testing.T) {
 				SetKS:                true,
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
 				PrivKey:              internalUtils.TestHexToFelt(t, "0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9"), //
-				InvokeTx: rpc.BroadcastInvokeTxnV3{
+				InvokeTx: types.BroadcastInvokeTxnV3{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x196bfe"),
-					Type:    rpc.TransactionTypeInvoke,
-					Version: rpc.TransactionV3,
+					Type:    types.TransactionTypeInvoke,
+					Version: types.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x7d975abd8cb41ad812a57f509b5ce8c696a56dd1d133baeb8a8c6804e1f24ac"),
 						internalUtils.TestHexToFelt(t, "0x82285115ef2f99fa7e69ee04d11054c94b0686e62873bdb4b3377efc0830b4"),
 					},
-					ResourceBounds: &rpc.ResourceBoundsMapping{
-						L1Gas: rpc.ResourceBounds{
+					ResourceBounds: &types.ResourceBoundsMapping{
+						L1Gas: types.ResourceBounds{
 							MaxAmount:       "0x11170",
 							MaxPricePerUnit: "0x8d79883d20000",
 						},
-						L1DataGas: rpc.ResourceBounds{
+						L1DataGas: types.ResourceBounds{
 							MaxAmount:       "0x2710",
 							MaxPricePerUnit: "0x62448724953354",
 						},
-						L2Gas: rpc.ResourceBounds{
+						L2Gas: types.ResourceBounds{
 							MaxAmount:       "0x5f5e100",
 							MaxPricePerUnit: "0xba43b7400",
 						},
@@ -768,8 +769,8 @@ func TestSendInvokeTxn(t *testing.T) {
 						"0x3d3da80997f8be5d16e9ae7ee6a4b5f7191d60765a1a6c219ab74269c85cf97",
 						"0x0",
 					}),
-					NonceDataMode: rpc.DAModeL1,
-					FeeMode:       rpc.DAModeL1,
+					NonceDataMode: types.DAModeL1,
+					FeeMode:       types.DAModeL1,
 				},
 			},
 		},
@@ -874,11 +875,11 @@ func TestSendDeclareTxn(t *testing.T) {
 	compClassHash, err := hash.CompiledClassHashV2(&casmClass)
 	require.NoError(t, err)
 
-	broadcastTx := rpc.BroadcastDeclareTxnV3{
-		Type:              rpc.TransactionTypeDeclare,
+	broadcastTx := types.BroadcastDeclareTxnV3{
+		Type:              types.TransactionTypeDeclare,
 		SenderAddress:     AccountAddress,
 		CompiledClassHash: compClassHash,
-		Version:           rpc.TransactionV3,
+		Version:           types.TransactionV3,
 		Signature: []*felt.Felt{
 			internalUtils.TestHexToFelt(
 				t,
@@ -891,16 +892,16 @@ func TestSendDeclareTxn(t *testing.T) {
 		},
 		Nonce:         internalUtils.TestHexToFelt(t, "0xe"),
 		ContractClass: &class,
-		ResourceBounds: &rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
+		ResourceBounds: &types.ResourceBoundsMapping{
+			L1Gas: types.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x1597b3274d88",
 			},
-			L1DataGas: rpc.ResourceBounds{
+			L1DataGas: types.ResourceBounds{
 				MaxAmount:       "0x210",
 				MaxPricePerUnit: "0x997c",
 			},
-			L2Gas: rpc.ResourceBounds{
+			L2Gas: types.ResourceBounds{
 				MaxAmount:       "0x1115cde0",
 				MaxPricePerUnit: "0x11920d1317",
 			},
@@ -908,8 +909,8 @@ func TestSendDeclareTxn(t *testing.T) {
 		Tip:                   "0x0",
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         rpc.DAModeL1,
-		FeeMode:               rpc.DAModeL1,
+		NonceDataMode:         types.DAModeL1,
+		FeeMode:               types.DAModeL1,
 	}
 
 	err = acnt.SignDeclareTransaction(t.Context(), &broadcastTx)
@@ -967,32 +968,32 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 	) // preDeployed classhash
 	require.NoError(t, err)
 
-	tx := rpc.DeployAccountTxnV3{
-		Type:                rpc.TransactionTypeDeployAccount,
-		Version:             rpc.TransactionV3,
+	tx := types.DeployAccountTxnV3{
+		Type:                types.TransactionTypeDeployAccount,
+		Version:             types.TransactionV3,
 		Signature:           []*felt.Felt{},
 		Nonce:               &felt.Zero, // Contract accounts start with nonce zero.
 		ContractAddressSalt: fakeUserPub,
 		ConstructorCalldata: []*felt.Felt{fakeUserPub},
 		ClassHash:           classHash,
-		ResourceBounds: &rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
+		ResourceBounds: &types.ResourceBoundsMapping{
+			L1Gas: types.ResourceBounds{
 				MaxAmount:       "0x997c",
 				MaxPricePerUnit: "0x1597b3274d88",
 			},
-			L1DataGas: rpc.ResourceBounds{
+			L1DataGas: types.ResourceBounds{
 				MaxAmount:       "0x2230",
 				MaxPricePerUnit: "0x9924327c",
 			},
-			L2Gas: rpc.ResourceBounds{
+			L2Gas: types.ResourceBounds{
 				MaxAmount:       "0x15cde0",
 				MaxPricePerUnit: "0x11920d1317",
 			},
 		},
 		Tip:           "0x0",
 		PayMasterData: []*felt.Felt{},
-		NonceDataMode: rpc.DAModeL1,
-		FeeMode:       rpc.DAModeL1,
+		NonceDataMode: types.DAModeL1,
+		FeeMode:       types.DAModeL1,
 	}
 
 	precomputedAddress := account.PrecomputeAccountAddress(

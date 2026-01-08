@@ -33,8 +33,8 @@ func EstimateFee(
 	requests []types.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,
 	blockID rpcv10.BlockID,
-) ([]rpcv10.FeeEstimation, error) {
-	var raw []rpcv10.FeeEstimation
+) ([]types.FeeEstimation, error) {
+	var raw []types.FeeEstimation
 	if err := internal.Do(
 		ctx, c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID,
 	); err != nil {

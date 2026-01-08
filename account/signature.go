@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Sign signs the given felt message using the account's private key.
@@ -43,22 +43,22 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 //   - error: an error if there was an error in the signing or invoking process
 func (account *Account) SignInvokeTransaction(
 	ctx context.Context,
-	invokeTx rpc.InvokeTxnType,
+	invokeTx types.InvokeTxnType,
 ) error {
 	switch invoke := invokeTx.(type) {
-	case *rpc.InvokeTxnV0:
+	case *types.InvokeTxnV0:
 		signature, err := signInvokeTransaction(ctx, account, invoke)
 		if err != nil {
 			return err
 		}
 		invoke.Signature = signature
-	case *rpc.InvokeTxnV1:
+	case *types.InvokeTxnV1:
 		signature, err := signInvokeTransaction(ctx, account, invoke)
 		if err != nil {
 			return err
 		}
 		invoke.Signature = signature
-	case *rpc.InvokeTxnV3:
+	case *types.InvokeTxnV3:
 		signature, err := signInvokeTransaction(ctx, account, invoke)
 		if err != nil {
 			return err
@@ -75,7 +75,7 @@ func (account *Account) SignInvokeTransaction(
 }
 
 // signInvokeTransaction is a generic helper function that signs an invoke transaction.
-func signInvokeTransaction[T rpc.InvokeTxnType](
+func signInvokeTransaction[T types.InvokeTxnType](
 	ctx context.Context,
 	account *Account,
 	invokeTx *T,
@@ -103,17 +103,17 @@ func signInvokeTransaction[T rpc.InvokeTxnType](
 //   - error: an error if any
 func (account *Account) SignDeployAccountTransaction(
 	ctx context.Context,
-	tx rpc.DeployAccountType,
+	tx types.DeployAccountType,
 	precomputeAddress *felt.Felt,
 ) error {
 	switch deployAcc := tx.(type) {
-	case *rpc.DeployAccountTxnV1:
+	case *types.DeployAccountTxnV1:
 		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
 		if err != nil {
 			return err
 		}
 		deployAcc.Signature = signature
-	case *rpc.DeployAccountTxnV3:
+	case *types.DeployAccountTxnV3:
 		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
 		if err != nil {
 			return err
@@ -131,7 +131,7 @@ func (account *Account) SignDeployAccountTransaction(
 
 // signDeployAccountTransaction is a generic helper function that signs a deploy
 // account transaction.
-func signDeployAccountTransaction[T rpc.DeployAccountType](
+func signDeployAccountTransaction[T types.DeployAccountType](
 	ctx context.Context,
 	account *Account,
 	tx *T,
@@ -157,27 +157,27 @@ func signDeployAccountTransaction[T rpc.DeployAccountType](
 //
 // Returns:
 //   - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, tx types.DeclareTxnType) error {
 	switch declare := tx.(type) {
-	case *rpc.DeclareTxnV1:
+	case *types.DeclareTxnV1:
 		signature, err := signDeclareTransaction(ctx, account, declare)
 		if err != nil {
 			return err
 		}
 		declare.Signature = signature
-	case *rpc.DeclareTxnV2:
+	case *types.DeclareTxnV2:
 		signature, err := signDeclareTransaction(ctx, account, declare)
 		if err != nil {
 			return err
 		}
 		declare.Signature = signature
-	case *rpc.DeclareTxnV3:
+	case *types.DeclareTxnV3:
 		signature, err := signDeclareTransaction(ctx, account, declare)
 		if err != nil {
 			return err
 		}
 		declare.Signature = signature
-	case *rpc.BroadcastDeclareTxnV3:
+	case *types.BroadcastDeclareTxnV3:
 		signature, err := signDeclareTransaction(ctx, account, declare)
 		if err != nil {
 			return err
@@ -195,7 +195,7 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.Decla
 
 // signDeclareTransaction is a generic helper function that signs a declare
 // transaction.
-func signDeclareTransaction[T rpc.DeclareTxnType](
+func signDeclareTransaction[T types.DeclareTxnType](
 	ctx context.Context,
 	account *Account,
 	tx *T,
