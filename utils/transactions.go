@@ -10,7 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 const (
@@ -45,7 +45,7 @@ var starknetLimits = FeeLimits{
 // Optional settings when building a transaction.
 type TxnOptions struct {
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	Tip rpc.U64
+	Tip types.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
 	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
@@ -63,17 +63,17 @@ type TxnOptions struct {
 
 // TxnVersion returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and
 // `rpc.TransactionV3` if false.
-func (opts *TxnOptions) TxnVersion() rpc.TransactionVersion {
+func (opts *TxnOptions) TxnVersion() types.TransactionVersion {
 	if opts.UseQueryBit {
-		return rpc.TransactionV3WithQueryBit
+		return types.TransactionV3WithQueryBit
 	}
 
-	return rpc.TransactionV3
+	return types.TransactionV3
 }
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set
 // or invalid, returns "0x0".
-func (opts *TxnOptions) SafeTip() rpc.U64 {
+func (opts *TxnOptions) SafeTip() types.U64 {
 	if opts.Tip == "" {
 		return "0x0"
 	}
@@ -102,15 +102,15 @@ func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
-	resourceBounds *rpc.ResourceBoundsMapping,
+	resourceBounds *types.ResourceBoundsMapping,
 	opts *TxnOptions,
-) *rpc.BroadcastInvokeTxnV3 {
+) *types.BroadcastInvokeTxnV3 {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	invokeTxn := rpc.BroadcastInvokeTxnV3{
-		Type:                  rpc.TransactionTypeInvoke,
+	invokeTxn := types.BroadcastInvokeTxnV3{
+		Type:                  types.TransactionTypeInvoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
 		Version:               opts.TxnVersion(),
@@ -120,8 +120,8 @@ func BuildInvokeTxn(
 		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         rpc.DAModeL1,
-		FeeMode:               rpc.DAModeL1,
+		NonceDataMode:         types.DAModeL1,
+		FeeMode:               types.DAModeL1,
 	}
 
 	return &invokeTxn
@@ -146,9 +146,9 @@ func BuildDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
-	resourceBounds *rpc.ResourceBoundsMapping,
+	resourceBounds *types.ResourceBoundsMapping,
 	opts *TxnOptions,
-) (*rpc.BroadcastDeclareTxnV3, error) {
+) (*types.BroadcastDeclareTxnV3, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
@@ -168,8 +168,8 @@ func BuildDeclareTxn(
 		}
 	}
 
-	declareTxn := rpc.BroadcastDeclareTxnV3{
-		Type:                  rpc.TransactionTypeDeclare,
+	declareTxn := types.BroadcastDeclareTxnV3{
+		Type:                  types.TransactionTypeDeclare,
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
 		Version:               opts.TxnVersion(),
@@ -180,8 +180,8 @@ func BuildDeclareTxn(
 		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         rpc.DAModeL1,
-		FeeMode:               rpc.DAModeL1,
+		NonceDataMode:         types.DAModeL1,
+		FeeMode:               types.DAModeL1,
 	}
 
 	return &declareTxn, nil
@@ -206,15 +206,15 @@ func BuildDeployAccountTxn(
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
-	resourceBounds *rpc.ResourceBoundsMapping,
+	resourceBounds *types.ResourceBoundsMapping,
 	opts *TxnOptions,
-) *rpc.BroadcastDeployAccountTxnV3 {
+) *types.BroadcastDeployAccountTxnV3 {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	deployAccountTxn := rpc.BroadcastDeployAccountTxnV3{
-		Type:                rpc.TransactionTypeDeployAccount,
+	deployAccountTxn := types.BroadcastDeployAccountTxnV3{
+		Type:                types.TransactionTypeDeployAccount,
 		Version:             opts.TxnVersion(),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,
@@ -224,8 +224,8 @@ func BuildDeployAccountTxn(
 		ResourceBounds:      resourceBounds,
 		Tip:                 opts.SafeTip(),
 		PayMasterData:       []*felt.Felt{},
-		NonceDataMode:       rpc.DAModeL1,
-		FeeMode:             rpc.DAModeL1,
+		NonceDataMode:       types.DAModeL1,
+		FeeMode:             types.DAModeL1,
 	}
 
 	return &deployAccountTxn
@@ -238,10 +238,12 @@ func BuildDeployAccountTxn(
 //
 // Returns:
 //   - []*rpc.FunctionCall: A new function calls
-func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []rpc.FunctionCall {
-	functionCalls := make([]rpc.FunctionCall, len(invokeFuncCalls))
+func InvokeFuncCallsToFunctionCalls(
+	invokeFuncCalls []types.InvokeFunctionCall,
+) []types.FunctionCall {
+	functionCalls := make([]types.FunctionCall, len(invokeFuncCalls))
 	for i, call := range invokeFuncCalls {
-		functionCalls[i] = rpc.FunctionCall{
+		functionCalls[i] = types.FunctionCall{
 			ContractAddress:    call.ContractAddress,
 			EntryPointSelector: GetSelectorFromNameFelt(call.FunctionName),
 			Calldata:           call.CallData,
@@ -255,19 +257,19 @@ func InvokeFuncCallsToFunctionCalls(invokeFuncCalls []rpc.InvokeFunctionCall) []
 // as a parameter for the `CustomFeeEstToResBoundsMap` function.
 type FeeLimits struct {
 	// Custom max value for L1 gas price
-	L1GasPriceLimit rpc.U128
+	L1GasPriceLimit types.U128
 	// Custom max value for L1 gas amount
-	L1GasAmountLimit rpc.U64
+	L1GasAmountLimit types.U64
 
 	// Custom max value for L2 gas price
-	L2GasPriceLimit rpc.U128
+	L2GasPriceLimit types.U128
 	// Custom max value for L2 gas amount
-	L2GasAmountLimit rpc.U64
+	L2GasAmountLimit types.U64
 
 	// Custom max value for L1 data gas price
-	L1DataGasPriceLimit rpc.U128
+	L1DataGasPriceLimit types.U128
 	// Custom max value for L1 data gas amount
-	L1DataGasAmountLimit rpc.U64
+	L1DataGasAmountLimit types.U64
 }
 
 // FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
@@ -281,9 +283,9 @@ type FeeLimits struct {
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
 func FeeEstToResBoundsMap(
-	feeEstimation rpc.FeeEstimation,
+	feeEstimation types.FeeEstimation,
 	multiplier float64,
-) *rpc.ResourceBoundsMapping {
+) *types.ResourceBoundsMapping {
 	bounds := CustomFeeEstToResBoundsMap(feeEstimation, multiplier, &starknetLimits)
 
 	// TODO: return by value instead of pointer
@@ -304,10 +306,10 @@ func FeeEstToResBoundsMap(
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
 func CustomFeeEstToResBoundsMap(
-	feeEstimation rpc.FeeEstimation,
+	feeEstimation types.FeeEstimation,
 	multiplier float64,
 	limits *FeeLimits,
-) rpc.ResourceBoundsMapping {
+) types.ResourceBoundsMapping {
 	// Create L1 resources bounds
 	l1Gas := toResourceBounds(
 		feeEstimation.L1GasPrice,
@@ -333,7 +335,7 @@ func CustomFeeEstToResBoundsMap(
 		multiplier,
 	)
 
-	return rpc.ResourceBoundsMapping{
+	return types.ResourceBoundsMapping{
 		L1Gas:     l1Gas,
 		L1DataGas: l1DataGas,
 		L2Gas:     l2Gas,
@@ -356,16 +358,16 @@ func CustomFeeEstToResBoundsMap(
 //   - rpc.ResourceBounds: Resource bounds with applied multiplier
 func toResourceBounds(
 	gasPrice *felt.Felt,
-	gasPriceLimit rpc.U128,
+	gasPriceLimit types.U128,
 	gasConsumed *felt.Felt,
-	gasAmountLimit rpc.U64,
+	gasAmountLimit types.U64,
 	multiplier float64,
-) rpc.ResourceBounds {
+) types.ResourceBounds {
 	// multiplier must be greater than 0. Default to 0 if not
 	if multiplier <= 0 {
-		return rpc.ResourceBounds{
-			MaxAmount:       rpc.U64("0x0"),
-			MaxPricePerUnit: rpc.U128("0x0"),
+		return types.ResourceBounds{
+			MaxAmount:       types.U64("0x0"),
+			MaxPricePerUnit: types.U128("0x0"),
 		}
 	}
 
@@ -402,9 +404,9 @@ func toResourceBounds(
 		maxPricePerUnitInt = gasPL
 	}
 
-	return rpc.ResourceBounds{
-		MaxAmount:       rpc.U64(fmt.Sprintf("%#x", maxAmountInt)),
-		MaxPricePerUnit: rpc.U128(fmt.Sprintf("%#x", maxPricePerUnitInt)),
+	return types.ResourceBounds{
+		MaxAmount:       types.U64(fmt.Sprintf("%#x", maxAmountInt)),
+		MaxPricePerUnit: types.U128(fmt.Sprintf("%#x", maxPricePerUnitInt)),
 	}
 }
 
@@ -420,9 +422,9 @@ func toResourceBounds(
 //   - *felt.Felt: The overall fee in FRI
 //   - error: An error if any
 func ResBoundsMapToOverallFee(
-	resBounds *rpc.ResourceBoundsMapping,
+	resBounds *types.ResourceBoundsMapping,
 	multiplier float64,
-	tip rpc.U64,
+	tip types.U64,
 ) (*felt.Felt, error) {
 	if resBounds == nil {
 		return nil, errors.New("resource bounds are nil")

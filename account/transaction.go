@@ -10,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -31,7 +32,7 @@ import (
 //   - error: An error if the transaction building fails.
 func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
-	functionCalls []rpc.InvokeFunctionCall,
+	functionCalls []types.InvokeFunctionCall,
 	opts *TxnOptions,
 ) (rpc.AddInvokeTransactionResponse, error) {
 	var response rpc.AddInvokeTransactionResponse
@@ -74,7 +75,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
-		[]rpc.BroadcastTxn{broadcastInvokeTxnV3},
+		[]types.BroadcastTxn{broadcastInvokeTxnV3},
 		opts.SimulationFlags(),
 		opts.BlockID(),
 	)
@@ -87,9 +88,9 @@ func (account *Account) BuildAndSendInvokeTxn(
 		opts.FmtFeeMultiplier(),
 	)
 
-	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
+	// assuring the signed txn version will be types.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
-	broadcastInvokeTxnV3.Version = rpc.TransactionV3
+	broadcastInvokeTxnV3.Version = types.TransactionV3
 
 	// signing the txn again with the estimated fee, as the fee value is used in
 	// the txn hash calculation
@@ -175,7 +176,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
-		[]rpc.BroadcastTxn{broadcastDeclareTxnV3},
+		[]types.BroadcastTxn{broadcastDeclareTxnV3},
 		opts.SimulationFlags(),
 		opts.BlockID(),
 	)
@@ -188,9 +189,9 @@ func (account *Account) BuildAndSendDeclareTxn(
 		opts.FmtFeeMultiplier(),
 	)
 
-	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
+	// assuring the signed txn version will be types.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
-	broadcastDeclareTxnV3.Version = rpc.TransactionV3
+	broadcastDeclareTxnV3.Version = types.TransactionV3
 
 	// signing the txn again with the estimated fee, as the fee value is used in
 	// the txn hash calculation
@@ -236,7 +237,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *TxnOptions,
-) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
+) (*types.BroadcastDeployAccountTxnV3, *felt.Felt, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
@@ -268,7 +269,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	// estimate txn fee
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
-		[]rpc.BroadcastTxn{broadcastDepAccTxnV3},
+		[]types.BroadcastTxn{broadcastDepAccTxnV3},
 		opts.SimulationFlags(),
 		opts.BlockID(),
 	)
@@ -281,9 +282,9 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		opts.FmtFeeMultiplier(),
 	)
 
-	// assuring the signed txn version will be rpc.TransactionV3, since queryBit
+	// assuring the signed txn version will be types.TransactionV3, since queryBit
 	// txn version is only used for estimation/simulation
-	broadcastDepAccTxnV3.Version = rpc.TransactionV3
+	broadcastDepAccTxnV3.Version = types.TransactionV3
 
 	// signing the txn again with the estimated fee, as the fee value is used in
 	// the txn hash calculation
@@ -302,7 +303,7 @@ func calculateTip(
 	ctx context.Context,
 	provider rpc.RPCProvider,
 	opts *TxnOptions,
-) (rpc.U64, error) {
+) (types.U64, error) {
 	if opts.CustomTip != "" {
 		return opts.CustomTip, nil
 	}
@@ -348,7 +349,7 @@ func (account *Account) DeployContractWithUDC(
 
 	response, err = account.BuildAndSendInvokeTxn(
 		context.Background(),
-		[]rpc.InvokeFunctionCall{udcCallData},
+		[]types.InvokeFunctionCall{udcCallData},
 		txnOpts,
 	)
 	if err != nil {
@@ -373,19 +374,19 @@ func (account *Account) DeployContractWithUDC(
 //nolint:exhaustruct // Setting only the correct fields
 func (account *Account) SendTransaction(
 	ctx context.Context,
-	txn rpc.BroadcastTxn,
+	txn types.BroadcastTxn,
 ) (rpc.TransactionResponse, error) {
 	var response rpc.TransactionResponse
 	switch tx := txn.(type) {
 	// broadcast invoke v3, pointer and struct
-	case *rpc.BroadcastInvokeTxnV3:
+	case *types.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
 		if err != nil {
 			return response, err
 		}
 
 		return rpc.TransactionResponse{Hash: resp.Hash}, nil
-	case rpc.BroadcastInvokeTxnV3:
+	case types.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return response, err
@@ -393,7 +394,7 @@ func (account *Account) SendTransaction(
 
 		return rpc.TransactionResponse{Hash: resp.Hash}, nil
 	// broadcast declare v3, pointer and struct
-	case *rpc.BroadcastDeclareTxnV3:
+	case *types.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
 		if err != nil {
 			return response, err
@@ -403,7 +404,7 @@ func (account *Account) SendTransaction(
 			Hash:      resp.Hash,
 			ClassHash: resp.ClassHash,
 		}, nil
-	case rpc.BroadcastDeclareTxnV3:
+	case types.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
 		if err != nil {
 			return response, err
@@ -414,7 +415,7 @@ func (account *Account) SendTransaction(
 			ClassHash: resp.ClassHash,
 		}, nil
 	// broadcast deploy account v3, pointer and struct
-	case *rpc.BroadcastDeployAccountTxnV3:
+	case *types.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
 		if err != nil {
 			return response, err
@@ -424,7 +425,7 @@ func (account *Account) SendTransaction(
 			Hash:            resp.Hash,
 			ContractAddress: resp.ContractAddress,
 		}, nil
-	case rpc.BroadcastDeployAccountTxnV3:
+	case types.BroadcastDeployAccountTxnV3:
 		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
 		if err != nil {
 			return response, err

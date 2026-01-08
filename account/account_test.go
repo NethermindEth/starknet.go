@@ -10,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -35,14 +36,14 @@ func TestFmtCallData(t *testing.T) {
 	type testSetType struct {
 		CairoVersion     account.CairoVersion
 		ChainID          string
-		FnCall           rpc.FunctionCall
+		FnCall           types.FunctionCall
 		ExpectedCallData []*felt.Felt
 	}
 	testSet := []testSetType{
 		{
 			CairoVersion: account.CairoV2,
 			ChainID:      "SN_SEPOLIA",
-			FnCall: rpc.FunctionCall{
+			FnCall: types.FunctionCall{
 				ContractAddress: internalUtils.TestHexToFelt(
 					t,
 					"0x04daadb9d30c887e1ab2cf7d78dfe444a77aab5a49c3353d6d9977e7ed669902",
@@ -63,7 +64,7 @@ func TestFmtCallData(t *testing.T) {
 		{
 			CairoVersion: account.CairoV2,
 			ChainID:      "SN_SEPOLIA",
-			FnCall: rpc.FunctionCall{
+			FnCall: types.FunctionCall{
 				ContractAddress: internalUtils.TestHexToFelt(
 					t,
 					"0x017cE9DffA7C87a03EB496c96e04ac36c4902085030763A83a35788d475e15CA",
@@ -94,7 +95,7 @@ func TestFmtCallData(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		fmtCallData, err := acc.FmtCalldata([]rpc.FunctionCall{test.FnCall})
+		fmtCallData, err := acc.FmtCalldata([]types.FunctionCall{test.FnCall})
 		require.NoError(t, err)
 		assert.Equal(t, fmtCallData, test.ExpectedCallData)
 	}

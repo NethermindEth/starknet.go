@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,27 +15,27 @@ import (
 func TestResBoundsMapToOverallFee(t *testing.T) {
 	t.Parallel()
 
-	zeroTip := rpc.U64("0x0")
+	zeroTip := types.U64("0x0")
 	tests := []struct {
 		name        string
-		resBounds   rpc.ResourceBoundsMapping
+		resBounds   types.ResourceBoundsMapping
 		multiplier  float64
-		tip         rpc.U64
+		tip         types.U64
 		expectedRes string
 		expectedErr string
 	}{
 		{
 			name: "Basic calculation",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -47,16 +47,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Zero values",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
@@ -67,16 +67,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "With multiplier 1.5",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -88,16 +88,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Negative multiplier",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -108,16 +108,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Multiplier less than 1",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -129,16 +129,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Extremely large values",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x38d7ea4c68000",            // 1,000,000,000,000,000
 					MaxPricePerUnit: "0x204fce5e3e25026110000000", // 10,000,000,000,000,000,000,000,000,000
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x38d7ea4c68000",            // 1,000,000,000,000,000
 					MaxPricePerUnit: "0x204fce5e3e25026110000000", // 10,000,000,000,000,000,000,000,000,000
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x38d7ea4c68000",            // 1,000,000,000,000,000
 					MaxPricePerUnit: "0x204fce5e3e25026110000000", // 10,000,000,000,000,000,000,000,000,000
 				},
@@ -149,8 +149,8 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Invalid resource bounds values",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "invalidValue", // Invalid format
 					MaxPricePerUnit: "0xa",          // 10
 				},
@@ -161,16 +161,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Empty fields",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "",
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -181,16 +181,16 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Overflow",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -201,8 +201,8 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Underflow",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "-0x64",
 					MaxPricePerUnit: "0x64", // 100
 				},
@@ -213,22 +213,22 @@ func TestResBoundsMapToOverallFee(t *testing.T) {
 		},
 		{
 			name: "Real values",
-			resBounds: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			resBounds: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x1925a36320fc",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x80",   // 128
 					MaxPricePerUnit: "0x6c01", // 27649
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0xc25b1",    // 796081
 					MaxPricePerUnit: "0xb2d05e00", // 3000000000
 				},
 			},
 			multiplier: 1.0,
-			tip:        rpc.U64("0x1000000"), // 16777216
+			tip:        types.U64("0x1000000"), // 16777216
 			// Expected: 0 + (128*27649) + ((3000000000+16777216)*796081) =
 			// 0 + 3539072 + 2401599022890496 = 2401599026429568
 			expectedRes: "2401599026429568", // 0x8883dd8dcfe80
@@ -267,15 +267,15 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		feeEstimation rpc.FeeEstimation
+		feeEstimation types.FeeEstimation
 		multiplier    float64
-		expected      rpc.ResourceBoundsMapping
+		expected      types.ResourceBoundsMapping
 		feeLimit      FeeLimits // Only used in the `CustomFeeEstToResBoundsMap` test.
 	}{
 		{
 			name: "Basic calculation with multiplier 1.0",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
@@ -285,16 +285,16 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: 1.0,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x64", // 100
 					MaxPricePerUnit: "0xa",  // 10
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x32", // 50
 					MaxPricePerUnit: "0x5",  // 5
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0xc8", // 200
 					MaxPricePerUnit: "0x3",  // 3
 				},
@@ -302,8 +302,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Multiplier less than 1",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -331,32 +331,32 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: 0.5,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					// 10028457877064151426 * 0.5 ~= 5014228938532075713
 					MaxAmount: "0x45961ea72fb038c1",
 					// 55753724871440480815496793359074663 * 0.5 ~= 27876862435720240407748396679537331
 					MaxPricePerUnit: "0x55e6f7891a2b3c4855e6f7891a2b3",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					// 12406075901516675723 * 0.5 ~= 6203037950758337861
 					MaxAmount: "0x56159e26af37bd45",
 					// 216663551256725667606984177334664047893 * 0.5 ~= 108331775628362833803492088667332023946
 					MaxPricePerUnit: "0x517ff0e961da52cb43bc34ad259e168a",
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					// 800_000_000 * 0.5 ~= 400_000_000
 					MaxAmount: "0x17d78400",
 					// As the output overflows, the max value is used
 					// 340282366920938463463374607431768211455 * 0.5 ~= 170141183460469231731687303715884105727
-					MaxPricePerUnit: rpc.U128(maxUint128),
+					MaxPricePerUnit: types.U128(maxUint128),
 				},
 			},
 		},
 		{
 			name: "With multiplier 1.5",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(10)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(100)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(5)),
@@ -366,16 +366,16 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: 1.5,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x96", // 150 (100 * 1.5)
 					MaxPricePerUnit: "0xf",  // 15 (10 * 1.5)
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x4b", // 75 (50 * 1.5)
 					MaxPricePerUnit: "0x7",  // 7 (5 * 1.5 = 7.5, truncated to 7)
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x12c", // 300 (200 * 1.5)
 					MaxPricePerUnit: "0x4",   // 4 (3 * 1.5 = 4.5, truncated to 4)
 				},
@@ -383,8 +383,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Very large fractional values, within the uint128 and uint64 ranges",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -412,24 +412,24 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: 1.7,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					// 10028457877064151426 * 1.7 ~= 17048378391009056979
 					MaxAmount: "0xec9801d2088a58d3",
 					// 55753724871440480815496793359074663 * 1.7 ~= 94781332281448814910381786274848222
 					MaxPricePerUnit: "0x12411499ef292fe035de10f5ddddde",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					// 1885667171979197067 * 1.7 ~= 3205634192364634930
 					MaxAmount: "0x2c7cb35053bd8332",
 					// 78170717918204611383717257769370321 * 1.7 ~= 132890220460947835880842102837167790
 					MaxPricePerUnit: "0x1997fe64cb3197ce37a10a73dd46ae",
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					// 71737338064426034 * 1.7 ~= 121953474709524254
 					// The result is bigger than the max L2 gas amount limit, so the function
 					// should return the max L2 gas amount instead
-					MaxAmount: rpc.U64(maxL2GasAmount),
+					MaxAmount: types.U64(maxL2GasAmount),
 					// 5907679981266292691599931071900621 * 1.7 ~= 10043055968152697313366189329472992
 					MaxPricePerUnit: "0x1ef293003a41145dddddddddddde0",
 				},
@@ -438,8 +438,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Zero values",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(0)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(0)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(0)),
@@ -449,16 +449,16 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: 1.0,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
@@ -466,8 +466,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "Overflow",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -495,34 +495,34 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: 1.7,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					// 10028457877064151426 * 1.7 ~= 17048378391009056979
 					MaxAmount: "0xec9801d2088a58d3",
 					// 55753724871440480815496793359074663 * 1.7 ~= 94781332281448814910381786274848222
 					MaxPricePerUnit: "0x12411499ef292fe035de10f5ddddde",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					// 12406075901516675723 * 1.7 ~= 21090329032578348178
 					// This result is too large to fit in a uint64, so the function returns the max uint64 value
-					MaxAmount: rpc.U64(maxUint64),
+					MaxAmount: types.U64(maxUint64),
 					// 216663551256725667606984177334664047893 * 1.7 ~= 368328037136433625310078573378144594674
 					// This result is too large to fit in a uint128, so the function returns the max uint128 value
-					MaxPricePerUnit: rpc.U128(maxUint128),
+					MaxPricePerUnit: types.U128(maxUint128),
 				},
 				// The inputs overflow, so the output should be the max values
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					// Default max L2 gas amount limit
-					MaxAmount:       rpc.U64(maxL2GasAmount),
-					MaxPricePerUnit: rpc.U128(maxUint128),
+					MaxAmount:       types.U64(maxL2GasAmount),
+					MaxPricePerUnit: types.U128(maxUint128),
 				},
 			},
 			feeLimit: starknetLimits, // For the CustomFeeEstToResBoundsMap test.
 		},
 		{
 			name: "Negative multiplier",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice: internalUtils.TestHexToFelt(
 						t,
 						"0xabcdef1234567890abcdef1234567",
@@ -550,17 +550,17 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			multiplier: -1.7,
-			expected: rpc.ResourceBoundsMapping{
+			expected: types.ResourceBoundsMapping{
 				// when multiplier is negative, the max amount and max price per unit should be 0
-				L1Gas: rpc.ResourceBounds{
+				L1Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					MaxAmount:       "0x0",
 					MaxPricePerUnit: "0x0",
 				},
@@ -602,15 +602,15 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 	// All previous tests + new test with custom fee limits.
 	tests = append(tests, []struct {
 		name          string
-		feeEstimation rpc.FeeEstimation
+		feeEstimation types.FeeEstimation
 		multiplier    float64
-		expected      rpc.ResourceBoundsMapping
+		expected      types.ResourceBoundsMapping
 		feeLimit      FeeLimits
 	}{
 		{
 			name: "With fee limit + multiplier 1.5",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(big.NewInt(1_000_000)),
 					L1GasConsumed:     BigIntToFelt(big.NewInt(500_000)),
 					L1DataGasPrice:    BigIntToFelt(big.NewInt(1_000_000_000)),
@@ -620,28 +620,28 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			feeLimit: FeeLimits{
-				L1GasPriceLimit:      rpc.U128("0x124f80"),    // 1_200_000
-				L1GasAmountLimit:     rpc.U64("0xf4240"),      // 1_000_000
-				L1DataGasPriceLimit:  rpc.U128("0xf4240"),     // 1_000_000
-				L1DataGasAmountLimit: rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
-				L2GasPriceLimit:      rpc.U128("0x7a120"),     // 500_000
-				L2GasAmountLimit:     rpc.U64("0xe8d4a51000"), // 1_000_000_000_000
+				L1GasPriceLimit:      types.U128("0x124f80"),    // 1_200_000
+				L1GasAmountLimit:     types.U64("0xf4240"),      // 1_000_000
+				L1DataGasPriceLimit:  types.U128("0xf4240"),     // 1_000_000
+				L1DataGasAmountLimit: types.U64("0xe8d4a51000"), // 1_000_000_000_000
+				L2GasPriceLimit:      types.U128("0x7a120"),     // 500_000
+				L2GasAmountLimit:     types.U64("0xe8d4a51000"), // 1_000_000_000_000
 			},
 			multiplier: 1.5,
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
 					// 1_000_000 * 1.5 = 1_500_000_
 					MaxPricePerUnit: "0x124f80", // 1_200_000, capped by the limit
 					// 500_000 * 1.5 = 750_000_
 					MaxAmount: "0xb71b0", // 750_000, within the limit
 				},
-				L1DataGas: rpc.ResourceBounds{
+				L1DataGas: types.ResourceBounds{
 					// 1_000_000_000 * 1.5 = 1_500_000_000_
 					MaxPricePerUnit: "0xf4240", // 1_000_000, capped by the limit
 					// 1_000_000 * 1.5 = 1_500_000_
 					MaxAmount: "0x16e360", // 1_500_000, within the limit
 				},
-				L2Gas: rpc.ResourceBounds{
+				L2Gas: types.ResourceBounds{
 					// 800_000 * 1.5 = 1_200_000_
 					MaxPricePerUnit: "0x7a120", // 500_000, capped by the limit
 					// 200_000_000 * 1.5 = 300_000_000_
@@ -651,8 +651,8 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 		},
 		{
 			name: "overflows, with only one limit set",
-			feeEstimation: rpc.FeeEstimation{
-				FeeEstimationCommon: rpc.FeeEstimationCommon{
+			feeEstimation: types.FeeEstimation{
+				FeeEstimationCommon: types.FeeEstimationCommon{
 					L1GasPrice:        BigIntToFelt(maxUint128BigInt),
 					L1GasConsumed:     BigIntToFelt(maxUint128BigInt),
 					L1DataGasPrice:    BigIntToFelt(maxUint128BigInt),
@@ -662,22 +662,22 @@ func TestFeeEstToResBoundsMap(t *testing.T) {
 				},
 			},
 			feeLimit: FeeLimits{
-				L1GasPriceLimit: rpc.U128("0xf4240"), // 1_000_000
+				L1GasPriceLimit: types.U128("0xf4240"), // 1_000_000
 			},
 			multiplier: 100,
 			// All outputs but the L1Gas.MaxPricePerUnit should be the max U128 and U64 values.
-			expected: rpc.ResourceBoundsMapping{
-				L1Gas: rpc.ResourceBounds{
-					MaxPricePerUnit: rpc.U128("0xf4240"), // The same as the limit.
-					MaxAmount:       rpc.U64(maxUint64),
+			expected: types.ResourceBoundsMapping{
+				L1Gas: types.ResourceBounds{
+					MaxPricePerUnit: types.U128("0xf4240"), // The same as the limit.
+					MaxAmount:       types.U64(maxUint64),
 				},
-				L1DataGas: rpc.ResourceBounds{
-					MaxPricePerUnit: rpc.U128(maxUint128),
-					MaxAmount:       rpc.U64(maxUint64),
+				L1DataGas: types.ResourceBounds{
+					MaxPricePerUnit: types.U128(maxUint128),
+					MaxAmount:       types.U64(maxUint64),
 				},
-				L2Gas: rpc.ResourceBounds{
-					MaxPricePerUnit: rpc.U128(maxUint128),
-					MaxAmount:       rpc.U64(maxUint64),
+				L2Gas: types.ResourceBounds{
+					MaxPricePerUnit: types.U128(maxUint128),
+					MaxAmount:       types.U64(maxUint64),
 				},
 			},
 		},
@@ -719,14 +719,14 @@ func TestTxnOptions(t *testing.T) {
 	testcases := []struct {
 		name            string
 		opts            *TxnOptions
-		expectedTip     rpc.U64
-		expectedVersion rpc.TransactionVersion
+		expectedTip     types.U64
+		expectedVersion types.TransactionVersion
 	}{
 		{
 			name:            "Default values",
 			opts:            nil,
 			expectedTip:     "0x0",
-			expectedVersion: rpc.TransactionV3,
+			expectedVersion: types.TransactionV3,
 		},
 		{
 			name: "WithQueryBitVersion true",
@@ -734,7 +734,7 @@ func TestTxnOptions(t *testing.T) {
 				UseQueryBit: true,
 			},
 			expectedTip:     "0x0",
-			expectedVersion: rpc.TransactionV3WithQueryBit,
+			expectedVersion: types.TransactionV3WithQueryBit,
 		},
 		{
 			name: "Tip set",
@@ -742,7 +742,7 @@ func TestTxnOptions(t *testing.T) {
 				Tip: "0x1234567890",
 			},
 			expectedTip:     "0x1234567890",
-			expectedVersion: rpc.TransactionV3,
+			expectedVersion: types.TransactionV3,
 		},
 	}
 

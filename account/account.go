@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 var (
@@ -24,10 +25,10 @@ type AccountInterface interface {
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
 		opts *TxnOptions,
-	) (*rpc.BroadcastDeployAccountTxnV3, *felt.Felt, error)
+	) (*types.BroadcastDeployAccountTxnV3, *felt.Felt, error)
 	BuildAndSendInvokeTxn(
 		ctx context.Context,
-		functionCalls []rpc.InvokeFunctionCall,
+		functionCalls []types.InvokeFunctionCall,
 		opts *TxnOptions,
 	) (rpc.AddInvokeTransactionResponse, error)
 	BuildAndSendDeclareTxn(
@@ -44,21 +45,21 @@ type AccountInterface interface {
 		udcOpts *UDCOptions,
 	) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
-	SendTransaction(ctx context.Context, txn rpc.BroadcastTxn) (rpc.TransactionResponse, error)
+	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (rpc.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx rpc.InvokeTxnType) error
+	SignInvokeTransaction(ctx context.Context, tx types.InvokeTxnType) error
 	SignDeployAccountTransaction(
 		ctx context.Context,
-		tx rpc.DeployAccountType,
+		tx types.DeployAccountType,
 		precomputeAddress *felt.Felt,
 	) error
-	SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error
-	TransactionHashInvoke(invokeTxn rpc.InvokeTxnType) (*felt.Felt, error)
+	SignDeclareTransaction(ctx context.Context, tx types.DeclareTxnType) error
+	TransactionHashInvoke(invokeTxn types.InvokeTxnType) (*felt.Felt, error)
 	TransactionHashDeployAccount(
-		tx rpc.DeployAccountType,
+		tx types.DeployAccountType,
 		contractAddress *felt.Felt,
 	) (*felt.Felt, error)
-	TransactionHashDeclare(tx rpc.DeclareTxnType) (*felt.Felt, error)
+	TransactionHashDeclare(tx types.DeclareTxnType) (*felt.Felt, error)
 	Verify(msgHash *felt.Felt, signature []*felt.Felt) (bool, error)
 	WaitForTransactionReceipt(
 		ctx context.Context,
@@ -151,12 +152,12 @@ func PrecomputeAccountAddress(
 // FmtCalldata generates the formatted calldata for the given function calls and Cairo version.
 //
 // Parameters:
-//   - fnCalls: a slice of rpc.FunctionCall representing the function calls.
+//   - fnCalls: a slice of types.FunctionCall representing the function calls.
 //
 // Returns:
 //   - a slice of *felt.Felt representing the formatted calldata.
 //   - an error if Cairo version is not supported.
-func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, error) {
+func (account *Account) FmtCalldata(fnCalls []types.FunctionCall) ([]*felt.Felt, error) {
 	switch account.CairoVersion {
 	case CairoV0:
 		return FmtCallDataCairo0(fnCalls), nil
@@ -171,7 +172,7 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 // calldata for the given function calls in Cairo 0 format.
 //
 // Parameters:
-//   - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+//   - fnCalls: a slice of types.FunctionCall containing the function calls.
 //
 // Returns:
 //   - a slice of *felt.Felt representing the generated calldata.
@@ -179,7 +180,7 @@ func (account *Account) FmtCalldata(fnCalls []rpc.FunctionCall) ([]*felt.Felt, e
 // https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L27
 //
 //nolint:lll // The link would be unclickable if we break the line.
-func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
+func FmtCallDataCairo0(callArray []types.FunctionCall) []*felt.Felt {
 	calldata := make([]*felt.Felt, 0, 10) //nolint:mnd // Randomly chosen
 	calls := make([]*felt.Felt, 0, 10)    //nolint:mnd // Randomly chosen
 
@@ -210,7 +211,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 // Cairo 2 contracts.
 //
 // Parameters:
-//   - fnCalls: a slice of rpc.FunctionCall containing the function calls.
+//   - fnCalls: a slice of types.FunctionCall containing the function calls.
 //
 // Returns:
 //   - a slice of *felt.Felt representing the generated calldata.
@@ -218,7 +219,7 @@ func FmtCallDataCairo0(callArray []rpc.FunctionCall) []*felt.Felt {
 // https://github.com/project3fusion/StarkSharp/blob/main/StarkSharp/StarkSharp.Rpc/Modules/Transactions/Hash/TransactionHash.cs#L22
 //
 //nolint:lll // The link would be unclickable if we break the line.
-func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
+func FmtCallDataCairo2(callArray []types.FunctionCall) []*felt.Felt {
 	result := make([]*felt.Felt, 0, 10) //nolint:mnd // Randomly chosen
 
 	result = append(result, new(felt.Felt).SetUint64(uint64(len(callArray))))
@@ -235,17 +236,17 @@ func FmtCallDataCairo2(callArray []rpc.FunctionCall) []*felt.Felt {
 	return result
 }
 
-func makeResourceBoundsMapWithZeroValues() *rpc.ResourceBoundsMapping {
-	return &rpc.ResourceBoundsMapping{
-		L1Gas: rpc.ResourceBounds{
+func makeResourceBoundsMapWithZeroValues() *types.ResourceBoundsMapping {
+	return &types.ResourceBoundsMapping{
+		L1Gas: types.ResourceBounds{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
-		L1DataGas: rpc.ResourceBounds{
+		L1DataGas: types.ResourceBounds{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
-		L2Gas: rpc.ResourceBounds{
+		L2Gas: types.ResourceBounds{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
