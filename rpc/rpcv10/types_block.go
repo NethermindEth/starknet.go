@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 var ErrInvalidBlockID = errors.New("invalid blockid")

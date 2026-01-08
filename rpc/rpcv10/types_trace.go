@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Flags that indicate how to simulate a given transaction. By default, the

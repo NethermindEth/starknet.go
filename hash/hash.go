@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 var (

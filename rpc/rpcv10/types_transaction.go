@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type BlockTransaction struct {

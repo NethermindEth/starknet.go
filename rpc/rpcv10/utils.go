@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // IsCompatible compares the version of the Starknet JSON-RPC Specification

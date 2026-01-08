@@ -11,7 +11,7 @@ import (
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/types"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 const (
@@ -282,7 +282,7 @@ type FeeLimits struct {
 // Returns:
 //   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
 func FeeEstToResBoundsMap(
-	feeEstimation types.FeeEstimation,
+	feeEstimation rpc.FeeEstimation,
 	multiplier float64,
 ) *types.ResourceBoundsMapping {
 	bounds := CustomFeeEstToResBoundsMap(feeEstimation, multiplier, &starknetLimits)
