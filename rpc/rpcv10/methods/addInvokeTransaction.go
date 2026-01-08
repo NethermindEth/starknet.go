@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // AddInvokeTransaction adds an invoke transaction to the provider.
@@ -21,7 +22,7 @@ import (
 func AddInvokeTransaction(
 	ctx context.Context,
 	c callers.Caller,
-	invokeTxn *rpcv10.BroadcastInvokeTxnV3,
+	invokeTxn *types.BroadcastInvokeTxnV3,
 ) (rpcv10.AddInvokeTransactionResponse, error) {
 	var output rpcv10.AddInvokeTransactionResponse
 	if err := internal.Do(ctx, c, "starknet_addInvokeTransaction", &output, invokeTxn); err != nil {

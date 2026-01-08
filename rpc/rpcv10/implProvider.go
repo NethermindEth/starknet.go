@@ -6,25 +6,26 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 func (provider *Provider) AddInvokeTransaction(
 	ctx context.Context,
-	invokeTxn *BroadcastInvokeTxnV3,
+	invokeTxn *types.BroadcastInvokeTxnV3,
 ) (AddInvokeTransactionResponse, error) {
 	return AddInvokeTransactionResponse{}, nil
 }
 
 func (provider *Provider) AddDeclareTransaction(
 	ctx context.Context,
-	declareTransaction *BroadcastDeclareTxnV3,
+	declareTransaction *types.BroadcastDeclareTxnV3,
 ) (AddDeclareTransactionResponse, error) {
 	return AddDeclareTransactionResponse{}, nil
 }
 
 func (provider *Provider) AddDeployAccountTransaction(
 	ctx context.Context,
-	deployAccountTransaction *BroadcastDeployAccountTxnV3,
+	deployAccountTransaction *types.BroadcastDeployAccountTxnV3,
 ) (AddDeployAccountTransactionResponse, error) {
 	return AddDeployAccountTransactionResponse{}, nil
 }
@@ -120,7 +121,7 @@ func (provider *Provider) CompiledCasm(
 
 func (provider *Provider) EstimateFee(
 	ctx context.Context,
-	requests []BroadcastTxn,
+	requests []types.BroadcastTxn,
 	simulationFlags []SimulationFlag,
 	blockID BlockID,
 ) ([]FeeEstimation, error) {
@@ -157,7 +158,7 @@ func (provider *Provider) Nonce(
 func (provider *Provider) SimulateTransactions(
 	ctx context.Context,
 	blockID BlockID,
-	txns []BroadcastTxn,
+	txns []types.BroadcastTxn,
 	simulationFlags []SimulationFlag,
 ) ([]SimulatedTransaction, error) {
 	return nil, nil

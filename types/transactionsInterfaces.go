@@ -1,10 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-
 	"github.com/NethermindEth/juno/core/felt"
 )
 
@@ -28,77 +24,6 @@ var (
 	_ Transaction = DeployAccountTxnV3{}
 	_ Transaction = L1HandlerTxn{}
 )
-
-// unmarshalTxn unmarshals a given txn as a byte slice and returns a concrete
-// transaction type wrapped in the Transaction interface.
-//
-// Parameters:
-//   - data: The transaction to be unmarshaled
-//
-// Returns:
-//   - Transaction: a concrete transaction type wrapped in the Transaction interface
-//   - error: an error if the unmarshaling process fails
-//
-//nolint:gocyclo // Inevitable due to many switch cases
-func unmarshalTxn(data []byte) (Transaction, error) {
-	var txnAsMap map[string]interface{}
-	if err := json.Unmarshal(data, &txnAsMap); err != nil {
-		return nil, err
-	}
-
-	switch TransactionType(txnAsMap["type"].(string)) {
-	case TransactionTypeDeclare:
-		switch TransactionVersion(txnAsMap["version"].(string)) {
-		case TransactionV0:
-			return unmarshalTxnToType[DeclareTxnV0](data)
-		case TransactionV1:
-			return unmarshalTxnToType[DeclareTxnV1](data)
-		case TransactionV2:
-			return unmarshalTxnToType[DeclareTxnV2](data)
-		case TransactionV3:
-			return unmarshalTxnToType[DeclareTxnV3](data)
-		default:
-			return nil, errors.New(
-				"internal error with Declare transaction version and unmarshalTxn()",
-			)
-		}
-	case TransactionTypeDeploy:
-		return unmarshalTxnToType[DeployTxn](data)
-	case TransactionTypeDeployAccount:
-		switch TransactionVersion(txnAsMap["version"].(string)) {
-		case TransactionV1:
-			return unmarshalTxnToType[DeployAccountTxnV1](data)
-		case TransactionV3:
-			return unmarshalTxnToType[DeployAccountTxnV3](data)
-		}
-	case TransactionTypeInvoke:
-		switch TransactionVersion(txnAsMap["version"].(string)) {
-		case TransactionV0:
-			return unmarshalTxnToType[InvokeTxnV0](data)
-		case TransactionV1:
-			return unmarshalTxnToType[InvokeTxnV1](data)
-		case TransactionV3:
-			return unmarshalTxnToType[InvokeTxnV3](data)
-		}
-	case TransactionTypeL1Handler:
-		return unmarshalTxnToType[L1HandlerTxn](data)
-	}
-
-	return nil, fmt.Errorf("unknown transaction type: %v", txnAsMap["type"])
-}
-
-// unmarshalTxnToType is a generic function that takes in a byte slice 'data',
-// unmarshals it to a concrete transaction of type T, and returns the concrete
-// transaction wrapped in the Transaction interface.
-func unmarshalTxnToType[T Transaction](data []byte) (T, error) {
-	var resp T
-
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return resp, err
-	}
-
-	return resp, nil
-}
 
 // Invoke transactions
 func (tx InvokeTxnV0) GetType() TransactionType {

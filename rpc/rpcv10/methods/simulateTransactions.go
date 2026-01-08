@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // SimulateTransactions simulates transactions on the blockchain.
@@ -35,7 +36,7 @@ func SimulateTransactions(
 	ctx context.Context,
 	c callers.Caller,
 	blockID rpcv10.BlockID,
-	txns []rpcv10.BroadcastTxn,
+	txns []types.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,
 ) ([]rpcv10.SimulatedTransaction, error) {
 	var output []rpcv10.SimulatedTransaction

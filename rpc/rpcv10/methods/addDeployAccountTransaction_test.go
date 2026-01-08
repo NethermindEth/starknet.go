@@ -8,6 +8,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -19,7 +20,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 
 	type testSetType struct {
 		Description   string
-		DeployTxn     *BroadcastDeployAccountTxnV3
+		DeployTxn     *types.BroadcastDeployAccountTxnV3
 		ExpectedError *RPCError
 
 		// there are multiple errors that could be returned by the function, and
@@ -29,7 +30,7 @@ func TestAddDeployAccountTransaction(t *testing.T) {
 		ErrorIndex int
 	}
 
-	deployTxn := internalUtils.TestUnmarshalJSONFileToType[*BroadcastDeployAccountTxnV3](
+	deployTxn := internalUtils.TestUnmarshalJSONFileToType[*types.BroadcastDeployAccountTxnV3](
 		t,
 		"./testData/addTxn/sepoliaDeployAccount.json",
 		"result",

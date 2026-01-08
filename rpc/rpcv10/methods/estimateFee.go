@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 // Estimates the resources required by a given sequence of transactions when applied
@@ -29,7 +30,7 @@ import (
 func EstimateFee(
 	ctx context.Context,
 	c callers.Caller,
-	requests []rpcv10.BroadcastTxn,
+	requests []types.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,
 	blockID rpcv10.BlockID,
 ) ([]rpcv10.FeeEstimation, error) {

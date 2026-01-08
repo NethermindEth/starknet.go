@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 var ErrInvalidBlockID = errors.New("invalid blockid")
@@ -37,7 +38,7 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction Transaction        `json:"transaction"`
+	Transaction types.Transaction  `json:"transaction"`
 	Receipt     TransactionReceipt `json:"receipt"`
 }
 
@@ -60,6 +61,77 @@ func (twr *TransactionWithReceipt) UnmarshalJSON(data []byte) error {
 	twr.Receipt = temp.Receipt
 
 	return nil
+}
+
+// unmarshalTxnToType is a generic function that takes in a byte slice 'data',
+// unmarshals it to a concrete transaction of type T, and returns the concrete
+// transaction wrapped in the Transaction interface.
+func unmarshalTxnToType[T types.Transaction](data []byte) (T, error) {
+	var resp T
+
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+// unmarshalTxn unmarshals a given txn as a byte slice and returns a concrete
+// transaction type wrapped in the Transaction interface.
+//
+// Parameters:
+//   - data: The transaction to be unmarshaled
+//
+// Returns:
+//   - Transaction: a concrete transaction type wrapped in the Transaction interface
+//   - error: an error if the unmarshaling process fails
+//
+//nolint:gocyclo // Inevitable due to many switch cases
+func unmarshalTxn(data []byte) (types.Transaction, error) {
+	var txnAsMap map[string]interface{}
+	if err := json.Unmarshal(data, &txnAsMap); err != nil {
+		return nil, err
+	}
+
+	switch types.TransactionType(txnAsMap["type"].(string)) {
+	case types.TransactionTypeDeclare:
+		switch types.TransactionVersion(txnAsMap["version"].(string)) {
+		case types.TransactionV0:
+			return unmarshalTxnToType[types.DeclareTxnV0](data)
+		case types.TransactionV1:
+			return unmarshalTxnToType[types.DeclareTxnV1](data)
+		case types.TransactionV2:
+			return unmarshalTxnToType[types.DeclareTxnV2](data)
+		case types.TransactionV3:
+			return unmarshalTxnToType[types.DeclareTxnV3](data)
+		default:
+			return nil, errors.New(
+				"internal error with Declare transaction version and unmarshalTxn()",
+			)
+		}
+	case types.TransactionTypeDeploy:
+		return unmarshalTxnToType[types.DeployTxn](data)
+	case types.TransactionTypeDeployAccount:
+		switch types.TransactionVersion(txnAsMap["version"].(string)) {
+		case types.TransactionV1:
+			return unmarshalTxnToType[types.DeployAccountTxnV1](data)
+		case types.TransactionV3:
+			return unmarshalTxnToType[types.DeployAccountTxnV3](data)
+		}
+	case types.TransactionTypeInvoke:
+		switch types.TransactionVersion(txnAsMap["version"].(string)) {
+		case types.TransactionV0:
+			return unmarshalTxnToType[types.InvokeTxnV0](data)
+		case types.TransactionV1:
+			return unmarshalTxnToType[types.InvokeTxnV1](data)
+		case types.TransactionV3:
+			return unmarshalTxnToType[types.InvokeTxnV3](data)
+		}
+	case types.TransactionTypeL1Handler:
+		return unmarshalTxnToType[types.L1HandlerTxn](data)
+	}
+
+	return nil, fmt.Errorf("unknown transaction type: %v", txnAsMap["type"])
 }
 
 // The dynamic block being constructed by the sequencer. Note that this object

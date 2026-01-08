@@ -8,6 +8,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -19,7 +20,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 
 	type testSetType struct {
 		Description   string
-		InvokeTxn     *BroadcastInvokeTxnV3
+		InvokeTxn     *types.BroadcastInvokeTxnV3
 		ExpectedError *RPCError
 
 		// there are multiple errors that could be returned by the function, and
@@ -29,7 +30,7 @@ func TestAddInvokeTransaction(t *testing.T) {
 		ErrorIndex int
 	}
 
-	temp := internalUtils.TestUnmarshalJSONFileToType[[]*BroadcastInvokeTxnV3](
+	temp := internalUtils.TestUnmarshalJSONFileToType[[]*types.BroadcastInvokeTxnV3](
 		t,
 		"./testData/addTxn/sepoliaInvoke.json",
 		"params",

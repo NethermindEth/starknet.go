@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ func TestU128_ToBigInt(t *testing.T) {
 
 	testCases := []struct {
 		name    string // description of this test case
-		u128    rpcv10.U128
+		u128    types.U128
 		want    *big.Int
 		wantErr bool
 	}{
@@ -68,7 +68,7 @@ func TestU128_ToUint64(t *testing.T) {
 
 	testCases := []struct {
 		name    string // description of this test case
-		u64     rpcv10.U64
+		u64     types.U64
 		want    uint64
 		wantErr bool
 	}{

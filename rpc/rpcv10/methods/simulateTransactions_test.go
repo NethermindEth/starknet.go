@@ -8,6 +8,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -19,9 +20,9 @@ func TestSimulateTransaction(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
-		BlockID         BlockID          `json:"block_id"`
-		Txns            []BroadcastTxn   `json:"transactions"`
-		SimulationFlags []SimulationFlag `json:"simulation_flags"`
+		BlockID         BlockID              `json:"block_id"`
+		Txns            []types.BroadcastTxn `json:"transactions"`
+		SimulationFlags []SimulationFlag     `json:"simulation_flags"`
 	}
 	input := internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
 		t, "./testData/trace/sepoliaSimulateInvokeTx.json", "params")
@@ -29,7 +30,7 @@ func TestSimulateTransaction(t *testing.T) {
 	type testSetType struct {
 		Description     string
 		BlockID         BlockID
-		Txns            []BroadcastTxn
+		Txns            []types.BroadcastTxn
 		SimulationFlags []SimulationFlag
 		ExpectedError   *RPCError
 	}

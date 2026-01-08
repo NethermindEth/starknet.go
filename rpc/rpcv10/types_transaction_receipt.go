@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 type MsgToL1 struct {
@@ -128,14 +129,14 @@ func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	Hash               *felt.Felt         `json:"transaction_hash"`
-	Type               TransactionType    `json:"type"`
-	ActualFee          FeePayment         `json:"actual_fee"`
-	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
-	MessagesSent       []MsgToL1          `json:"messages_sent"`
-	Events             []Event            `json:"events"`
-	ExecutionResources ExecutionResources `json:"execution_resources"`
-	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+	Hash               *felt.Felt            `json:"transaction_hash"`
+	Type               types.TransactionType `json:"type"`
+	ActualFee          FeePayment            `json:"actual_fee"`
+	FinalityStatus     TxnFinalityStatus     `json:"finality_status"`
+	MessagesSent       []MsgToL1             `json:"messages_sent"`
+	Events             []Event               `json:"events"`
+	ExecutionResources ExecutionResources    `json:"execution_resources"`
+	ExecutionStatus    TxnExecutionStatus    `json:"execution_status"`
 	// Only present in case of a Deploy or DeployAccount transaction receipt
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 	// Only appears if the transaction is a L1Handler transaction

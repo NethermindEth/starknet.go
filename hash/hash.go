@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 var (
@@ -389,7 +389,7 @@ func hashCasmEntryPoints(
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainID *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV0(txn *types.InvokeTxnV0, chainID *felt.Felt) (*felt.Felt, error) {
 	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
 	if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil ||
@@ -424,7 +424,7 @@ func TransactionHashInvokeV0(txn *rpc.InvokeTxnV0, chainID *felt.Felt) (*felt.Fe
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV1(txn *types.InvokeTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
 	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
 	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil ||
@@ -459,7 +459,7 @@ func TransactionHashInvokeV1(txn *rpc.InvokeTxnV1, chainID *felt.Felt) (*felt.Fe
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV3(txn *types.InvokeTxnV3, chainID *felt.Felt) (*felt.Felt, error) {
 	//nolint:lll // The links would be unclickable if we break the line.
 	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
@@ -511,7 +511,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Fe
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
+func TransactionHashDeclareV1(txn *types.DeclareTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
 	//nolint:lll // The link would be unclickable if we break the line.
 	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2
 	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil ||
@@ -549,7 +549,7 @@ func TransactionHashDeclareV1(txn *rpc.DeclareTxnV1, chainID *felt.Felt) (*felt.
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func TransactionHashDeclareV2(
-	txn *rpc.DeclareTxnV2,
+	txn *types.DeclareTxnV2,
 	chainID *felt.Felt,
 ) (*felt.Felt, error) {
 	//nolint:lll // The link would be unclickable if we break the line.
@@ -591,7 +591,7 @@ func TransactionHashDeclareV2(
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func TransactionHashDeclareV3(
-	txn *rpc.DeclareTxnV3,
+	txn *types.DeclareTxnV3,
 	chainID *felt.Felt,
 ) (*felt.Felt, error) {
 	//nolint:lll // The links would be unclickable if we break the line.
@@ -650,7 +650,7 @@ func TransactionHashDeclareV3(
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func TransactionHashBroadcastDeclareV3(
-	txn *rpc.BroadcastDeclareTxnV3,
+	txn *types.BroadcastDeclareTxnV3,
 	chainID *felt.Felt,
 ) (*felt.Felt, error) {
 	//nolint:lll // The links would be unclickable if we break the line.
@@ -710,7 +710,7 @@ func TransactionHashBroadcastDeclareV3(
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func TransactionHashDeployAccountV1(
-	txn *rpc.DeployAccountTxnV1,
+	txn *types.DeployAccountTxnV1,
 	contractAddress, chainID *felt.Felt,
 ) (*felt.Felt, error) {
 	//nolint:lll // The link would be unclickable if we break the line.
@@ -748,7 +748,7 @@ func TransactionHashDeployAccountV1(
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func TransactionHashDeployAccountV3(
-	txn *rpc.DeployAccountTxnV3,
+	txn *types.DeployAccountTxnV3,
 	contractAddress, chainID *felt.Felt,
 ) (*felt.Felt, error) {
 	//nolint:lll // The link would be unclickable if we break the line.
@@ -792,20 +792,20 @@ func TransactionHashDeployAccountV3(
 
 func TipAndResourcesHash(
 	tip uint64,
-	resourceBounds *rpc.ResourceBoundsMapping,
+	resourceBounds *types.ResourceBoundsMapping,
 ) (*felt.Felt, error) {
 	if resourceBounds == nil {
 		return nil, errors.New("resource bounds are nil")
 	}
-	l1Bytes, err := resourceBounds.L1Gas.Bytes(rpc.ResourceL1Gas)
+	l1Bytes, err := resourceBounds.L1Gas.Bytes(types.ResourceL1Gas)
 	if err != nil {
 		return nil, err
 	}
-	l2Bytes, err := resourceBounds.L2Gas.Bytes(rpc.ResourceL2Gas)
+	l2Bytes, err := resourceBounds.L2Gas.Bytes(types.ResourceL2Gas)
 	if err != nil {
 		return nil, err
 	}
-	l1DataGasBytes, err := resourceBounds.L1DataGas.Bytes(rpc.ResourceL1DataGas)
+	l1DataGasBytes, err := resourceBounds.L1DataGas.Bytes(types.ResourceL1DataGas)
 	if err != nil {
 		return nil, err
 	}
@@ -821,7 +821,7 @@ func TipAndResourcesHash(
 	), nil
 }
 
-func DataAvailabilityModeConc(feeDAMode, nonceDAMode rpc.DataAvailabilityMode) (uint64, error) {
+func DataAvailabilityModeConc(feeDAMode, nonceDAMode types.DataAvailabilityMode) (uint64, error) {
 	const dataAvailabilityModeBits = 32
 	fee64, err := feeDAMode.UInt64()
 	if err != nil {

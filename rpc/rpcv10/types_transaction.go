@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 type BlockTransaction struct {
 	Hash *felt.Felt `json:"transaction_hash"`
-	Transaction
+	types.Transaction
 }
 
 // SubPendingTxnsInput is the optional input of the

@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 type ResultPageRequest struct {
@@ -252,7 +253,7 @@ type InvokeFunctionCall struct {
 type TxDetails struct {
 	Nonce   *felt.Felt
 	MaxFee  *felt.Felt
-	Version TransactionVersion
+	Version types.TransactionVersion
 }
 
 // Fee estimation common fields

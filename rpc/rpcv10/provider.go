@@ -13,6 +13,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/types"
 )
 
 var (
@@ -100,15 +101,15 @@ func NewWebsocketProvider(
 type RPCProvider interface {
 	AddInvokeTransaction(
 		ctx context.Context,
-		invokeTxn *BroadcastInvokeTxnV3,
+		invokeTxn *types.BroadcastInvokeTxnV3,
 	) (AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(
 		ctx context.Context,
-		declareTransaction *BroadcastDeclareTxnV3,
+		declareTransaction *types.BroadcastDeclareTxnV3,
 	) (AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(
 		ctx context.Context,
-		deployAccountTransaction *BroadcastDeployAccountTxnV3,
+		deployAccountTransaction *types.BroadcastDeployAccountTxnV3,
 	) (AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
@@ -128,7 +129,7 @@ type RPCProvider interface {
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
 	EstimateFee(
 		ctx context.Context,
-		requests []BroadcastTxn,
+		requests []types.BroadcastTxn,
 		simulationFlags []SimulationFlag,
 		blockID BlockID,
 	) ([]FeeEstimation, error)
@@ -143,7 +144,7 @@ type RPCProvider interface {
 	SimulateTransactions(
 		ctx context.Context,
 		blockID BlockID,
-		txns []BroadcastTxn,
+		txns []types.BroadcastTxn,
 		simulationFlags []SimulationFlag,
 	) ([]SimulatedTransaction, error)
 	SpecVersion(ctx context.Context) (string, error)

@@ -9,6 +9,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -22,20 +23,20 @@ func TestEstimateFee(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		txs           []BroadcastTxn
+		txs           []types.BroadcastTxn
 		simFlags      []SimulationFlag
 		blockID       BlockID
 		expectedError *RPCError
 	}
 
-	sepoliaInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+	sepoliaInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[types.BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json",
 	)
 	invalidSepoliaInvokeV3 := sepoliaInvokeV3
 	invalidSepoliaInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}
 
-	integrationInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
+	integrationInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[types.BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
 	)
@@ -46,7 +47,7 @@ func TestEstimateFee(t *testing.T) {
 		tests.MockEnv: {
 			{
 				description: "without flag",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
 				simFlags: []SimulationFlag{},
@@ -54,7 +55,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "with flag",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
 				simFlags: []SimulationFlag{SkipValidate},
@@ -62,7 +63,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "invalid transaction",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
 				blockID:       WithBlockNumber(100000),
@@ -70,7 +71,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "invalid block",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
 				blockID:       WithBlockHash(internalUtils.DeadBeef),
@@ -80,7 +81,7 @@ func TestEstimateFee(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				description: "normal call - without flag",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
@@ -89,7 +90,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "normal call - with skip validate flag",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SkipValidate},
@@ -98,7 +99,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "invalid transaction",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
 				blockID:       WithBlockNumber(100000),
@@ -106,7 +107,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "invalid block",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
 				blockID:       WithBlockHash(internalUtils.DeadBeef),
@@ -118,7 +119,7 @@ func TestEstimateFee(t *testing.T) {
 		tests.IntegrationEnv: {
 			{
 				description: "without flag",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					integrationInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
@@ -127,7 +128,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "with flag",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					integrationInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SkipValidate},
@@ -136,7 +137,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "invalid transaction",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					invalidIntegrationInvokeV3,
 				},
 				blockID:       WithBlockNumber(100000),
@@ -144,7 +145,7 @@ func TestEstimateFee(t *testing.T) {
 			},
 			{
 				description: "invalid block",
-				txs: []BroadcastTxn{
+				txs: []types.BroadcastTxn{
 					integrationInvokeV3,
 				},
 				blockID:       WithBlockHash(internalUtils.DeadBeef),
@@ -167,7 +168,7 @@ func TestEstimateFee(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						txs := args[0].([]BroadcastTxn)
+						txs := args[0].([]types.BroadcastTxn)
 						blockID := args[2].(BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
@@ -177,7 +178,7 @@ func TestEstimateFee(t *testing.T) {
 							}
 						}
 
-						if txs[0].(BroadcastInvokeTxnV3).Calldata[0] == internalUtils.DeadBeef {
+						if txs[0].(types.BroadcastInvokeTxnV3).Calldata[0] == internalUtils.DeadBeef {
 							return RPCError{
 								Code:    41,
 								Message: "Transaction execution error",
