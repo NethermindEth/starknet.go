@@ -95,7 +95,7 @@ func main() {
 	result, err := provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{invokeTx},
-		[]rpc.SimulationFlag{rpc.SkipValidate},
+		[]rpc.EstimateFeeFlag{rpc.EstimateFeeSkipValidate},
 		rpc.WithBlockTag("latest"),
 	)
 	if err != nil {

@@ -166,31 +166,24 @@ func TestTxnOptions(t *testing.T) {
 		testcases := []struct {
 			name             string
 			opts             *TxnOptions
-			expectedSimFlags []rpc.SimulationFlag
+			expectedSimFlags []rpc.EstimateFeeFlag
 		}{
 			{
 				name:             "Default value (nil)",
 				opts:             nil,
-				expectedSimFlags: []rpc.SimulationFlag{},
+				expectedSimFlags: []rpc.EstimateFeeFlag{},
 			},
 			{
 				name:             "Empty simulation flag",
 				opts:             &TxnOptions{SimulationFlag: ""},
-				expectedSimFlags: []rpc.SimulationFlag{},
+				expectedSimFlags: []rpc.EstimateFeeFlag{},
 			},
 			{
 				name: "SKIP_VALIDATE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SkipValidate,
+					SimulationFlag: rpc.EstimateFeeSkipValidate,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipValidate},
-			},
-			{
-				name: "SKIP_FEE_CHARGE flag",
-				opts: &TxnOptions{
-					SimulationFlag: rpc.SkipFeeCharge,
-				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipFeeCharge},
+				expectedSimFlags: []rpc.EstimateFeeFlag{rpc.EstimateFeeSkipValidate},
 			},
 		}
 

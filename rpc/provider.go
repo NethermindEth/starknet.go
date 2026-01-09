@@ -147,7 +147,7 @@ type RPCProvider interface {
 	EstimateFee(
 		ctx context.Context,
 		requests []BroadcastTxn,
-		simulationFlags []SimulationFlag,
+		simulationFlags []EstimateFeeFlag,
 		blockID BlockID,
 	) ([]FeeEstimation, error)
 	EstimateMessageFee(

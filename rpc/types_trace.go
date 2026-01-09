@@ -14,11 +14,20 @@ import (
 // in the account, and fee will be deducted from the balance before the
 // simulation of the next transaction). To skip the fee charge, use
 // the SKIP_FEE_CHARGE flag.
+// Used by SimulateTransactions method.
 type SimulationFlag string
 
 const (
 	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
 	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
+)
+
+// EstimateFeeFlag is used by EstimateFee method.
+// Only SKIP_VALIDATE is allowed according to the spec.
+type EstimateFeeFlag string
+
+const (
+	EstimateFeeSkipValidate EstimateFeeFlag = "SKIP_VALIDATE"
 )
 
 type SimulatedTransaction struct {
