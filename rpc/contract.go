@@ -178,7 +178,8 @@ func (provider *Provider) Nonce(
 //   - ctx: The context of the function call
 //   - requests: A sequence of transactions to estimate, running each transaction on the
 //     state resulting from applying all the previous ones
-//   - simulationFlags: Describes what parts of the transaction should be executed
+//   - simulationFlags: Describes what parts of the transaction should be executed.
+//     Only SKIP_VALIDATE is allowed for EstimateFee.
 //   - blockID: The hash of the requested block, or number (height) of the requested block,
 //     or a block tag, for the block referencing the state or call the transaction on.
 //
@@ -189,7 +190,7 @@ func (provider *Provider) Nonce(
 func (provider *Provider) EstimateFee(
 	ctx context.Context,
 	requests []BroadcastTxn,
-	simulationFlags []SimulationFlag,
+	simulationFlags []EstimateFeeFlag,
 	blockID BlockID,
 ) ([]FeeEstimation, error) {
 	var raw []FeeEstimation
