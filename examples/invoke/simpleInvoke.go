@@ -7,7 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -23,7 +23,7 @@ func simpleInvoke(
 		panic(err)
 	}
 	// Building the functionCall struct, where :
-	FnCall := rpc.InvokeFunctionCall{
+	FnCall := types.InvokeFunctionCall{
 		ContractAddress: contractAddress, // contractAddress is the contract that we want to call
 		FunctionName:    contractMethod,  // this is the function that we want to call
 		CallData:        u256Amount,      // the calldata necessary to call the function. Here we are passing the
@@ -36,7 +36,7 @@ func simpleInvoke(
 	// To do this in Starknet.go, just group all the 'InvokeFunctionCall' in the same slice and pass it to BuildInvokeTxn.
 	resp, err := accnt.BuildAndSendInvokeTxn(
 		context.Background(),
-		[]rpc.InvokeFunctionCall{FnCall},
+		[]types.InvokeFunctionCall{FnCall},
 		nil,
 	)
 	if err != nil {

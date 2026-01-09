@@ -11,6 +11,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/utils"
 	pm "github.com/NethermindEth/starknet.go/paymaster"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 var (
@@ -42,7 +43,7 @@ func main() {
 	rpcProviderURL := setup.GetRPCProviderURL()
 
 	// Connect to a RPC provider to instantiate the account
-	client, err := rpc.NewProvider(context.Background(), rpcProviderURL)
+	client, err := rpc.NewProviderV10(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Errorf("error dialling the RPC provider: %w", err))
 	}
@@ -243,7 +244,7 @@ func PrettyPrint(data interface{}) {
 
 // Just a helper function to instantiate the account for us.
 func NewAccount(
-	client *rpc.Provider,
+	client *rpcv10.Provider,
 	accountAddress, privateKey, publicKey string,
 	accountCairoVersion account.CairoVersion,
 ) *account.Account {

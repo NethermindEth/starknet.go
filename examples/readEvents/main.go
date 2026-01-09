@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -29,7 +30,7 @@ func main() {
 	wsProviderURL := setup.GetWsProviderURL()
 
 	// Initialise connection to RPC provider
-	provider, err := rpc.NewProvider(context.Background(), rpcProviderURL)
+	provider, err := rpc.NewProviderV10(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %v", err))
 	}
@@ -70,11 +71,11 @@ func main() {
 		panic(fmt.Sprintf("failed to create felt from the provided key, error %v", err))
 	}
 
-	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
-		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(660000), // from block 660000
-			ToBlock:   rpc.WithBlockNumber(660100), // to block 660100
-			Address:   contractAddress,             // sent from this contract address
+	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
+		EventFilter: rpcv10.EventFilter{
+			FromBlock: rpcv10.WithBlockNumber(660000), // from block 660000
+			ToBlock:   rpcv10.WithBlockNumber(660100), // to block 660100
+			Address:   contractAddress,                // sent from this contract address
 			Keys: [][]*felt.Felt{
 				// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
 				// (all events that have one of these selectors as the first key)
@@ -89,7 +90,7 @@ func main() {
 				{key5}, // the fifth key must be equal to key5
 			},
 		},
-		ResultPageRequest: rpc.ResultPageRequest{
+		ResultPageRequest: rpcv10.ResultPageRequest{
 			ChunkSize: 1000,
 		},
 	}) // so this will return all events, between block 660000 and 660100, sent from the specified contract address,
@@ -114,7 +115,7 @@ func main() {
 	fmt.Printf("random event fifth key: %v\n", randomEvent.Keys[4].String())
 }
 
-func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
+func callWithChunkSizeAndContinuationToken(provider *rpcv10.Provider) {
 	fmt.Println()
 	fmt.Println(" ----- 1. call with ChunkSize and ContinuationToken -----")
 
@@ -124,8 +125,8 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 	// that can be used to retrieve the next chunk.
 	//
 	// This will return 1000 events starting from the block 0.
-	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
-		ResultPageRequest: rpc.ResultPageRequest{
+	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
+		ResultPageRequest: rpcv10.ResultPageRequest{
 			ChunkSize: 1000,
 		},
 	})
@@ -143,8 +144,8 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 	)
 
 	// Now we will get the second chunk
-	secondEventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
-		ResultPageRequest: rpc.ResultPageRequest{
+	secondEventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
+		ResultPageRequest: rpcv10.ResultPageRequest{
 			ChunkSize:         1000,
 			ContinuationToken: eventChunk.ContinuationToken,
 		},
@@ -163,7 +164,7 @@ func callWithChunkSizeAndContinuationToken(provider *rpc.Provider) {
 	)
 }
 
-func callWithBlockAndAddressFilters(provider *rpc.Provider) {
+func callWithBlockAndAddressFilters(provider *rpcv10.Provider) {
 	fmt.Println()
 	fmt.Println(" ----- 2. call with Block and Address filters -----")
 	contractAddress, err := utils.HexToFelt(
@@ -181,13 +182,13 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	//   - Address: The contract address to filter events from
 	//
 	// So, we are filtering events from block 0 to block 100 and only from the provided contract address.
-	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
-		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(0),
-			ToBlock:   rpc.WithBlockNumber(100),
+	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
+		EventFilter: rpcv10.EventFilter{
+			FromBlock: rpcv10.WithBlockNumber(0),
+			ToBlock:   rpcv10.WithBlockNumber(100),
 			Address:   contractAddress,
 		},
-		ResultPageRequest: rpc.ResultPageRequest{
+		ResultPageRequest: rpcv10.ResultPageRequest{
 			ChunkSize: 1000,
 		},
 	})
@@ -206,7 +207,7 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 	)
 }
 
-func callWithKeysFilter(provider *rpc.Provider) {
+func callWithKeysFilter(provider *rpcv10.Provider) {
 	fmt.Println()
 	fmt.Println(" ----- 3. call with Keys filter -----")
 	fmt.Println(" --- step 1: filter all events with the 'Transfer' name ---")
@@ -227,17 +228,17 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	//
 	// So here we are filtering all 'Transfer' events (to be more precise, all events with the 'Transfer' selector as the first key)
 	// from all addresses and contracts, from block 600000 to block 600100.
-	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
-		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(600000),
-			ToBlock:   rpc.WithBlockNumber(600100),
+	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
+		EventFilter: rpcv10.EventFilter{
+			FromBlock: rpcv10.WithBlockNumber(600000),
+			ToBlock:   rpcv10.WithBlockNumber(600100),
 			Keys: [][]*felt.Felt{
 				{
 					utils.GetSelectorFromNameFelt("Transfer"),
 				},
 			},
 		},
-		ResultPageRequest: rpc.ResultPageRequest{
+		ResultPageRequest: rpcv10.ResultPageRequest{
 			ChunkSize: 1000,
 		},
 	})
@@ -262,10 +263,10 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	fmt.Println(" --- step 2: filter multiple events types ---")
 
 	// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
-	eventChunk, err = provider.Events(context.Background(), rpc.EventsInput{
-		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(600000),
-			ToBlock:   rpc.WithBlockNumber(600100),
+	eventChunk, err = provider.Events(context.Background(), rpcv10.EventsInput{
+		EventFilter: rpcv10.EventFilter{
+			FromBlock: rpcv10.WithBlockNumber(600000),
+			ToBlock:   rpcv10.WithBlockNumber(600100),
 			Keys: [][]*felt.Felt{
 				// Notice that we are passing all selectors together in the same array, meaning that
 				// the node will return events that match any of these values.
@@ -278,7 +279,7 @@ func callWithKeysFilter(provider *rpc.Provider) {
 				},
 			},
 		},
-		ResultPageRequest: rpc.ResultPageRequest{
+		ResultPageRequest: rpcv10.ResultPageRequest{
 			ChunkSize: 1000,
 		},
 	})
@@ -319,7 +320,7 @@ func callWithKeysFilter(provider *rpc.Provider) {
 	)
 }
 
-func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
+func filterWithWebsocket(provider *rpcv10.Provider, websocketURL string) {
 	if websocketURL == "" {
 		fmt.Println("\nNo websocket URL provided. Skipping websocket filter...")
 
@@ -329,7 +330,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
 	fmt.Println()
 	fmt.Println(" ----- 4. filter with websocket -----")
 
-	wsProvider, err := rpc.NewWebsocketProvider(context.Background(), websocketURL)
+	wsProvider, err := rpcv10.NewWebsocketProvider(context.Background(), websocketURL)
 	if err != nil {
 		panic(fmt.Sprintf("error dialling the RPC provider: %v", err))
 	}
@@ -347,18 +348,18 @@ func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
 	}
 
 	// Create a channel to receive events
-	eventsChan := make(chan *rpc.EmittedEventWithFinalityStatus)
+	eventsChan := make(chan *rpcv10.EmittedEventWithFinalityStatus)
 
 	// Subscribe to events
 	sub, err := wsProvider.SubscribeEvents(
 		context.Background(),
 		eventsChan,
-		&rpc.EventSubscriptionInput{
+		&rpcv10.EventSubscriptionInput{
 			// Only events from this contract address
 			FromAddress: contractAddress,
 			// Subscribe to events from the latest block minus 10 (it'll return
 			// events from the last 10 blocks and progressively update as new blocks are added)
-			SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
+			SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
 			Keys: [][]*felt.Felt{
 				// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
 				// So this will return all events that have the 'Transfer' selector as the first key.
@@ -397,7 +398,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
 }
 
 // simple function to find an event by name in a chunk of events
-func findEventInChunk(eventChunk *rpc.EventChunk, eventName string) rpc.EmittedEvent {
+func findEventInChunk(eventChunk *rpcv10.EventChunk, eventName string) rpcv10.EmittedEvent {
 	selector := utils.GetSelectorFromNameFelt(eventName)
 
 	for _, event := range eventChunk.Events {
@@ -406,5 +407,5 @@ func findEventInChunk(eventChunk *rpc.EventChunk, eventName string) rpc.EmittedE
 		}
 	}
 
-	return rpc.EmittedEvent{}
+	return rpcv10.EmittedEvent{}
 }

@@ -8,6 +8,11 @@ import (
 )
 
 // @new
+type Provider interface {
+	*rpcv10.Provider | *client.Client // @todo replace client by rpcv09
+}
+
+// @new
 func NewProviderV10(
 	ctx context.Context,
 	url string,

@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -30,7 +31,7 @@ func verboseInvoke(
 		panic(err)
 	}
 	// Building the functionCall struct, where :
-	FnCall := rpc.FunctionCall{
+	FnCall := types.FunctionCall{
 		ContractAddress: contractAddress, // contractAddress is the contract that we want to call
 		EntryPointSelector: utils.GetSelectorFromNameFelt(
 			contractMethod,
@@ -43,8 +44,8 @@ func verboseInvoke(
 	//
 	// note: in Starknet, you can execute multiple function calls in the same transaction, even if they are from different contracts.
 	// To do this in Starknet.go, just group all the function calls in the same slice and pass it to FmtCalldata
-	// e.g. : InvokeTx.Calldata, err = accnt.FmtCalldata([]rpc.FunctionCall{funcCall, anotherFuncCall, yetAnotherFuncCallFromDifferentContract})
-	calldata, err := accnt.FmtCalldata([]rpc.FunctionCall{FnCall})
+	// e.g. : InvokeTx.Calldata, err = accnt.FmtCalldata([]types.FunctionCall{funcCall, anotherFuncCall, yetAnotherFuncCallFromDifferentContract})
+	calldata, err := accnt.FmtCalldata([]types.FunctionCall{FnCall})
 	if err != nil {
 		panic(err)
 	}
@@ -54,16 +55,16 @@ func verboseInvoke(
 		accnt.Address,
 		nonce,
 		calldata,
-		&rpc.ResourceBoundsMapping{
-			L1Gas: rpc.ResourceBounds{
+		&types.ResourceBoundsMapping{
+			L1Gas: types.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x0",
 			},
-			L1DataGas: rpc.ResourceBounds{
+			L1DataGas: types.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x0",
 			},
-			L2Gas: rpc.ResourceBounds{
+			L2Gas: types.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x0",
 			},
@@ -80,7 +81,7 @@ func verboseInvoke(
 	// Estimate the transaction fee
 	feeRes, err := accnt.Provider.EstimateFee(
 		context.Background(),
-		[]rpc.BroadcastTxn{InvokeTx},
+		[]types.BroadcastTxn{InvokeTx},
 		[]rpc.SimulationFlag{},
 		rpc.WithBlockTag("pre_confirmed"),
 	)
