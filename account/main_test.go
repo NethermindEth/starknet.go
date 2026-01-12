@@ -100,7 +100,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 //   - error: An error, if any
 func newDevnetAccount(
 	t *testing.T,
-	provider *rpc.Provider,
+	provider *rpc.RPCProvider,
 	accData devnet.TestAccount,
 	cairoVersion account.CairoVersion,
 ) *account.Account {

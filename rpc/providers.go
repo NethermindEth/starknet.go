@@ -8,7 +8,7 @@ import (
 )
 
 // @new
-type Provider interface {
+type RPCProvider interface {
 	*rpcv10.Provider | *client.Client // @todo replace client by rpcv09
 }
 

@@ -384,6 +384,6 @@ type TransactionResponse struct {
 	Hash *felt.Felt `json:"transaction_hash"`
 	// Present only for declare transactions
 	ClassHash *felt.Felt `json:"class_hash,omitempty"`
-	// Present only for deploy transactions
+	// Present only for deploy_account transactions
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 }
