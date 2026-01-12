@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type ResultPageRequest struct {
@@ -227,13 +226,6 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 type AddDeclareTransactionOutput struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	ClassHash       *felt.Felt `json:"class_hash"`
-}
-
-// TxDetails contains details needed for computing transaction hashes
-type TxDetails struct {
-	Nonce   *felt.Felt
-	MaxFee  *felt.Felt
-	Version types.TransactionVersion
 }
 
 type TxnExecutionStatus string

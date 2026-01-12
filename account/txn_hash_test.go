@@ -18,20 +18,14 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// @changed this type was removed from the rpc package
+type txDetails struct {
+	Nonce   *felt.Felt
+	MaxFee  *felt.Felt
+	Version types.TransactionVersion
+}
+
 // TestTransactionHashInvoke tests the TransactionHashInvoke function.
-//
-// This function tests the TransactionHashInvoke method of the Account struct.
-// It generates a set of test cases and iterates over them to verify the correctness
-// of the transaction hash. Each test case consists of the expected hash, a flag
-// indicating whether the KeyStore should be set, account address, public key,
-// private key, chain ID, function call, and transaction details.
-//
-// Parameters:
-//   - t: The testing.T object for running the test
-//
-// Returns:
-//
-//	none
 func TestTransactionHashInvoke(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
@@ -46,7 +40,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 		PrivKey        *felt.Felt
 		ChainID        string
 		FnCall         types.FunctionCall
-		TxDetails      rpc.TxDetails
+		TxDetails      txDetails
 	}
 	// TODO: improve test cases to include invoke txns v0 and v3
 	testSet := map[tests.TestEnv][]testSetType{
@@ -74,7 +68,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 						"0x35c",
 					}),
 				},
-				TxDetails: rpc.TxDetails{
+				TxDetails: txDetails{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x3cf"),
 					MaxFee:  internalUtils.TestHexToFelt(t, "0x1a6f9d0dc5952"),
 					Version: types.TransactionV1,
@@ -105,7 +99,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 						"0x35c",
 					}),
 				},
-				TxDetails: rpc.TxDetails{
+				TxDetails: txDetails{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x3cf"),
 					MaxFee:  internalUtils.TestHexToFelt(t, "0x1a6f9d0dc5952"),
 					Version: types.TransactionV1,
