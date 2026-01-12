@@ -493,7 +493,7 @@ func (account *Account) WaitForTransactionReceipt(
 //   - bool: whether to use the Blake2s hash function for the compiled class hash
 //   - error: an error if any
 func shouldUseBlake2sHash(ctx context.Context, provider rpc.RPCProvider) (bool, error) {
-	block, err := provider.BlockWithTxHashes(ctx, rpc.WithBlockTag(rpc.BlockTagLatest))
+	block, err := provider.BlockWithTxHashes(ctx, types.WithBlockTag(types.BlockTagLatest))
 	if err != nil {
 		return false, fmt.Errorf("failed to get block with tx hashes: %w", err)
 	}

@@ -10,6 +10,7 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -73,9 +74,9 @@ func main() {
 
 	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
 		EventFilter: rpcv10.EventFilter{
-			FromBlock: rpcv10.WithBlockNumber(660000), // from block 660000
-			ToBlock:   rpcv10.WithBlockNumber(660100), // to block 660100
-			Address:   contractAddress,                // sent from this contract address
+			FromBlock: types.WithBlockNumber(660000), // from block 660000
+			ToBlock:   types.WithBlockNumber(660100), // to block 660100
+			Address:   contractAddress,               // sent from this contract address
 			Keys: [][]*felt.Felt{
 				// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
 				// (all events that have one of these selectors as the first key)
@@ -184,8 +185,8 @@ func callWithBlockAndAddressFilters(provider *rpcv10.Provider) {
 	// So, we are filtering events from block 0 to block 100 and only from the provided contract address.
 	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
 		EventFilter: rpcv10.EventFilter{
-			FromBlock: rpcv10.WithBlockNumber(0),
-			ToBlock:   rpcv10.WithBlockNumber(100),
+			FromBlock: types.WithBlockNumber(0),
+			ToBlock:   types.WithBlockNumber(100),
 			Address:   contractAddress,
 		},
 		ResultPageRequest: rpcv10.ResultPageRequest{
@@ -230,8 +231,8 @@ func callWithKeysFilter(provider *rpcv10.Provider) {
 	// from all addresses and contracts, from block 600000 to block 600100.
 	eventChunk, err := provider.Events(context.Background(), rpcv10.EventsInput{
 		EventFilter: rpcv10.EventFilter{
-			FromBlock: rpcv10.WithBlockNumber(600000),
-			ToBlock:   rpcv10.WithBlockNumber(600100),
+			FromBlock: types.WithBlockNumber(600000),
+			ToBlock:   types.WithBlockNumber(600100),
 			Keys: [][]*felt.Felt{
 				{
 					utils.GetSelectorFromNameFelt("Transfer"),
@@ -265,8 +266,8 @@ func callWithKeysFilter(provider *rpcv10.Provider) {
 	// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
 	eventChunk, err = provider.Events(context.Background(), rpcv10.EventsInput{
 		EventFilter: rpcv10.EventFilter{
-			FromBlock: rpcv10.WithBlockNumber(600000),
-			ToBlock:   rpcv10.WithBlockNumber(600100),
+			FromBlock: types.WithBlockNumber(600000),
+			ToBlock:   types.WithBlockNumber(600100),
 			Keys: [][]*felt.Felt{
 				// Notice that we are passing all selectors together in the same array, meaning that
 				// the node will return events that match any of these values.
@@ -359,7 +360,7 @@ func filterWithWebsocket(provider *rpcv10.Provider, websocketURL string) {
 			FromAddress: contractAddress,
 			// Subscribe to events from the latest block minus 10 (it'll return
 			// events from the last 10 blocks and progressively update as new blocks are added)
-			SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
+			SubBlockID: new(types.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
 			Keys: [][]*felt.Felt{
 				// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
 				// So this will return all events that have the 'Transfer' selector as the first key.

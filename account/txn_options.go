@@ -59,12 +59,12 @@ type TxnOptions struct {
 // BlockID returns the block ID for fee estimation based on the UseLatest flag.
 // If UseLatest is `true`, returns the latest block ID.
 // Otherwise, returns the pre_confirmed block ID.
-func (opts *TxnOptions) BlockID() rpc.BlockID {
+func (opts *TxnOptions) BlockID() types.BlockID {
 	if opts.UseLatest {
-		return rpc.WithBlockTag(rpc.BlockTagLatest)
+		return types.WithBlockTag(types.BlockTagLatest)
 	}
 
-	return rpc.WithBlockTag(rpc.BlockTagPreConfirmed)
+	return types.WithBlockTag(types.BlockTagPreConfirmed)
 }
 
 // Returns a `[]rpc.SimulationFlag` containing the SimulationFlag.

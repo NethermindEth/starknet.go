@@ -227,7 +227,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					Return(new(felt.Felt).SetUint64(1), nil).
 					Times(1)
 				mockRPCProvider.EXPECT().
-					BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+					BlockWithTxs(t.Context(), types.WithBlockTag(types.BlockTagLatest)).
 					Return(&rpc.Block{}, nil).Times(1)
 				mockRPCProvider.EXPECT().
 					EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -251,7 +251,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					// if txnOptions is nil, the code should call the BlockWithTxHashes method to get the
 					// Starknet version and decide whether to use the Blake2s hash function
 					mockRPCProvider.EXPECT().
-						BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+						BlockWithTxHashes(gomock.Any(), types.WithBlockTag(types.BlockTagLatest)).
 						Return(&rpc.BlockTxHashes{
 							BlockHeader: rpc.BlockHeader{StarknetVersion: test.starknetVersion},
 						}, nil).Times(1)
@@ -529,7 +529,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		)
 		// called when estimating the tip
 		mockRPCProvider.EXPECT().
-			BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+			BlockWithTxs(t.Context(), types.WithBlockTag(types.BlockTagLatest)).
 			Return(&rpc.Block{
 				BlockHeader: rpc.BlockHeader{},
 				Status:      rpc.BlockStatusAcceptedOnL2,
@@ -571,7 +571,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			mockRPCProvider.EXPECT().
-				BlockWithTxHashes(gomock.Any(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+				BlockWithTxHashes(gomock.Any(), types.WithBlockTag(types.BlockTagLatest)).
 				Return(&rpc.BlockTxHashes{
 					BlockHeader: rpc.BlockHeader{StarknetVersion: "0.14.1"},
 				}, nil).Times(1)

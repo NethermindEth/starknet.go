@@ -83,7 +83,7 @@ func verboseInvoke(
 		context.Background(),
 		[]types.BroadcastTxn{InvokeTx},
 		[]rpc.SimulationFlag{},
-		rpc.WithBlockTag("pre_confirmed"),
+		types.WithBlockTag(types.BlockTagPreConfirmed),
 	)
 	if err != nil {
 		panic(err)

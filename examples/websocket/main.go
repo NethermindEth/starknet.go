@@ -7,6 +7,8 @@ import (
 
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 func main() {
@@ -28,7 +30,7 @@ func main() {
 	//
 	// Note: We'll need to do this for each of the methods we want to subscribe to, always creating a channel to receive the values from
 	// the node. Check each method's description for the type required for the channel.
-	newHeadsChan := make(chan *rpc.BlockHeader)
+	newHeadsChan := make(chan *rpcv10.BlockHeader)
 
 	// We then call the desired websocket method, passing in the channel and the parameters if needed.
 	// For example, to subscribe to new block headers, we call the SubscribeNewHeads method, passing in the channel and the blockID.
@@ -36,7 +38,7 @@ func main() {
 	sub, err := wsClient.SubscribeNewHeads(
 		context.Background(),
 		newHeadsChan,
-		rpc.SubscriptionBlockID{},
+		types.SubscriptionBlockID{},
 	)
 	if err != nil {
 		panic(err)
@@ -73,7 +75,7 @@ loop1:
 	sub, err = wsClient.SubscribeNewHeads(
 		context.Background(),
 		newHeadsChan,
-		new(rpc.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10),
+		new(types.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10),
 	)
 	if err != nil {
 		panic(err)

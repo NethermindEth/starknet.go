@@ -5,6 +5,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -127,26 +128,26 @@ func TestTxnOptions(t *testing.T) {
 		testcases := []struct {
 			name            string
 			opts            *TxnOptions
-			expectedBlockID rpc.BlockID
+			expectedBlockID types.BlockID
 		}{
 			{
 				name:            "Default value (nil)",
 				opts:            nil,
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPreConfirmed),
+				expectedBlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
 				name: "latest set to true",
 				opts: &TxnOptions{
 					UseLatest: true,
 				},
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagLatest),
+				expectedBlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				name: "latest set to false",
 				opts: &TxnOptions{
 					UseLatest: false,
 				},
-				expectedBlockID: rpc.WithBlockTag(rpc.BlockTagPreConfirmed),
+				expectedBlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 		}
 

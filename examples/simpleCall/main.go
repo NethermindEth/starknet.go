@@ -59,7 +59,7 @@ func main() {
 	decimalsResp, rpcErr := client.Call(
 		context.Background(),
 		getDecimalsTx,
-		rpc.WithBlockTag("latest"),
+		types.WithBlockTag(types.BlockTagLatest),
 	)
 	if rpcErr != nil {
 		panic(rpcErr)
@@ -73,7 +73,7 @@ func main() {
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethodWithCalldata),
 		Calldata:           []*felt.Felt{accountAddressInFelt},
 	}
-	balanceResp, rpcErr := client.Call(context.Background(), tx, rpc.WithBlockTag("latest"))
+	balanceResp, rpcErr := client.Call(context.Background(), tx, types.WithBlockTag(types.BlockTagLatest))
 	if rpcErr != nil {
 		panic(rpcErr)
 	}
