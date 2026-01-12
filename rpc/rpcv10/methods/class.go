@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Class retrieves the class information from the Provider with the given hash.
@@ -23,7 +24,7 @@ import (
 func Class(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 	classHash *felt.Felt,
 ) (rpcv10.ClassOutput, error) {
 	var rawClass map[string]any

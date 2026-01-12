@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // BlockWithTxHashes retrieves the block with transaction hashes for the given block ID.
@@ -22,7 +23,7 @@ import (
 func BlockWithTxHashes(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 ) (interface{}, error) {
 	var result rpcv10.BlockTxHashes
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {

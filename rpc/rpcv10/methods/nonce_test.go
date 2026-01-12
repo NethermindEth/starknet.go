@@ -30,7 +30,7 @@ func TestNonce(t *testing.T) {
 	type testSetType struct {
 		Description     string
 		ContractAddress *felt.Felt
-		Block           BlockID
+		Block           types.BlockID
 		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{

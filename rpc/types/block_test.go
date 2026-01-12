@@ -1,12 +1,10 @@
-package rpcv10
+package types
 
 import (
-	_ "embed"
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +41,7 @@ func TestBlockID_Marshal(t *testing.T) {
 			id: BlockID{
 				Tag: "bad tag",
 			},
-			wantErr: types.ErrInvalidBlockID,
+			wantErr: ErrInvalidBlockID,
 		},
 		{
 			id: BlockID{

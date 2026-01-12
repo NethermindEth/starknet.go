@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // StateUpdate is a function that performs a state update operation
@@ -22,7 +23,7 @@ import (
 func GetStateUpdate(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 ) (*rpcv10.StateUpdateOutput, error) {
 	var state rpcv10.StateUpdateOutput
 	if err := internal.Do(ctx, c, "starknet_getStateUpdate", &state, blockID); err != nil {

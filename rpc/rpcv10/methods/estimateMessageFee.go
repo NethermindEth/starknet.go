@@ -24,7 +24,7 @@ func EstimateMessageFee(
 	ctx context.Context,
 	c callers.Caller,
 	msg rpcv10.MsgFromL1,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 ) (types.MessageFeeEstimation, error) {
 	var raw types.MessageFeeEstimation
 	if err := internal.Do(

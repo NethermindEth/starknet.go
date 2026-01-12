@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // An unsigned integer number in hex format (0x...)
@@ -26,7 +27,7 @@ var (
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the
 	// requested block, or a block tag
-	BlockID BlockID `json:"block_id"`
+	BlockID types.BlockID `json:"block_id"`
 	// Optional. A list of the class hashes for which we want to prove
 	// membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`

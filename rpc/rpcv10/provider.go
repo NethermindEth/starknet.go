@@ -192,7 +192,7 @@ type WebsocketProvider interface {
 	SubscribeNewHeads(
 		ctx context.Context,
 		headers chan<- *BlockHeader,
-		subBlockID SubscriptionBlockID,
+		subBlockID types.SubscriptionBlockID,
 	) (*client.ClientSubscription, error)
 	SubscribeNewTransactions(
 		ctx context.Context,

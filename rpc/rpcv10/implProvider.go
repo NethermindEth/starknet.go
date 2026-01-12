@@ -256,7 +256,7 @@ func (ws *WsProvider) SubscribeEvents(
 func (ws *WsProvider) SubscribeNewHeads(
 	ctx context.Context,
 	headers chan<- *BlockHeader,
-	subBlockID SubscriptionBlockID,
+	subBlockID types.SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {
 	return nil, nil
 }

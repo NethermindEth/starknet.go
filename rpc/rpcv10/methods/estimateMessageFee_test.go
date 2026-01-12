@@ -24,7 +24,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		Description string
 		MsgFromL1
-		BlockID
+		BlockID       types.BlockID
 		ExpectedError *RPCError
 	}
 

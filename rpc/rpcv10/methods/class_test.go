@@ -24,7 +24,7 @@ func TestClass(t *testing.T) {
 
 	type testSetType struct {
 		Description   string
-		BlockID       BlockID
+		BlockID       types.BlockID
 		ClassHash     *felt.Felt
 		ExpectedError error
 	}

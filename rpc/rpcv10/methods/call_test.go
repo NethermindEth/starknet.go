@@ -31,7 +31,7 @@ func TestCall(t *testing.T) {
 	type testSetType struct {
 		name                  string
 		FunctionCall          types.FunctionCall
-		BlockID               BlockID
+		BlockID               types.BlockID
 		ExpectedPatternResult *felt.Felt
 		ExpectedError         *RPCError
 	}
@@ -89,7 +89,7 @@ func TestCall(t *testing.T) {
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               WithBlockTag(BlockTagL1Accepted),
+				BlockID:               types.WithBlockTag(types.BlockTagL1Accepted),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{

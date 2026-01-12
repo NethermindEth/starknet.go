@@ -30,7 +30,7 @@ func TestClassHashAt(t *testing.T) {
 
 	type testSetType struct {
 		Description     string
-		Block           BlockID
+		Block           types.BlockID
 		ContractAddress *felt.Felt
 		ExpectedError   error
 	}

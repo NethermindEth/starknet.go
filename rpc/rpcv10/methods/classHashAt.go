@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // ClassHashAt retrieves the class hash at the given block ID and contract address.
@@ -23,7 +24,7 @@ import (
 func ClassHashAt(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var result *felt.Felt

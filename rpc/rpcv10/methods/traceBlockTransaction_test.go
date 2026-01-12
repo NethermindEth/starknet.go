@@ -49,7 +49,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 				BlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
+				BlockID: types.WithBlockTag(types.BlockTagL1Accepted),
 			},
 			{
 				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),

@@ -33,7 +33,7 @@ func TestStorageAt(t *testing.T) {
 		Description     string
 		ContractAddress *felt.Felt
 		StorageKey      string
-		Block           BlockID
+		Block           types.BlockID
 		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{

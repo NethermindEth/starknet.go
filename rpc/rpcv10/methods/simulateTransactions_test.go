@@ -20,7 +20,7 @@ func TestSimulateTransaction(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
-		BlockID         BlockID              `json:"block_id"`
+		BlockID         types.BlockID        `json:"block_id"`
 		Txns            []types.BroadcastTxn `json:"transactions"`
 		SimulationFlags []SimulationFlag     `json:"simulation_flags"`
 	}
@@ -29,7 +29,7 @@ func TestSimulateTransaction(t *testing.T) {
 
 	type testSetType struct {
 		Description     string
-		BlockID         BlockID
+		BlockID         types.BlockID
 		Txns            []types.BroadcastTxn
 		SimulationFlags []SimulationFlag
 		ExpectedError   *RPCError

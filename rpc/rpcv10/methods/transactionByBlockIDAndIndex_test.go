@@ -22,7 +22,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID       BlockID
+		BlockID       types.BlockID
 		Index         uint64
 		ExpectedError error
 	}
@@ -54,7 +54,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				Index:   0,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
+				BlockID: types.WithBlockTag(types.BlockTagL1Accepted),
 				Index:   0,
 			},
 			{

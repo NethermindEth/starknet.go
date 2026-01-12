@@ -25,7 +25,7 @@ func TestEstimateFee(t *testing.T) {
 		description   string
 		txs           []types.BroadcastTxn
 		simFlags      []SimulationFlag
-		blockID       BlockID
+		blockID       types.BlockID
 		expectedError *RPCError
 	}
 

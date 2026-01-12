@@ -99,7 +99,7 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "with block ID only",
 			input: &EventSubscriptionInput{
-				SubBlockID: SubscriptionBlockID{
+				SubBlockID: types.SubscriptionBlockID{
 					Tag: types.BlockTagLatest,
 				},
 			},
@@ -121,7 +121,7 @@ func TestSubscribeEvents(t *testing.T) {
 			input: &EventSubscriptionInput{
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
-				SubBlockID:     new(SubscriptionBlockID).types.WithBlockNumber(blockNumber - 1000),
+				SubBlockID:     new(types.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
 		},
@@ -135,14 +135,14 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "error: too many blocks back",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).types.WithBlockNumber(3_000_000),
+				SubBlockID: new(types.SubscriptionBlockID).WithBlockNumber(3_000_000),
 			},
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description: "error: block not found",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).types.WithBlockHash(internalUtils.DeadBeef),
+				SubBlockID: new(types.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			},
 			expectedError: ErrBlockNotFound,
 		},

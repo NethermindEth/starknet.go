@@ -32,7 +32,7 @@ func EstimateFee(
 	c callers.Caller,
 	requests []types.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 ) ([]types.FeeEstimation, error) {
 	var raw []types.FeeEstimation
 	if err := internal.Do(

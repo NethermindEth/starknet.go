@@ -10,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // StorageAt retrieves the storage value of a given contract at a specific key and block ID.
@@ -28,7 +29,7 @@ func StorageAt(
 	c callers.Caller,
 	contractAddress *felt.Felt,
 	key string,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 ) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))

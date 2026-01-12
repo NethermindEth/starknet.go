@@ -35,7 +35,7 @@ import (
 func SimulateTransactions(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID types.BlockID,
 	txns []types.BroadcastTxn,
 	simulationFlags []rpcv10.SimulationFlag,
 ) ([]rpcv10.SimulatedTransaction, error) {
