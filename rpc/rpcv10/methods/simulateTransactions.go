@@ -37,7 +37,7 @@ func SimulateTransactions(
 	c callers.Caller,
 	blockID types.BlockID,
 	txns []types.BroadcastTxn,
-	simulationFlags []rpcv10.SimulationFlag,
+	simulationFlags []types.SimulationFlag,
 ) ([]rpcv10.SimulatedTransaction, error) {
 	var output []rpcv10.SimulatedTransaction
 	if err := internal.Do(

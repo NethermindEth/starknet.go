@@ -271,7 +271,7 @@ func (mr *MockRPCProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.
 }
 
 // EstimateFee mocks base method.
-func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []types.BroadcastTxn, simulationFlags []rpcv10.SimulationFlag, blockID types.BlockID) ([]types.FeeEstimation, error) {
+func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []types.BroadcastTxn, simulationFlags []types.SimulationFlag, blockID types.BlockID) ([]types.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
 	ret0, _ := ret[0].([]types.FeeEstimation)
@@ -346,7 +346,7 @@ func (mr *MockRPCProviderMockRecorder) Nonce(ctx, blockID, contractAddress any) 
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID types.BlockID, txns []types.BroadcastTxn, simulationFlags []rpcv10.SimulationFlag) ([]rpcv10.SimulatedTransaction, error) {
+func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID types.BlockID, txns []types.BroadcastTxn, simulationFlags []types.SimulationFlag) ([]rpcv10.SimulatedTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
 	ret0, _ := ret[0].([]rpcv10.SimulatedTransaction)

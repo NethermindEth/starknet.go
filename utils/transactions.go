@@ -48,8 +48,8 @@ type TxnOptions struct {
 	Tip types.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
-	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
-	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
+	// will be `types.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `types.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
 	UseQueryBit bool
 
@@ -61,8 +61,8 @@ type TxnOptions struct {
 	// TODO: remove this field after the Starknet v0.14.1 upgrade
 }
 
-// TxnVersion returns `rpc.TransactionV3WithQueryBit` when UseQueryBit is true, and
-// `rpc.TransactionV3` if false.
+// TxnVersion returns `types.TransactionV3WithQueryBit` when UseQueryBit is true, and
+// `types.TransactionV3` if false.
 func (opts *TxnOptions) TxnVersion() types.TransactionVersion {
 	if opts.UseQueryBit {
 		return types.TransactionV3WithQueryBit
@@ -237,7 +237,7 @@ func BuildDeployAccountTxn(
 //   - invokeFuncCalls: The invoke function calls to convert
 //
 // Returns:
-//   - []*rpc.FunctionCall: A new function calls
+//   - []*types.FunctionCall: A new function calls
 func InvokeFuncCallsToFunctionCalls(
 	invokeFuncCalls []types.InvokeFunctionCall,
 ) []types.FunctionCall {
@@ -281,7 +281,7 @@ type FeeLimits struct {
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
 // Returns:
-//   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers
+//   - types.ResourceBoundsMapping: Resource bounds with applied multipliers
 func FeeEstToResBoundsMap(
 	feeEstimation types.FeeEstimation,
 	multiplier float64,
@@ -304,7 +304,7 @@ func FeeEstToResBoundsMap(
 //     values (U64 or U128).
 //
 // Returns:
-//   - rpc.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
+//   - types.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
 func CustomFeeEstToResBoundsMap(
 	feeEstimation types.FeeEstimation,
 	multiplier float64,
@@ -355,7 +355,7 @@ func CustomFeeEstToResBoundsMap(
 //   - multiplier: Multiplier for max amount and max price per unit
 //
 // Returns:
-//   - rpc.ResourceBounds: Resource bounds with applied multiplier
+//   - types.ResourceBounds: Resource bounds with applied multiplier
 func toResourceBounds(
 	gasPrice *felt.Felt,
 	gasPriceLimit types.U128,

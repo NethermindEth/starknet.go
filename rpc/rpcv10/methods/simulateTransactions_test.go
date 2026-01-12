@@ -20,9 +20,9 @@ func TestSimulateTransaction(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
-		BlockID         types.BlockID        `json:"block_id"`
-		Txns            []types.BroadcastTxn `json:"transactions"`
-		SimulationFlags []SimulationFlag     `json:"simulation_flags"`
+		BlockID         types.BlockID          `json:"block_id"`
+		Txns            []types.BroadcastTxn   `json:"transactions"`
+		SimulationFlags []types.SimulationFlag `json:"simulation_flags"`
 	}
 	input := internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
 		t, "./testData/trace/sepoliaSimulateInvokeTx.json", "params")
@@ -31,7 +31,7 @@ func TestSimulateTransaction(t *testing.T) {
 		Description     string
 		BlockID         types.BlockID
 		Txns            []types.BroadcastTxn
-		SimulationFlags []SimulationFlag
+		SimulationFlags []types.SimulationFlag
 		ExpectedError   *RPCError
 	}
 
@@ -41,7 +41,7 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+				SimulationFlags: []types.SimulationFlag{types.SkipValidate, types.SkipFeeCharge},
 			},
 			{
 				Description:     "block not found",
@@ -54,7 +54,7 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "exec error, pre confirmed",
 				BlockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
 				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{},
+				SimulationFlags: []types.SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 		},
@@ -69,13 +69,13 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+				SimulationFlags: []types.SimulationFlag{types.SkipValidate, types.SkipFeeCharge},
 			},
 			{
 				Description:     "exec error, pre confirmed",
 				BlockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
 				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{},
+				SimulationFlags: []types.SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 			{

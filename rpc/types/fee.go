@@ -125,3 +125,15 @@ func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// Flags that indicate how to simulate a given transaction. By default, the
+// sequencer behaviour is replicated locally (enough funds are expected to be
+// in the account, and fee will be deducted from the balance before the
+// simulation of the next transaction). To skip the fee charge, use
+// the SKIP_FEE_CHARGE flag.
+type SimulationFlag string
+
+const (
+	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
+	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
+)

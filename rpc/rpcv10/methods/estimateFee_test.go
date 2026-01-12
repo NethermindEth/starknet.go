@@ -24,7 +24,7 @@ func TestEstimateFee(t *testing.T) {
 	type testSetType struct {
 		description   string
 		txs           []types.BroadcastTxn
-		simFlags      []SimulationFlag
+		simFlags      []types.SimulationFlag
 		blockID       types.BlockID
 		expectedError *RPCError
 	}
@@ -50,7 +50,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []SimulationFlag{},
+				simFlags: []types.SimulationFlag{},
 				blockID:  types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
@@ -58,7 +58,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []SimulationFlag{SkipValidate},
+				simFlags: []types.SimulationFlag{types.SkipValidate},
 				blockID:  types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
@@ -84,7 +84,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
+				simFlags:      []types.SimulationFlag{},
 				blockID:       types.WithBlockNumber(574447),
 				expectedError: nil,
 			},
@@ -93,7 +93,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
+				simFlags:      []types.SimulationFlag{types.SkipValidate},
 				blockID:       types.WithBlockNumber(574447),
 				expectedError: nil,
 			},
@@ -122,7 +122,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
+				simFlags:      []types.SimulationFlag{},
 				blockID:       types.WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
@@ -131,7 +131,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
+				simFlags:      []types.SimulationFlag{types.SkipValidate},
 				blockID:       types.WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},

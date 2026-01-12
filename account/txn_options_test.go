@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -167,31 +166,31 @@ func TestTxnOptions(t *testing.T) {
 		testcases := []struct {
 			name             string
 			opts             *TxnOptions
-			expectedSimFlags []rpc.SimulationFlag
+			expectedSimFlags []types.SimulationFlag
 		}{
 			{
 				name:             "Default value (nil)",
 				opts:             nil,
-				expectedSimFlags: []rpc.SimulationFlag{},
+				expectedSimFlags: []types.SimulationFlag{},
 			},
 			{
 				name:             "Empty simulation flag",
 				opts:             &TxnOptions{SimulationFlag: ""},
-				expectedSimFlags: []rpc.SimulationFlag{},
+				expectedSimFlags: []types.SimulationFlag{},
 			},
 			{
 				name: "SKIP_VALIDATE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SkipValidate,
+					SimulationFlag: types.SkipValidate,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipValidate},
+				expectedSimFlags: []types.SimulationFlag{types.SkipValidate},
 			},
 			{
 				name: "SKIP_FEE_CHARGE flag",
 				opts: &TxnOptions{
-					SimulationFlag: rpc.SkipFeeCharge,
+					SimulationFlag: types.SkipFeeCharge,
 				},
-				expectedSimFlags: []rpc.SimulationFlag{rpc.SkipFeeCharge},
+				expectedSimFlags: []types.SimulationFlag{types.SkipFeeCharge},
 			},
 		}
 

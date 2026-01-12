@@ -68,7 +68,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
-	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.InvokeTxnV3).Tip)
+	assert.NotEqual(t, "0x0", txn.Transaction.(types.InvokeTxnV3).Tip)
 }
 
 // TestBuildAndSendDeclareTxn is a test function that tests the BuildAndSendDeclareTxn method.
@@ -134,7 +134,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
-	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeclareTxnV3).Tip)
+	assert.NotEqual(t, "0x0", txn.Transaction.(types.DeclareTxnV3).Tip)
 }
 
 func TestBuildAndSendDeclareTxnMock(t *testing.T) {

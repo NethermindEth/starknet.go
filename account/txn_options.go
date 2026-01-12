@@ -1,7 +1,6 @@
 package account
 
 import (
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -27,8 +26,8 @@ type TxnOptions struct {
 
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
-	// will be `rpc.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
-	// If false, the transaction version will be `rpc.TransactionV3` (0x3).
+	// will be `types.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `types.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
 	UseQueryBit bool
 
@@ -45,7 +44,7 @@ type TxnOptions struct {
 	// when estimating fees instead of the pre_confirmed block. Default: `false`.
 	UseLatest bool
 	// The simulation flag to be used when estimating fees. Default: none.
-	SimulationFlag rpc.SimulationFlag
+	SimulationFlag types.SimulationFlag
 
 	// ONLY FOR THE `BuildAndSendDeclareTxn` METHOD: A pointer to a boolean flag
 	// indicating whether to use the Blake2s hash function to calculate the compiled
@@ -67,14 +66,14 @@ func (opts *TxnOptions) BlockID() types.BlockID {
 	return types.WithBlockTag(types.BlockTagPreConfirmed)
 }
 
-// Returns a `[]rpc.SimulationFlag` containing the SimulationFlag.
+// Returns a `[]types.SimulationFlag` containing the SimulationFlag.
 // If the flag is not set, returns an empty slice.
-func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
+func (opts *TxnOptions) SimulationFlags() []types.SimulationFlag {
 	if opts.SimulationFlag == "" {
-		return []rpc.SimulationFlag{}
+		return []types.SimulationFlag{}
 	}
 
-	return []rpc.SimulationFlag{opts.SimulationFlag}
+	return []types.SimulationFlag{opts.SimulationFlag}
 }
 
 // FmtFeeMultiplier returns the fee multiplier specified in the options.

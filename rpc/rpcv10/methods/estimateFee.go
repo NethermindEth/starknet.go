@@ -31,7 +31,7 @@ func EstimateFee(
 	ctx context.Context,
 	c callers.Caller,
 	requests []types.BroadcastTxn,
-	simulationFlags []rpcv10.SimulationFlag,
+	simulationFlags []types.SimulationFlag,
 	blockID types.BlockID,
 ) ([]types.FeeEstimation, error) {
 	var raw []types.FeeEstimation

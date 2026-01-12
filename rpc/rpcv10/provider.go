@@ -134,7 +134,7 @@ type RPCProvider interface {
 	EstimateFee(
 		ctx context.Context,
 		requests []types.BroadcastTxn,
-		simulationFlags []SimulationFlag,
+		simulationFlags []types.SimulationFlag,
 		blockID types.BlockID,
 	) ([]types.FeeEstimation, error)
 	EstimateMessageFee(
@@ -153,7 +153,7 @@ type RPCProvider interface {
 		ctx context.Context,
 		blockID types.BlockID,
 		txns []types.BroadcastTxn,
-		simulationFlags []SimulationFlag,
+		simulationFlags []types.SimulationFlag,
 	) ([]SimulatedTransaction, error)
 	SpecVersion(ctx context.Context) (string, error)
 	StateUpdate(ctx context.Context, blockID types.BlockID) (*StateUpdateOutput, error)

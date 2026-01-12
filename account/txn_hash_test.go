@@ -12,6 +12,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -44,7 +45,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 		PubKey         string
 		PrivKey        *felt.Felt
 		ChainID        string
-		FnCall         rpc.FunctionCall
+		FnCall         types.FunctionCall
 		TxDetails      rpc.TxDetails
 	}
 	// TODO: improve test cases to include invoke txns v0 and v3
@@ -58,7 +59,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				PrivKey:        internalUtils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
 				PubKey:         "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d",
 				ChainID:        "SN_SEPOLIA",
-				FnCall: rpc.FunctionCall{
+				FnCall: types.FunctionCall{
 					Calldata: internalUtils.TestHexArrToFelt(t, []string{
 						"0x1",
 						"0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e",
@@ -76,7 +77,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				TxDetails: rpc.TxDetails{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x3cf"),
 					MaxFee:  internalUtils.TestHexToFelt(t, "0x1a6f9d0dc5952"),
-					Version: rpc.TransactionV1,
+					Version: types.TransactionV1,
 				},
 			},
 		},
@@ -89,7 +90,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				PrivKey:        internalUtils.TestHexToFelt(t, "0x043b7fe9d91942c98cd5fd37579bd99ec74f879c4c79d886633eecae9dad35fa"),
 				PubKey:         "0x06fb2806bc2564827796e0796144f8104581acdcbcd7721615ad376f70baf87d",
 				ChainID:        "SN_SEPOLIA",
-				FnCall: rpc.FunctionCall{
+				FnCall: types.FunctionCall{
 					Calldata: internalUtils.TestHexArrToFelt(t, []string{
 						"0x1",
 						"0x517567ac7026ce129c950e6e113e437aa3c83716cd61481c6bb8c5057e6923e",
@@ -107,7 +108,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				TxDetails: rpc.TxDetails{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x3cf"),
 					MaxFee:  internalUtils.TestHexToFelt(t, "0x1a6f9d0dc5952"),
-					Version: rpc.TransactionV1,
+					Version: types.TransactionV1,
 				},
 			},
 		},
@@ -225,7 +226,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	}
 
 	type testSetType struct {
-		Txn          rpc.DeclareTxnType
+		Txn          types.DeclareTxnType
 		ExpectedHash *felt.Felt
 		ExpectedErr  error
 	}
@@ -233,10 +234,10 @@ func TestTransactionHashDeclare(t *testing.T) {
 		tests.MockEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
-				Txn: rpc.DeclareTxnV2{
+				Txn: types.DeclareTxnV2{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x1"),
-					Type:    rpc.TransactionTypeDeclare,
-					Version: rpc.TransactionV2,
+					Type:    types.TransactionTypeDeclare,
+					Version: types.TransactionV2,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
 						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf"),
@@ -251,24 +252,24 @@ func TestTransactionHashDeclare(t *testing.T) {
 			},
 			{
 				// https://sepolia.voyager.online/tx/0x30c852c522274765e1d681bc8a84ce7c41118370ef2ba7d18a427ed29f5b155
-				Txn: rpc.DeclareTxnV3{
+				Txn: types.DeclareTxnV3{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x2b"),
-					Type:    rpc.TransactionTypeDeclare,
-					Version: rpc.TransactionV3,
+					Type:    types.TransactionTypeDeclare,
+					Version: types.TransactionV3,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x5c6a94302ef4b6d80a4c6a3eaf5ad30e11fa13aa78f7397a4f69901ceb12b7"),
 						internalUtils.TestHexToFelt(t, "0x25bf97f481061f8abf5eb93e67eaebe6bb74dda34d7378a506f5ee2ff1daef1"),
 					},
-					ResourceBounds: &rpc.ResourceBoundsMapping{
-						L1Gas: rpc.ResourceBounds{
+					ResourceBounds: &types.ResourceBoundsMapping{
+						L1Gas: types.ResourceBounds{
 							MaxAmount:       "0x0",
 							MaxPricePerUnit: "0x10968159929e",
 						},
-						L1DataGas: rpc.ResourceBounds{
+						L1DataGas: types.ResourceBounds{
 							MaxAmount:       "0x120",
 							MaxPricePerUnit: "0x99f",
 						},
-						L2Gas: rpc.ResourceBounds{
+						L2Gas: types.ResourceBounds{
 							MaxAmount:       "0x1ff3ec0",
 							MaxPricePerUnit: "0x197aa1ce3",
 						},
@@ -279,8 +280,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 					ClassHash:             internalUtils.TestHexToFelt(t, "0x224518978adb773cfd4862a894e9d333192fbd24bc83841dc7d4167c09b89c5"),
 					CompiledClassHash:     internalUtils.TestHexToFelt(t, "0x6ff9f7df06da94198ee535f41b214dce0b8bafbdb45e6c6b09d4b3b693b1f17"),
 					AccountDeploymentData: []*felt.Felt{},
-					NonceDataMode:         rpc.DAModeL1,
-					FeeMode:               rpc.DAModeL1,
+					NonceDataMode:         types.DAModeL1,
+					FeeMode:               types.DAModeL1,
 				},
 				ExpectedHash: internalUtils.TestHexToFelt(t, "0x30c852c522274765e1d681bc8a84ce7c41118370ef2ba7d18a427ed29f5b155"),
 				ExpectedErr:  nil,
@@ -289,10 +290,10 @@ func TestTransactionHashDeclare(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x28e430cc73715bd1052e8db4f17b053c53dd8174341cba4b1a337b9fecfa8c3
-				Txn: rpc.DeclareTxnV2{
+				Txn: types.DeclareTxnV2{
 					Nonce:   internalUtils.TestHexToFelt(t, "0x1"),
-					Type:    rpc.TransactionTypeDeclare,
-					Version: rpc.TransactionV2,
+					Type:    types.TransactionTypeDeclare,
+					Version: types.TransactionV2,
 					Signature: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x713765e220325edfaf5e033ad77b1ba4eceabe66333893b89845c2ddc744d34"),
 						internalUtils.TestHexToFelt(t, "0x4f28b1c15379c0ceb1855c09ed793e7583f875a802cbf310a8c0c971835c5cf"),
@@ -319,9 +320,9 @@ func TestTransactionHashDeclare(t *testing.T) {
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
-		case rpc.DeclareTxnV2:
+		case types.DeclareTxnV2:
 			hash2, err = hash.TransactionHashDeclareV2(&txn, acnt.ChainID)
-		case rpc.DeclareTxnV3:
+		case types.DeclareTxnV3:
 			hash2, err = hash.TransactionHashDeclareV3(&txn, acnt.ChainID)
 		}
 		require.NoError(t, err)
@@ -347,17 +348,17 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	require.NoError(t, err)
 
 	type testSetType struct {
-		Txn          rpc.InvokeTxnV3
+		Txn          types.InvokeTxnV3
 		ExpectedHash *felt.Felt
 		ExpectedErr  error
 	}
 	testSet := []testSetType{
 		{
 			// https://sepolia.voyager.online/tx/0x76b52e17bc09064bd986ead34263e6305ef3cecfb3ae9e19b86bf4f1a1a20ea
-			Txn: rpc.InvokeTxnV3{
+			Txn: types.InvokeTxnV3{
 				Nonce:   internalUtils.TestHexToFelt(t, "0x9803"),
-				Type:    rpc.TransactionTypeInvoke,
-				Version: rpc.TransactionV3,
+				Type:    types.TransactionTypeInvoke,
+				Version: types.TransactionV3,
 				Signature: []*felt.Felt{
 					internalUtils.TestHexToFelt(
 						t,
@@ -368,16 +369,16 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 						"0x4eb8734727eb9412b79ba6d14ff1c9a6beb0dc0b811e3f97168c747f8d427b3",
 					),
 				},
-				ResourceBounds: &rpc.ResourceBoundsMapping{
-					L1Gas: rpc.ResourceBounds{
+				ResourceBounds: &types.ResourceBoundsMapping{
+					L1Gas: types.ResourceBounds{
 						MaxAmount:       "0x186a0",
 						MaxPricePerUnit: "0x2d79883d20000",
 					},
-					L1DataGas: rpc.ResourceBounds{
+					L1DataGas: types.ResourceBounds{
 						MaxAmount:       "0x186a0",
 						MaxPricePerUnit: "0x2d79883d20000",
 					},
-					L2Gas: rpc.ResourceBounds{
+					L2Gas: types.ResourceBounds{
 						MaxAmount:       "0x5f5e100",
 						MaxPricePerUnit: "0xba43b7400",
 					},
@@ -395,8 +396,8 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 					"0x2468d193cd15b621b24c2a602b8dbcfa5eaa14f88416c40c09d7fd12592cb4b",
 					"0x0",
 				}),
-				NonceDataMode: rpc.DAModeL1,
-				FeeMode:       rpc.DAModeL1,
+				NonceDataMode: types.DAModeL1,
+				FeeMode:       types.DAModeL1,
 			},
 			ExpectedHash: internalUtils.TestHexToFelt(
 				t,
@@ -440,7 +441,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	require.NoError(t, err)
 
 	type testSetType struct {
-		Txn           rpc.DeployAccountType
+		Txn           types.DeployAccountType
 		SenderAddress *felt.Felt
 		ExpectedHash  *felt.Felt
 		ExpectedErr   error
@@ -448,11 +449,11 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	testSet := []testSetType{
 		{
 			// https://sepolia.voyager.online/tx/0x66d1d9d50d308a9eb16efedbad208b0672769a545a0b828d357757f444e9188
-			Txn: rpc.DeployAccountTxnV1{
+			Txn: types.DeployAccountTxnV1{
 				Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
-				Type:    rpc.TransactionTypeDeployAccount,
+				Type:    types.TransactionTypeDeployAccount,
 				MaxFee:  internalUtils.TestHexToFelt(t, "0x1d2109b99cf94"),
-				Version: rpc.TransactionV1,
+				Version: types.TransactionV1,
 				Signature: []*felt.Felt{
 					internalUtils.TestHexToFelt(
 						t,
@@ -490,10 +491,10 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 		},
 		{
 			// https://sepolia.voyager.online/tx/0x32413f8cee053089d6d7026a72e4108262ca3cfe868dd9159bc1dd160aec975
-			Txn: rpc.DeployAccountTxnV3{
+			Txn: types.DeployAccountTxnV3{
 				Nonce:   internalUtils.TestHexToFelt(t, "0x0"),
-				Type:    rpc.TransactionTypeDeployAccount,
-				Version: rpc.TransactionV3,
+				Type:    types.TransactionTypeDeployAccount,
+				Version: types.TransactionV3,
 				Signature: []*felt.Felt{
 					internalUtils.TestHexToFelt(
 						t,
@@ -504,24 +505,24 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 						"0x65e8661ab1526b4f8ea50b76fea1a0e82543de1eb3885e415790d7e1b5a93c7",
 					),
 				},
-				ResourceBounds: &rpc.ResourceBoundsMapping{
-					L1Gas: rpc.ResourceBounds{
+				ResourceBounds: &types.ResourceBoundsMapping{
+					L1Gas: types.ResourceBounds{
 						MaxAmount:       "0x0",
 						MaxPricePerUnit: "0x1597b3274d88",
 					},
-					L1DataGas: rpc.ResourceBounds{
+					L1DataGas: types.ResourceBounds{
 						MaxAmount:       "0x210",
 						MaxPricePerUnit: "0x97c",
 					},
-					L2Gas: rpc.ResourceBounds{
+					L2Gas: types.ResourceBounds{
 						MaxAmount:       "0xe6fa0",
 						MaxPricePerUnit: "0x1920d1317",
 					},
 				},
 				Tip:           "0x0",
 				PayMasterData: []*felt.Felt{},
-				NonceDataMode: rpc.DAModeL1,
-				FeeMode:       rpc.DAModeL1,
+				NonceDataMode: types.DAModeL1,
+				FeeMode:       types.DAModeL1,
 				ClassHash: internalUtils.TestHexToFelt(
 					t,
 					"0x61dac032f228abef9c6626f995015233097ae253a7f72d68552db02f2971b8f",
@@ -558,9 +559,9 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 		var hash2 *felt.Felt
 		switch txn := test.Txn.(type) {
-		case rpc.DeployAccountTxnV1:
+		case types.DeployAccountTxnV1:
 			hash2, err = hash.TransactionHashDeployAccountV1(&txn, test.SenderAddress, acnt.ChainID)
-		case rpc.DeployAccountTxnV3:
+		case types.DeployAccountTxnV3:
 			hash2, err = hash.TransactionHashDeployAccountV3(&txn, test.SenderAddress, acnt.ChainID)
 		}
 		require.NoError(t, err)

@@ -7,7 +7,6 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -82,7 +81,7 @@ func verboseInvoke(
 	feeRes, err := accnt.Provider.EstimateFee(
 		context.Background(),
 		[]types.BroadcastTxn{InvokeTx},
-		[]rpc.SimulationFlag{},
+		[]types.SimulationFlag{},
 		types.WithBlockTag(types.BlockTagPreConfirmed),
 	)
 	if err != nil {

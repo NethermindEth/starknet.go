@@ -96,7 +96,7 @@ func signInvokeTransaction[T types.InvokeTxnType](
 //
 // Parameters:
 //   - ctx: the context.Context for the function execution
-//   - tx: the *rpc.DeployAccountTxnV3 pointer representing the transaction to be signed
+//   - tx: the *types.DeployAccountTxnV3 pointer representing the transaction to be signed
 //   - precomputeAddress: the precomputed address for the transaction
 //
 // Returns:
