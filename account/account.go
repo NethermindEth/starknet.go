@@ -17,6 +17,8 @@ var (
 	ErrTxnVersionUnSupported = errors.New("unsupported transaction version")
 )
 
+// @changed
+
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	BuildAndEstimateDeployAccountTxn(
@@ -45,7 +47,7 @@ type AccountInterface interface {
 		udcOpts *UDCOptions,
 	) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
-	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (rpc.TransactionResponse, error)
+	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx types.InvokeTxnType) error
 	SignDeployAccountTransaction(

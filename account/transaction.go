@@ -368,15 +368,15 @@ func (account *Account) DeployContractWithUDC(
 //   - txn: the Broadcast V3 Transaction to be sent
 //
 // Returns:
-//   - rpc.TransactionResponse: the transaction response for each TransactionResponse
+//   - types.TransactionResponse: the transaction response for each TransactionResponse
 //   - error: an error if any
 //
 //nolint:exhaustruct // Setting only the correct fields
 func (account *Account) SendTransaction(
 	ctx context.Context,
 	txn types.BroadcastTxn,
-) (rpc.TransactionResponse, error) {
-	var response rpc.TransactionResponse
+) (types.TransactionResponse, error) {
+	var response types.TransactionResponse
 	switch tx := txn.(type) {
 	// broadcast invoke v3, pointer and struct
 	case *types.BroadcastInvokeTxnV3:
@@ -385,14 +385,14 @@ func (account *Account) SendTransaction(
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash}, nil
+		return types.TransactionResponse{Hash: resp.Hash}, nil
 	case types.BroadcastInvokeTxnV3:
 		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
 		if err != nil {
 			return response, err
 		}
 
-		return rpc.TransactionResponse{Hash: resp.Hash}, nil
+		return types.TransactionResponse{Hash: resp.Hash}, nil
 	// broadcast declare v3, pointer and struct
 	case *types.BroadcastDeclareTxnV3:
 		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
@@ -400,7 +400,7 @@ func (account *Account) SendTransaction(
 			return response, err
 		}
 
-		return rpc.TransactionResponse{
+		return types.TransactionResponse{
 			Hash:      resp.Hash,
 			ClassHash: resp.ClassHash,
 		}, nil
@@ -410,7 +410,7 @@ func (account *Account) SendTransaction(
 			return response, err
 		}
 
-		return rpc.TransactionResponse{
+		return types.TransactionResponse{
 			Hash:      resp.Hash,
 			ClassHash: resp.ClassHash,
 		}, nil
@@ -421,7 +421,7 @@ func (account *Account) SendTransaction(
 			return response, err
 		}
 
-		return rpc.TransactionResponse{
+		return types.TransactionResponse{
 			Hash:            resp.Hash,
 			ContractAddress: resp.ContractAddress,
 		}, nil
@@ -431,7 +431,7 @@ func (account *Account) SendTransaction(
 			return response, err
 		}
 
-		return rpc.TransactionResponse{
+		return types.TransactionResponse{
 			Hash:            resp.Hash,
 			ContractAddress: resp.ContractAddress,
 		}, nil
