@@ -8,6 +8,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -26,38 +27,38 @@ func TestBlockWithReceipts(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		BlockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -98,12 +99,12 @@ func TestBlockWithReceipts(t *testing.T) {
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
 							switch blockID.Tag {
-							case BlockTagPreConfirmed:
+							case types.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case BlockTagLatest:
+							case types.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 

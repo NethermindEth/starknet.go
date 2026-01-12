@@ -51,7 +51,7 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags: []SimulationFlag{},
-				blockID:  WithBlockTag(BlockTagLatest),
+				blockID:  types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				description: "with flag",
@@ -59,14 +59,14 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags: []SimulationFlag{SkipValidate},
-				blockID:  WithBlockTag(BlockTagLatest),
+				blockID:  types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				description: "invalid transaction",
 				txs: []types.BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
-				blockID:       WithBlockNumber(100000),
+				blockID:       types.WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -74,7 +74,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -85,7 +85,7 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(574447),
+				blockID:       types.WithBlockNumber(574447),
 				expectedError: nil,
 			},
 			{
@@ -94,7 +94,7 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockNumber(574447),
+				blockID:       types.WithBlockNumber(574447),
 				expectedError: nil,
 			},
 			{
@@ -102,7 +102,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
-				blockID:       WithBlockNumber(100000),
+				blockID:       types.WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -110,7 +110,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 			// the contract_not_found error will not be tested since it's still not clear
@@ -123,7 +123,7 @@ func TestEstimateFee(t *testing.T) {
 					integrationInvokeV3,
 				},
 				simFlags:      []SimulationFlag{},
-				blockID:       WithBlockNumber(1_300_000),
+				blockID:       types.WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
 			{
@@ -132,7 +132,7 @@ func TestEstimateFee(t *testing.T) {
 					integrationInvokeV3,
 				},
 				simFlags:      []SimulationFlag{SkipValidate},
-				blockID:       WithBlockNumber(1_300_000),
+				blockID:       types.WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
 			{
@@ -140,7 +140,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					invalidIntegrationInvokeV3,
 				},
-				blockID:       WithBlockNumber(100000),
+				blockID:       types.WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -148,7 +148,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []types.BroadcastTxn{
 					integrationInvokeV3,
 				},
-				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -169,7 +169,7 @@ func TestEstimateFee(t *testing.T) {
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
 						txs := args[0].([]types.BroadcastTxn)
-						blockID := args[2].(BlockID)
+						blockID := args[2].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

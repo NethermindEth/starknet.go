@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -26,35 +27,35 @@ func TestBlockTransactionCount(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		BlockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -84,9 +85,9 @@ func TestBlockTransactionCount(t *testing.T) {
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
-							if blockID.Tag == BlockTagLatest {
+							if blockID.Tag == types.BlockTagLatest {
 								*rawResp = json.RawMessage("100")
 							}
 

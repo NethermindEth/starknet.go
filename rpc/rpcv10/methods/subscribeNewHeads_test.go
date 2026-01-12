@@ -41,12 +41,12 @@ func TestSubscribeNewHeads(t *testing.T) {
 		},
 		{
 			description:   "error - too many blocks back",
-			subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+			subBlockID:    new(SubscriptionBlockID).types.WithBlockNumber(3_000_000),
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description:   "error - block not found",
-			subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+			subBlockID:    new(SubscriptionBlockID).types.WithBlockHash(internalUtils.DeadBeef),
 			expectedError: ErrBlockNotFound,
 		},
 	}
@@ -58,12 +58,12 @@ func TestSubscribeNewHeads(t *testing.T) {
 			},
 			{
 				description:   "error - too many blocks back",
-				subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+				subBlockID:    new(SubscriptionBlockID).types.WithBlockNumber(3_000_000),
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				description:   "error - block not found",
-				subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				subBlockID:    new(SubscriptionBlockID).types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},

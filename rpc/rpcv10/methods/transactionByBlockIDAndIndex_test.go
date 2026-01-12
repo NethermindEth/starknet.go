@@ -9,6 +9,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -29,27 +30,27 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				BlockID: types.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
 			},
 			{
-				BlockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				BlockID:       types.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:         99999999999999999,
 				ExpectedError: ErrInvalidTxnIndex,
 			},
 			{
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				BlockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				Index:         3,
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				BlockID: types.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				Index:   0,
 			},
 			{
@@ -57,13 +58,13 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				Index:   0,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID: types.WithBlockTag(types.BlockTagLatest),
 				Index:   0,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockNumber(1_300_000),
+				BlockID: types.WithBlockNumber(1_300_000),
 				Index:   0,
 			},
 		},
@@ -81,7 +82,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 
 						if blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

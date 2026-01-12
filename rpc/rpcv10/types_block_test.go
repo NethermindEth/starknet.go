@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +43,7 @@ func TestBlockID_Marshal(t *testing.T) {
 			id: BlockID{
 				Tag: "bad tag",
 			},
-			wantErr: ErrInvalidBlockID,
+			wantErr: types.ErrInvalidBlockID,
 		},
 		{
 			id: BlockID{

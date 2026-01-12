@@ -45,14 +45,14 @@ func TestSimulateTransaction(t *testing.T) {
 			},
 			{
 				Description:     "block not found",
-				BlockID:         WithBlockHash(internalUtils.DeadBeef),
+				BlockID:         types.WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         WithBlockTag(BlockTagPreConfirmed),
+				BlockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
 				Txns:            input.Txns,
 				SimulationFlags: []SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
@@ -73,14 +73,14 @@ func TestSimulateTransaction(t *testing.T) {
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         WithBlockTag(BlockTagPreConfirmed),
+				BlockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
 				Txns:            input.Txns,
 				SimulationFlags: []SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 			{
 				Description:     "block not found",
-				BlockID:         WithBlockHash(internalUtils.DeadBeef),
+				BlockID:         types.WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
@@ -102,7 +102,7 @@ func TestSimulateTransaction(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -111,7 +111,7 @@ func TestSimulateTransaction(t *testing.T) {
 							}
 						}
 
-						if blockID.Tag == BlockTagPreConfirmed {
+						if blockID.Tag == types.BlockTagPreConfirmed {
 							return RPCError{
 								Code:    41,
 								Message: "Transaction execution error",

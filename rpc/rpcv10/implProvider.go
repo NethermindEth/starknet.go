@@ -44,33 +44,36 @@ func (provider *Provider) BlockNumber(ctx context.Context) (uint64, error) {
 
 func (provider *Provider) BlockTransactionCount(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (uint64, error) {
 	return 0, nil
 }
 
 func (provider *Provider) BlockWithReceipts(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (interface{}, error) {
 	return nil, nil
 }
 
 func (provider *Provider) BlockWithTxHashes(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (interface{}, error) {
 	return nil, nil
 }
 
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxs(
+	ctx context.Context,
+	blockID types.BlockID,
+) (interface{}, error) {
 	return nil, nil
 }
 
 func (provider *Provider) Call(
 	ctx context.Context,
 	call types.FunctionCall,
-	block BlockID,
+	block types.BlockID,
 ) ([]*felt.Felt, error) {
 	return nil, nil
 }
@@ -92,7 +95,7 @@ func (provider *Provider) ChainID(ctx context.Context) (string, error) {
 
 func (provider *Provider) Class(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 	classHash *felt.Felt,
 ) (ClassOutput, error) {
 	return nil, nil
@@ -100,7 +103,7 @@ func (provider *Provider) Class(
 
 func (provider *Provider) ClassAt(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (ClassOutput, error) {
 	return nil, nil
@@ -108,7 +111,7 @@ func (provider *Provider) ClassAt(
 
 func (provider *Provider) ClassHashAt(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	return nil, nil
@@ -125,7 +128,7 @@ func (provider *Provider) EstimateFee(
 	ctx context.Context,
 	requests []types.BroadcastTxn,
 	simulationFlags []SimulationFlag,
-	blockID BlockID,
+	blockID types.BlockID,
 ) ([]types.FeeEstimation, error) {
 	return nil, nil
 }
@@ -133,7 +136,7 @@ func (provider *Provider) EstimateFee(
 func (provider *Provider) EstimateMessageFee(
 	ctx context.Context,
 	msg MsgFromL1,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (types.MessageFeeEstimation, error) {
 	return types.MessageFeeEstimation{}, nil
 }
@@ -151,7 +154,7 @@ func (provider *Provider) MessagesStatus(
 
 func (provider *Provider) Nonce(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	return nil, nil
@@ -159,7 +162,7 @@ func (provider *Provider) Nonce(
 
 func (provider *Provider) SimulateTransactions(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 	txns []types.BroadcastTxn,
 	simulationFlags []SimulationFlag,
 ) ([]SimulatedTransaction, error) {
@@ -172,7 +175,7 @@ func (provider *Provider) SpecVersion(ctx context.Context) (string, error) {
 
 func (provider *Provider) StateUpdate(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (*StateUpdateOutput, error) {
 	return nil, nil
 }
@@ -181,7 +184,7 @@ func (provider *Provider) StorageAt(
 	ctx context.Context,
 	contractAddress *felt.Felt,
 	key string,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (string, error) {
 	return "", nil
 }
@@ -199,7 +202,7 @@ func (provider *Provider) Syncing(ctx context.Context) (SyncStatus, error) {
 
 func (provider *Provider) TraceBlockTransactions(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 ) ([]Trace, error) {
 	return nil, nil
 }
@@ -213,7 +216,7 @@ func (provider *Provider) TraceTransaction(
 
 func (provider *Provider) TransactionByBlockIDAndIndex(
 	ctx context.Context,
-	blockID BlockID,
+	blockID types.BlockID,
 	index uint64,
 ) (*BlockTransaction, error) {
 	return nil, nil

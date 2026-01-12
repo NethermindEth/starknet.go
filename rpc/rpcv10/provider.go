@@ -113,17 +113,21 @@ type RPCProvider interface {
 	) (AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
-	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
-	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
-	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
-	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
-	Call(ctx context.Context, call types.FunctionCall, block BlockID) ([]*felt.Felt, error)
+	BlockTransactionCount(ctx context.Context, blockID types.BlockID) (uint64, error)
+	BlockWithReceipts(ctx context.Context, blockID types.BlockID) (interface{}, error)
+	BlockWithTxHashes(ctx context.Context, blockID types.BlockID) (interface{}, error)
+	BlockWithTxs(ctx context.Context, blockID types.BlockID) (interface{}, error)
+	Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
-	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
-	ClassAt(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (ClassOutput, error)
+	Class(ctx context.Context, blockID types.BlockID, classHash *felt.Felt) (ClassOutput, error)
+	ClassAt(
+		ctx context.Context,
+		blockID types.BlockID,
+		contractAddress *felt.Felt,
+	) (ClassOutput, error)
 	ClassHashAt(
 		ctx context.Context,
-		blockID BlockID,
+		blockID types.BlockID,
 		contractAddress *felt.Felt,
 	) (*felt.Felt, error)
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
@@ -131,40 +135,44 @@ type RPCProvider interface {
 		ctx context.Context,
 		requests []types.BroadcastTxn,
 		simulationFlags []SimulationFlag,
-		blockID BlockID,
+		blockID types.BlockID,
 	) ([]types.FeeEstimation, error)
 	EstimateMessageFee(
 		ctx context.Context,
 		msg MsgFromL1,
-		blockID BlockID,
+		blockID types.BlockID,
 	) (types.MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	MessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
-	Nonce(ctx context.Context, blockID BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
+	Nonce(
+		ctx context.Context,
+		blockID types.BlockID,
+		contractAddress *felt.Felt,
+	) (*felt.Felt, error)
 	SimulateTransactions(
 		ctx context.Context,
-		blockID BlockID,
+		blockID types.BlockID,
 		txns []types.BroadcastTxn,
 		simulationFlags []SimulationFlag,
 	) ([]SimulatedTransaction, error)
 	SpecVersion(ctx context.Context) (string, error)
-	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
+	StateUpdate(ctx context.Context, blockID types.BlockID) (*StateUpdateOutput, error)
 	StorageAt(
 		ctx context.Context,
 		contractAddress *felt.Felt,
 		key string,
-		blockID BlockID,
+		blockID types.BlockID,
 	) (string, error)
 	StorageProof(
 		ctx context.Context,
 		storageProofInput StorageProofInput,
 	) (*StorageProofResult, error)
 	Syncing(ctx context.Context) (SyncStatus, error)
-	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
+	TraceBlockTransactions(ctx context.Context, blockID types.BlockID) ([]Trace, error)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 	TransactionByBlockIDAndIndex(
 		ctx context.Context,
-		blockID BlockID,
+		blockID types.BlockID,
 		index uint64,
 	) (*BlockTransaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)

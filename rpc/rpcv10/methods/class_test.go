@@ -10,6 +10,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -33,61 +34,61 @@ func TestClass(t *testing.T) {
 			{
 				Description: "deprecated class",
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x123"),
-				BlockID:     WithBlockTag(BlockTagLatest),
+				BlockID:     types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description: "sierra class",
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x456"),
-				BlockID:     WithBlockTag(BlockTagLatest),
+				BlockID:     types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:   "invalid block",
 				ClassHash:     internalUtils.TestHexToFelt(t, "0x789"),
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				BlockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description:   "invalid class hash",
 				ClassHash:     internalUtils.DeadBeef,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				BlockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrClassHashNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				Description: "deprecated class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				BlockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 			},
 			{
 				Description: "sierra class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				BlockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 			{
 				Description:   "invalid block",
 				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				BlockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description:   "invalid class hash",
 				ClassHash:     internalUtils.DeadBeef,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				BlockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrClassHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
 				Description: "sierra class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				BlockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				Description: "sierra class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				BlockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
 			},
 		},
@@ -106,7 +107,7 @@ func TestClass(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 						classHash := args[1].(*felt.Felt)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {

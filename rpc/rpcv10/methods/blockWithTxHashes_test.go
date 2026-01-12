@@ -9,6 +9,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -27,38 +28,38 @@ func TestBlockWithTxHashes(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		BlockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				BlockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -99,12 +100,12 @@ func TestBlockWithTxHashes(t *testing.T) {
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
 							switch blockID.Tag {
-							case BlockTagPreConfirmed:
+							case types.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case BlockTagLatest:
+							case types.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 

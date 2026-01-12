@@ -9,6 +9,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -35,8 +36,8 @@ func TestEvents(t *testing.T) {
 	// for this method, it seems the same data works for all the networks,
 	// so we can use a single test set
 	evFilter := EventFilter{
-		FromBlock: WithBlockNumber(2000000),
-		ToBlock:   WithBlockNumber(2000100),
+		FromBlock: types.WithBlockNumber(2000000),
+		ToBlock:   types.WithBlockNumber(2000100),
 		Address: internalUtils.TestHexToFelt(
 			t,
 			"0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
@@ -61,7 +62,7 @@ func TestEvents(t *testing.T) {
 	tooManyKeysFilter.Keys = tooManyKeys
 
 	invalidBlockFilter := evFilter
-	invalidBlockFilter.FromBlock = WithBlockHash(internalUtils.DeadBeef)
+	invalidBlockFilter.FromBlock = types.WithBlockHash(internalUtils.DeadBeef)
 
 	testSets := []testSetType{
 		{

@@ -11,6 +11,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -99,7 +100,7 @@ func TestSubscribeEvents(t *testing.T) {
 			description: "with block ID only",
 			input: &EventSubscriptionInput{
 				SubBlockID: SubscriptionBlockID{
-					Tag: BlockTagLatest,
+					Tag: types.BlockTagLatest,
 				},
 			},
 		},
@@ -120,7 +121,7 @@ func TestSubscribeEvents(t *testing.T) {
 			input: &EventSubscriptionInput{
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
-				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				SubBlockID:     new(SubscriptionBlockID).types.WithBlockNumber(blockNumber - 1000),
 				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
 		},
@@ -134,14 +135,14 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "error: too many blocks back",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+				SubBlockID: new(SubscriptionBlockID).types.WithBlockNumber(3_000_000),
 			},
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description: "error: block not found",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				SubBlockID: new(SubscriptionBlockID).types.WithBlockHash(internalUtils.DeadBeef),
 			},
 			expectedError: ErrBlockNotFound,
 		},

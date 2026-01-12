@@ -63,7 +63,7 @@ func EstimateTip(
 	tip types.U64,
 	err error,
 ) {
-	rawLatestBlock, err := provider.BlockWithTxs(ctx, WithBlockTag(BlockTagLatest))
+	rawLatestBlock, err := provider.BlockWithTxs(ctx, types.WithBlockTag(types.BlockTagLatest))
 	if err != nil {
 		return tip, fmt.Errorf("failed to get latest block: %w", err)
 	}

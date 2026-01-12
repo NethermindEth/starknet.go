@@ -9,6 +9,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -21,50 +22,50 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID     BlockID
+		BlockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: ErrInvalidBlockID,
+				ExpectedErr: types.ErrInvalidBlockID,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockNumber(99433),
+				BlockID: types.WithBlockNumber(99433),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				BlockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				BlockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				BlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: ErrInvalidBlockID,
+				ExpectedErr: types.ErrInvalidBlockID,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
-			if tests.TEST_ENV == tests.MockEnv && test.BlockID.Tag != BlockTagPreConfirmed {
+			if tests.TEST_ENV == tests.MockEnv && test.BlockID.Tag != types.BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
 						t.Context(),
@@ -74,7 +75,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

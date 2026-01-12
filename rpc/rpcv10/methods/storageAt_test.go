@@ -10,6 +10,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -41,20 +42,20 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 				StorageKey:      "_signer",
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -63,7 +64,7 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:      "ERC20_name",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 		tests.TestnetEnv: {
@@ -71,20 +72,20 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:      "_signer",
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -93,7 +94,7 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:      "ERC20_decimals",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
@@ -101,7 +102,7 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -122,7 +123,7 @@ func TestStorageAt(t *testing.T) {
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
 						contractAddress := args[0].(*felt.Felt)
-						blockID := args[2].(BlockID)
+						blockID := args[2].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
