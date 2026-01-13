@@ -2,39 +2,56 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/client"
+	"github.com/NethermindEth/starknet.go/rpc/callers"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10/methods"
 )
 
-type Provider[P RPCProvider] struct {
-	provider P
+// @todo update docs for the entire package
+// add tests where needed
+
+type Provider struct {
+	c       callers.Caller
+	chainID string
+	version RPCVersion
 }
 
-func (p *Provider[P]) addInvokeTransaction(
+// NewProvider creates a new HTTP rpc Provider instance.
+//
+// Parameters:
+//   - ctx: The context for the function.
+//   - url: The URL of the RPC endpoint.
+//   - options: The options for the client.
+//
+// Returns:
+//   - *Provider: The new Provider instance.
+//   - error: An error if any.
+//     If the node JSON-RPC specification version is different from the version
+//     implemented by the Provider type, the ErrIncompatibleVersion will be returned,
+//     but the returned Provider instance is valid.
+func NewProvider(
 	ctx context.Context,
-	invokeTxn *types.BroadcastInvokeTxnV3,
-) (types.TransactionResponse, error) {
-	switch p.provider.(type) {
-	case *rpcv10.Provider:
-		resp, err := p.provider.AddInvokeTransaction(ctx, invokeTxn)
-		if err != nil {
-			return types.TransactionResponse{}, err
-		}
-		return types.TransactionResponse{Hash: resp.Hash}, nil
+	url string,
+	options ...client.ClientOption,
+) (*Provider, error) {
+	c, err := internal.NewHTTPClient(ctx, url, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
 	}
-}
 
-func (p *Provider[P]) addDeclareTransaction(
-	ctx context.Context,
-	declareTxn *types.BroadcastDeclareTxnV3,
-) (types.TransactionResponse, error) {
-	return p.v10.AddDeclareTransaction(ctx, declareTxn)
-}
+	rawNodeVersion, err := methods.SpecVersion(ctx, c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the node's RPC spec version: %w", err)
+	}
 
-func (p *Provider[P]) addDeployAccountTransaction(
-	ctx context.Context,
-	deployAccountTxn *types.BroadcastDeployAccountTxnV3,
-) (types.TransactionResponse, error) {
-	return p.v10.AddDeployAccountTransaction(ctx, deployAccountTxn)
+	var RPCVersion RPCVersion
+	err = RPCVersion.UnmarshalJSON([]byte(rawNodeVersion))
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal node version: %w", err)
+	}
+
+	return &Provider{c: c, chainID: "", version: RPCVersion}, nil
 }
