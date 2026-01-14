@@ -35,15 +35,15 @@ type BlockBodyWithReceipts struct {
 }
 
 type TransactionWithReceipt struct {
-	Transaction types.Transaction  `json:"transaction"`
-	Receipt     TransactionReceipt `json:"receipt"`
+	Transaction types.Transaction        `json:"transaction"`
+	Receipt     types.TransactionReceipt `json:"receipt"`
 }
 
 // UnmarshalJSON unmarshals the JSON representation of a TransactionWithReceipt.
 func (twr *TransactionWithReceipt) UnmarshalJSON(data []byte) error {
 	type Temp struct {
-		Transaction json.RawMessage    `json:"transaction"`
-		Receipt     TransactionReceipt `json:"receipt"`
+		Transaction json.RawMessage          `json:"transaction"`
+		Receipt     types.TransactionReceipt `json:"receipt"`
 	}
 	var temp Temp
 	if err := json.Unmarshal(data, &temp); err != nil {

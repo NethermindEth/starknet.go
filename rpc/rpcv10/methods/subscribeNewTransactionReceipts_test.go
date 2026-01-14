@@ -11,6 +11,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -128,7 +129,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					})
 			}
 
-			receipts := make(chan *TransactionReceiptWithBlockInfo)
+			receipts := make(chan *types.TransactionReceiptWithBlockInfo)
 			sub, err := SubscribeNewTransactionReceipts(
 				t.Context(),
 				tsetup.WsProvider,
@@ -216,7 +217,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				})
 		}
 
-		receipts := make(chan *TransactionReceiptWithBlockInfo)
+		receipts := make(chan *types.TransactionReceiptWithBlockInfo)
 		sub, err := SubscribeNewTransactionReceipts(
 			t.Context(),
 			tsetup.WsProvider,

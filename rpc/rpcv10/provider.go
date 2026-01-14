@@ -179,7 +179,7 @@ type RPCProvider interface {
 	TransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,
-	) (*TransactionReceiptWithBlockInfo, error)
+	) (*types.TransactionReceiptWithBlockInfo, error)
 	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
 }
 
@@ -201,7 +201,7 @@ type WebsocketProvider interface {
 	) (*client.ClientSubscription, error)
 	SubscribeNewTransactionReceipts(
 		ctx context.Context,
-		txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+		txnReceipts chan<- *types.TransactionReceiptWithBlockInfo,
 		options *SubNewTxnReceiptsInput,
 	) (*client.ClientSubscription, error)
 	SubscribeTransactionStatus(

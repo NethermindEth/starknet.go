@@ -84,7 +84,7 @@ type RPCProviderV10Copy interface {
 	// 	blockID types.BlockID,
 	// 	index uint64,
 	// ) (*BlockTransaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
 	TransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,

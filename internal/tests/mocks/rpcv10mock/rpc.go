@@ -496,10 +496,10 @@ func (mr *MockRPCProviderMockRecorder) TransactionByHash(ctx, hash any) *gomock.
 }
 
 // TransactionReceipt mocks base method.
-func (m *MockRPCProvider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*rpcv10.TransactionReceiptWithBlockInfo, error) {
+func (m *MockRPCProvider) TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (*types.TransactionReceiptWithBlockInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionReceipt", ctx, transactionHash)
-	ret0, _ := ret[0].(*rpcv10.TransactionReceiptWithBlockInfo)
+	ret0, _ := ret[0].(*types.TransactionReceiptWithBlockInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -580,7 +580,7 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeNewHeads(ctx, headers, sub
 }
 
 // SubscribeNewTransactionReceipts mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewTransactionReceipts(ctx context.Context, txnReceipts chan<- *rpcv10.TransactionReceiptWithBlockInfo, options *rpcv10.SubNewTxnReceiptsInput) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewTransactionReceipts(ctx context.Context, txnReceipts chan<- *types.TransactionReceiptWithBlockInfo, options *rpcv10.SubNewTxnReceiptsInput) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeNewTransactionReceipts", ctx, txnReceipts, options)
 	ret0, _ := ret[0].(*client.ClientSubscription)

@@ -232,7 +232,7 @@ func (provider *Provider) TransactionByHash(
 func (provider *Provider) TransactionReceipt(
 	ctx context.Context,
 	transactionHash *felt.Felt,
-) (*TransactionReceiptWithBlockInfo, error) {
+) (*types.TransactionReceiptWithBlockInfo, error) {
 	return nil, nil
 }
 
@@ -271,7 +271,7 @@ func (ws *WsProvider) SubscribeNewTransactions(
 
 func (ws *WsProvider) SubscribeNewTransactionReceipts(
 	ctx context.Context,
-	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+	txnReceipts chan<- *types.TransactionReceiptWithBlockInfo,
 	options *SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {
 	return nil, nil
