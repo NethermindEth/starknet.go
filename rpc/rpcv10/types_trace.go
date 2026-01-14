@@ -28,40 +28,40 @@ var (
 type InvokeTxnTrace struct {
 	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
 	// the trace of the __execute__ call
-	ExecuteInvocation     ExecInvocation        `json:"execute_invocation"`
-	FeeTransferInvocation *FnInvocation         `json:"fee_transfer_invocation,omitempty"`
-	StateDiff             *StateDiff            `json:"state_diff,omitempty"`
-	Type                  types.TransactionType `json:"type"`
-	ExecutionResources    ExecutionResources    `json:"execution_resources"`
+	ExecuteInvocation     ExecInvocation           `json:"execute_invocation"`
+	FeeTransferInvocation *FnInvocation            `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff               `json:"state_diff,omitempty"`
+	Type                  types.TransactionType    `json:"type"`
+	ExecutionResources    types.ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of a declare transaction
 type DeclareTxnTrace struct {
-	ValidateInvocation    *FnInvocation         `json:"validate_invocation,omitempty"`
-	FeeTransferInvocation *FnInvocation         `json:"fee_transfer_invocation,omitempty"`
-	StateDiff             *StateDiff            `json:"state_diff,omitempty"`
-	Type                  types.TransactionType `json:"type"`
-	ExecutionResources    ExecutionResources    `json:"execution_resources"`
+	ValidateInvocation    *FnInvocation            `json:"validate_invocation,omitempty"`
+	FeeTransferInvocation *FnInvocation            `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff               `json:"state_diff,omitempty"`
+	Type                  types.TransactionType    `json:"type"`
+	ExecutionResources    types.ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of a deploy account transaction
 type DeployAccountTxnTrace struct {
 	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
 	// the trace of the constructor call
-	ConstructorInvocation FnInvocation          `json:"constructor_invocation"`
-	FeeTransferInvocation *FnInvocation         `json:"fee_transfer_invocation,omitempty"`
-	StateDiff             *StateDiff            `json:"state_diff,omitempty"`
-	Type                  types.TransactionType `json:"type"`
-	ExecutionResources    ExecutionResources    `json:"execution_resources"`
+	ConstructorInvocation FnInvocation             `json:"constructor_invocation"`
+	FeeTransferInvocation *FnInvocation            `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff               `json:"state_diff,omitempty"`
+	Type                  types.TransactionType    `json:"type"`
+	ExecutionResources    types.ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of an L1 handler transaction
 type L1HandlerTxnTrace struct {
 	// the trace of the L1 handler call
-	FunctionInvocation FnInvocation          `json:"function_invocation"`
-	StateDiff          *StateDiff            `json:"state_diff,omitempty"`
-	ExecutionResources ExecutionResources    `json:"execution_resources"`
-	Type               types.TransactionType `json:"type"`
+	FunctionInvocation FnInvocation             `json:"function_invocation"`
+	StateDiff          *StateDiff               `json:"state_diff,omitempty"`
+	ExecutionResources types.ExecutionResources `json:"execution_resources"`
+	Type               types.TransactionType    `json:"type"`
 }
 
 type EntryPointType string

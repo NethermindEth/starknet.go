@@ -8,17 +8,7 @@ import (
 type OrderedEvent struct {
 	// The order of the event within the transaction
 	Order int `json:"order"`
-	*EventContent
-}
-
-type Event struct {
-	FromAddress *felt.Felt `json:"from_address"`
-	EventContent
-}
-
-type EventContent struct {
-	Keys []*felt.Felt `json:"keys"`
-	Data []*felt.Felt `json:"data"`
+	*types.EventContent
 }
 
 type EventChunk struct {
@@ -28,7 +18,7 @@ type EventChunk struct {
 
 // EmittedEvent an event emitted as a result of transaction execution
 type EmittedEvent struct {
-	Event
+	types.Event
 	// BlockHash the hash of the block in which the event was emitted
 	BlockHash *felt.Felt `json:"block_hash,omitempty"`
 	// BlockNumber the number of the block in which the event was emitted

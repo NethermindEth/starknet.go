@@ -5,15 +5,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
-type MsgToL1 struct {
-	// FromAddress The address of the L2 contract sending the message
-	FromAddress *felt.Felt `json:"from_address"`
-	// ToAddress The target L1 address the message is sent to
-	ToAddress *felt.Felt `json:"to_address"`
-	// Payload  The payload of the message
-	Payload []*felt.Felt `json:"payload"`
-}
-
 type MsgFromL1 struct {
 	// FromAddress The address of the L1 contract sending the message
 	FromAddress string `json:"from_address"`
@@ -43,17 +34,7 @@ type MessageStatus struct {
 type OrderedMsg struct {
 	// The order of the message within the transaction
 	Order   int `json:"order"`
-	MsgToL1 MsgToL1
-}
-
-type ExecutionResources struct {
-	// l1 gas consumed by this transaction, used for l2-->l1 messages and state
-	// updates if blobs are not used
-	L1Gas uint `json:"l1_gas"`
-	// data gas consumed by this transaction, 0 if blobs are not used
-	L1DataGas uint `json:"l1_data_gas"`
-	// l2 gas consumed by this transaction, used for computation and calldata
-	L2Gas uint `json:"l2_gas"`
+	MsgToL1 types.MsgToL1
 }
 
 type TxnStatus string
