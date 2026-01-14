@@ -316,7 +316,7 @@ func (mr *MockRPCProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 }
 
 // MessagesStatus mocks base method.
-func (m *MockRPCProvider) MessagesStatus(ctx context.Context, transactionHash rpcv10.NumAsHex) ([]rpcv10.MessageStatus, error) {
+func (m *MockRPCProvider) MessagesStatus(ctx context.Context, transactionHash types.NumAsHex) ([]rpcv10.MessageStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MessagesStatus", ctx, transactionHash)
 	ret0, _ := ret[0].([]rpcv10.MessageStatus)

@@ -10,9 +10,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
-// An unsigned integer number in hex format (0x...)
-type NumAsHex string
-
 // A storage key, represented as a string of hex digits.
 // Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
 type StorageKey string
@@ -136,7 +133,7 @@ func (m *MerkleNode) MarshalJSON() ([]byte, error) {
 type EdgeNode struct {
 	// an unsigned integer whose binary representation represents the path from
 	// the current node to its highest non-zero descendant (bounded by 2^251)
-	Path NumAsHex `json:"path"`
+	Path types.NumAsHex `json:"path"`
 	// the length of the path (bounded by 251)
 	Length uint `json:"length"`
 	// the hash of the unique non-zero maximal-height descendant node

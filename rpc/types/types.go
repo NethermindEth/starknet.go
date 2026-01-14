@@ -9,6 +9,9 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+// An unsigned integer number in hex format (0x...)
+type NumAsHex string
+
 // 64 bit unsigned integers, represented by hex string of length at most 16
 type U64 string
 
