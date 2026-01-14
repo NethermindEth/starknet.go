@@ -15,12 +15,12 @@ type Block struct {
 	BlockHeader
 	Status BlockStatus `json:"status"`
 	// Transactions The transactions in this block
-	Transactions []BlockTransaction `json:"transactions"`
+	Transactions []types.BlockTransaction `json:"transactions"`
 }
 
 type PreConfirmedBlock struct {
 	PreConfirmedBlockHeader
-	Transactions []BlockTransaction `json:"transactions"`
+	Transactions []types.BlockTransaction `json:"transactions"`
 }
 
 // encoding/json doesn't support inlining fields

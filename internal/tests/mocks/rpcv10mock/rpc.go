@@ -466,10 +466,10 @@ func (mr *MockRPCProviderMockRecorder) TraceTransaction(ctx, transactionHash any
 }
 
 // TransactionByBlockIDAndIndex mocks base method.
-func (m *MockRPCProvider) TransactionByBlockIDAndIndex(ctx context.Context, blockID types.BlockID, index uint64) (*rpcv10.BlockTransaction, error) {
+func (m *MockRPCProvider) TransactionByBlockIDAndIndex(ctx context.Context, blockID types.BlockID, index uint64) (*types.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByBlockIDAndIndex", ctx, blockID, index)
-	ret0, _ := ret[0].(*rpcv10.BlockTransaction)
+	ret0, _ := ret[0].(*types.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -481,10 +481,10 @@ func (mr *MockRPCProviderMockRecorder) TransactionByBlockIDAndIndex(ctx, blockID
 }
 
 // TransactionByHash mocks base method.
-func (m *MockRPCProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*rpcv10.BlockTransaction, error) {
+func (m *MockRPCProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*types.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(*rpcv10.BlockTransaction)
+	ret0, _ := ret[0].(*types.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

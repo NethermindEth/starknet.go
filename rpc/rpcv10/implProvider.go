@@ -218,14 +218,14 @@ func (provider *Provider) TransactionByBlockIDAndIndex(
 	ctx context.Context,
 	blockID types.BlockID,
 	index uint64,
-) (*BlockTransaction, error) {
+) (*types.BlockTransaction, error) {
 	return nil, nil
 }
 
 func (provider *Provider) TransactionByHash(
 	ctx context.Context,
 	hash *felt.Felt,
-) (*BlockTransaction, error) {
+) (*types.BlockTransaction, error) {
 	return nil, nil
 }
 

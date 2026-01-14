@@ -25,8 +25,8 @@ func TransactionByBlockIDAndIndex(
 	c callers.Caller,
 	blockID types.BlockID,
 	index uint64,
-) (*rpcv10.BlockTransaction, error) {
-	var tx rpcv10.BlockTransaction
+) (*types.BlockTransaction, error) {
+	var tx types.BlockTransaction
 	if err := internal.Do(
 		ctx, c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
 	); err != nil {

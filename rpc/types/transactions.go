@@ -54,18 +54,6 @@ type InvokeTxnV3 struct {
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
-// @changed removed the FunctionCall type and replaced it with its fields
-type L1HandlerTxn struct {
-	Type TransactionType `json:"type"`
-	// Version of the transaction scheme
-	Version TransactionVersion `json:"version"`
-	// Nonce
-	Nonce              string       `json:"nonce"`
-	ContractAddress    *felt.Felt   `json:"contract_address"`
-	EntryPointSelector *felt.Felt   `json:"entry_point_selector"`
-	Calldata           []*felt.Felt `json:"calldata"`
-}
-
 type DeclareTxnV0 struct {
 	Type TransactionType `json:"type"`
 	// SenderAddress the address of the account contract sending the declaration transaction
@@ -118,6 +106,125 @@ type DeclareTxnV3 struct {
 	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
+
+// DeployAccountTxnV1 The structure of a deployAccount transaction.
+type DeployAccountTxnV1 struct {
+	MaxFee    *felt.Felt         `json:"max_fee"`
+	Version   TransactionVersion `json:"version"`
+	Signature []*felt.Felt       `json:"signature"`
+	Nonce     *felt.Felt         `json:"nonce"`
+	Type      TransactionType    `json:"type"`
+	// ClassHash The hash of the deployed contract's class
+	ClassHash *felt.Felt `json:"class_hash"`
+
+	// ContractAddressSalt The salt for the address of the deployed contract
+	ContractAddressSalt *felt.Felt `json:"contract_address_salt"`
+
+	// ConstructorCalldata The parameters passed to the constructor
+	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
+}
+
+type DeployAccountTxnV3 struct {
+	Type                TransactionType        `json:"type"`
+	Version             TransactionVersion     `json:"version"`
+	Signature           []*felt.Felt           `json:"signature"`
+	Nonce               *felt.Felt             `json:"nonce"`
+	ContractAddressSalt *felt.Felt             `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
+	ClassHash           *felt.Felt             `json:"class_hash"`
+	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip                 U64                    `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+}
+
+// @changed removed the FunctionCall type and replaced it with its fields
+type L1HandlerTxn struct {
+	Type TransactionType `json:"type"`
+	// Version of the transaction scheme
+	Version TransactionVersion `json:"version"`
+	// Nonce
+	Nonce              string       `json:"nonce"`
+	ContractAddress    *felt.Felt   `json:"contract_address"`
+	EntryPointSelector *felt.Felt   `json:"entry_point_selector"`
+	Calldata           []*felt.Felt `json:"calldata"`
+}
+
+// DeployTxn The structure of a deploy transaction. Note that this transaction type
+// is deprecated and will no longer be supported in future versions
+type DeployTxn struct {
+	// ClassHash The hash of the deployed contract's class
+	ClassHash *felt.Felt `json:"class_hash"`
+
+	Version             TransactionVersion `json:"version"`
+	Type                TransactionType    `json:"type"`
+	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
+	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
+}
+
+type BlockTransaction struct {
+	Hash *felt.Felt `json:"transaction_hash"`
+	Transaction
+}
+
+// UnmarshalJSON unmarshals the data into a BlockTransaction object.
+//
+// It takes a byte slice as the parameter, representing the JSON data to be
+// unmarshalled.
+// The function returns an error if the unmarshalling process fails.
+//
+// Parameters:
+//   - data: The JSON data to be unmarshalled
+//
+// Returns:
+//   - error: An error if the unmarshalling process fails
+func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
+	type alias BlockTransaction
+	var aux alias
+
+	err := json.Unmarshal(data, &aux)
+	if err != nil {
+		return err
+	}
+
+	txn, err := unmarshalTxn(data)
+	if err != nil {
+		return err
+	}
+
+	blockTxn.Hash = aux.Hash
+	blockTxn.Transaction = txn
+
+	return nil
+}
+
+// MarshalJSON marshals the BlockTransaction object into a JSON byte slice.
+//
+// It takes a pointer to a BlockTransaction object as the parameter.
+// The function returns a byte slice representing the JSON data and an error if
+// the marshalling process fails.
+func (blockTxn *BlockTransaction) MarshalJSON() ([]byte, error) {
+	// First marshal the transaction to get all its fields
+	txnData, err := json.Marshal(blockTxn.Transaction)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal into a map to add the hash field
+	var result map[string]interface{}
+	if err := json.Unmarshal(txnData, &result); err != nil {
+		return nil, err
+	}
+
+	// Add the hash field
+	result["transaction_hash"] = blockTxn.Hash
+
+	return json.Marshal(result)
 }
 
 type ResourceBoundsMapping struct {
@@ -202,53 +309,6 @@ func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {
 		maxAmountBytes,
 		maxPriceBytes[16:], // uint128.
 	), nil
-}
-
-// DeployTxn The structure of a deploy transaction. Note that this transaction type
-// is deprecated and will no longer be supported in future versions
-type DeployTxn struct {
-	// ClassHash The hash of the deployed contract's class
-	ClassHash *felt.Felt `json:"class_hash"`
-
-	Version             TransactionVersion `json:"version"`
-	Type                TransactionType    `json:"type"`
-	ContractAddressSalt *felt.Felt         `json:"contract_address_salt"`
-	ConstructorCalldata []*felt.Felt       `json:"constructor_calldata"`
-}
-
-// DeployAccountTxnV1 The structure of a deployAccount transaction.
-type DeployAccountTxnV1 struct {
-	MaxFee    *felt.Felt         `json:"max_fee"`
-	Version   TransactionVersion `json:"version"`
-	Signature []*felt.Felt       `json:"signature"`
-	Nonce     *felt.Felt         `json:"nonce"`
-	Type      TransactionType    `json:"type"`
-	// ClassHash The hash of the deployed contract's class
-	ClassHash *felt.Felt `json:"class_hash"`
-
-	// ContractAddressSalt The salt for the address of the deployed contract
-	ContractAddressSalt *felt.Felt `json:"contract_address_salt"`
-
-	// ConstructorCalldata The parameters passed to the constructor
-	ConstructorCalldata []*felt.Felt `json:"constructor_calldata"`
-}
-
-type DeployAccountTxnV3 struct {
-	Type                TransactionType        `json:"type"`
-	Version             TransactionVersion     `json:"version"`
-	Signature           []*felt.Felt           `json:"signature"`
-	Nonce               *felt.Felt             `json:"nonce"`
-	ContractAddressSalt *felt.Felt             `json:"contract_address_salt"`
-	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
-	ClassHash           *felt.Felt             `json:"class_hash"`
-	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
-	Tip                 U64                    `json:"tip"`
-	// The data needed to allow the paymaster to pay for the transaction in native tokens
-	PayMasterData []*felt.Felt `json:"paymaster_data"`
-	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
-	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
 // string must be NUM_AS_HEX
@@ -386,4 +446,78 @@ type TransactionResponse struct {
 	ClassHash *felt.Felt `json:"class_hash,omitempty"`
 	// Present only for deploy_account transactions
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+}
+
+// unmarshalTxnToType is a generic function that takes in a byte slice 'data',
+// unmarshals it to a concrete transaction of type T, and returns the concrete
+// transaction wrapped in the Transaction interface.
+func unmarshalTxnToType[T Transaction](data []byte) (T, error) {
+	var resp T
+
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return resp, err
+	}
+
+	return resp, nil
+}
+
+// unmarshalTxn unmarshals a given txn as a byte slice and returns a concrete
+// transaction type wrapped in the Transaction interface.
+//
+// Parameters:
+//   - data: The transaction to be unmarshaled
+//
+// Returns:
+//   - Transaction: a concrete transaction type wrapped in the Transaction interface
+//   - error: an error if the unmarshaling process fails
+//
+//nolint:gocyclo // Inevitable due to many switch cases
+func unmarshalTxn(data []byte) (Transaction, error) {
+	// TODO: this function is duplicated in rpcv10 (and maybe in other rpc versions).
+	// It was the easiest way to avoid exporting it to the users.
+	// We should find a better way to do this.
+	var txnAsMap map[string]interface{}
+	if err := json.Unmarshal(data, &txnAsMap); err != nil {
+		return nil, err
+	}
+
+	switch TransactionType(txnAsMap["type"].(string)) {
+	case TransactionTypeDeclare:
+		switch TransactionVersion(txnAsMap["version"].(string)) {
+		case TransactionV0:
+			return unmarshalTxnToType[DeclareTxnV0](data)
+		case TransactionV1:
+			return unmarshalTxnToType[DeclareTxnV1](data)
+		case TransactionV2:
+			return unmarshalTxnToType[DeclareTxnV2](data)
+		case TransactionV3:
+			return unmarshalTxnToType[DeclareTxnV3](data)
+		default:
+			return nil, errors.New(
+				"internal error with Declare transaction version and unmarshalTxn()",
+			)
+		}
+	case TransactionTypeDeploy:
+		return unmarshalTxnToType[DeployTxn](data)
+	case TransactionTypeDeployAccount:
+		switch TransactionVersion(txnAsMap["version"].(string)) {
+		case TransactionV1:
+			return unmarshalTxnToType[DeployAccountTxnV1](data)
+		case TransactionV3:
+			return unmarshalTxnToType[DeployAccountTxnV3](data)
+		}
+	case TransactionTypeInvoke:
+		switch TransactionVersion(txnAsMap["version"].(string)) {
+		case TransactionV0:
+			return unmarshalTxnToType[InvokeTxnV0](data)
+		case TransactionV1:
+			return unmarshalTxnToType[InvokeTxnV1](data)
+		case TransactionV3:
+			return unmarshalTxnToType[InvokeTxnV3](data)
+		}
+	case TransactionTypeL1Handler:
+		return unmarshalTxnToType[L1HandlerTxn](data)
+	}
+
+	return nil, fmt.Errorf("unknown transaction type: %v", txnAsMap["type"])
 }

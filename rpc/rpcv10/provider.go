@@ -174,8 +174,8 @@ type RPCProvider interface {
 		ctx context.Context,
 		blockID types.BlockID,
 		index uint64,
-	) (*BlockTransaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+	) (*types.BlockTransaction, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (*types.BlockTransaction, error)
 	TransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,
