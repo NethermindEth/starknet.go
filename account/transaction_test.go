@@ -31,7 +31,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	// TODO: implement devnet support
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	provider, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acc, err := setupAcc(t, provider)
@@ -79,7 +79,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	// TODO: implement devnet support
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	provider, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acc, err := setupAcc(t, provider)
@@ -292,7 +292,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	// TODO: implement devnet support
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	provider, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	// we need this account to fund the new account with STRK tokens, in order to deploy it
@@ -618,7 +618,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	t.Run("on devnet", func(t *testing.T) {
 		tests.RunTestOn(t, tests.DevnetEnv)
 
-		client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+		client, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		_, acnts, err := newDevnet(t, tConfig.providerURL)
@@ -777,7 +777,7 @@ func TestSendInvokeTxn(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+		client, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		// Set up ks
@@ -855,7 +855,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	client, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, account.CairoV0)
@@ -952,7 +952,7 @@ func TestSendDeclareTxn(t *testing.T) {
 func TestSendDeployAccountDevnet(t *testing.T) {
 	tests.RunTestOn(t, tests.DevnetEnv)
 
-	client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	client, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	devnetClient, acnts, err := newDevnet(t, tConfig.providerURL)
@@ -1138,7 +1138,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 func TestWaitForTransactionReceipt(t *testing.T) {
 	tests.RunTestOn(t, tests.DevnetEnv)
 
-	client, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	client, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	acnt, err := account.NewAccount(
@@ -1199,7 +1199,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 func TestDeployContractWithUDC(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProvider(t.Context(), tConfig.providerURL)
+	provider, err := rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
 	accnt, err := setupAcc(t, provider)

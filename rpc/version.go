@@ -7,7 +7,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 )
 
-func (p *Provider) Version() RPCVersion {
+func (p *BasicProvider) Version() RPCVersion {
 	return p.version
 }
 

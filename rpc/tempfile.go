@@ -103,3 +103,39 @@ type OtherMethods interface {
 	EstimateTip()
 	SendTransaction()
 }
+
+// implementing the methods
+func (p *BasicProvider) BlockHashAndNumber(ctx context.Context) (uint64, *felt.Felt, error)
+func (p *BasicProvider) Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
+func (p *BasicProvider) ChainID(ctx context.Context) (string, error)
+func (p *BasicProvider) EstimateFee(
+	ctx context.Context,
+	requests []types.BroadcastTxn,
+	simulationFlags []types.SimulationFlag,
+	blockID types.BlockID,
+) ([]types.FeeEstimation, error)
+func (p *BasicProvider) Nonce(
+	ctx context.Context,
+	blockID types.BlockID,
+	contractAddress *felt.Felt,
+) (*felt.Felt, error)
+func (p *BasicProvider) IsSyncing(ctx context.Context) (bool, error)
+func (p *BasicProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
+func (p *BasicProvider) TransactionReceipt(
+	ctx context.Context,
+	transactionHash *felt.Felt,
+) (types.TransactionReceiptWithBlockInfo, error)
+func (p *BasicProvider) TransactionStatus(
+	ctx context.Context,
+	transactionHash *felt.Felt,
+) (types.TxnStatusResult, error)
+
+func (p *BasicProvider) EstimateTip()
+func (p *BasicProvider) SendTransaction()
+func (p *BasicProvider) AsV9() rpcv9.RPCProvider {
+	return p.rpcv9
+}
+
+func (p *BasicProvider) AsV10() rpcv10.RPCProvider {
+	return p.rpcv10
+}
