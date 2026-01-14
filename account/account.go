@@ -32,20 +32,20 @@ type AccountInterface interface {
 		ctx context.Context,
 		functionCalls []types.InvokeFunctionCall,
 		opts *TxnOptions,
-	) (rpc.AddInvokeTransactionResponse, error)
+	) (types.TransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
 		opts *TxnOptions,
-	) (rpc.AddDeclareTransactionResponse, error)
+	) (types.TransactionResponse, error)
 	DeployContractWithUDC(
 		ctx context.Context,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
 		txnOpts *TxnOptions,
 		udcOpts *UDCOptions,
-	) (rpc.AddInvokeTransactionResponse, *felt.Felt, error)
+	) (types.TransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
@@ -67,10 +67,12 @@ type AccountInterface interface {
 		ctx context.Context,
 		transactionHash *felt.Felt,
 		pollInterval time.Duration,
-	) (*rpc.TransactionReceiptWithBlockInfo, error)
+	) (*types.TransactionReceiptWithBlockInfo, error)
 }
 
 var _ AccountInterface = (*Account)(nil)
+
+// @changed
 
 type Account struct {
 	Provider     rpc.RPCProvider

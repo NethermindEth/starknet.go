@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/NethermindEth/starknet.go/client"
-	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10/methods"
@@ -16,7 +15,6 @@ import (
 // add tests where needed
 
 type BasicProvider struct {
-	c       callers.Caller
 	chainID string
 	version RPCVersion
 
@@ -76,4 +74,19 @@ func NewBasicProvider(
 	}
 
 	return &provider, nil
+}
+
+func NewBasicProviderFrom[P RPCProvider](provider P) *BasicProvider {
+	var basic BasicProvider
+
+	switch p := any(provider).(type) {
+	case *rpcv9.Provider:
+		basic.rpcv9 = p
+		basic.version = RPCVersion9
+	case *rpcv10.Provider:
+		basic.rpcv10 = p
+		basic.version = RPCVersion10
+	}
+
+	return &basic
 }
