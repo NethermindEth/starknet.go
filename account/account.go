@@ -9,6 +9,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -18,7 +20,7 @@ var (
 )
 
 // @changed
-
+//
 //go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	BuildAndEstimateDeployAccountTxn(
@@ -73,9 +75,9 @@ type AccountInterface interface {
 var _ AccountInterface = (*Account)(nil)
 
 // @changed
-
 type Account struct {
-	Provider     rpc.RPCProvider
+	// TODO: in the future, make all fields private and add getter methods
+	Provider     rpc.BasicProviderInterface
 	ChainID      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string
@@ -94,6 +96,12 @@ const (
 	CairoV2 CairoVersion = 2
 )
 
+// @new
+type RPCProvider interface {
+	*rpc.BasicProvider | rpc.RPCProvider
+}
+
+// @changed
 // NewAccount creates a new Account instance.
 //
 // Parameters:
@@ -106,20 +114,31 @@ const (
 // It returns:
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
-func NewAccount(
-	provider rpc.RPCProvider,
+func NewAccount[P RPCProvider](
+	provider P,
 	accountAddress *felt.Felt,
 	publicKey string,
 	keystore Keystore,
 	cairoVersion CairoVersion,
 ) (*Account, error) {
-	chainID, err := provider.ChainID(context.Background())
+	// @todo remember to rename this var after renaming the BasicProvider
+	var basicProvider rpc.BasicProviderInterface
+	switch p := any(provider).(type) {
+	case *rpc.BasicProvider:
+		basicProvider = p
+	case *rpcv9.Provider:
+		basicProvider = rpc.NewBasicProviderFrom(p)
+	case *rpcv10.Provider:
+		basicProvider = rpc.NewBasicProviderFrom(p)
+	}
+
+	chainID, err := basicProvider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	account := &Account{
-		Provider:     provider,
+		Provider:     basicProvider,
 		Address:      accountAddress,
 		publicKey:    publicKey,
 		ks:           keystore,

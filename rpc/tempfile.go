@@ -104,6 +104,13 @@ type OtherMethods interface {
 	SendTransaction()
 }
 
+type BasicProviderInterface interface {
+	RPCProviderV10Copy
+	OtherMethods
+}
+
+var _ BasicProviderInterface = (*BasicProvider)(nil)
+
 // implementing the methods
 func (p *BasicProvider) BlockHashAndNumber(ctx context.Context) (uint64, *felt.Felt, error)
 func (p *BasicProvider) Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
