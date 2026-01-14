@@ -107,13 +107,13 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusPreConfirmed,
+				FinalityStatus: types.TxnFinalityStatusPreConfirmed,
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -122,7 +122,7 @@ func TestSubscribeEvents(t *testing.T) {
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
 				SubBlockID:     new(types.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{

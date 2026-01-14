@@ -13,7 +13,7 @@ type SubNewTxnReceiptsInput struct {
 	// Optional: A vector of finality statuses to receive updates for.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is
 	// `ACCEPTED_ON_L2`.
-	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
+	FinalityStatus []types.TxnFinalityStatus `json:"finality_status,omitempty"`
 	// Optional: Filter transaction receipts to only include transactions
 	// sent by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`

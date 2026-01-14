@@ -2,6 +2,7 @@ package rpcv10
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type MsgToL1 struct {
@@ -32,9 +33,9 @@ type MessageStatus struct {
 	// The finality status of the L1_HANDLER transaction, including the case the txn
 	// is still in the mempool or
 	// failed validation during the block construction phase
-	FinalityStatus TxnFinalityStatus `json:"finality_status"`
+	FinalityStatus types.TxnFinalityStatus `json:"finality_status"`
 	// The execution status of the L1_HANDLER transaction
-	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+	ExecutionStatus types.TxnExecutionStatus `json:"execution_status"`
 	// The failure reason. Only appears if `execution_status` is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }
@@ -67,8 +68,8 @@ const (
 
 // Transaction status result, including finality status and execution status
 type TxnStatusResult struct {
-	FinalityStatus  TxnStatus          `json:"finality_status"`
-	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FinalityStatus  TxnStatus                `json:"finality_status"`
+	ExecutionStatus types.TxnExecutionStatus `json:"execution_status,omitempty"`
 	// the failure reason, only appears if execution_status is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }

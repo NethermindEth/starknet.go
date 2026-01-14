@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -165,20 +163,6 @@ type SyncStatus struct {
 }
 
 // MarshalJSON marshals the SyncStatus struct into JSON format.
-//
-// It returns a byte slice and an error. The byte slice represents the JSON
-// encoding of the SyncStatus struct, while the error indicates any error that
-// occurred during the marshalling process.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: the JSON encoding of the SyncStatus struct
-//   - error: any error that occurred during the marshalling process
-//
-
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	if !s.IsSyncing {
 		return []byte("false"), nil
@@ -226,125 +210,4 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 type AddDeclareTransactionOutput struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	ClassHash       *felt.Felt `json:"class_hash"`
-}
-
-type TxnExecutionStatus string
-
-const (
-	TxnExecutionStatusSUCCEEDED TxnExecutionStatus = "SUCCEEDED"
-	TxnExecutionStatusREVERTED  TxnExecutionStatus = "REVERTED"
-)
-
-// UnmarshalJSON unmarshals the JSON data into a TxnExecutionStatus struct.
-//
-// Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to
-//     be unmarshalled
-//
-// Returns:
-//   - error: an error if the unmarshaling fails
-func (ex *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-	switch unquoted {
-	case "SUCCEEDED":
-		*ex = TxnExecutionStatusSUCCEEDED
-	case "REVERTED":
-		*ex = TxnExecutionStatusREVERTED
-	default:
-		return fmt.Errorf("unsupported execution status: %s", data)
-	}
-
-	return nil
-}
-
-// MarshalJSON returns the JSON encoding of the TxnExecutionStatus.
-//
-// It marshals the TxnExecutionStatus into a byte slice by quoting its string
-// representation.
-// The function returns the marshalled byte slice and a nil error.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: the JSON encoding of the TxnExecutionStatus
-//   - error: the error if there was an issue marshalling
-func (ex TxnExecutionStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(ex))), nil
-}
-
-// String returns the string representation of the TxnExecutionStatus.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - string: the string representation of the TxnExecutionStatus
-func (ex TxnExecutionStatus) String() string {
-	return string(ex)
-}
-
-type TxnFinalityStatus string
-
-const (
-	TxnFinalityStatusPreConfirmed TxnFinalityStatus = "PRE_CONFIRMED"
-	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
-	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
-)
-
-// UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
-//
-// Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to
-//     be unmarshalled
-//
-// Returns:
-//   - error: an error if the unmarshaling fails
-func (fs *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-	switch unquoted {
-	case "PRE_CONFIRMED":
-		*fs = TxnFinalityStatusPreConfirmed
-	case "ACCEPTED_ON_L2":
-		*fs = TxnFinalityStatusAcceptedOnL2
-	case "ACCEPTED_ON_L1":
-		*fs = TxnFinalityStatusAcceptedOnL1
-	default:
-		return fmt.Errorf("unsupported finality status: %s", data)
-	}
-
-	return nil
-}
-
-// MarshalJSON marshals the TxnFinalityStatus into JSON.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: a byte slice
-//   - error: an error if any
-func (fs TxnFinalityStatus) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.Quote(string(fs))), nil
-}
-
-// String returns the string representation of the TxnFinalityStatus.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - string: the string representation of the TxnFinalityStatus
-func (fs TxnFinalityStatus) String() string {
-	return string(fs)
 }

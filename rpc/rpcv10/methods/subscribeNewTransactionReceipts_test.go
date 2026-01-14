@@ -48,22 +48,22 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
+				FinalityStatus: []types.TxnFinalityStatus{types.TxnFinalityStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
+				FinalityStatus: []types.TxnFinalityStatus{types.TxnFinalityStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnReceiptsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []TxnFinalityStatus{
-					TxnFinalityStatusAcceptedOnL2,
-					TxnFinalityStatusPreConfirmed,
+				FinalityStatus: []types.TxnFinalityStatus{
+					types.TxnFinalityStatusAcceptedOnL2,
+					types.TxnFinalityStatusPreConfirmed,
 				},
 			},
 		},
