@@ -37,26 +37,8 @@ type OrderedMsg struct {
 	MsgToL1 types.MsgToL1
 }
 
-type TxnStatus string
-
-const (
-	TxnStatusReceived     TxnStatus = "RECEIVED"
-	TxnStatusCandidate    TxnStatus = "CANDIDATE"
-	TxnStatusPreConfirmed TxnStatus = "PRE_CONFIRMED"
-	TxnStatusAcceptedOnL2 TxnStatus = "ACCEPTED_ON_L2"
-	TxnStatusAcceptedOnL1 TxnStatus = "ACCEPTED_ON_L1"
-)
-
-// Transaction status result, including finality status and execution status
-type TxnStatusResult struct {
-	FinalityStatus  TxnStatus                `json:"finality_status"`
-	ExecutionStatus types.TxnExecutionStatus `json:"execution_status,omitempty"`
-	// the failure reason, only appears if execution_status is REVERTED
-	FailureReason string `json:"failure_reason,omitempty"`
-}
-
 // The response of the starknet_subscribeTransactionStatus subscription.
 type NewTxnStatus struct {
-	TransactionHash *felt.Felt      `json:"transaction_hash"`
-	Status          TxnStatusResult `json:"status"`
+	TransactionHash *felt.Felt            `json:"transaction_hash"`
+	Status          types.TxnStatusResult `json:"status"`
 }

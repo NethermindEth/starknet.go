@@ -239,7 +239,7 @@ func (provider *Provider) TransactionReceipt(
 func (provider *Provider) TransactionStatus(
 	ctx context.Context,
 	transactionHash *felt.Felt,
-) (*TxnStatusResult, error) {
+) (*types.TxnStatusResult, error) {
 	return nil, nil
 }
 

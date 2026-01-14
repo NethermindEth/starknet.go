@@ -407,7 +407,7 @@ func transferSTRKAndWaitConfirmation(
 		t.Context(),
 		acc.Provider,
 		resp.Hash,
-		rpc.TxnStatusAcceptedOnL2,
+		types.TxnStatusAcceptedOnL2,
 		500*time.Millisecond,
 	)
 	require.NoError(t, err, "Error waiting for transfer transaction status")
@@ -420,7 +420,7 @@ func waitForTransactionStatus(
 	ctx context.Context,
 	provider rpc.RPCProvider,
 	transactionHash *felt.Felt,
-	txnStatus rpc.TxnStatus,
+	txnStatus types.TxnStatus,
 	pollInterval time.Duration,
 ) error {
 	t := time.NewTicker(pollInterval)

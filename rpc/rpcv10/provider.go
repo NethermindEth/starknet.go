@@ -180,7 +180,7 @@ type RPCProvider interface {
 		ctx context.Context,
 		transactionHash *felt.Felt,
 	) (*types.TransactionReceiptWithBlockInfo, error)
-	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
+	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*types.TxnStatusResult, error)
 }
 
 type WebsocketProvider interface {

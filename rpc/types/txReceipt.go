@@ -140,3 +140,21 @@ type ExecutionResources struct {
 	// l2 gas consumed by this transaction, used for computation and calldata
 	L2Gas uint `json:"l2_gas"`
 }
+
+type TxnStatus string
+
+const (
+	TxnStatusReceived     TxnStatus = "RECEIVED"
+	TxnStatusCandidate    TxnStatus = "CANDIDATE"
+	TxnStatusPreConfirmed TxnStatus = "PRE_CONFIRMED"
+	TxnStatusAcceptedOnL2 TxnStatus = "ACCEPTED_ON_L2"
+	TxnStatusAcceptedOnL1 TxnStatus = "ACCEPTED_ON_L1"
+)
+
+// Transaction status result, including finality status and execution status
+type TxnStatusResult struct {
+	FinalityStatus  TxnStatus          `json:"finality_status"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	// the failure reason, only appears if execution_status is REVERTED
+	FailureReason string `json:"failure_reason,omitempty"`
+}

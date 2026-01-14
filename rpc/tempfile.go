@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -84,10 +86,20 @@ type RPCProviderV10Copy interface {
 	// 	blockID types.BlockID,
 	// 	index uint64,
 	// ) (*BlockTransaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error) //****modified****
 	TransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,
-	) (*TransactionReceiptWithBlockInfo, error)
-	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*TxnStatusResult, error)
+	) (types.TransactionReceiptWithBlockInfo, error) //****modified****
+	TransactionStatus(
+		ctx context.Context,
+		transactionHash *felt.Felt,
+	) (types.TxnStatusResult, error) //****modified****
+}
+
+type OtherMethods interface {
+	AsV9() rpcv9.RPCProvider
+	AsV10() rpcv10.RPCProvider
+	EstimateTip()
+	SendTransaction()
 }

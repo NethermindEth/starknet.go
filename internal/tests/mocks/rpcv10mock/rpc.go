@@ -511,10 +511,10 @@ func (mr *MockRPCProviderMockRecorder) TransactionReceipt(ctx, transactionHash a
 }
 
 // TransactionStatus mocks base method.
-func (m *MockRPCProvider) TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*rpcv10.TxnStatusResult, error) {
+func (m *MockRPCProvider) TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (*types.TxnStatusResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionStatus", ctx, transactionHash)
-	ret0, _ := ret[0].(*rpcv10.TxnStatusResult)
+	ret0, _ := ret[0].(*types.TxnStatusResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
