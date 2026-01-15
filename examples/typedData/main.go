@@ -57,7 +57,7 @@ func localSetup() *account.Account {
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProviderV10(context.Background(), rpcProviderURL)
+	client, err := rpc.NewBasicProvider(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}

@@ -25,7 +25,7 @@ func main() {
 	rpcProviderURL := setup.GetRPCProviderURL()
 
 	// Initialise the client.
-	client, err := rpc.NewProviderV10(context.Background(), rpcProviderURL)
+	client, err := rpc.NewBasicProvider(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(err)
 	}
