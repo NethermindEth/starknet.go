@@ -100,10 +100,11 @@ type RPCProviderV10Copy interface {
 type OtherMethods interface {
 	AsV9() rpcv9.RPCProvider
 	AsV10() rpcv10.RPCProvider
-	EstimateTip()
+	EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
 	SendTransaction()
 }
 
+//go:generate mockgen -destination=../internal/tests/mocks/basicRPC/rpc.go -package=basicRPC -mock_names=BasicProviderInterface=BasicRPC -source=tempfile.go BasicProviderInterface
 type BasicProviderInterface interface {
 	RPCProviderV10Copy
 	OtherMethods
@@ -137,7 +138,7 @@ func (p *BasicProvider) TransactionStatus(
 	transactionHash *felt.Felt,
 ) (types.TxnStatusResult, error)
 
-func (p *BasicProvider) EstimateTip()
+func (p *BasicProvider) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
 func (p *BasicProvider) SendTransaction()
 func (p *BasicProvider) AsV9() rpcv9.RPCProvider {
 	return p.rpcv9

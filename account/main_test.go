@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 }
 
 // returns a new account type from the provided account data in the tConfig
-func setupAcc(t *testing.T, provider rpc.RPCProvider) (*account.Account, error) {
+func setupAcc(t *testing.T, provider rpc.BasicProviderInterface) (*account.Account, error) {
 	t.Helper()
 
 	ks := account.NewMemKeystore()
@@ -100,7 +100,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 //   - error: An error, if any
 func newDevnetAccount(
 	t *testing.T,
-	provider *rpc.RPCProvider,
+	provider rpc.BasicProviderInterface,
 	accData devnet.TestAccount,
 	cairoVersion account.CairoVersion,
 ) *account.Account {

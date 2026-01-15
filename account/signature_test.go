@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/internal/tests"
-	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,7 +22,7 @@ func TestVerify(t *testing.T) {
 
 	// setup mock account
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
 
 	ks := account.NewMemKeystore()

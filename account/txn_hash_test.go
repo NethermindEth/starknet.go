@@ -9,7 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal/tests"
-	"github.com/NethermindEth/starknet.go/internal/tests/mocks/rpcv10mock"
+	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/types"
@@ -30,7 +30,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
 	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 
 	type testSetType struct {
 		ExpectedHash   *felt.Felt
@@ -119,7 +119,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 			var acc *account.Account
 			var err error
 			if tests.TEST_ENV == "testnet" {
-				var client *rpc.RPCProvider
+				var client rpc.BasicProviderInterface
 				client, err = rpc.NewBasicProvider(t.Context(), tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
 				acc, err = account.NewAccount(
@@ -143,7 +143,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				)
 				require.NoError(t, err, "error returned from account.NewAccount()")
 			}
-			invokeTxn := rpc.InvokeTxnV1{
+			invokeTxn := types.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
 				Nonce:         test.TxDetails.Nonce,
 				MaxFee:        test.TxDetails.MaxFee,
@@ -194,7 +194,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 	if tests.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
 
-		mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
+		mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 		acnt, err = account.NewAccount(
@@ -329,7 +329,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(
@@ -422,7 +422,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
 
-	mockRPCProvider := rpcv10mock.NewMockRPCProvider(mockCtrl)
+	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := account.NewAccount(

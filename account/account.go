@@ -9,8 +9,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -96,11 +94,6 @@ const (
 	CairoV2 CairoVersion = 2
 )
 
-// @new
-type RPCProvider interface {
-	*rpc.BasicProvider | rpc.RPCProvider
-}
-
 // @changed
 // NewAccount creates a new Account instance.
 //
@@ -114,31 +107,20 @@ type RPCProvider interface {
 // It returns:
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
-func NewAccount[P RPCProvider](
-	provider P,
+func NewAccount(
+	provider rpc.BasicProviderInterface,
 	accountAddress *felt.Felt,
 	publicKey string,
 	keystore Keystore,
 	cairoVersion CairoVersion,
 ) (*Account, error) {
-	// @todo remember to rename this var after renaming the BasicProvider
-	var basicProvider rpc.BasicProviderInterface
-	switch p := any(provider).(type) {
-	case *rpc.BasicProvider:
-		basicProvider = p
-	case *rpcv9.Provider:
-		basicProvider = rpc.NewBasicProviderFrom(p)
-	case *rpcv10.Provider:
-		basicProvider = rpc.NewBasicProviderFrom(p)
-	}
-
-	chainID, err := basicProvider.ChainID(context.Background())
+	chainID, err := provider.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	account := &Account{
-		Provider:     basicProvider,
+		Provider:     provider,
 		Address:      accountAddress,
 		publicKey:    publicKey,
 		ks:           keystore,

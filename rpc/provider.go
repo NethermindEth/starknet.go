@@ -18,8 +18,8 @@ type BasicProvider struct {
 	chainID string
 	version RPCVersion
 
-	rpcv9  *rpcv9.Provider
-	rpcv10 *rpcv10.Provider
+	rpcv9  rpcv9.RPCProvider
+	rpcv10 rpcv10.RPCProvider
 }
 
 // NewBasicProvider creates a new HTTP rpc Provider instance.

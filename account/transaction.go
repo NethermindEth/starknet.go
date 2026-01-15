@@ -34,8 +34,8 @@ func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []types.InvokeFunctionCall,
 	opts *TxnOptions,
-) (rpc.AddInvokeTransactionResponse, error) {
-	var response rpc.AddInvokeTransactionResponse
+) (types.TransactionResponse, error) {
+	var response types.TransactionResponse
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return response, err
@@ -126,8 +126,8 @@ func (account *Account) BuildAndSendDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	opts *TxnOptions,
-) (rpc.AddDeclareTransactionResponse, error) {
-	var response rpc.AddDeclareTransactionResponse
+) (types.TransactionResponse, error) {
+	var response types.TransactionResponse
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return response, err
@@ -301,14 +301,14 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // based on the tip multiplier.
 func calculateTip(
 	ctx context.Context,
-	provider rpc.RPCProvider,
+	provider rpc.BasicProviderInterface,
 	opts *TxnOptions,
 ) (types.U64, error) {
 	if opts.CustomTip != "" {
 		return opts.CustomTip, nil
 	}
 
-	tip, err := rpc.EstimateTip(ctx, provider, opts.FmtTipMultiplier())
+	tip, err := provider.EstimateTip(ctx, opts.FmtTipMultiplier())
 	if err != nil {
 		return "", fmt.Errorf("failed to estimate tip: %w", err)
 	}
