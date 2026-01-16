@@ -9,7 +9,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TraceTransaction returns the transaction trace for the given transaction hash.
@@ -39,7 +38,7 @@ func TraceTransaction(
 	}
 
 	switch rawTxnTrace["type"] {
-	case string(types.TransactionTypeInvoke):
+	case string(rpcv10.TransactionTypeInvoke):
 		var trace rpcv10.InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -47,7 +46,7 @@ func TraceTransaction(
 		}
 
 		return trace, nil
-	case string(types.TransactionTypeDeclare):
+	case string(rpcv10.TransactionTypeDeclare):
 		var trace rpcv10.DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -55,7 +54,7 @@ func TraceTransaction(
 		}
 
 		return trace, nil
-	case string(types.TransactionTypeDeployAccount):
+	case string(rpcv10.TransactionTypeDeployAccount):
 		var trace rpcv10.DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -63,7 +62,7 @@ func TraceTransaction(
 		}
 
 		return trace, nil
-	case string(types.TransactionTypeL1Handler):
+	case string(rpcv10.TransactionTypeL1Handler):
 		var trace rpcv10.L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {

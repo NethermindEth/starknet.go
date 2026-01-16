@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TraceBlockTransactions retrieves the traces of transactions in a given block.
@@ -22,7 +21,7 @@ import (
 func TraceBlockTransactions(
 	ctx context.Context,
 	c callers.Caller,
-	blockID types.BlockID,
+	blockID rpcv10.BlockID,
 ) ([]rpcv10.Trace, error) {
 	err := checkForPreConfirmed(blockID)
 	if err != nil {

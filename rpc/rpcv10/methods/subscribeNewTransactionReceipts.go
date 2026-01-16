@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // New transactions receipts subscription
@@ -30,7 +29,7 @@ import (
 func SubscribeNewTransactionReceipts(
 	ctx context.Context,
 	ws callers.Subscriber,
-	txnReceipts chan<- *types.TransactionReceiptWithBlockInfo,
+	txnReceipts chan<- *rpcv10.TransactionReceiptWithBlockInfo,
 	options *rpcv10.SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {
 	sub, err := ws.Subscribe(

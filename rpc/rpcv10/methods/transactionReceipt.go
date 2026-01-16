@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TransactionReceipt fetches the transaction receipt for a given transaction hash.
@@ -24,8 +23,8 @@ func GetTransactionReceipt(
 	ctx context.Context,
 	c callers.Caller,
 	transactionHash *felt.Felt,
-) (*types.TransactionReceiptWithBlockInfo, error) {
-	var receipt types.TransactionReceiptWithBlockInfo
+) (*rpcv10.TransactionReceiptWithBlockInfo, error) {
+	var receipt rpcv10.TransactionReceiptWithBlockInfo
 	err := internal.Do(ctx, c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)

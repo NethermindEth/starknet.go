@@ -11,7 +11,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -48,36 +47,36 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		{
 			description: "with finality status RECEIVED",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []types.TxnStatus{types.TxnStatusReceived},
+				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusReceived},
 			},
 		},
 		{
 			description: "with finality status CANDIDATE",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []types.TxnStatus{types.TxnStatusCandidate},
+				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusCandidate},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []types.TxnStatus{types.TxnStatusPreConfirmed},
+				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []types.TxnStatus{types.TxnStatusAcceptedOnL2},
+				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []types.TxnStatus{
-					types.TxnStatusReceived,
-					types.TxnStatusCandidate,
-					types.TxnStatusPreConfirmed,
-					types.TxnStatusAcceptedOnL2,
+				FinalityStatus: []rpcv10.TxnStatus{
+					rpcv10.TxnStatusReceived,
+					rpcv10.TxnStatusCandidate,
+					rpcv10.TxnStatusPreConfirmed,
+					rpcv10.TxnStatusAcceptedOnL2,
 				},
 			},
 		},

@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TransactionStatus gets the transaction status (possibly reflecting that
@@ -25,8 +24,8 @@ func TransactionStatus(
 	ctx context.Context,
 	c callers.Caller,
 	transactionHash *felt.Felt,
-) (*types.TxnStatusResult, error) {
-	var receipt types.TxnStatusResult
+) (*rpcv10.TxnStatusResult, error) {
+	var receipt rpcv10.TxnStatusResult
 	err := internal.Do(ctx, c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)

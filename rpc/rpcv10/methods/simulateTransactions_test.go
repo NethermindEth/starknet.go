@@ -8,7 +8,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -20,18 +19,18 @@ func TestSimulateTransaction(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
-		BlockID         types.BlockID          `json:"block_id"`
-		Txns            []types.BroadcastTxn   `json:"transactions"`
-		SimulationFlags []types.SimulationFlag `json:"simulation_flags"`
+		BlockID         rpcv10.BlockID          `json:"block_id"`
+		Txns            []rpcv10.BroadcastTxn   `json:"transactions"`
+		SimulationFlags []rpcv10.SimulationFlag `json:"simulation_flags"`
 	}
 	input := internalUtils.TestUnmarshalJSONFileToType[simulateTxnInput](
 		t, "./testData/trace/sepoliaSimulateInvokeTx.json", "params")
 
 	type testSetType struct {
 		Description     string
-		BlockID         types.BlockID
-		Txns            []types.BroadcastTxn
-		SimulationFlags []types.SimulationFlag
+		BlockID         rpcv10.BlockID
+		Txns            []rpcv10.BroadcastTxn
+		SimulationFlags []rpcv10.SimulationFlag
 		ExpectedError   *RPCError
 	}
 
@@ -41,20 +40,20 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []types.SimulationFlag{types.SkipValidate, types.SkipFeeCharge},
+				SimulationFlags: []rpcv10.SimulationFlag{rpcv10.SkipValidate, rpcv10.SkipFeeCharge},
 			},
 			{
 				Description:     "block not found",
-				BlockID:         types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:         rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
+				BlockID:         rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
 				Txns:            input.Txns,
-				SimulationFlags: []types.SimulationFlag{},
+				SimulationFlags: []rpcv10.SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 		},
@@ -69,18 +68,18 @@ func TestSimulateTransaction(t *testing.T) {
 				Description:     "valid call, all flags",
 				BlockID:         input.BlockID,
 				Txns:            input.Txns,
-				SimulationFlags: []types.SimulationFlag{types.SkipValidate, types.SkipFeeCharge},
+				SimulationFlags: []rpcv10.SimulationFlag{rpcv10.SkipValidate, rpcv10.SkipFeeCharge},
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
+				BlockID:         rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
 				Txns:            input.Txns,
-				SimulationFlags: []types.SimulationFlag{},
+				SimulationFlags: []rpcv10.SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 			{
 				Description:     "block not found",
-				BlockID:         types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:         rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
@@ -102,7 +101,7 @@ func TestSimulateTransaction(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(types.BlockID)
+						blockID := args[0].(rpcv10.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -111,7 +110,7 @@ func TestSimulateTransaction(t *testing.T) {
 							}
 						}
 
-						if blockID.Tag == types.BlockTagPreConfirmed {
+						if blockID.Tag == rpcv10.BlockTagPreConfirmed {
 							return RPCError{
 								Code:    41,
 								Message: "Transaction execution error",

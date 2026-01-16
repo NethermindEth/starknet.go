@@ -11,7 +11,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -48,22 +47,22 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []types.TxnFinalityStatus{types.TxnFinalityStatusPreConfirmed},
+				FinalityStatus: []rpcv10.TxnFinalityStatus{rpcv10.TxnFinalityStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []types.TxnFinalityStatus{types.TxnFinalityStatusAcceptedOnL2},
+				FinalityStatus: []rpcv10.TxnFinalityStatus{rpcv10.TxnFinalityStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnReceiptsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []types.TxnFinalityStatus{
-					types.TxnFinalityStatusAcceptedOnL2,
-					types.TxnFinalityStatusPreConfirmed,
+				FinalityStatus: []rpcv10.TxnFinalityStatus{
+					rpcv10.TxnFinalityStatusAcceptedOnL2,
+					rpcv10.TxnFinalityStatusPreConfirmed,
 				},
 			},
 		},
@@ -129,7 +128,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					})
 			}
 
-			receipts := make(chan *types.TransactionReceiptWithBlockInfo)
+			receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
 			sub, err := SubscribeNewTransactionReceipts(
 				t.Context(),
 				tsetup.WsProvider,
@@ -217,7 +216,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				})
 		}
 
-		receipts := make(chan *types.TransactionReceiptWithBlockInfo)
+		receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
 		sub, err := SubscribeNewTransactionReceipts(
 			t.Context(),
 			tsetup.WsProvider,

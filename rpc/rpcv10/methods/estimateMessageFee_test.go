@@ -7,8 +7,8 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -24,7 +24,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		Description string
 		MsgFromL1
-		BlockID       types.BlockID
+		BlockID       rpcv10.BlockID
 		ExpectedError *RPCError
 	}
 
@@ -59,24 +59,24 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				Description: "normal call",
 				MsgFromL1:   l1Handler,
-				BlockID:     types.WithBlockTag(types.BlockTagLatest),
+				BlockID:     rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 			},
 			{
 				Description:   "contract error",
 				MsgFromL1:     l1HandlerInvalidSelector,
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrContractError,
 			},
 			{
 				Description:   "contract not found",
 				MsgFromL1:     l1HandlerInvalidToAddress,
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
 			{
 				Description:   "invalid block",
 				MsgFromL1:     l1Handler,
-				BlockID:       types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:       rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
@@ -84,24 +84,24 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				Description: "normal call",
 				MsgFromL1:   l1Handler,
-				BlockID:     types.WithBlockTag(types.BlockTagLatest),
+				BlockID:     rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 			},
 			{
 				Description:   "contract error",
 				MsgFromL1:     l1HandlerInvalidSelector,
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrContractError,
 			},
 			{
 				Description:   "contract not found",
 				MsgFromL1:     l1HandlerInvalidToAddress,
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
 			{
 				Description:   "invalid block",
 				MsgFromL1:     l1Handler,
-				BlockID:       types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:       rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
@@ -121,7 +121,7 @@ func TestEstimateMessageFee(t *testing.T) {
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
 						msgFromL1 := args[0].(MsgFromL1)
-						blockID := args[1].(types.BlockID)
+						blockID := args[1].(rpcv10.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // AddDeployAccountTransaction adds a DEPLOY_ACCOUNT transaction to the provider.
@@ -22,7 +21,7 @@ import (
 func AddDeployAccountTransaction(
 	ctx context.Context,
 	c callers.Caller,
-	deployAccountTransaction *types.BroadcastDeployAccountTxnV3,
+	deployAccountTransaction *rpcv10.BroadcastDeployAccountTxnV3,
 ) (rpcv10.AddDeployAccountTransactionResponse, error) {
 	var result rpcv10.AddDeployAccountTransactionResponse
 	if err := internal.Do(

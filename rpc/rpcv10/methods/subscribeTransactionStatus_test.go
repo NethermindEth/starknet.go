@@ -11,7 +11,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -44,7 +43,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 			tempSetup.WsProvider,
 			txns,
 			&rpcv10.SubNewTxnsInput{
-				FinalityStatus: []types.TxnStatus{types.TxnStatusPreConfirmed},
+				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusPreConfirmed},
 			},
 		)
 		require.NoError(t, err)

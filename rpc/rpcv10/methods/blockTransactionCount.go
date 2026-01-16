@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // BlockTransactionCount returns the number of transactions in a specific block.
@@ -22,7 +21,7 @@ import (
 func BlockTransactionCount(
 	ctx context.Context,
 	c callers.Caller,
-	blockID types.BlockID,
+	blockID rpcv10.BlockID,
 ) (uint64, error) {
 	var result uint64
 	if err := internal.Do(ctx, c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {

@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // AddDeclareTransaction submits a declare transaction to the StarkNet contract.
@@ -22,7 +21,7 @@ import (
 func AddDeclareTransaction(
 	ctx context.Context,
 	c callers.Caller,
-	declareTransaction *types.BroadcastDeclareTxnV3,
+	declareTransaction *rpcv10.BroadcastDeclareTxnV3,
 ) (rpcv10.AddDeclareTransactionResponse, error) {
 	var result rpcv10.AddDeclareTransactionResponse
 	if err := internal.Do(

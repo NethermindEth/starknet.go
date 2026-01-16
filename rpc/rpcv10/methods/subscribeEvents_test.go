@@ -11,7 +11,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -99,21 +98,21 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "with block ID only",
 			input: &EventSubscriptionInput{
-				SubBlockID: types.SubscriptionBlockID{
-					Tag: types.BlockTagLatest,
+				SubBlockID: rpcv10.SubscriptionBlockID{
+					Tag: rpcv10.BlockTagLatest,
 				},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &EventSubscriptionInput{
-				FinalityStatus: types.TxnFinalityStatusPreConfirmed,
+				FinalityStatus: rpcv10.TxnFinalityStatusPreConfirmed,
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &EventSubscriptionInput{
-				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
+				FinalityStatus: rpcv10.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -121,8 +120,8 @@ func TestSubscribeEvents(t *testing.T) {
 			input: &EventSubscriptionInput{
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
-				SubBlockID:     new(types.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
+				SubBlockID:     new(rpcv10.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				FinalityStatus: rpcv10.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -135,14 +134,14 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "error: too many blocks back",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(types.SubscriptionBlockID).WithBlockNumber(3_000_000),
+				SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockNumber(3_000_000),
 			},
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description: "error: block not found",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(types.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			},
 			expectedError: ErrBlockNotFound,
 		},

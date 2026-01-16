@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TransactionByBlockIDAndIndex retrieves a transaction by its block ID and index.
@@ -23,10 +22,10 @@ import (
 func TransactionByBlockIDAndIndex(
 	ctx context.Context,
 	c callers.Caller,
-	blockID types.BlockID,
+	blockID rpcv10.BlockID,
 	index uint64,
-) (*types.BlockTransaction, error) {
-	var tx types.BlockTransaction
+) (*rpcv10.BlockTransaction, error) {
+	var tx rpcv10.BlockTransaction
 	if err := internal.Do(
 		ctx, c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
 	); err != nil {

@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TransactionByHash retrieves the details and status of a transaction by its hash.
@@ -24,8 +23,8 @@ func TransactionByHash(
 	ctx context.Context,
 	c callers.Caller,
 	hash *felt.Felt,
-) (*types.BlockTransaction, error) {
-	var tx types.BlockTransaction
+) (*rpcv10.BlockTransaction, error) {
+	var tx rpcv10.BlockTransaction
 	if err := internal.Do(ctx, c, "starknet_getTransactionByHash", &tx, hash); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
 	}

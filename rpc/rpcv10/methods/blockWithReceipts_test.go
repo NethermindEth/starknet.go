@@ -7,8 +7,8 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -27,38 +27,38 @@ func TestBlockWithReceipts(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     types.BlockID
+		BlockID     rpcv10.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: types.WithBlockTag(types.BlockTagPreConfirmed),
+				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
 			},
 			{
-				BlockID: types.WithBlockTag(types.BlockTagLatest),
+				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 			},
 			{
-				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     types.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -99,12 +99,12 @@ func TestBlockWithReceipts(t *testing.T) {
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(types.BlockID)
+							blockID := args[0].(rpcv10.BlockID)
 
 							switch blockID.Tag {
-							case types.BlockTagPreConfirmed:
+							case rpcv10.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case types.BlockTagLatest:
+							case rpcv10.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 

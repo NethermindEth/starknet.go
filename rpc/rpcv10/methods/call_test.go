@@ -9,7 +9,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -30,8 +29,8 @@ func TestCall(t *testing.T) {
 
 	type testSetType struct {
 		name                  string
-		FunctionCall          types.FunctionCall
-		BlockID               types.BlockID
+		FunctionCall          rpcv10.FunctionCall
+		BlockID               rpcv10.BlockID
 		ExpectedPatternResult *felt.Felt
 		ExpectedError         *RPCError
 	}
@@ -39,121 +38,121 @@ func TestCall(t *testing.T) {
 		tests.DevnetEnv: {
 			{
 				name: "Ok",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					// ContractAddress of predeployed devnet Feetoken
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagLatest),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
 		tests.MockEnv: {
 			{
 				name: "Ok",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.DeadBeef,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagLatest),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedPatternResult: internalUtils.DeadBeef,
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				name: "Ok - latest block tag",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagLatest),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
 				name: "Ok - pre_confirmed block tag",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagPreConfirmed),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
 				name: "Ok - l1_accepted block tag",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagL1Accepted),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagL1Accepted),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x506f736974696f6e"),
 			},
 			{
 				name: "ContractError",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{&felt.Zero},
 				},
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrContractError,
 			},
 			{
 				name: "EntrypointNotFound",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("RANDOM_STRINGGG"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrEntrypointNotFound,
 			},
 			{
 				name: "BlockNotFound",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x025633c6142D9CA4126e3fD1D522Faa6e9f745144aba728c0B3FEE38170DF9e7"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:       types.WithBlockNumber(999999999999999),
+				BlockID:       rpcv10.WithBlockNumber(999999999999999),
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				name: "ContractNotFound",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.DeadBeef,
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("name"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:       types.WithBlockTag(types.BlockTagLatest),
+				BlockID:       rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
 				name: "Ok",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagLatest),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				name: "Ok",
-				FunctionCall: types.FunctionCall{
+				FunctionCall: rpcv10.FunctionCall{
 					ContractAddress:    internalUtils.TestHexToFelt(t, "0x06a09ccb1caaecf3d9683efe335a667b2169a409d19c589ba1eb771cd210af75"),
 					EntryPointSelector: internalUtils.GetSelectorFromNameFelt("decimals"),
 					Calldata:           []*felt.Felt{},
 				},
-				BlockID:               types.WithBlockTag(types.BlockTagLatest),
+				BlockID:               rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
 				ExpectedPatternResult: internalUtils.TestHexToFelt(t, "0x12"),
 			},
 		},

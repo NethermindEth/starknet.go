@@ -10,7 +10,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // ClassAt returns the class at the specified blockID and contractAddress.
@@ -26,7 +25,7 @@ import (
 func ClassAt(
 	ctx context.Context,
 	c callers.Caller,
-	blockID types.BlockID,
+	blockID rpcv10.BlockID,
 	contractAddress *felt.Felt,
 ) (rpcv10.ClassOutput, error) {
 	var rawClass map[string]any

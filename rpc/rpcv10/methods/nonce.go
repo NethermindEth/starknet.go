@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Nonce retrieves the nonce for a given block ID and contract address.
@@ -24,7 +23,7 @@ import (
 func Nonce(
 	ctx context.Context,
 	c callers.Caller,
-	blockID types.BlockID,
+	blockID rpcv10.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var nonce *felt.Felt

@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // EstimateMessageFee estimates the L2 fee of a message sent on L1 (Provider struct).
@@ -24,9 +23,9 @@ func EstimateMessageFee(
 	ctx context.Context,
 	c callers.Caller,
 	msg rpcv10.MsgFromL1,
-	blockID types.BlockID,
-) (types.MessageFeeEstimation, error) {
-	var raw types.MessageFeeEstimation
+	blockID rpcv10.BlockID,
+) (rpcv10.MessageFeeEstimation, error) {
+	var raw rpcv10.MessageFeeEstimation
 	if err := internal.Do(
 		ctx, c, "starknet_estimateMessageFee", &raw, msg, blockID,
 	); err != nil {
