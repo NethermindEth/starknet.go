@@ -12,7 +12,7 @@ import (
 )
 
 // @todo update docs for the entire package
-// add tests where needed
+// add tests where needed.
 
 type providerWrapper struct {
 	chainID string
