@@ -12,6 +12,30 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
+// Class retrieves the class information from the Provider with the given hash.
+//
+// Parameters:
+//   - ctx: The context.Context object
+//   - blockID: The BlockID object
+//   - classHash: The *felt.Felt object
+//
+// Returns:
+//   - ClassOutput: The output of the class.
+//   - error: An error if any occurred during the execution.
+func Class(
+	ctx context.Context,
+	c callers.Caller,
+	blockID rpcv10.BlockID,
+	classHash *felt.Felt,
+) (rpcv10.ClassOutput, error) {
+	var rawClass map[string]any
+	if err := internal.Do(ctx, c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrClassHashNotFound, rpcv10.ErrBlockNotFound)
+	}
+
+	return typecastClassOutput(rawClass)
+}
+
 // ClassAt returns the class at the specified blockID and contractAddress.
 //
 // Parameters:
@@ -68,4 +92,56 @@ func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 	}
 
 	return &depContractClass, nil
+}
+
+// ClassHashAt retrieves the class hash at the given block ID and contract address.
+//
+// Parameters:
+//   - ctx: The context.Context used for the request
+//   - blockID: The ID of the block
+//   - contractAddress: The address of the contract
+//
+// Returns:
+//   - *felt.Felt: The class hash
+//   - error: An error if any occurred during the execution
+func ClassHashAt(
+	ctx context.Context,
+	c callers.Caller,
+	blockID rpcv10.BlockID,
+	contractAddress *felt.Felt,
+) (*felt.Felt, error) {
+	var result *felt.Felt
+	if err := internal.Do(
+		ctx, c, "starknet_getClassHashAt", &result, blockID, contractAddress,
+	); err != nil {
+		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
+	}
+
+	return result, nil
+}
+
+// Get the CASM code resulting from compiling a given class
+//
+// Parameters:
+//   - ctx: The context.Context used for the request
+//   - classHash: The hash of the contract class whose CASM will be returned
+//
+// Returns:
+//   - CasmCompiledContractClass: The compiled contract class
+//   - error: An error if any occurred during the execution
+func CompiledCasm(
+	ctx context.Context,
+	c callers.Caller,
+	classHash *felt.Felt,
+) (*contracts.CasmClass, error) {
+	var result contracts.CasmClass
+	if err := internal.Do(ctx, c, "starknet_getCompiledCasm", &result, classHash); err != nil {
+		return nil, rpcerr.UnwrapToRPCErr(
+			err,
+			rpcv10.ErrClassHashNotFound,
+			rpcv10.ErrCompilationError,
+		)
+	}
+
+	return &result, nil
 }
