@@ -105,45 +105,45 @@ type OtherMethods interface {
 }
 
 //go:generate mockgen -destination=../internal/tests/mocks/basicRPC/rpc.go -package=basicRPC -mock_names=BasicProviderInterface=BasicRPC -source=tempfile.go BasicProviderInterface
-type BasicProviderInterface interface {
+type ProviderWrapper interface {
 	RPCProviderV10Copy
 	OtherMethods
 }
 
-var _ BasicProviderInterface = (*BasicProvider)(nil)
+var _ ProviderWrapper = (*providerWrapper)(nil)
 
 // implementing the methods
-func (p *BasicProvider) BlockHashAndNumber(ctx context.Context) (uint64, *felt.Felt, error)
-func (p *BasicProvider) Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
-func (p *BasicProvider) ChainID(ctx context.Context) (string, error)
-func (p *BasicProvider) EstimateFee(
+func (p *providerWrapper) BlockHashAndNumber(ctx context.Context) (uint64, *felt.Felt, error)
+func (p *providerWrapper) Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
+func (p *providerWrapper) ChainID(ctx context.Context) (string, error)
+func (p *providerWrapper) EstimateFee(
 	ctx context.Context,
 	requests []types.BroadcastTxn,
 	simulationFlags []types.SimulationFlag,
 	blockID types.BlockID,
 ) ([]types.FeeEstimation, error)
-func (p *BasicProvider) Nonce(
+func (p *providerWrapper) Nonce(
 	ctx context.Context,
 	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error)
-func (p *BasicProvider) IsSyncing(ctx context.Context) (bool, error)
-func (p *BasicProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
-func (p *BasicProvider) TransactionReceipt(
+func (p *providerWrapper) IsSyncing(ctx context.Context) (bool, error)
+func (p *providerWrapper) TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
+func (p *providerWrapper) TransactionReceipt(
 	ctx context.Context,
 	transactionHash *felt.Felt,
 ) (types.TransactionReceiptWithBlockInfo, error)
-func (p *BasicProvider) TransactionStatus(
+func (p *providerWrapper) TransactionStatus(
 	ctx context.Context,
 	transactionHash *felt.Felt,
 ) (types.TxnStatusResult, error)
 
-func (p *BasicProvider) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-func (p *BasicProvider) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
-func (p *BasicProvider) AsV9() rpcv9.RPCProvider {
+func (p *providerWrapper) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
+func (p *providerWrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
+func (p *providerWrapper) AsV9() rpcv9.RPCProvider {
 	return p.rpcv9
 }
 
-func (p *BasicProvider) AsV10() rpcv10.RPCProvider {
+func (p *providerWrapper) AsV10() rpcv10.RPCProvider {
 	return p.rpcv10
 }

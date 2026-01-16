@@ -42,7 +42,7 @@ func main() {
 	rpcProviderURL := setup.GetRPCProviderURL()
 
 	// Connect to a RPC provider to instantiate the account
-	client, err := rpc.NewBasicProvider(context.Background(), rpcProviderURL)
+	client, err := rpc.NewProviderWrapper(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Errorf("error dialling the RPC provider: %w", err))
 	}
@@ -243,7 +243,7 @@ func PrettyPrint(data interface{}) {
 
 // Just a helper function to instantiate the account for us.
 func NewAccount(
-	client rpc.BasicProviderInterface,
+	client rpc.ProviderWrapper,
 	accountAddress, privateKey, publicKey string,
 	accountCairoVersion account.CairoVersion,
 ) *account.Account {

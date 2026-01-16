@@ -75,7 +75,7 @@ var _ AccountInterface = (*Account)(nil)
 // @changed
 type Account struct {
 	// TODO: in the future, make all fields private and add getter methods
-	Provider     rpc.BasicProviderInterface
+	Provider     rpc.ProviderWrapper
 	ChainID      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string
@@ -108,7 +108,7 @@ const (
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
 func NewAccount(
-	provider rpc.BasicProviderInterface,
+	provider rpc.ProviderWrapper,
 	accountAddress *felt.Felt,
 	publicKey string,
 	keystore Keystore,

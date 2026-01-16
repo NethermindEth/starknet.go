@@ -30,7 +30,7 @@ func main() {
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewBasicProvider(context.Background(), rpcProviderURL)
+	client, err := rpc.NewProviderWrapper(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}

@@ -14,7 +14,7 @@ import (
 // @todo update docs for the entire package
 // add tests where needed
 
-type BasicProvider struct {
+type providerWrapper struct {
 	chainID string
 	version RPCVersion
 
@@ -22,7 +22,7 @@ type BasicProvider struct {
 	rpcv10 rpcv10.RPCProvider
 }
 
-// NewBasicProvider creates a new HTTP rpc Provider instance.
+// NewProviderWrapper creates a new HTTP rpc Provider instance.
 //
 // Parameters:
 //   - ctx: The context for the function.
@@ -35,11 +35,11 @@ type BasicProvider struct {
 //     If the node JSON-RPC specification version is different from the version
 //     implemented by the Provider type, the ErrIncompatibleVersion will be returned,
 //     but the returned Provider instance is valid.
-func NewBasicProvider(
+func NewProviderWrapper(
 	ctx context.Context,
 	url string,
 	options ...client.ClientOption,
-) (*BasicProvider, error) {
+) (ProviderWrapper, error) {
 	c, err := internal.NewHTTPClient(ctx, url, options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
@@ -55,7 +55,7 @@ func NewBasicProvider(
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal node version: %w", err)
 	}
-	var provider BasicProvider
+	var provider providerWrapper
 	provider.version = RPCVersion
 
 	switch RPCVersion {
@@ -76,17 +76,17 @@ func NewBasicProvider(
 	return &provider, nil
 }
 
-func NewBasicProviderFrom[P RPCProvider](provider P) *BasicProvider {
-	var basic BasicProvider
+func NewProviderWrapperFrom[P RPCProvider](provider P) ProviderWrapper {
+	var wrapper providerWrapper
 
 	switch p := any(provider).(type) {
 	case *rpcv9.Provider:
-		basic.rpcv9 = p
-		basic.version = RPCVersion9
+		wrapper.rpcv9 = p
+		wrapper.version = RPCVersion9
 	case *rpcv10.Provider:
-		basic.rpcv10 = p
-		basic.version = RPCVersion10
+		wrapper.rpcv10 = p
+		wrapper.version = RPCVersion10
 	}
 
-	return &basic
+	return &wrapper
 }
