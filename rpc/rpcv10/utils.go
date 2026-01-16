@@ -120,3 +120,7 @@ func EstimateTip(
 
 	return tip, nil
 }
+
+// @todo remove this file.
+// THe EstimateTip should be moved to the rpc pkg, and the IsEstimate should be an internal
+// function in the provider.go file
