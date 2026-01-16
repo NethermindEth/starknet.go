@@ -47,36 +47,36 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		{
 			description: "with finality status RECEIVED",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusReceived},
+				FinalityStatus: []TxnStatus{TxnStatusReceived},
 			},
 		},
 		{
 			description: "with finality status CANDIDATE",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusCandidate},
+				FinalityStatus: []TxnStatus{TxnStatusCandidate},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusPreConfirmed},
+				FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusAcceptedOnL2},
+				FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []rpcv10.TxnStatus{
-					rpcv10.TxnStatusReceived,
-					rpcv10.TxnStatusCandidate,
-					rpcv10.TxnStatusPreConfirmed,
-					rpcv10.TxnStatusAcceptedOnL2,
+				FinalityStatus: []TxnStatus{
+					TxnStatusReceived,
+					TxnStatusCandidate,
+					TxnStatusPreConfirmed,
+					TxnStatusAcceptedOnL2,
 				},
 			},
 		},

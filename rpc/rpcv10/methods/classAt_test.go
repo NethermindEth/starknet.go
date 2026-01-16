@@ -9,7 +9,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +29,7 @@ func TestClassAt(t *testing.T) {
 	type testSetType struct {
 		Description     string
 		ContractAddress *felt.Felt
-		Block           rpcv10.BlockID
+		Block           BlockID
 		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
@@ -38,23 +37,23 @@ func TestClassAt(t *testing.T) {
 			{
 				Description:     "deprecated class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x456"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x789"),
-				Block:           rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -62,23 +61,23 @@ func TestClassAt(t *testing.T) {
 			{
 				Description:     "deprecated class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "invalid contract",
 				ContractAddress: internalUtils.DeadBeef,
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				Block:           rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 		},
@@ -86,14 +85,14 @@ func TestClassAt(t *testing.T) {
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -111,7 +110,7 @@ func TestClassAt(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(rpcv10.BlockID)
+						blockID := args[0].(BlockID)
 						contractAddress := args[1].(*felt.Felt)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {

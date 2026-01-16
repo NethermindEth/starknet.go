@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,25 +29,25 @@ func TestNonce(t *testing.T) {
 	type testSetType struct {
 		Description     string
 		ContractAddress *felt.Felt
-		Block           rpcv10.BlockID
+		Block           BlockID
 		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				Description:     "normal call",
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 			},
 			{
 				Description:     "invalid contract",
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 				ContractAddress: internalUtils.DeadBeef,
 				ExpectedError:   ErrContractNotFound,
 			},
 			{
 				Description:     "invalid block",
-				Block:           rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 				ExpectedError:   ErrBlockNotFound,
 			},
@@ -57,18 +56,18 @@ func TestNonce(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				Block:           rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -76,14 +75,14 @@ func TestNonce(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0567f76279d525c7d02057465dd492526b291f864484f3e9c1371c0f770acf0c"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x00bE9AeF00Ec751Ba252A595A473315FBB8DA629850e13b8dB83d0fACC44E4f2"),
-				Block:           rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -101,7 +100,7 @@ func TestNonce(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(rpcv10.BlockID)
+						blockID := args[0].(BlockID)
 						contractAddress := args[1].(*felt.Felt)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {

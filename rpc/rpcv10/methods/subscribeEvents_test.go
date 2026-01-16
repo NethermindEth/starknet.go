@@ -98,21 +98,21 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "with block ID only",
 			input: &EventSubscriptionInput{
-				SubBlockID: rpcv10.SubscriptionBlockID{
-					Tag: rpcv10.BlockTagLatest,
+				SubBlockID: SubscriptionBlockID{
+					Tag: BlockTagLatest,
 				},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &EventSubscriptionInput{
-				FinalityStatus: rpcv10.TxnFinalityStatusPreConfirmed,
+				FinalityStatus: TxnFinalityStatusPreConfirmed,
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &EventSubscriptionInput{
-				FinalityStatus: rpcv10.TxnFinalityStatusAcceptedOnL2,
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -120,8 +120,8 @@ func TestSubscribeEvents(t *testing.T) {
 			input: &EventSubscriptionInput{
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
-				SubBlockID:     new(rpcv10.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-				FinalityStatus: rpcv10.TxnFinalityStatusAcceptedOnL2,
+				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -134,14 +134,14 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "error: too many blocks back",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockNumber(3_000_000),
+				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(3_000_000),
 			},
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description: "error: block not found",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				SubBlockID: new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			},
 			expectedError: ErrBlockNotFound,
 		},

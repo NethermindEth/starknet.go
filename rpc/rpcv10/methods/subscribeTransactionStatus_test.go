@@ -10,7 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -37,13 +37,13 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		// getting a random new PRE_CONFIRMED transaction
 		tempSetup := internal.BeforeEach(t, true) // to avoid race condition (BeforeEach
 		// must be called once per subscription)
-		txns := make(chan *rpcv10.TxnWithHashAndStatus)
+		txns := make(chan *TxnWithHashAndStatus)
 		sub, err := SubscribeNewTransactions(
 			t.Context(),
 			tempSetup.WsProvider,
 			txns,
-			&rpcv10.SubNewTxnsInput{
-				FinalityStatus: []rpcv10.TxnStatus{rpcv10.TxnStatusPreConfirmed},
+			&SubNewTxnsInput{
+				FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
 			},
 		)
 		require.NoError(t, err)
@@ -54,7 +54,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 		tsetup := internal.BeforeEach(t, true)
 
-		status := make(chan *rpcv10.NewTxnStatus)
+		status := make(chan *NewTxnStatus)
 		sub2, err := SubscribeTransactionStatus(
 			t.Context(),
 			tsetup.WsProvider,
@@ -176,7 +176,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 					}).
 					Times(1)
 
-				status := make(chan *rpcv10.NewTxnStatus)
+				status := make(chan *NewTxnStatus)
 				sub, err := SubscribeTransactionStatus(
 					t.Context(),
 					tsetup.WsProvider,

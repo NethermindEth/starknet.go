@@ -47,22 +47,22 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []rpcv10.TxnFinalityStatus{rpcv10.TxnFinalityStatusPreConfirmed},
+				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []rpcv10.TxnFinalityStatus{rpcv10.TxnFinalityStatusAcceptedOnL2},
+				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnReceiptsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []rpcv10.TxnFinalityStatus{
-					rpcv10.TxnFinalityStatusAcceptedOnL2,
-					rpcv10.TxnFinalityStatusPreConfirmed,
+				FinalityStatus: []TxnFinalityStatus{
+					TxnFinalityStatusAcceptedOnL2,
+					TxnFinalityStatusPreConfirmed,
 				},
 			},
 		},
@@ -128,7 +128,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 					})
 			}
 
-			receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
+			receipts := make(chan *TransactionReceiptWithBlockInfo)
 			sub, err := SubscribeNewTransactionReceipts(
 				t.Context(),
 				tsetup.WsProvider,
@@ -216,7 +216,7 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 				})
 		}
 
-		receipts := make(chan *rpcv10.TransactionReceiptWithBlockInfo)
+		receipts := make(chan *TransactionReceiptWithBlockInfo)
 		sub, err := SubscribeNewTransactionReceipts(
 			t.Context(),
 			tsetup.WsProvider,

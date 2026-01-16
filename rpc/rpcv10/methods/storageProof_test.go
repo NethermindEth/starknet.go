@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,7 +34,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -65,21 +64,21 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+					BlockID: WithBlockTag(BlockTagPreConfirmed),
 				},
-				ExpectedError: rpcv10.ErrInvalidBlockID,
+				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockHash(internalUtils.DeadBeef),
+					BlockID: WithBlockHash(internalUtils.DeadBeef),
 				},
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockNumber(123456),
+					BlockID: WithBlockNumber(123456),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
 			},
@@ -88,13 +87,13 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 				},
 			},
 			{
 				Description: "block_id + class_hashes parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 					},
@@ -103,7 +102,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contract_addresses parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ContractAddresses: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					},
@@ -112,7 +111,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -126,7 +125,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -156,21 +155,21 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+					BlockID: WithBlockTag(BlockTagPreConfirmed),
 				},
-				ExpectedError: rpcv10.ErrInvalidBlockID,
+				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockHash(internalUtils.DeadBeef),
+					BlockID: WithBlockHash(internalUtils.DeadBeef),
 				},
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockNumber(123456),
+					BlockID: WithBlockNumber(123456),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
 			},
@@ -179,13 +178,13 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 				},
 			},
 			{
 				Description: "block_id + class_hashes parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 					},
@@ -194,7 +193,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contract_addresses parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ContractAddresses: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					},
@@ -203,7 +202,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -217,7 +216,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+					BlockID: WithBlockTag(BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -247,21 +246,21 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+					BlockID: WithBlockTag(BlockTagPreConfirmed),
 				},
-				ExpectedError: rpcv10.ErrInvalidBlockID,
+				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockHash(internalUtils.DeadBeef),
+					BlockID: WithBlockHash(internalUtils.DeadBeef),
 				},
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: rpcv10.WithBlockNumber(123456),
+					BlockID: WithBlockNumber(123456),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
 			},
@@ -271,7 +270,7 @@ func TestStorageProof(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv &&
-				test.StorageProofInput.BlockID.Tag != rpcv10.BlockTagPreConfirmed {
+				test.StorageProofInput.BlockID.Tag != BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContext(
 						t.Context(),

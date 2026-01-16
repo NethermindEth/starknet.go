@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,7 +21,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID       rpcv10.BlockID
+		BlockID       BlockID
 		Index         uint64
 		ExpectedError error
 	}
@@ -30,41 +29,41 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: rpcv10.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
 			},
 			{
-				BlockID:       rpcv10.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				BlockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:         99999999999999999,
 				ExpectedError: ErrInvalidTxnIndex,
 			},
 			{
-				BlockID:       rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:       WithBlockHash(internalUtils.DeadBeef),
 				Index:         3,
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: rpcv10.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 				Index:   0,
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagL1Accepted),
+				BlockID: WithBlockTag(BlockTagL1Accepted),
 				Index:   0,
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				BlockID: WithBlockTag(BlockTagLatest),
 				Index:   0,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: rpcv10.WithBlockNumber(1_300_000),
+				BlockID: WithBlockNumber(1_300_000),
 				Index:   0,
 			},
 		},
@@ -82,7 +81,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(rpcv10.BlockID)
+						blockID := args[0].(BlockID)
 
 						if blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

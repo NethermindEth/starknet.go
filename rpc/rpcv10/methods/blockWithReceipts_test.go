@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,38 +26,38 @@ func TestBlockWithReceipts(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     rpcv10.BlockID
+		BlockID     BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
 			},
 			{
-				BlockID: rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -99,12 +98,12 @@ func TestBlockWithReceipts(t *testing.T) {
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(rpcv10.BlockID)
+							blockID := args[0].(BlockID)
 
 							switch blockID.Tag {
-							case rpcv10.BlockTagPreConfirmed:
+							case BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case rpcv10.BlockTagLatest:
+							case BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 

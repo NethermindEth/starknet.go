@@ -22,20 +22,20 @@ func TestEstimateFee(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		txs           []rpcv10.BroadcastTxn
-		simFlags      []rpcv10.SimulationFlag
-		blockID       rpcv10.BlockID
+		txs           []BroadcastTxn
+		simFlags      []SimulationFlag
+		blockID       BlockID
 		expectedError *RPCError
 	}
 
-	sepoliaInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[rpcv10.BroadcastInvokeTxnV3](
+	sepoliaInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/sepoliaInvokeV3_0x6035477af07a1b0a0186bec85287a6f629791b2f34b6e90eec9815c7a964f64.json",
 	)
 	invalidSepoliaInvokeV3 := sepoliaInvokeV3
 	invalidSepoliaInvokeV3.Calldata = []*felt.Felt{internalUtils.DeadBeef}
 
-	integrationInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[rpcv10.BroadcastInvokeTxnV3](
+	integrationInvokeV3 := internalUtils.TestUnmarshalJSONFileToType[BroadcastInvokeTxnV3](
 		t,
 		"./testData/transactions/integrationInvokeV3_0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019.json",
 	)
@@ -46,70 +46,70 @@ func TestEstimateFee(t *testing.T) {
 		tests.MockEnv: {
 			{
 				description: "without flag",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []rpcv10.SimulationFlag{},
-				blockID:  rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				simFlags: []SimulationFlag{},
+				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
 				description: "with flag",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []rpcv10.SimulationFlag{rpcv10.SkipValidate},
-				blockID:  rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+				simFlags: []SimulationFlag{SkipValidate},
+				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
 				description: "invalid transaction",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
-				blockID:       rpcv10.WithBlockNumber(100000),
+				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
 				description: "invalid block",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				blockID:       rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				blockID:       WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				description: "normal call - without flag",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []rpcv10.SimulationFlag{},
-				blockID:       rpcv10.WithBlockNumber(574447),
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 			},
 			{
 				description: "normal call - with skip validate flag",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []rpcv10.SimulationFlag{rpcv10.SkipValidate},
-				blockID:       rpcv10.WithBlockNumber(574447),
+				simFlags:      []SimulationFlag{SkipValidate},
+				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 			},
 			{
 				description: "invalid transaction",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
-				blockID:       rpcv10.WithBlockNumber(100000),
+				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
 				description: "invalid block",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				blockID:       rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				blockID:       WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 			// the contract_not_found error will not be tested since it's still not clear
@@ -118,36 +118,36 @@ func TestEstimateFee(t *testing.T) {
 		tests.IntegrationEnv: {
 			{
 				description: "without flag",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []rpcv10.SimulationFlag{},
-				blockID:       rpcv10.WithBlockNumber(1_300_000),
+				simFlags:      []SimulationFlag{},
+				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
 			{
 				description: "with flag",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []rpcv10.SimulationFlag{rpcv10.SkipValidate},
-				blockID:       rpcv10.WithBlockNumber(1_300_000),
+				simFlags:      []SimulationFlag{SkipValidate},
+				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
 			{
 				description: "invalid transaction",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					invalidIntegrationInvokeV3,
 				},
-				blockID:       rpcv10.WithBlockNumber(100000),
+				blockID:       WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
 				description: "invalid block",
-				txs: []rpcv10.BroadcastTxn{
+				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				blockID:       rpcv10.WithBlockHash(internalUtils.DeadBeef),
+				blockID:       WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -167,8 +167,8 @@ func TestEstimateFee(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						txs := args[0].([]rpcv10.BroadcastTxn)
-						blockID := args[2].(rpcv10.BlockID)
+						txs := args[0].([]BroadcastTxn)
+						blockID := args[2].(BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -177,7 +177,7 @@ func TestEstimateFee(t *testing.T) {
 							}
 						}
 
-						if txs[0].(rpcv10.BroadcastInvokeTxnV3).Calldata[0] == internalUtils.DeadBeef {
+						if txs[0].(BroadcastInvokeTxnV3).Calldata[0] == internalUtils.DeadBeef {
 							return RPCError{
 								Code:    41,
 								Message: "Transaction execution error",
