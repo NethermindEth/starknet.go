@@ -2,13 +2,12 @@ package rpcv10
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type OrderedEvent struct {
 	// The order of the event within the transaction
 	Order int `json:"order"`
-	*types.EventContent
+	*EventContent
 }
 
 type EventChunk struct {
@@ -18,7 +17,7 @@ type EventChunk struct {
 
 // EmittedEvent an event emitted as a result of transaction execution
 type EmittedEvent struct {
-	types.Event
+	Event
 	// BlockHash the hash of the block in which the event was emitted
 	BlockHash *felt.Felt `json:"block_hash,omitempty"`
 	// BlockNumber the number of the block in which the event was emitted
@@ -33,9 +32,9 @@ type EmittedEvent struct {
 
 type EventFilter struct {
 	// FromBlock from block
-	FromBlock types.BlockID `json:"from_block,omitempty"`
+	FromBlock BlockID `json:"from_block,omitempty"`
 	// ToBlock to block
-	ToBlock types.BlockID `json:"to_block,omitempty"`
+	ToBlock BlockID `json:"to_block,omitempty"`
 	// Address from contract
 	Address *felt.Felt `json:"address,omitempty"`
 	// Keys the values used to filter the events
@@ -59,12 +58,12 @@ type EventSubscriptionInput struct {
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
 	// (Optional) The block to get notifications from, default is latest, limited
 	// to 1024 blocks back
-	SubBlockID types.SubscriptionBlockID `json:"block_id,omitzero"`
+	SubBlockID SubscriptionBlockID `json:"block_id,omitzero"`
 	// (Optional) The finality status of the most recent events to include.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
 	// If PRE_CONFIRMED finality is selected, events might appear multiple times,
 	// once for each finality status update.
-	FinalityStatus types.TxnFinalityStatus `json:"finality_status,omitempty"`
+	FinalityStatus TxnFinalityStatus `json:"finality_status,omitempty"`
 }
 
 // Notification from the server about a new event.
@@ -72,5 +71,5 @@ type EventSubscriptionInput struct {
 // event.
 type EmittedEventWithFinalityStatus struct {
 	EmittedEvent
-	FinalityStatus types.TxnFinalityStatus `json:"finality_status"`
+	FinalityStatus TxnFinalityStatus `json:"finality_status"`
 }

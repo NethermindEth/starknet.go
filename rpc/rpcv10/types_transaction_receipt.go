@@ -2,7 +2,6 @@ package rpcv10
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type MsgFromL1 struct {
@@ -24,9 +23,9 @@ type MessageStatus struct {
 	// The finality status of the L1_HANDLER transaction, including the case the txn
 	// is still in the mempool or
 	// failed validation during the block construction phase
-	FinalityStatus types.TxnFinalityStatus `json:"finality_status"`
+	FinalityStatus TxnFinalityStatus `json:"finality_status"`
 	// The execution status of the L1_HANDLER transaction
-	ExecutionStatus types.TxnExecutionStatus `json:"execution_status"`
+	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
 	// The failure reason. Only appears if `execution_status` is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }
@@ -34,11 +33,11 @@ type MessageStatus struct {
 type OrderedMsg struct {
 	// The order of the message within the transaction
 	Order   int `json:"order"`
-	MsgToL1 types.MsgToL1
+	MsgToL1 MsgToL1
 }
 
 // The response of the starknet_subscribeTransactionStatus subscription.
 type NewTxnStatus struct {
-	TransactionHash *felt.Felt            `json:"transaction_hash"`
-	Status          types.TxnStatusResult `json:"status"`
+	TransactionHash *felt.Felt      `json:"transaction_hash"`
+	Status          TxnStatusResult `json:"status"`
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -41,7 +40,7 @@ func TestRPCError(t *testing.T) {
 				gomock.Any(),
 				"starknet_estimateMessageFee",
 				msgFromL1,
-				types.WithBlockNumber(523066),
+				WithBlockNumber(523066),
 			).
 			DoAndReturn(func(_, result, _ any, args ...any) error {
 				rpcErr := internalUtils.TestUnmarshalJSONFileToType[RPCError](
@@ -64,7 +63,7 @@ func TestRPCError(t *testing.T) {
 	_, err := testConfig.Provider.EstimateMessageFee(
 		t.Context(),
 		msgFromL1,
-		types.WithBlockNumber(523066),
+		WithBlockNumber(523066),
 	)
 	require.Error(t, err)
 	rpcErr := err.(*RPCError)
