@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Events subscription.
@@ -31,16 +30,16 @@ import (
 func SubscribeEvents(
 	ctx context.Context,
 	ws callers.Subscriber,
-	events chan<- *rpcv10.EmittedEventWithFinalityStatus,
-	options *rpcv10.EventSubscriptionInput,
+	events chan<- *EmittedEventWithFinalityStatus,
+	options *EventSubscriptionInput,
 ) (*client.ClientSubscription, error) {
 	sub, err := ws.Subscribe(ctx, "starknet", "_subscribeEvents", events, options)
 	if err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			rpcv10.ErrTooManyKeysInFilter,
-			rpcv10.ErrTooManyBlocksBack,
-			rpcv10.ErrBlockNotFound,
+			ErrTooManyKeysInFilter,
+			ErrTooManyBlocksBack,
+			ErrBlockNotFound,
 		)
 	}
 
@@ -63,15 +62,15 @@ func SubscribeEvents(
 func SubscribeNewHeads(
 	ctx context.Context,
 	ws callers.Subscriber,
-	headers chan<- *rpcv10.BlockHeader,
-	subBlockID rpcv10.SubscriptionBlockID,
+	headers chan<- *BlockHeader,
+	subBlockID SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {
 	var sub *client.ClientSubscription
 	var err error
 
 	// @todo see why not accept subBlockID as a pointer
 	// if subBlockID is empty, don't send it to the server to avoid it being marshalled as 'null'
-	if subBlockID == (rpcv10.SubscriptionBlockID{}) { //nolint:exhaustruct // Asserting the type
+	if subBlockID == (SubscriptionBlockID{}) { //nolint:exhaustruct // Asserting the type
 		sub, err = ws.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
 	} else {
 		sub, err = ws.SubscribeWithSliceArgs(
@@ -80,7 +79,7 @@ func SubscribeNewHeads(
 	}
 
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTooManyBlocksBack, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyBlocksBack, ErrBlockNotFound)
 	}
 
 	return sub, nil
@@ -106,8 +105,8 @@ func SubscribeNewHeads(
 func SubscribeNewTransactionReceipts(
 	ctx context.Context,
 	ws callers.Subscriber,
-	txnReceipts chan<- *rpcv10.TransactionReceiptWithBlockInfo,
-	options *rpcv10.SubNewTxnReceiptsInput,
+	txnReceipts chan<- *TransactionReceiptWithBlockInfo,
+	options *SubNewTxnReceiptsInput,
 ) (*client.ClientSubscription, error) {
 	sub, err := ws.Subscribe(
 		ctx,
@@ -117,7 +116,7 @@ func SubscribeNewTransactionReceipts(
 		options,
 	)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTooManyAddressesInFilter)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
 
 	return sub, nil
@@ -142,12 +141,12 @@ func SubscribeNewTransactionReceipts(
 func SubscribeNewTransactions(
 	ctx context.Context,
 	ws callers.Subscriber,
-	newTxns chan<- *rpcv10.TxnWithHashAndStatus,
-	options *rpcv10.SubNewTxnsInput,
+	newTxns chan<- *TxnWithHashAndStatus,
+	options *SubNewTxnsInput,
 ) (*client.ClientSubscription, error) {
 	sub, err := ws.Subscribe(ctx, "starknet", "_subscribeNewTransactions", newTxns, options)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTooManyAddressesInFilter)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTooManyAddressesInFilter)
 	}
 
 	return sub, nil
@@ -170,7 +169,7 @@ func SubscribeNewTransactions(
 func SubscribeTransactionStatus(
 	ctx context.Context,
 	ws callers.Subscriber,
-	newStatus chan<- *rpcv10.NewTxnStatus,
+	newStatus chan<- *NewTxnStatus,
 	transactionHash *felt.Felt,
 ) (*client.ClientSubscription, error) {
 	sub, err := ws.SubscribeWithSliceArgs(

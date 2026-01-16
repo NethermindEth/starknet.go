@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // ChainID returns the chain ID for transaction replay protection.
@@ -41,7 +40,7 @@ func SpecVersion(ctx context.Context, c callers.Caller) (string, error) {
 	var result string
 	err := internal.Do(ctx, c, "starknet_specVersion", &result)
 	if err != nil {
-		return "", rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+		return "", rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	return result, nil
@@ -55,10 +54,10 @@ func SpecVersion(ctx context.Context, c callers.Caller) (string, error) {
 // Returns:
 //   - *SyncStatus: The synchronisation status
 //   - error: An error if any occurred during the execution
-func Syncing(ctx context.Context, c callers.Caller) (rpcv10.SyncStatus, error) {
-	var result rpcv10.SyncStatus
+func Syncing(ctx context.Context, c callers.Caller) (SyncStatus, error) {
+	var result SyncStatus
 	if err := internal.Do(ctx, c, "starknet_syncing", &result); err != nil {
-		return rpcv10.SyncStatus{}, rpcerr.UnwrapToRPCErr(err)
+		return SyncStatus{}, rpcerr.UnwrapToRPCErr(err)
 	}
 
 	return result, nil

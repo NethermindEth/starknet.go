@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // TransactionByBlockIDAndIndex retrieves a transaction by its block ID and index.
@@ -23,14 +22,14 @@ import (
 func TransactionByBlockIDAndIndex(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 	index uint64,
-) (*rpcv10.BlockTransaction, error) {
-	var tx rpcv10.BlockTransaction
+) (*BlockTransaction, error) {
+	var tx BlockTransaction
 	if err := internal.Do(
 		ctx, c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrInvalidTxnIndex, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}
 
 	return &tx, nil
@@ -49,10 +48,10 @@ func TransactionByHash(
 	ctx context.Context,
 	c callers.Caller,
 	hash *felt.Felt,
-) (*rpcv10.BlockTransaction, error) {
-	var tx rpcv10.BlockTransaction
+) (*BlockTransaction, error) {
+	var tx BlockTransaction
 	if err := internal.Do(ctx, c, "starknet_getTransactionByHash", &tx, hash); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return &tx, nil
@@ -71,11 +70,11 @@ func GetTransactionReceipt(
 	ctx context.Context,
 	c callers.Caller,
 	transactionHash *felt.Felt,
-) (*rpcv10.TransactionReceiptWithBlockInfo, error) {
-	var receipt rpcv10.TransactionReceiptWithBlockInfo
+) (*TransactionReceiptWithBlockInfo, error) {
+	var receipt TransactionReceiptWithBlockInfo
 	err := internal.Do(ctx, c, "starknet_getTransactionReceipt", &receipt, transactionHash)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return &receipt, nil
@@ -95,11 +94,11 @@ func TransactionStatus(
 	ctx context.Context,
 	c callers.Caller,
 	transactionHash *felt.Felt,
-) (*rpcv10.TxnStatusResult, error) {
-	var receipt rpcv10.TxnStatusResult
+) (*TxnStatusResult, error) {
+	var receipt TxnStatusResult
 	err := internal.Do(ctx, c, "starknet_getTransactionStatus", &receipt, transactionHash)
 	if err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
 	return &receipt, nil

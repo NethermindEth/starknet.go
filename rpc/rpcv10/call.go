@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Call calls the Starknet Provider's function with the given (Starknet) request and block ID.
@@ -23,8 +22,8 @@ import (
 func Call(
 	ctx context.Context,
 	c callers.Caller,
-	request rpcv10.FunctionCall,
-	blockID rpcv10.BlockID,
+	request FunctionCall,
+	blockID BlockID,
 ) ([]*felt.Felt, error) {
 	if request.Calldata == nil {
 		request.Calldata = []*felt.Felt{}
@@ -34,10 +33,10 @@ func Call(
 	if err := internal.Do(ctx, c, "starknet_call", &result, request, blockID); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			rpcv10.ErrContractNotFound,
-			rpcv10.ErrEntrypointNotFound,
-			rpcv10.ErrContractError,
-			rpcv10.ErrBlockNotFound,
+			ErrContractNotFound,
+			ErrEntrypointNotFound,
+			ErrContractError,
+			ErrBlockNotFound,
 		)
 	}
 

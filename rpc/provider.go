@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10/methods"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 )
 
@@ -45,7 +44,7 @@ func NewProviderWrapper(
 		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
 	}
 
-	rawNodeVersion, err := methods.SpecVersion(ctx, c)
+	rawNodeVersion, err := rpcv10.SpecVersion(ctx, c)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the node's RPC spec version: %w", err)
 	}

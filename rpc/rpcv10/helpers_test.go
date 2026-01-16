@@ -1,10 +1,10 @@
-package methods
+package rpcv10
 
 import (
 	"testing"
 
 	"github.com/NethermindEth/starknet.go/rpc/callers"
-	. "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+
 	"github.com/stretchr/testify/require"
 )
 

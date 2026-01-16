@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // StateUpdate is a function that performs a state update operation
@@ -26,11 +25,11 @@ import (
 func GetStateUpdate(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
-) (*rpcv10.StateUpdateOutput, error) {
-	var state rpcv10.StateUpdateOutput
+	blockID BlockID,
+) (*StateUpdateOutput, error) {
+	var state StateUpdateOutput
 	if err := internal.Do(ctx, c, "starknet_getStateUpdate", &state, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return &state, nil
@@ -52,14 +51,14 @@ func StorageAt(
 	c callers.Caller,
 	contractAddress *felt.Felt,
 	key string,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 ) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
 	if err := internal.Do(
 		ctx, c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID,
 	); err != nil {
-		return "", rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
+		return "", rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return value, nil
@@ -81,21 +80,21 @@ func StorageAt(
 func StorageProof(
 	ctx context.Context,
 	c callers.Caller,
-	storageProofInput rpcv10.StorageProofInput,
-) (*rpcv10.StorageProofResult, error) {
+	storageProofInput StorageProofInput,
+) (*StorageProofResult, error) {
 	err := checkForPreConfirmed(storageProofInput.BlockID)
 	if err != nil {
 		return nil, err
 	}
 
-	var raw rpcv10.StorageProofResult
+	var raw StorageProofResult
 	if err := internal.DoAsObject(
 		ctx, c, "starknet_getStorageProof", &raw, storageProofInput,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			rpcv10.ErrBlockNotFound,
-			rpcv10.ErrStorageProofNotSupported,
+			ErrBlockNotFound,
+			ErrStorageProofNotSupported,
 		)
 	}
 
@@ -105,10 +104,10 @@ func StorageProof(
 // checkForPreConfirmed checks if the block ID has the 'pre_confirmed' tag. If it
 // does, it returns an error. This is used to prevent the user from using the
 // 'pre_confirmed' tag on methods that do not support it.
-func checkForPreConfirmed(b rpcv10.BlockID) error {
-	if b.Tag == rpcv10.BlockTagPreConfirmed {
+func checkForPreConfirmed(b BlockID) error {
+	if b.Tag == BlockTagPreConfirmed {
 		return errors.Join(
-			rpcv10.ErrInvalidBlockID,
+			ErrInvalidBlockID,
 			errors.New("'pre_confirmed' tag is not supported on this method"),
 		)
 	}

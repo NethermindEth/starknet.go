@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // BlockHashAndNumber retrieves the hash and number of the current block.
@@ -21,10 +20,10 @@ import (
 func BlockHashAndNumber(
 	ctx context.Context,
 	c callers.Caller,
-) (*rpcv10.BlockHashAndNumberOutput, error) {
-	var block rpcv10.BlockHashAndNumberOutput
+) (*BlockHashAndNumberOutput, error) {
+	var block BlockHashAndNumberOutput
 	if err := internal.Do(ctx, c, "starknet_blockHashAndNumber", &block); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrNoBlocks)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrNoBlocks)
 	}
 
 	return &block, nil
@@ -41,7 +40,7 @@ func BlockHashAndNumber(
 func BlockNumber(ctx context.Context, c callers.Caller) (uint64, error) {
 	var blockNumber uint64
 	if err := internal.Do(ctx, c, "starknet_blockNumber", &blockNumber); err != nil {
-		return 0, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrNoBlocks)
+		return 0, rpcerr.UnwrapToRPCErr(err, ErrNoBlocks)
 	}
 
 	return blockNumber, nil
@@ -59,11 +58,11 @@ func BlockNumber(ctx context.Context, c callers.Caller) (uint64, error) {
 func BlockTransactionCount(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 ) (uint64, error) {
 	var result uint64
 	if err := internal.Do(ctx, c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
-		return 0, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
+		return 0, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return result, nil
@@ -73,30 +72,30 @@ func BlockTransactionCount(
 func GetBlockWithReceipts(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 ) (interface{}, error) {
 	var result json.RawMessage
 	if err := internal.Do(ctx, c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	var m map[string]interface{}
 	if err := json.Unmarshal(result, &m); err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	// Pre_confirmedBlockWithReceipts doesn't contain a "status" field
 	if _, ok := m["status"]; ok {
-		var block rpcv10.BlockWithReceipts
+		var block BlockWithReceipts
 		if err := json.Unmarshal(result, &block); err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return &block, nil
 	} else {
-		var preConfirmedBlock rpcv10.PreConfirmedBlockWithReceipts
+		var preConfirmedBlock PreConfirmedBlockWithReceipts
 		if err := json.Unmarshal(result, &preConfirmedBlock); err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return &preConfirmedBlock, nil
@@ -115,17 +114,17 @@ func GetBlockWithReceipts(
 func BlockWithTxHashes(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 ) (interface{}, error) {
-	var result rpcv10.BlockTxHashes
+	var result BlockTxHashes
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &rpcv10.PreConfirmedBlockTxHashes{
-			PreConfirmedBlockHeader: rpcv10.PreConfirmedBlockHeader{
+		return &PreConfirmedBlockTxHashes{
+			PreConfirmedBlockHeader: PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,
@@ -154,16 +153,16 @@ func BlockWithTxHashes(
 func BlockWithTxs(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 ) (interface{}, error) {
-	var result rpcv10.Block
+	var result Block
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pre_confirmed block
 	if result.Hash == nil {
-		return &rpcv10.PreConfirmedBlock{
-			PreConfirmedBlockHeader: rpcv10.PreConfirmedBlockHeader{
+		return &PreConfirmedBlock{
+			PreConfirmedBlockHeader: PreConfirmedBlockHeader{
 				Number:           result.Number,
 				Timestamp:        result.Timestamp,
 				SequencerAddress: result.SequencerAddress,

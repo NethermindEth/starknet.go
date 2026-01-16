@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Class retrieves the class information from the Provider with the given hash.
@@ -25,12 +24,12 @@ import (
 func Class(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 	classHash *felt.Felt,
-) (rpcv10.ClassOutput, error) {
+) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := internal.Do(ctx, c, "starknet_getClass", &rawClass, blockID, classHash); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrClassHashNotFound, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrClassHashNotFound, ErrBlockNotFound)
 	}
 
 	return typecastClassOutput(rawClass)
@@ -49,14 +48,14 @@ func Class(
 func ClassAt(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 	contractAddress *felt.Felt,
-) (rpcv10.ClassOutput, error) {
+) (ClassOutput, error) {
 	var rawClass map[string]any
 	if err := internal.Do(
 		ctx, c, "starknet_getClassAt", &rawClass, blockID, contractAddress,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return typecastClassOutput(rawClass)
@@ -69,10 +68,10 @@ func ClassAt(
 // Returns:
 //   - ClassOutput: a ClassOutput interface
 //   - error: an error if any
-func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
+func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 	rawClassByte, err := json.Marshal(rawClass)
 	if err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	// if contract_class_version exists, then it's a ContractClass type
@@ -80,7 +79,7 @@ func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 		var contractClass contracts.ContractClass
 		err = json.Unmarshal(rawClassByte, &contractClass)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return &contractClass, nil
@@ -88,7 +87,7 @@ func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 	var depContractClass contracts.DeprecatedContractClass
 	err = json.Unmarshal(rawClassByte, &depContractClass)
 	if err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	return &depContractClass, nil
@@ -107,14 +106,14 @@ func typecastClassOutput(rawClass map[string]any) (rpcv10.ClassOutput, error) {
 func ClassHashAt(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var result *felt.Felt
 	if err := internal.Do(
 		ctx, c, "starknet_getClassHashAt", &result, blockID, contractAddress,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return result, nil
@@ -138,8 +137,8 @@ func CompiledCasm(
 	if err := internal.Do(ctx, c, "starknet_getCompiledCasm", &result, classHash); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			rpcv10.ErrClassHashNotFound,
-			rpcv10.ErrCompilationError,
+			ErrClassHashNotFound,
+			ErrCompilationError,
 		)
 	}
 

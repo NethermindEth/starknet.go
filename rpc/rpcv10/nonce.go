@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Nonce retrieves the nonce for a given block ID and contract address.
@@ -23,14 +22,14 @@ import (
 func Nonce(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
+	blockID BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var nonce *felt.Felt
 	if err := internal.Do(
 		ctx, c, "starknet_getNonce", &nonce, blockID, contractAddress,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrContractNotFound, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return nonce, nil

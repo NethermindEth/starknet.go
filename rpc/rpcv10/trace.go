@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // SimulateTransactions simulates transactions on the blockchain.
@@ -36,15 +35,15 @@ import (
 func SimulateTransactions(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
-	txns []rpcv10.BroadcastTxn,
-	simulationFlags []rpcv10.SimulationFlag,
-) ([]rpcv10.SimulatedTransaction, error) {
-	var output []rpcv10.SimulatedTransaction
+	blockID BlockID,
+	txns []BroadcastTxn,
+	simulationFlags []SimulationFlag,
+) ([]SimulatedTransaction, error) {
+	var output []SimulatedTransaction
 	if err := internal.Do(
 		ctx, c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrTxnExec, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
 
 	return output, nil
@@ -62,18 +61,18 @@ func SimulateTransactions(
 func TraceBlockTransactions(
 	ctx context.Context,
 	c callers.Caller,
-	blockID rpcv10.BlockID,
-) ([]rpcv10.Trace, error) {
+	blockID BlockID,
+) ([]Trace, error) {
 	err := checkForPreConfirmed(blockID)
 	if err != nil {
 		return nil, err
 	}
 
-	var output []rpcv10.Trace
+	var output []Trace
 	if err := internal.Do(
 		ctx, c, "starknet_traceBlockTransactions", &output, blockID,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return output, nil
@@ -92,53 +91,53 @@ func TraceTransaction(
 	ctx context.Context,
 	c callers.Caller,
 	transactionHash *felt.Felt,
-) (rpcv10.TxnTrace, error) {
+) (TxnTrace, error) {
 	var rawTxnTrace map[string]any
 	if err := internal.Do(
 		ctx, c, "starknet_traceTransaction", &rawTxnTrace, transactionHash,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, rpcv10.ErrHashNotFound, rpcv10.ErrNoTraceAvailable)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound, ErrNoTraceAvailable)
 	}
 
 	rawTraceByte, err := json.Marshal(rawTxnTrace)
 	if err != nil {
-		return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+		return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 	}
 
 	switch rawTxnTrace["type"] {
-	case string(rpcv10.TransactionTypeInvoke):
-		var trace rpcv10.InvokeTxnTrace
+	case string(TransactionTypeInvoke):
+		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
-	case string(rpcv10.TransactionTypeDeclare):
-		var trace rpcv10.DeclareTxnTrace
+	case string(TransactionTypeDeclare):
+		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
-	case string(rpcv10.TransactionTypeDeployAccount):
-		var trace rpcv10.DeployAccountTxnTrace
+	case string(TransactionTypeDeployAccount):
+		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
-	case string(rpcv10.TransactionTypeL1Handler):
-		var trace rpcv10.L1HandlerTxnTrace
+	case string(TransactionTypeL1Handler):
+		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
-			return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData(err.Error()))
+			return nil, rpcerr.Err(rpcerr.InternalError, StringErrData(err.Error()))
 		}
 
 		return trace, nil
 	}
 
-	return nil, rpcerr.Err(rpcerr.InternalError, rpcv10.StringErrData("Unknown transaction type"))
+	return nil, rpcerr.Err(rpcerr.InternalError, StringErrData("Unknown transaction type"))
 }

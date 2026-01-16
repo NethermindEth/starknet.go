@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Estimates the resources required by a given sequence of transactions when applied
@@ -29,19 +28,19 @@ import (
 func EstimateFee(
 	ctx context.Context,
 	c callers.Caller,
-	requests []rpcv10.BroadcastTxn,
-	simulationFlags []rpcv10.SimulationFlag,
-	blockID rpcv10.BlockID,
-) ([]rpcv10.FeeEstimation, error) {
-	var raw []rpcv10.FeeEstimation
+	requests []BroadcastTxn,
+	simulationFlags []SimulationFlag,
+	blockID BlockID,
+) ([]FeeEstimation, error) {
+	var raw []FeeEstimation
 	if err := internal.Do(
 		ctx, c, "starknet_estimateFee", &raw, requests, simulationFlags, blockID,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			rpcv10.ErrBlockNotFound,
-			rpcv10.ErrContractNotFound,
-			rpcv10.ErrTxnExec,
+			ErrBlockNotFound,
+			ErrContractNotFound,
+			ErrTxnExec,
 		)
 	}
 
@@ -61,17 +60,17 @@ func EstimateFee(
 func EstimateMessageFee(
 	ctx context.Context,
 	c callers.Caller,
-	msg rpcv10.MsgFromL1,
-	blockID rpcv10.BlockID,
-) (rpcv10.MessageFeeEstimation, error) {
-	var raw rpcv10.MessageFeeEstimation
+	msg MsgFromL1,
+	blockID BlockID,
+) (MessageFeeEstimation, error) {
+	var raw MessageFeeEstimation
 	if err := internal.Do(
 		ctx, c, "starknet_estimateMessageFee", &raw, msg, blockID,
 	); err != nil {
 		return raw, rpcerr.UnwrapToRPCErr(err,
-			rpcv10.ErrContractError,
-			rpcv10.ErrContractNotFound,
-			rpcv10.ErrBlockNotFound,
+			ErrContractError,
+			ErrContractNotFound,
+			ErrBlockNotFound,
 		)
 	}
 

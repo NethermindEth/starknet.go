@@ -96,7 +96,7 @@ func NewWebsocketProvider(
 	return &WsProvider{s: s}, nil
 }
 
-//go:generate mockgen -destination=../../internal/tests/mocks/rpcv10mock/rpc.go -package=rpcv10mock -source=provider.go
+//go:generate mockgen -destination=../../internal/tests/mocks/ock/rpc.go -package=ock -source=provider.go
 type RPCProvider interface {
 	AddInvokeTransaction(
 		ctx context.Context,

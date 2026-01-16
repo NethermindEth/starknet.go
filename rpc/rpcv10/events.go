@@ -1,4 +1,4 @@
-package methods
+package rpcv10
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 )
 
 // Events retrieves events from the provider matching the given filter.
@@ -21,16 +20,16 @@ import (
 func Events(
 	ctx context.Context,
 	c callers.Caller,
-	input rpcv10.EventsInput,
-) (*rpcv10.EventChunk, error) {
-	var result rpcv10.EventChunk
+	input EventsInput,
+) (*EventChunk, error) {
+	var result EventChunk
 	if err := internal.Do(ctx, c, "starknet_getEvents", &result, input); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(
 			err,
-			rpcv10.ErrPageSizeTooBig,
-			rpcv10.ErrInvalidContinuationToken,
-			rpcv10.ErrBlockNotFound,
-			rpcv10.ErrTooManyKeysInFilter,
+			ErrPageSizeTooBig,
+			ErrInvalidContinuationToken,
+			ErrBlockNotFound,
+			ErrTooManyKeysInFilter,
 		)
 	}
 
