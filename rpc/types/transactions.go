@@ -172,17 +172,7 @@ type BlockTransaction struct {
 	Transaction
 }
 
-// UnmarshalJSON unmarshals the data into a BlockTransaction object.
-//
-// It takes a byte slice as the parameter, representing the JSON data to be
-// unmarshalled.
-// The function returns an error if the unmarshalling process fails.
-//
-// Parameters:
-//   - data: The JSON data to be unmarshalled
-//
-// Returns:
-//   - error: An error if the unmarshalling process fails
+// UnmarshalJSON unmarshals the JSON data into a BlockTransaction object.
 func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
 	type alias BlockTransaction
 	var aux alias
@@ -203,11 +193,7 @@ func (blockTxn *BlockTransaction) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// MarshalJSON marshals the BlockTransaction object into a JSON byte slice.
-//
-// It takes a pointer to a BlockTransaction object as the parameter.
-// The function returns a byte slice representing the JSON data and an error if
-// the marshalling process fails.
+// MarshalJSON marshals the BlockTransaction into a JSON byte slice.
 func (blockTxn *BlockTransaction) MarshalJSON() ([]byte, error) {
 	// First marshal the transaction to get all its fields
 	txnData, err := json.Marshal(blockTxn.Transaction)
@@ -386,25 +372,6 @@ const (
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TransactionType.
-//
-// The function modifies the value of the TransactionType pointer tt based on the
-// unmarshaled data.
-// The supported JSON values and their corresponding TransactionType values are:
-//   - "DECLARE" maps to TransactionType_Declare
-//   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
-//   - "DEPLOY" maps to TransactionType_Deploy
-//   - "INVOKE" maps to TransactionType_Invoke
-//   - "L1_HANDLER" maps to TransactionType_L1Handler
-//
-// If none of the supported values match the input data, the function returns an error.
-//
-//	nil if the unmarshaling is successful.
-//
-// Parameters:
-//   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
-//
-// Returns:
-//   - error: an error if the unmarshaling fails
 func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -430,10 +397,6 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON marshals the TransactionType to JSON.
-//
-// Returns:
-//   - []byte: a byte slice
-//   - error: an error if any
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
 }
