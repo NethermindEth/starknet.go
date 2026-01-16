@@ -349,7 +349,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	// Deploy the new account
-	resp, err := provider.AsV10().AddDeployAccountTransaction(t.Context(), deployAccTxn)
+	resp, err := provider.SendTransaction(t.Context(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
 	require.NotNil(t, resp.Hash)

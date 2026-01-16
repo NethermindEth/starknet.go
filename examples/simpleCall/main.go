@@ -31,7 +31,7 @@ func main() {
 	accountAddress := setup.GetAccountAddress()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProviderV10(context.Background(), rpcProviderURL)
+	client, err := rpc.NewProviderWrapper(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
