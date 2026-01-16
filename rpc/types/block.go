@@ -38,40 +38,7 @@ type BlockID struct {
 	Tag BlockTag `json:",omitempty"`
 }
 
-// Block hash, number or tag, same as BLOCK_ID, but without 'pre_confirmed' or 'l1_accepted'
-type SubscriptionBlockID BlockID
-
-// BlockID returns a BlockID from a SubscriptionBlockID.
-func (b *SubscriptionBlockID) BlockID() BlockID {
-	return BlockID{
-		Number: b.Number,
-		Hash:   b.Hash,
-		Tag:    b.Tag,
-	}
-}
-
-// WithBlockNumber sets the block number for the SubscriptionBlockID.
-func (b *SubscriptionBlockID) WithBlockNumber(number uint64) SubscriptionBlockID {
-	b.Number = &number
-
-	return *b
-}
-
-// WithBlockHash sets the block hash for the SubscriptionBlockID.
-func (b *SubscriptionBlockID) WithBlockHash(hash *felt.Felt) SubscriptionBlockID {
-	b.Hash = hash
-
-	return *b
-}
-
-// WithLatestTag sets the block tag to latest for the SubscriptionBlockID.
-// It's the only block tag allowed for this type.
-func (b *SubscriptionBlockID) WithLatestTag() SubscriptionBlockID {
-	b.Tag = BlockTagLatest
-
-	return *b
-}
-
+// UnmarshalJSON unmarshals the JSON representation of a BlockID.
 func (b *BlockID) UnmarshalJSON(data []byte) error {
 	var tag string
 
@@ -95,34 +62,7 @@ func (b *BlockID) UnmarshalJSON(data []byte) error {
 	return errors.New("invalid block ID")
 }
 
-func (b *SubscriptionBlockID) UnmarshalJSON(data []byte) error {
-	var aux BlockID
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	if aux.Tag == BlockTagPreConfirmed || aux.Tag == BlockTagL1Accepted {
-		return fmt.Errorf("invalid block tag for this type: %s", aux.Tag)
-	}
-
-	*b = SubscriptionBlockID(aux)
-
-	return nil
-}
-
 // MarshalJSON marshals the BlockID to JSON format.
-//
-// It returns a byte slice and an error. The byte slice contains the JSON
-// representation of the BlockID, while the error indicates any error that
-// occurred during the marshalling process.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: the JSON representation of the BlockID
-//   - error: any error that occurred during the marshalling process
 func (b BlockID) MarshalJSON() ([]byte, error) {
 	if b.Tag == BlockTagPreConfirmed || b.Tag == BlockTagLatest || b.Tag == BlockTagL1Accepted {
 		return []byte(strconv.Quote(string(b.Tag))), nil
@@ -141,14 +81,6 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(nil)
-}
-
-func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
-	if b.Tag == BlockTagPreConfirmed || b.Tag == BlockTagL1Accepted {
-		return nil, fmt.Errorf("invalid block tag for this type: %s", b.Tag)
-	}
-
-	return BlockID(b).MarshalJSON()
 }
 
 // WithBlockNumber returns a BlockID with the given block number.
