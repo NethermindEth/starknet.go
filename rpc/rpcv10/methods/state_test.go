@@ -2,6 +2,7 @@ package methods
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -13,6 +14,288 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+// TestStateUpdate is a test function for the StateUpdate method.
+func TestStateUpdate(t *testing.T) {
+	tests.RunTestOn(t,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
+	)
+
+	testConfig := internal.BeforeEach(t, false)
+	provider := testConfig.Provider
+
+	type testSetType struct {
+		BlockID     BlockID
+		ExpectedErr error
+	}
+
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
+			{
+				BlockID: WithBlockTag(BlockTagLatest),
+			},
+			{
+				BlockID: WithBlockTag(BlockTagPreConfirmed),
+			},
+			{
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
+			},
+		},
+		tests.MainnetEnv: {
+			{
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				BlockID:     WithBlockNumber(99999999999999999),
+				ExpectedErr: ErrBlockNotFound,
+			},
+		},
+	}[tests.TEST_ENV]
+
+	if tests.TEST_ENV != tests.MockEnv {
+		// add the common block IDs to the test set of network tests
+		blockIDs := GetCommonBlockIDs(t, provider)
+		for _, blockID := range blockIDs {
+			testSet = append(testSet, testSetType{
+				BlockID: blockID,
+			})
+		}
+	}
+
+	for _, test := range testSet {
+		blockID, _ := test.BlockID.MarshalJSON()
+		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/stateUpdate/sepolia3100000.json", "result",
+				)
+
+				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+					t,
+					"./testData/stateUpdate/sepoliaPreConfirmed.json",
+					"result",
+				)
+
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getStateUpdate",
+						test.BlockID,
+					).
+					DoAndReturn(
+						func(_, result, _ any, args ...any) error {
+							rawResp := result.(*json.RawMessage)
+							blockID := args[0].(BlockID)
+
+							switch blockID.Tag {
+							case BlockTagPreConfirmed:
+								*rawResp = blockSepoliaPreConfirmed
+							case BlockTagLatest:
+								*rawResp = blockSepolia3100000
+							}
+
+							if blockID.Number != nil && *blockID.Number == 99999999999999999 {
+								return RPCError{
+									Code:    24,
+									Message: "Block not found",
+								}
+							}
+
+							return nil
+						},
+					).
+					Times(1)
+			}
+
+			stateUpdate, err := GetStateUpdate(
+				t.Context(),
+				provider,
+				test.BlockID,
+			)
+			if test.ExpectedErr != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedErr.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedStateUpdate := testConfig.RPCSpy.LastResponse()
+
+			rawStateUpdate, err := json.Marshal(stateUpdate)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(rawExpectedStateUpdate), string(rawStateUpdate))
+		})
+	}
+}
+
+// TestStorageAt tests the StorageAt function.
+func TestStorageAt(t *testing.T) {
+	tests.RunTestOn(
+		t,
+		tests.DevnetEnv,
+		tests.IntegrationEnv,
+		tests.MainnetEnv,
+		tests.MockEnv,
+		tests.TestnetEnv,
+	)
+
+	testConfig := internal.BeforeEach(t, false)
+
+	type testSetType struct {
+		Description     string
+		ContractAddress *felt.Felt
+		StorageKey      string
+		Block           BlockID
+		ExpectedError   error
+	}
+	testSet := map[tests.TestEnv][]testSetType{
+		tests.MockEnv: {
+			{
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+			},
+			{
+				Description:     "invalid block",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
+				StorageKey:      "_signer",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError:   ErrBlockNotFound,
+			},
+			{
+				Description:     "invalid contract address",
+				ContractAddress: internalUtils.DeadBeef,
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+				ExpectedError:   ErrContractNotFound,
+			},
+		},
+		tests.DevnetEnv: {
+			{
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:      "ERC20_name",
+				Block:           WithBlockTag(BlockTagLatest),
+			},
+		},
+		tests.TestnetEnv: {
+			{
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+			},
+			{
+				Description:     "invalid block",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
+				StorageKey:      "_signer",
+				Block:           WithBlockHash(internalUtils.DeadBeef),
+				ExpectedError:   ErrBlockNotFound,
+			},
+			{
+				Description:     "invalid contract address",
+				ContractAddress: internalUtils.DeadBeef,
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+				ExpectedError:   ErrContractNotFound,
+			},
+		},
+		tests.IntegrationEnv: {
+			{
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
+				StorageKey:      "ERC20_decimals",
+				Block:           WithBlockTag(BlockTagLatest),
+			},
+		},
+		tests.MainnetEnv: {
+			{
+				Description:     "normal call",
+				ContractAddress: internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
+				StorageKey:      "_signer",
+				Block:           WithBlockTag(BlockTagLatest),
+			},
+		},
+	}[tests.TEST_ENV]
+
+	for _, test := range testSet {
+		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv {
+				testConfig.MockClient.EXPECT().
+					CallContextWithSliceArgs(
+						t.Context(),
+						gomock.Any(),
+						"starknet_getStorageAt",
+						test.ContractAddress,
+						// the StorateAt function is not compliant with the spec
+						fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(test.StorageKey)),
+						test.Block,
+					).
+					DoAndReturn(func(_, result, _ any, args ...any) error {
+						rawResp := result.(*json.RawMessage)
+						contractAddress := args[0].(*felt.Felt)
+						blockID := args[2].(BlockID)
+
+						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    24,
+								Message: "Block not found",
+							}
+						}
+
+						if contractAddress == internalUtils.DeadBeef {
+							return RPCError{
+								Code:    20,
+								Message: "Contract not found",
+							}
+						}
+
+						*rawResp = json.RawMessage("\"0xdeadbeef\"")
+
+						return nil
+					}).
+					Times(1)
+			}
+
+			value, err := StorageAt(
+				t.Context(),
+				testConfig.Provider,
+				test.ContractAddress,
+				test.StorageKey,
+				test.Block,
+			)
+			if test.ExpectedError != nil {
+				require.Error(t, err)
+				assert.EqualError(t, err, test.ExpectedError.Error())
+
+				return
+			}
+			require.NoError(t, err)
+
+			rawExpectedValue := testConfig.RPCSpy.LastResponse()
+			rawValue, err := json.Marshal(value)
+			require.NoError(t, err)
+			assert.Equal(t, string(rawExpectedValue), string(rawValue))
+		})
+	}
+}
 
 // TestStorageProof tests the StorageProof function.
 func TestStorageProof(t *testing.T) {
