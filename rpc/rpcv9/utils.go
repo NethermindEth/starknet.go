@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // IsCompatible compares the version of the Starknet JSON-RPC Specification
@@ -60,10 +59,10 @@ func EstimateTip(
 	provider RPCProvider,
 	multiplier float64,
 ) (
-	tip types.U64,
+	tip U64,
 	err error,
 ) {
-	rawLatestBlock, err := provider.BlockWithTxs(ctx, types.WithBlockTag(types.BlockTagLatest))
+	rawLatestBlock, err := provider.BlockWithTxs(ctx, WithBlockTag(BlockTagLatest))
 	if err != nil {
 		return tip, fmt.Errorf("failed to get latest block: %w", err)
 	}
@@ -74,14 +73,14 @@ func EstimateTip(
 	}
 
 	var tipStruct struct {
-		Tip types.U64 `json:"tip"`
+		Tip U64 `json:"tip"`
 	}
 
 	tipCounter := new(big.Int)
 	// sum up the tips from all transactions
 	for _, transaction := range latestBlock.Transactions {
 		// L1Handler transactions don't have a tip
-		if transaction.GetType() == types.TransactionTypeL1Handler {
+		if transaction.GetType() == TransactionTypeL1Handler {
 			continue
 		}
 
@@ -105,7 +104,7 @@ func EstimateTip(
 
 	// No transactions in the block OR all transactions have a tip of 0
 	if tipCounter.Cmp(new(big.Int)) == 0 {
-		return types.U64("0x0"), nil
+		return U64("0x0"), nil
 	}
 
 	bigLength := new(big.Int).SetUint64(uint64(len(latestBlock.Transactions)))
@@ -113,11 +112,11 @@ func EstimateTip(
 	averageTip := tipCounter.Div(tipCounter, bigLength).Uint64()
 
 	if multiplier <= 0 || averageTip == 0 {
-		return types.U64("0x" + strconv.FormatUint(averageTip, 16)), nil
+		return U64("0x" + strconv.FormatUint(averageTip, 16)), nil
 	}
 
 	multipliedAverageTip := float64(averageTip) * multiplier
-	tip = types.U64("0x" + strconv.FormatUint(uint64(multipliedAverageTip), 16))
+	tip = U64("0x" + strconv.FormatUint(uint64(multipliedAverageTip), 16))
 
 	return tip, nil
 }

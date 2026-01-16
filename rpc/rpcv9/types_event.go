@@ -1,9 +1,6 @@
 package rpcv9
 
-import (
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc/types"
-)
+import "github.com/NethermindEth/juno/core/felt"
 
 type OrderedEvent struct {
 	// The order of the event within the transaction
@@ -43,9 +40,9 @@ type EmittedEvent struct {
 
 type EventFilter struct {
 	// FromBlock from block
-	FromBlock types.BlockID `json:"from_block,omitempty"`
+	FromBlock BlockID `json:"from_block,omitempty"`
 	// ToBlock to block
-	ToBlock types.BlockID `json:"to_block,omitempty"`
+	ToBlock BlockID `json:"to_block,omitempty"`
 	// Address from contract
 	Address *felt.Felt `json:"address,omitempty"`
 	// Keys the values used to filter the events
@@ -69,7 +66,7 @@ type EventSubscriptionInput struct {
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
 	// (Optional) The block to get notifications from, default is latest, limited
 	// to 1024 blocks back
-	SubBlockID types.SubscriptionBlockID `json:"block_id,omitzero"`
+	SubBlockID SubscriptionBlockID `json:"block_id,omitzero"`
 	// (Optional) The finality status of the most recent events to include.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
 	// If PRE_CONFIRMED finality is selected, events might appear multiple times,

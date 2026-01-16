@@ -7,7 +7,6 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +41,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 		averageTip := getTipAverageFromBlock(t, &block)
 
 		// compare the estimated tips
-		currentTip := types.U64("0x" + strconv.FormatUint(averageTip, 16))
+		currentTip := U64("0x" + strconv.FormatUint(averageTip, 16))
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 	t.Run("With multiplier 1.5", func(t *testing.T) {
@@ -58,7 +57,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 		averageTip := getTipAverageFromBlock(t, &block)
 
 		// compare the estimated tips
-		currentTip := types.U64("0x" + strconv.FormatUint(uint64(float64(averageTip)*1.5), 16))
+		currentTip := U64("0x" + strconv.FormatUint(uint64(float64(averageTip)*1.5), 16))
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 	t.Run("With negative multiplier", func(t *testing.T) {
@@ -75,7 +74,7 @@ func TestProvider_EstimateTip(t *testing.T) {
 
 		// compare the estimated tips
 		// (no multiplier is applied for negative multipliers)
-		currentTip := types.U64("0x" + strconv.FormatUint(averageTip, 16))
+		currentTip := U64("0x" + strconv.FormatUint(averageTip, 16))
 		assert.Equal(t, currentTip, estimatedTip)
 	})
 	t.Run("With multiplier less than 1", func(t *testing.T) {
@@ -90,14 +89,14 @@ func TestProvider_EstimateTip(t *testing.T) {
 
 		averageTip := getTipAverageFromBlock(t, &block)
 		if averageTip == 0 {
-			assert.Equal(t, types.U64("0x0"), estimatedTip)
+			assert.Equal(t, U64("0x0"), estimatedTip)
 
 			return
 		}
 
 		// compare the estimated tips
 		currentTip := (uint64(float64(averageTip) * 0.5))
-		assert.Equal(t, types.U64("0x"+strconv.FormatUint(currentTip, 16)), estimatedTip)
+		assert.Equal(t, U64("0x"+strconv.FormatUint(currentTip, 16)), estimatedTip)
 		assert.Less(t, currentTip, averageTip)
 	})
 }
@@ -111,7 +110,7 @@ func getTipAverageFromBlock(t *testing.T, block *Block) uint64 {
 		require.NoError(t, err)
 		var txnMap map[string]json.RawMessage
 		require.NoError(t, json.Unmarshal(rawTxn, &txnMap))
-		tip, err := utils.GetAndUnmarshalJSONFromMap[types.U64](txnMap, "tip")
+		tip, err := utils.GetAndUnmarshalJSONFromMap[U64](txnMap, "tip")
 		require.NoError(t, err)
 
 		// convert the tip to uint64 and add it to the counter

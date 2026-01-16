@@ -13,17 +13,13 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
-
-// @todo this entire pkg is a duplicate of the rpcv10 pkg without no changes
-// to the code. It needs to be refactored.
 
 var (
 	// rpcVersion is the version of the Starknet JSON-RPC specification that
 	// this SDK is compatible with.
 	// This should be updated when supporting new versions of the RPC specification.
-	rpcVersion = semver.MustParse("0.9.0")
+	rpcVersion = semver.MustParse("0.10.0")
 
 	// ErrIncompatibleVersion is returned when the JSON-RPC specification  implemented
 	// by the node is different from the version implemented by the Provider type.
@@ -100,82 +96,82 @@ func NewWebsocketProvider(
 	return &WsProvider{s: s}, nil
 }
 
-//go:generate mockgen -destination=../../internal/tests/mocks/rpcv9mock/rpc.go -package=rpcv9mock -source=provider.go
+//go:generate mockgen -destination=../../internal/tests/mocks/rpcv10mock/rpc.go -package=rpcv10mock -source=provider.go
 type RPCProvider interface {
 	AddInvokeTransaction(
 		ctx context.Context,
-		invokeTxn *types.BroadcastInvokeTxnV3,
+		invokeTxn *BroadcastInvokeTxnV3,
 	) (AddInvokeTransactionResponse, error)
 	AddDeclareTransaction(
 		ctx context.Context,
-		declareTransaction *types.BroadcastDeclareTxnV3,
+		declareTransaction *BroadcastDeclareTxnV3,
 	) (AddDeclareTransactionResponse, error)
 	AddDeployAccountTransaction(
 		ctx context.Context,
-		deployAccountTransaction *types.BroadcastDeployAccountTxnV3,
+		deployAccountTransaction *BroadcastDeployAccountTxnV3,
 	) (AddDeployAccountTransactionResponse, error)
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
-	BlockTransactionCount(ctx context.Context, blockID types.BlockID) (uint64, error)
-	BlockWithReceipts(ctx context.Context, blockID types.BlockID) (interface{}, error)
-	BlockWithTxHashes(ctx context.Context, blockID types.BlockID) (interface{}, error)
-	BlockWithTxs(ctx context.Context, blockID types.BlockID) (interface{}, error)
-	Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
+	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
+	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
+	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
-	Class(ctx context.Context, blockID types.BlockID, classHash *felt.Felt) (ClassOutput, error)
+	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(
 		ctx context.Context,
-		blockID types.BlockID,
+		blockID BlockID,
 		contractAddress *felt.Felt,
 	) (ClassOutput, error)
 	ClassHashAt(
 		ctx context.Context,
-		blockID types.BlockID,
+		blockID BlockID,
 		contractAddress *felt.Felt,
 	) (*felt.Felt, error)
 	CompiledCasm(ctx context.Context, classHash *felt.Felt) (*contracts.CasmClass, error)
 	EstimateFee(
 		ctx context.Context,
-		requests []types.BroadcastTxn,
-		simulationFlags []types.SimulationFlag,
-		blockID types.BlockID,
-	) ([]types.FeeEstimation, error)
+		requests []BroadcastTxn,
+		simulationFlags []SimulationFlag,
+		blockID BlockID,
+	) ([]FeeEstimation, error)
 	EstimateMessageFee(
 		ctx context.Context,
 		msg MsgFromL1,
-		blockID types.BlockID,
-	) (types.MessageFeeEstimation, error)
+		blockID BlockID,
+	) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
 	MessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
 	Nonce(
 		ctx context.Context,
-		blockID types.BlockID,
+		blockID BlockID,
 		contractAddress *felt.Felt,
 	) (*felt.Felt, error)
 	SimulateTransactions(
 		ctx context.Context,
-		blockID types.BlockID,
-		txns []types.BroadcastTxn,
-		simulationFlags []types.SimulationFlag,
+		blockID BlockID,
+		txns []BroadcastTxn,
+		simulationFlags []SimulationFlag,
 	) ([]SimulatedTransaction, error)
 	SpecVersion(ctx context.Context) (string, error)
-	StateUpdate(ctx context.Context, blockID types.BlockID) (*StateUpdateOutput, error)
+	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(
 		ctx context.Context,
 		contractAddress *felt.Felt,
 		key string,
-		blockID types.BlockID,
+		blockID BlockID,
 	) (string, error)
 	StorageProof(
 		ctx context.Context,
 		storageProofInput StorageProofInput,
 	) (*StorageProofResult, error)
 	Syncing(ctx context.Context) (SyncStatus, error)
-	TraceBlockTransactions(ctx context.Context, blockID types.BlockID) ([]Trace, error)
+	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 	TransactionByBlockIDAndIndex(
 		ctx context.Context,
-		blockID types.BlockID,
+		blockID BlockID,
 		index uint64,
 	) (*BlockTransaction, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
@@ -195,7 +191,7 @@ type WebsocketProvider interface {
 	SubscribeNewHeads(
 		ctx context.Context,
 		headers chan<- *BlockHeader,
-		subBlockID types.SubscriptionBlockID,
+		subBlockID SubscriptionBlockID,
 	) (*client.ClientSubscription, error)
 	SubscribeNewTransactions(
 		ctx context.Context,

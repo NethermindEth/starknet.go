@@ -7,12 +7,23 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/types"
+)
+
+// Flags that indicate how to simulate a given transaction. By default, the
+// sequencer behaviour is replicated locally (enough funds are expected to be
+// in the account, and fee will be deducted from the balance before the
+// simulation of the next transaction). To skip the fee charge, use
+// the SKIP_FEE_CHARGE flag.
+type SimulationFlag string
+
+const (
+	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
+	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
 )
 
 type SimulatedTransaction struct {
 	TxnTrace      `json:"transaction_trace"`
-	FeeEstimation types.FeeEstimation `json:"fee_estimation"`
+	FeeEstimation `json:"fee_estimation"`
 }
 
 type TxnTrace interface{}
@@ -28,40 +39,40 @@ var (
 type InvokeTxnTrace struct {
 	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
 	// the trace of the __execute__ call
-	ExecuteInvocation     ExecInvocation        `json:"execute_invocation"`
-	FeeTransferInvocation *FnInvocation         `json:"fee_transfer_invocation,omitempty"`
-	StateDiff             *StateDiff            `json:"state_diff,omitempty"`
-	Type                  types.TransactionType `json:"type"`
-	ExecutionResources    ExecutionResources    `json:"execution_resources"`
+	ExecuteInvocation     ExecInvocation     `json:"execute_invocation"`
+	FeeTransferInvocation *FnInvocation      `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff         `json:"state_diff,omitempty"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of a declare transaction
 type DeclareTxnTrace struct {
-	ValidateInvocation    *FnInvocation         `json:"validate_invocation,omitempty"`
-	FeeTransferInvocation *FnInvocation         `json:"fee_transfer_invocation,omitempty"`
-	StateDiff             *StateDiff            `json:"state_diff,omitempty"`
-	Type                  types.TransactionType `json:"type"`
-	ExecutionResources    ExecutionResources    `json:"execution_resources"`
+	ValidateInvocation    *FnInvocation      `json:"validate_invocation,omitempty"`
+	FeeTransferInvocation *FnInvocation      `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff         `json:"state_diff,omitempty"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of a deploy account transaction
 type DeployAccountTxnTrace struct {
 	ValidateInvocation *FnInvocation `json:"validate_invocation,omitempty"`
 	// the trace of the constructor call
-	ConstructorInvocation FnInvocation          `json:"constructor_invocation"`
-	FeeTransferInvocation *FnInvocation         `json:"fee_transfer_invocation,omitempty"`
-	StateDiff             *StateDiff            `json:"state_diff,omitempty"`
-	Type                  types.TransactionType `json:"type"`
-	ExecutionResources    ExecutionResources    `json:"execution_resources"`
+	ConstructorInvocation FnInvocation       `json:"constructor_invocation"`
+	FeeTransferInvocation *FnInvocation      `json:"fee_transfer_invocation,omitempty"`
+	StateDiff             *StateDiff         `json:"state_diff,omitempty"`
+	Type                  TransactionType    `json:"type"`
+	ExecutionResources    ExecutionResources `json:"execution_resources"`
 }
 
 // the execution trace of an L1 handler transaction
 type L1HandlerTxnTrace struct {
 	// the trace of the L1 handler call
-	FunctionInvocation FnInvocation          `json:"function_invocation"`
-	StateDiff          *StateDiff            `json:"state_diff,omitempty"`
-	ExecutionResources ExecutionResources    `json:"execution_resources"`
-	Type               types.TransactionType `json:"type"`
+	FunctionInvocation FnInvocation       `json:"function_invocation"`
+	StateDiff          *StateDiff         `json:"state_diff,omitempty"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
+	Type               TransactionType    `json:"type"`
 }
 
 type EntryPointType string
@@ -81,7 +92,7 @@ const (
 )
 
 type FnInvocation struct {
-	types.FunctionCall
+	FunctionCall
 
 	// The address of the invoking contract. 0 for the root invocation
 	CallerAddress *felt.Felt `json:"caller_address"`
@@ -161,7 +172,7 @@ func (txn *SimulatedTransaction) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	var feeEstimation types.FeeEstimation
+	var feeEstimation FeeEstimation
 
 	if feeEstimationData, ok := dec["fee_estimation"]; ok {
 		err = remarshal(feeEstimationData, &feeEstimation)
@@ -241,23 +252,23 @@ func (txn *Trace) UnmarshalJSON(data []byte) error {
 //   - error: an error if the unmarshaling process fails
 func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	if casted, ok := t.(map[string]interface{}); ok {
-		switch types.TransactionType(casted["type"].(string)) {
-		case types.TransactionTypeDeclare:
+		switch TransactionType(casted["type"].(string)) {
+		case TransactionTypeDeclare:
 			var txn DeclareTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case types.TransactionTypeDeployAccount:
+		case TransactionTypeDeployAccount:
 			var txn DeployAccountTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case types.TransactionTypeInvoke:
+		case TransactionTypeInvoke:
 			var txn InvokeTxnTrace
 			err := remarshal(casted, &txn)
 
 			return txn, err
-		case types.TransactionTypeL1Handler:
+		case TransactionTypeL1Handler:
 			var txn L1HandlerTxnTrace
 			err := remarshal(casted, &txn)
 

@@ -1,8 +1,10 @@
 package rpcv9
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type MsgToL1 struct {
@@ -46,22 +48,163 @@ type OrderedMsg struct {
 	MsgToL1 MsgToL1
 }
 
+type FeePayment struct {
+	Amount *felt.Felt `json:"amount"`
+	Unit   PriceUnit  `json:"unit"`
+}
+
+// Units in which the fee is given
+type PriceUnit string
+
+const (
+	UnitWei PriceUnit = "WEI"
+	UnitFri PriceUnit = "FRI"
+)
+
+// Representation of the unit WEI
+type PriceUnitWei string
+
+const (
+	WeiUnit PriceUnitWei = "WEI"
+)
+
+// Representation of the unit FRI
+type PriceUnitFri string
+
+const (
+	FriUnit PriceUnitFri = "FRI"
+)
+
+// Unmarshals the JSON data into a PriceUnit.
+func (f *PriceUnit) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	switch unquoted {
+	case "WEI":
+		*f = UnitWei
+	case "FRI":
+		*f = UnitFri
+	default:
+		return fmt.Errorf("unsupported price unit: %s", data)
+	}
+
+	return nil
+}
+
+// Unmarshals the JSON data into a PriceUnitWei.
+func (f *PriceUnitWei) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	if unquoted != string(WeiUnit) {
+		return fmt.Errorf("price unit should be WEI, got: %s", data)
+	}
+
+	*f = WeiUnit
+
+	return nil
+}
+
+// Unmarshals the JSON data into a PriceUnitFri.
+func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	if unquoted != string(FriUnit) {
+		return fmt.Errorf("price unit should be FRI, got: %s", data)
+	}
+
+	*f = FriUnit
+
+	return nil
+}
+
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	Hash               *felt.Felt            `json:"transaction_hash"`
-	Type               types.TransactionType `json:"type"`
-	ActualFee          types.FeePayment      `json:"actual_fee"`
-	FinalityStatus     TxnFinalityStatus     `json:"finality_status"`
-	MessagesSent       []MsgToL1             `json:"messages_sent"`
-	Events             []Event               `json:"events"`
-	ExecutionResources ExecutionResources    `json:"execution_resources"`
-	ExecutionStatus    TxnExecutionStatus    `json:"execution_status"`
+	Hash               *felt.Felt         `json:"transaction_hash"`
+	Type               TransactionType    `json:"type"`
+	ActualFee          FeePayment         `json:"actual_fee"`
+	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
+	MessagesSent       []MsgToL1          `json:"messages_sent"`
+	Events             []Event            `json:"events"`
+	ExecutionResources ExecutionResources `json:"execution_resources"`
+	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
 	// Only present in case of a Deploy or DeployAccount transaction receipt
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 	// Only appears if the transaction is a L1Handler transaction
 	MessageHash NumAsHex `json:"message_hash,omitempty"`
 	// Only appears if execution_status is REVERTED
 	RevertReason string `json:"revert_reason,omitempty"`
+}
+
+type TransactionType string
+
+const (
+	TransactionTypeDeclare       TransactionType = "DECLARE"
+	TransactionTypeDeployAccount TransactionType = "DEPLOY_ACCOUNT"
+	TransactionTypeDeploy        TransactionType = "DEPLOY"
+	TransactionTypeInvoke        TransactionType = "INVOKE"
+	TransactionTypeL1Handler     TransactionType = "L1_HANDLER"
+)
+
+// UnmarshalJSON unmarshals the JSON data into a TransactionType.
+//
+// The function modifies the value of the TransactionType pointer tt based on the
+// unmarshaled data.
+// The supported JSON values and their corresponding TransactionType values are:
+//   - "DECLARE" maps to TransactionType_Declare
+//   - "DEPLOY_ACCOUNT" maps to TransactionType_DeployAccount
+//   - "DEPLOY" maps to TransactionType_Deploy
+//   - "INVOKE" maps to TransactionType_Invoke
+//   - "L1_HANDLER" maps to TransactionType_L1Handler
+//
+// If none of the supported values match the input data, the function returns an error.
+//
+//	nil if the unmarshaling is successful.
+//
+// Parameters:
+//   - data: It takes a byte slice as input representing the JSON data to be unmarshaled
+//
+// Returns:
+//   - error: an error if the unmarshaling fails
+func (tt *TransactionType) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+
+	switch unquoted {
+	case "DECLARE":
+		*tt = TransactionTypeDeclare
+	case "DEPLOY_ACCOUNT":
+		*tt = TransactionTypeDeployAccount
+	case "DEPLOY":
+		*tt = TransactionTypeDeploy
+	case "INVOKE":
+		*tt = TransactionTypeInvoke
+	case "L1_HANDLER":
+		*tt = TransactionTypeL1Handler
+	default:
+		return fmt.Errorf("unsupported transaction type: %s", data)
+	}
+
+	return nil
+}
+
+// MarshalJSON marshals the TransactionType to JSON.
+//
+// Returns:
+//   - []byte: a byte slice
+//   - error: an error if any
+func (tt TransactionType) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(tt))), nil
 }
 
 type ExecutionResources struct {

@@ -165,20 +165,6 @@ type SyncStatus struct {
 }
 
 // MarshalJSON marshals the SyncStatus struct into JSON format.
-//
-// It returns a byte slice and an error. The byte slice represents the JSON
-// encoding of the SyncStatus struct, while the error indicates any error that
-// occurred during the marshalling process.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: the JSON encoding of the SyncStatus struct
-//   - error: any error that occurred during the marshalling process
-//
-
 func (s SyncStatus) MarshalJSON() ([]byte, error) {
 	if !s.IsSyncing {
 		return []byte("false"), nil
@@ -228,6 +214,60 @@ type AddDeclareTransactionOutput struct {
 	ClassHash       *felt.Felt `json:"class_hash"`
 }
 
+// FunctionCall function call information
+type FunctionCall struct {
+	ContractAddress    *felt.Felt `json:"contract_address"`
+	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
+
+	// Calldata The parameters passed to the function
+	Calldata []*felt.Felt `json:"calldata"`
+}
+
+// @changed InvokeFunctionCall removed
+
+// @changed TxDetails removed
+
+// Fee estimation common fields
+type FeeEstimationCommon struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+}
+
+type FeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be FRI
+	Unit PriceUnitFri `json:"unit"`
+}
+
+type MessageFeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be WEI
+	Unit PriceUnitWei `json:"unit"`
+}
+
 type TxnExecutionStatus string
 
 const (
@@ -236,13 +276,6 @@ const (
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TxnExecutionStatus struct.
-//
-// Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to
-//     be unmarshalled
-//
-// Returns:
-//   - error: an error if the unmarshaling fails
 func (ex *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -261,30 +294,11 @@ func (ex *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON returns the JSON encoding of the TxnExecutionStatus.
-//
-// It marshals the TxnExecutionStatus into a byte slice by quoting its string
-// representation.
-// The function returns the marshalled byte slice and a nil error.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: the JSON encoding of the TxnExecutionStatus
-//   - error: the error if there was an issue marshalling
 func (ex TxnExecutionStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(ex))), nil
 }
 
 // String returns the string representation of the TxnExecutionStatus.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - string: the string representation of the TxnExecutionStatus
 func (ex TxnExecutionStatus) String() string {
 	return string(ex)
 }
@@ -298,13 +312,6 @@ const (
 )
 
 // UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
-//
-// Parameters:
-//   - data: It takes a byte slice as a parameter, which represents the JSON data to
-//     be unmarshalled
-//
-// Returns:
-//   - error: an error if the unmarshaling fails
 func (fs *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 	unquoted, err := strconv.Unquote(string(data))
 	if err != nil {
@@ -325,26 +332,11 @@ func (fs *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON marshals the TxnFinalityStatus into JSON.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - []byte: a byte slice
-//   - error: an error if any
 func (fs TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(fs))), nil
 }
 
 // String returns the string representation of the TxnFinalityStatus.
-//
-// Parameters:
-//
-//	none
-//
-// Returns:
-//   - string: the string representation of the TxnFinalityStatus
 func (fs TxnFinalityStatus) String() string {
 	return string(fs)
 }

@@ -4,18 +4,61 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // An unsigned integer number in hex format (0x...)
 type NumAsHex string
 
+// 64 bit unsigned integers, represented by hex string of length at most 16
+type U64 string
+
 // A storage key, represented as a string of hex digits.
 // Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
 type StorageKey string
+
+// ToUint64 converts the U64 type to a uint64.
+// If the value is greater than max uint64, returns an error.
+func (u U64) ToUint64() (uint64, error) {
+	hexStr := strings.TrimPrefix(string(u), "0x")
+
+	val, err := strconv.ParseUint(hexStr, 16, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse hex string: %v", err)
+	}
+
+	return val, nil
+}
+
+// 128 bit unsigned integers, represented by hex string of length at most 32
+type U128 string
+
+// ToBigInt converts the U128 type to a *big.Int.
+// If the value is greater than max uint128, returns an error.
+//
+//nolint:mnd // 16 means hex base
+func (u U128) ToBigInt() (*big.Int, error) {
+	hexStr := strings.TrimPrefix(string(u), "0x")
+
+	result, ok := new(big.Int).SetString(hexStr, 16)
+	if !ok {
+		return nil, fmt.Errorf("failed to parse hex string: %v", hexStr)
+	}
+
+	maxUint128, _ := new(big.Int).SetString("ffffffffffffffffffffffffffffffff", 16)
+
+	if result.Cmp(maxUint128) > 0 {
+		return nil, fmt.Errorf("value is greater than max uint128: %v", u)
+	}
+
+	return result, nil
+}
 
 type ClassOutput interface{}
 
@@ -27,7 +70,7 @@ var (
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the
 	// requested block, or a block tag
-	BlockID types.BlockID `json:"block_id"`
+	BlockID BlockID `json:"block_id"`
 	// Optional. A list of the class hashes for which we want to prove
 	// membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`
