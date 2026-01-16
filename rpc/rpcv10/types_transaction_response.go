@@ -18,3 +18,5 @@ type AddDeployAccountTransactionResponse struct {
 type AddInvokeTransactionResponse struct {
 	Hash *felt.Felt `json:"transaction_hash"`
 }
+
+// @changed TransactionResponse removed

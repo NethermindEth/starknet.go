@@ -1,13 +1,21 @@
 package rpcv10
 
-import (
-	"github.com/NethermindEth/juno/core/felt"
-)
+import "github.com/NethermindEth/juno/core/felt"
 
 type OrderedEvent struct {
 	// The order of the event within the transaction
 	Order int `json:"order"`
 	*EventContent
+}
+
+type Event struct {
+	FromAddress *felt.Felt `json:"from_address"`
+	EventContent
+}
+
+type EventContent struct {
+	Keys []*felt.Felt `json:"keys"`
+	Data []*felt.Felt `json:"data"`
 }
 
 type EventChunk struct {

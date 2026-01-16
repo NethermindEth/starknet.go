@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strconv"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
@@ -210,4 +212,131 @@ func (s *SyncStatus) UnmarshalJSON(data []byte) error {
 type AddDeclareTransactionOutput struct {
 	TransactionHash *felt.Felt `json:"transaction_hash"`
 	ClassHash       *felt.Felt `json:"class_hash"`
+}
+
+// FunctionCall function call information
+type FunctionCall struct {
+	ContractAddress    *felt.Felt `json:"contract_address"`
+	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
+
+	// Calldata The parameters passed to the function
+	Calldata []*felt.Felt `json:"calldata"`
+}
+
+// @changed InvokeFunctionCall removed
+
+// @changed TxDetails removed
+
+// Fee estimation common fields
+type FeeEstimationCommon struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+}
+
+type FeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be FRI
+	Unit PriceUnitFri `json:"unit"`
+}
+
+type MessageFeeEstimation struct {
+	FeeEstimationCommon
+	// Units in which the fee is given, can only be WEI
+	Unit PriceUnitWei `json:"unit"`
+}
+
+type TxnExecutionStatus string
+
+const (
+	TxnExecutionStatusSUCCEEDED TxnExecutionStatus = "SUCCEEDED"
+	TxnExecutionStatusREVERTED  TxnExecutionStatus = "REVERTED"
+)
+
+// UnmarshalJSON unmarshals the JSON data into a TxnExecutionStatus struct.
+func (ex *TxnExecutionStatus) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+	switch unquoted {
+	case "SUCCEEDED":
+		*ex = TxnExecutionStatusSUCCEEDED
+	case "REVERTED":
+		*ex = TxnExecutionStatusREVERTED
+	default:
+		return fmt.Errorf("unsupported execution status: %s", data)
+	}
+
+	return nil
+}
+
+// MarshalJSON returns the JSON encoding of the TxnExecutionStatus.
+func (ex TxnExecutionStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(ex))), nil
+}
+
+// String returns the string representation of the TxnExecutionStatus.
+func (ex TxnExecutionStatus) String() string {
+	return string(ex)
+}
+
+type TxnFinalityStatus string
+
+const (
+	TxnFinalityStatusPreConfirmed TxnFinalityStatus = "PRE_CONFIRMED"
+	TxnFinalityStatusAcceptedOnL2 TxnFinalityStatus = "ACCEPTED_ON_L2"
+	TxnFinalityStatusAcceptedOnL1 TxnFinalityStatus = "ACCEPTED_ON_L1"
+)
+
+// UnmarshalJSON unmarshals the JSON data into a TxnFinalityStatus.
+func (fs *TxnFinalityStatus) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+	switch unquoted {
+	case "PRE_CONFIRMED":
+		*fs = TxnFinalityStatusPreConfirmed
+	case "ACCEPTED_ON_L2":
+		*fs = TxnFinalityStatusAcceptedOnL2
+	case "ACCEPTED_ON_L1":
+		*fs = TxnFinalityStatusAcceptedOnL1
+	default:
+		return fmt.Errorf("unsupported finality status: %s", data)
+	}
+
+	return nil
+}
+
+// MarshalJSON marshals the TxnFinalityStatus into JSON.
+func (fs TxnFinalityStatus) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(string(fs))), nil
+}
+
+// String returns the string representation of the TxnFinalityStatus.
+func (fs TxnFinalityStatus) String() string {
+	return string(fs)
 }

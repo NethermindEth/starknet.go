@@ -1,4 +1,4 @@
-package rpcv10_test
+package rpcv10
 
 import (
 	"math"
