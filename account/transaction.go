@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -99,7 +99,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return response, err
 	}
 
-	response, err = account.Provider.AddInvokeTransaction(ctx, broadcastInvokeTxnV3)
+	response, err = account.Provider.SendTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return response, err
 	}
@@ -200,7 +200,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return response, err
 	}
 
-	response, err = account.Provider.AddDeclareTransaction(ctx, broadcastDeclareTxnV3)
+	response, err = account.Provider.SendTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return response, err
 	}
@@ -316,6 +316,7 @@ func calculateTip(
 	return tip, nil
 }
 
+// @changed
 // A helper to deploy a contract from an existing class using UDC.
 //
 // Parameters:
@@ -340,8 +341,8 @@ func (account *Account) DeployContractWithUDC(
 	constructorCalldata []*felt.Felt,
 	txnOpts *TxnOptions,
 	udcOpts *UDCOptions,
-) (rpc.AddInvokeTransactionResponse, *felt.Felt, error) {
-	var response rpc.AddInvokeTransactionResponse
+) (types.TransactionResponse, *felt.Felt, error) {
+	var response types.TransactionResponse
 	udcCallData, salt, err := utils.BuildUDCCalldata(classHash, constructorCalldata, udcOpts)
 	if err != nil {
 		return response, nil, err
@@ -376,73 +377,78 @@ func (account *Account) SendTransaction(
 	ctx context.Context,
 	txn types.BroadcastTxn,
 ) (types.TransactionResponse, error) {
-	var response types.TransactionResponse
-	switch tx := txn.(type) {
-	// broadcast invoke v3, pointer and struct
-	case *types.BroadcastInvokeTxnV3:
-		resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
-		if err != nil {
-			return response, err
-		}
+	// @todo move this to basicprovider.SendTransaction
 
-		return types.TransactionResponse{Hash: resp.Hash}, nil
-	case types.BroadcastInvokeTxnV3:
-		resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
-		if err != nil {
-			return response, err
-		}
+	// var response types.TransactionResponse
+	// switch tx := txn.(type) {
+	// // broadcast invoke v3, pointer and struct
+	// case *types.BroadcastInvokeTxnV3:
+	// 	resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
+	// 	if err != nil {
+	// 		return response, err
+	// 	}
 
-		return types.TransactionResponse{Hash: resp.Hash}, nil
-	// broadcast declare v3, pointer and struct
-	case *types.BroadcastDeclareTxnV3:
-		resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
-		if err != nil {
-			return response, err
-		}
+	// 	return types.TransactionResponse{Hash: resp.Hash}, nil
+	// case types.BroadcastInvokeTxnV3:
+	// 	resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
+	// 	if err != nil {
+	// 		return response, err
+	// 	}
 
-		return types.TransactionResponse{
-			Hash:      resp.Hash,
-			ClassHash: resp.ClassHash,
-		}, nil
-	case types.BroadcastDeclareTxnV3:
-		resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
-		if err != nil {
-			return response, err
-		}
+	// 	return types.TransactionResponse{Hash: resp.Hash}, nil
+	// // broadcast declare v3, pointer and struct
+	// case *types.BroadcastDeclareTxnV3:
+	// 	resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
+	// 	if err != nil {
+	// 		return response, err
+	// 	}
 
-		return types.TransactionResponse{
-			Hash:      resp.Hash,
-			ClassHash: resp.ClassHash,
-		}, nil
-	// broadcast deploy account v3, pointer and struct
-	case *types.BroadcastDeployAccountTxnV3:
-		resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
-		if err != nil {
-			return response, err
-		}
+	// 	return types.TransactionResponse{
+	// 		Hash:      resp.Hash,
+	// 		ClassHash: resp.ClassHash,
+	// 	}, nil
+	// case types.BroadcastDeclareTxnV3:
+	// 	resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
+	// 	if err != nil {
+	// 		return response, err
+	// 	}
 
-		return types.TransactionResponse{
-			Hash:            resp.Hash,
-			ContractAddress: resp.ContractAddress,
-		}, nil
-	case types.BroadcastDeployAccountTxnV3:
-		resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
-		if err != nil {
-			return response, err
-		}
+	// 	return types.TransactionResponse{
+	// 		Hash:      resp.Hash,
+	// 		ClassHash: resp.ClassHash,
+	// 	}, nil
+	// // broadcast deploy account v3, pointer and struct
+	// case *types.BroadcastDeployAccountTxnV3:
+	// 	resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
+	// 	if err != nil {
+	// 		return response, err
+	// 	}
 
-		return types.TransactionResponse{
-			Hash:            resp.Hash,
-			ContractAddress: resp.ContractAddress,
-		}, nil
-	default:
-		return response, fmt.Errorf(
-			"unsupported transaction type: should be a v3 transaction, instead got %T",
-			tx,
-		)
-	}
+	// 	return types.TransactionResponse{
+	// 		Hash:            resp.Hash,
+	// 		ContractAddress: resp.ContractAddress,
+	// 	}, nil
+	// case types.BroadcastDeployAccountTxnV3:
+	// 	resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
+	// 	if err != nil {
+	// 		return response, err
+	// 	}
+
+	// 	return types.TransactionResponse{
+	// 		Hash:            resp.Hash,
+	// 		ContractAddress: resp.ContractAddress,
+	// 	}, nil
+	// default:
+	// 	return response, fmt.Errorf(
+	// 		"unsupported transaction type: should be a v3 transaction, instead got %T",
+	// 		tx,
+	// 	)
+	// }
+
+	return account.Provider.SendTransaction(ctx, txn)
 }
 
+// @changed
 // WaitForTransactionReceipt waits for the transaction receipt of the given
 // transaction hash to succeed or fail.
 //
@@ -458,25 +464,26 @@ func (account *Account) WaitForTransactionReceipt(
 	ctx context.Context,
 	transactionHash *felt.Felt,
 	pollInterval time.Duration,
-) (*rpc.TransactionReceiptWithBlockInfo, error) {
+) (*types.TransactionReceiptWithBlockInfo, error) {
 	t := time.NewTicker(pollInterval)
 	for {
 		select {
 		case <-ctx.Done():
-			return nil, rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
+			return nil, ctx.Err()
 		case <-t.C:
 			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, transactionHash)
 			if err != nil {
-				rpcErr := err.(*rpc.RPCError)
-				if rpcErr.Code == rpc.ErrHashNotFound.Code &&
-					rpcErr.Message == rpc.ErrHashNotFound.Message {
+				rpcErr := err.(*rpcerr.RPCError)
+				if rpcErr.Code == rpcv10.ErrHashNotFound.Code &&
+					rpcErr.Message == rpcv10.ErrHashNotFound.Message {
 					continue
 				} else {
 					return nil, err
 				}
 			}
 
-			return receiptWithBlockInfo, nil
+			// TODO: make it return by value
+			return &receiptWithBlockInfo, nil
 		}
 	}
 }
@@ -492,23 +499,26 @@ func (account *Account) WaitForTransactionReceipt(
 // Returns:
 //   - bool: whether to use the Blake2s hash function for the compiled class hash
 //   - error: an error if any
-func shouldUseBlake2sHash(ctx context.Context, provider rpc.RPCProvider) (bool, error) {
-	block, err := provider.BlockWithTxHashes(ctx, types.WithBlockTag(types.BlockTagLatest))
-	if err != nil {
-		return false, fmt.Errorf("failed to get block with tx hashes: %w", err)
-	}
+func shouldUseBlake2sHash(ctx context.Context, provider rpc.BasicProviderInterface) (bool, error) {
+	// @todo at the end, remove this
 
-	blockTxHashes, ok := block.(*rpc.BlockTxHashes)
-	if !ok {
-		return false, fmt.Errorf("block is not a BlockTxHashes: %T", block)
-	}
+	// block, err := provider.BlockWithTxHashes(ctx, types.WithBlockTag(types.BlockTagLatest))
+	// if err != nil {
+	// 	return false, fmt.Errorf("failed to get block with tx hashes: %w", err)
+	// }
 
-	upgradeVersion := semver.MustParse("0.14.1")
+	// blockTxHashes, ok := block.(*rpc.BlockTxHashes)
+	// if !ok {
+	// 	return false, fmt.Errorf("block is not a BlockTxHashes: %T", block)
+	// }
 
-	currentVersion, err := semver.NewVersion(blockTxHashes.StarknetVersion)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse block's starknet version: %w", err)
-	}
+	// upgradeVersion := semver.MustParse("0.14.1")
 
-	return currentVersion.Compare(upgradeVersion) >= 0, nil
+	// currentVersion, err := semver.NewVersion(blockTxHashes.StarknetVersion)
+	// if err != nil {
+	// 	return false, fmt.Errorf("failed to parse block's starknet version: %w", err)
+	// }
+
+	// return currentVersion.Compare(upgradeVersion) >= 0, nil
+	return false, nil
 }

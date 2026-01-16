@@ -2,6 +2,7 @@ package account_test
 
 import (
 	"context"
+	"errors"
 	"math/big"
 	"sync"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 	"github.com/stretchr/testify/assert"
@@ -429,13 +431,13 @@ func waitForTransactionStatus(
 	for {
 		select {
 		case <-ctx.Done():
-			return rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(ctx.Err().Error()))
+			return ctx.Err()
 		case <-t.C:
 			returnedTxnStatus, err := provider.TransactionStatus(ctx, transactionHash)
 			if err != nil {
-				rpcErr := err.(*rpc.RPCError)
-				if rpcErr.Code == rpc.ErrHashNotFound.Code &&
-					rpcErr.Message == rpc.ErrHashNotFound.Message {
+				rpcErr := err.(*rpcerr.RPCError)
+				if rpcErr.Code == rpcv10.ErrHashNotFound.Code &&
+					rpcErr.Message == rpcv10.ErrHashNotFound.Message {
 					continue
 				} else {
 					return err
@@ -720,7 +722,7 @@ func TestSendInvokeTxn(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
 	type testSetType struct {
-		ExpectedErr          *rpc.RPCError
+		ExpectedErr          *rpcerr.RPCError
 		CairoContractVersion account.CairoVersion
 		SetKS                bool
 		AccountAddress       *felt.Felt
@@ -732,7 +734,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				// https://sepolia.voyager.online/tx/0x51d224a96a8a07e07e31754e20e713c9cccdcfd7f61105700b1a72b2715ed9f
-				ExpectedErr:          rpc.ErrInvalidTransactionNonce,
+				ExpectedErr:          rpcv10.ErrInvalidTransactionNonce,
 				CairoContractVersion: account.CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
@@ -806,7 +808,7 @@ func TestSendInvokeTxn(t *testing.T) {
 
 		resp, err := acnt.SendTransaction(t.Context(), test.InvokeTx)
 		if err != nil {
-			rpcErr := err.(*rpc.RPCError)
+			rpcErr := err.(*rpcerr.RPCError)
 			require.Equal(
 				t,
 				test.ExpectedErr.Code,
@@ -923,10 +925,10 @@ func TestSendDeclareTxn(t *testing.T) {
 	resp, err := acnt.SendTransaction(t.Context(), broadcastTx)
 
 	if err != nil {
-		rpcErr := err.(*rpc.RPCError)
+		rpcErr := err.(*rpcerr.RPCError)
 		require.Equal(
 			t,
-			rpc.ErrInvalidTransactionNonce.Code,
+			rpcv10.ErrInvalidTransactionNonce.Code,
 			rpcErr.Code,
 			"AddDeclareTransaction error not what expected",
 		)
@@ -1069,7 +1071,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				ShouldCallTransactionReceipt: true,
 				Hash:                         new(felt.Felt).SetUint64(1),
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpcerr.Err(rpcerr.InternalError, rpc.StringErrData("UnExpectedErr")),
+				ExpectedErr:                  errors.New("UnExpectedErr"),
 			},
 			{
 				Timeout:                      time.Duration(1000),
@@ -1088,7 +1090,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 				Hash:                         new(felt.Felt).SetUint64(3),
 				ShouldCallTransactionReceipt: false,
 				ExpectedReceipt:              nil,
-				ExpectedErr:                  rpcerr.Err(rpcerr.InternalError, rpc.StringErrData(context.DeadlineExceeded.Error())),
+				ExpectedErr:                  context.DeadlineExceeded,
 			},
 		},
 	}[tests.TEST_ENV]
@@ -1157,7 +1159,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	type testSetType struct {
 		Timeout         int
 		Hash            *felt.Felt
-		ExpectedErr     *rpc.RPCError
+		ExpectedErr     error
 		ExpectedReceipt types.TransactionReceipt
 	}
 	testSet := map[tests.TestEnv][]testSetType{
@@ -1166,7 +1168,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 				Timeout:         3, // Should poll 3 times
 				Hash:            new(felt.Felt).SetUint64(100),
 				ExpectedReceipt: types.TransactionReceipt{},
-				ExpectedErr:     rpcerr.Err(rpcerr.InternalError, rpc.StringErrData("context deadline exceeded")),
+				ExpectedErr:     context.DeadlineExceeded,
 			},
 		},
 	}[tests.TEST_ENV]
@@ -1183,14 +1185,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 
 				resp, err := acnt.WaitForTransactionReceipt(ctx, test.Hash, 1*time.Second)
 				if test.ExpectedErr != nil {
-					rpcErr, ok := err.(*rpc.RPCError)
-					require.True(t, ok)
-					require.Equal(t, test.ExpectedErr.Code, rpcErr.Code)
-					require.Contains(
-						t,
-						rpcErr.Data.ErrorMessage(),
-						test.ExpectedErr.Data.ErrorMessage(),
-					) // sometimes the error message starts with "Post \"http://localhost:5050\":..."
+					require.Equal(t, test.ExpectedErr, err)
 				} else {
 					require.Equal(t, test.ExpectedReceipt.ExecutionStatus, resp.ExecutionStatus)
 				}

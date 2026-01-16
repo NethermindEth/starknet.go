@@ -248,15 +248,18 @@ func (mr *MockOtherMethodsMockRecorder) EstimateTip(ctx, multiplier any) *gomock
 }
 
 // SendTransaction mocks base method.
-func (m *MockOtherMethods) SendTransaction() {
+func (m *MockOtherMethods) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendTransaction")
+	ret := m.ctrl.Call(m, "SendTransaction", ctx, txn)
+	ret0, _ := ret[0].(types.TransactionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SendTransaction indicates an expected call of SendTransaction.
-func (mr *MockOtherMethodsMockRecorder) SendTransaction() *gomock.Call {
+func (mr *MockOtherMethodsMockRecorder) SendTransaction(ctx, txn any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*MockOtherMethods)(nil).SendTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*MockOtherMethods)(nil).SendTransaction), ctx, txn)
 }
 
 // BasicRPC is a mock of BasicProviderInterface interface.
@@ -418,15 +421,18 @@ func (mr *BasicRPCMockRecorder) Nonce(ctx, blockID, contractAddress any) *gomock
 }
 
 // SendTransaction mocks base method.
-func (m *BasicRPC) SendTransaction() {
+func (m *BasicRPC) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendTransaction")
+	ret := m.ctrl.Call(m, "SendTransaction", ctx, txn)
+	ret0, _ := ret[0].(types.TransactionResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // SendTransaction indicates an expected call of SendTransaction.
-func (mr *BasicRPCMockRecorder) SendTransaction() *gomock.Call {
+func (mr *BasicRPCMockRecorder) SendTransaction(ctx, txn any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*BasicRPC)(nil).SendTransaction))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendTransaction", reflect.TypeOf((*BasicRPC)(nil).SendTransaction), ctx, txn)
 }
 
 // TransactionByHash mocks base method.

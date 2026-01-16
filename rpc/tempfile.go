@@ -101,7 +101,7 @@ type OtherMethods interface {
 	AsV9() rpcv9.RPCProvider
 	AsV10() rpcv10.RPCProvider
 	EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-	SendTransaction()
+	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 }
 
 //go:generate mockgen -destination=../internal/tests/mocks/basicRPC/rpc.go -package=basicRPC -mock_names=BasicProviderInterface=BasicRPC -source=tempfile.go BasicProviderInterface
@@ -139,7 +139,7 @@ func (p *BasicProvider) TransactionStatus(
 ) (types.TxnStatusResult, error)
 
 func (p *BasicProvider) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-func (p *BasicProvider) SendTransaction()
+func (p *BasicProvider) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 func (p *BasicProvider) AsV9() rpcv9.RPCProvider {
 	return p.rpcv9
 }
