@@ -9,11 +9,6 @@ import (
 )
 
 // @new
-type RPCProvider interface {
-	*rpcv10.Provider | *rpcv9.Provider
-}
-
-// @new
 func NewProviderV10(
 	ctx context.Context,
 	url string,

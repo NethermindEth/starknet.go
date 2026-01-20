@@ -1,13 +1,103 @@
-package rpc
+package account
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/client"
+	"github.com/NethermindEth/starknet.go/rpc/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
+
+// @todo update docs for the entire package
+// add tests where needed.
+
+type providerWrapper struct {
+	chainID string
+	version RPCVersion
+
+	rpcv9  rpcv9.RPCProvider
+	rpcv10 rpcv10.RPCProvider
+}
+
+// NewProviderWrapper creates a new HTTP rpc Provider instance.
+//
+// Parameters:
+//   - ctx: The context for the function.
+//   - url: The URL of the RPC endpoint.
+//   - options: The options for the client.
+//
+// Returns:
+//   - *Provider: The new Provider instance.
+//   - error: An error if any.
+//     If the node JSON-RPC specification version is different from the version
+//     implemented by the Provider type, the ErrIncompatibleVersion will be returned,
+//     but the returned Provider instance is valid.
+func NewProviderWrapper(
+	ctx context.Context,
+	url string,
+	options ...client.ClientOption,
+) (*providerWrapper, error) {
+	c, err := internal.NewHTTPClient(ctx, url, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
+	}
+
+	rawNodeVersion, err := rpcv10.SpecVersion(ctx, c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the node's RPC spec version: %w", err)
+	}
+
+	var RPCVersion RPCVersion
+	err = RPCVersion.UnmarshalJSON([]byte(rawNodeVersion))
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal node version: %w", err)
+	}
+	var provider providerWrapper
+	provider.version = RPCVersion
+
+	switch RPCVersion {
+	case RPCVersion9:
+		rpcv9, err := rpcv9.NewProvider(ctx, url, options...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create RPCv9 provider: %w", err)
+		}
+		provider.rpcv9 = rpcv9
+	case RPCVersion10:
+		rpcv10, err := rpcv10.NewProvider(ctx, url, options...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create RPCv10 provider: %w", err)
+		}
+		provider.rpcv10 = rpcv10
+	}
+
+	return &provider, nil
+}
+
+// @new
+type RPCProvider interface {
+	*rpcv10.Provider | *rpcv9.Provider
+}
+
+func NewProviderWrapperFrom[P RPCProvider](provider P) *providerWrapper {
+	var wrapper providerWrapper
+
+	switch p := any(provider).(type) {
+	case *rpcv9.Provider:
+		wrapper.rpcv9 = p
+		wrapper.version = RPCVersion9
+	case *rpcv10.Provider:
+		wrapper.rpcv10 = p
+		wrapper.version = RPCVersion10
+	}
+
+	return &wrapper
+}
 
 type RPCProviderV10Copy interface {
 	// AddInvokeTransaction(
@@ -104,14 +194,6 @@ type OtherMethods interface {
 	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 }
 
-//go:generate mockgen -destination=../internal/tests/mocks/basicRPC/rpc.go -package=basicRPC -mock_names=BasicProviderInterface=BasicRPC -source=tempfile.go BasicProviderInterface
-type ProviderWrapper interface {
-	RPCProviderV10Copy
-	OtherMethods
-}
-
-var _ ProviderWrapper = (*providerWrapper)(nil)
-
 // implementing the methods
 func (p *providerWrapper) BlockHashAndNumber(ctx context.Context) (uint64, *felt.Felt, error)
 func (p *providerWrapper) Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error)
@@ -146,4 +228,53 @@ func (p *providerWrapper) AsV9() rpcv9.RPCProvider {
 
 func (p *providerWrapper) AsV10() rpcv10.RPCProvider {
 	return p.rpcv10
+}
+
+func (p *providerWrapper) Version() RPCVersion {
+	return p.version
+}
+
+// @todo add tests for this type
+
+type RPCVersion int
+
+const (
+	RPCVersion9 RPCVersion = iota
+	RPCVersion10
+)
+
+func (v RPCVersion) String() string {
+	switch v {
+	case RPCVersion9:
+		return "0.9.0"
+	case RPCVersion10:
+		return "0.10.1"
+	}
+	return ""
+}
+
+func (v RPCVersion) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.String())
+}
+
+func (v *RPCVersion) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+
+	semversion, err := semver.NewVersion(s)
+	if err != nil {
+		return fmt.Errorf("failed to parse version to semver: %w", err)
+	}
+
+	switch {
+	case semversion.Compare(semver.MustParse(RPCVersion9.String())) == 0:
+		*v = RPCVersion9
+	case semversion.Compare(semver.MustParse(RPCVersion10.String())) == 0:
+		*v = RPCVersion10
+	default:
+		return fmt.Errorf("invalid RPC version: %s", s)
+	}
+	return nil
 }
