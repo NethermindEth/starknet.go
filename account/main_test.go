@@ -1,4 +1,4 @@
-package account_test
+package account
 
 import (
 	"errors"
@@ -7,62 +7,97 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/devnet"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/require"
 )
 
-type testConfig struct {
-	// the providerURL url for the test
-	providerURL string
+type TestSetup struct {
+	// the ProviderURL url for the test
+	ProviderURL string
 	// the test account data
-	privKey        string
-	pubKey         string
-	accountAddress string
+	PrivKey        string
+	PubKey         string
+	AccountAddress string
+
+	Wrapper *providerWrapper
+	Account *Account
 }
 
-var tConfig testConfig
-
-// TestMain is used to trigger the tests and, in that case, check for the environment to use.
+// TestMain is the main function for the account tests.
 func TestMain(m *testing.M) {
 	tests.LoadEnv()
-
-	if tests.TEST_ENV == tests.MockEnv {
-		os.Exit(m.Run())
-	}
-	tConfig.providerURL = os.Getenv("HTTP_PROVIDER_URL")
-	if tConfig.providerURL == "" {
-		panic("Failed to load HTTP_PROVIDER_URL, empty string")
-	}
-
-	// load the test account data, only required for some tests
-	tConfig.privKey = os.Getenv("STARKNET_PRIVATE_KEY")
-	tConfig.pubKey = os.Getenv("STARKNET_PUBLIC_KEY")
-	tConfig.accountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
 
 	os.Exit(m.Run())
 }
 
+// BeforeEach initialises the environment setup before running the tests.
+// It must be called inside subtests if that's the case.
+//
+// Parameters:
+//   - t: The testing.T object
+//   - isWs: a boolean value to check if the test will use the websocket provider
+//
+// Returns:
+//   - TestSetup: the TestSetup struct containing the setup data
+func BeforeEach(t *testing.T) (TestSetup, *Account) {
+	t.Helper()
+	// @todo make this work
+
+	var tConfig TestSetup
+
+	if tests.TEST_ENV == tests.MockEnv {
+		// mockCtrl := gomock.NewController(t)
+		// mockClient := clientmock.NewMockClient(mockCtrl)
+
+		// spy := tests.NewRPCSpy(mockClient)
+		// provider := spy
+
+		// wsSpy := tests.NewWSSpy(mockClient)
+		// wsProvider := wsSpy
+
+		// testConfig.MockClient = mockClient
+		// testConfig.Provider = provider
+		// testConfig.RPCSpy = spy
+		// testConfig.WsProvider = wsProvider
+		// testConfig.WSSpy = wsSpy
+
+		// return testConfig
+	}
+
+	tConfig.ProviderURL = os.Getenv("HTTP_PROVIDER_URL")
+	if tConfig.ProviderURL == "" {
+		panic("Failed to load HTTP_PROVIDER_URL, empty string")
+	}
+
+	// load the test account data, only required for some tests
+	tConfig.PrivKey = os.Getenv("STARKNET_PRIVATE_KEY")
+	tConfig.PubKey = os.Getenv("STARKNET_PUBLIC_KEY")
+	tConfig.AccountAddress = os.Getenv("STARKNET_ACCOUNT_ADDRESS")
+
+	return tConfig, &Account{}
+}
+
 // returns a new account type from the provided account data in the tConfig
-func setupAcc(t *testing.T, provider rpc.ProviderWrapper) (*account.Account, error) {
+func setupAcc(t *testing.T, tsetup *TestSetup) (*Account, error) {
 	t.Helper()
 
-	ks := account.NewMemKeystore()
-	privKeyBI, ok := new(big.Int).SetString(tConfig.privKey, 0)
+	ks := NewMemKeystore()
+	privKeyBI, ok := new(big.Int).SetString(tsetup.PrivKey, 0)
 	if !ok {
 		return nil, errors.New("failed to convert privKey to big.Int")
 	}
-	ks.Put(tConfig.pubKey, privKeyBI)
+	ks.Put(tsetup.PubKey, privKeyBI)
 
-	accAddress, err := internalUtils.HexToFelt(tConfig.accountAddress)
+	accAddress, err := internalUtils.HexToFelt(tsetup.AccountAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert accountAddress to felt: %w", err)
 	}
 
-	acc, err := account.NewAccount(provider, accAddress, tConfig.pubKey, ks, account.CairoV2)
+	// @todo make it work with any provider
+	acc, err := NewAccount(&rpcv10.Provider{}, accAddress, tsetup.PubKey, ks, CairoV2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
@@ -88,7 +123,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 	return devnetInstance, acnts, err
 }
 
-// newDevnetAccount creates a new devnet account from a test account.
+// newDevnetAccount creates a new devnet account
 //
 // Parameters:
 //   - t: The testing.T instance for running the test
@@ -96,23 +131,24 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 //   - accData: The test account data
 //
 // Returns:
-//   - *account.Account: The new devnet account
+//   - *Account: The new devnet account
 //   - error: An error, if any
 func newDevnetAccount(
 	t *testing.T,
-	provider rpc.ProviderWrapper,
+	provider *providerWrapper,
 	accData devnet.TestAccount,
-	cairoVersion account.CairoVersion,
-) *account.Account {
+	cairoVersion CairoVersion,
+) *Account {
 	t.Helper()
 	fakeUserAddr := internalUtils.TestHexToFelt(t, accData.Address)
 	fakeUserPriv := internalUtils.TestHexToFelt(t, accData.PrivateKey)
 
 	// Set up ks
-	ks := account.NewMemKeystore()
+	ks := NewMemKeystore()
 	ks.Put(accData.PublicKey, fakeUserPriv.BigInt(new(big.Int)))
 
-	acnt, err := account.NewAccount(provider, fakeUserAddr, accData.PublicKey, ks, cairoVersion)
+	// @todo make it work with any provider
+	acnt, err := NewAccount(&rpcv10.Provider{}, fakeUserAddr, accData.PublicKey, ks, cairoVersion)
 	require.NoError(t, err)
 
 	return acnt
