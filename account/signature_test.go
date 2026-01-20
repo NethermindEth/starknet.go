@@ -1,11 +1,10 @@
-package account_test
+package account
 
 import (
 	"context"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
@@ -14,7 +13,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-// TestVerify tests the account.Verify method.
+// TestVerify tests the Verify method.
 
 func TestVerify(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
@@ -25,12 +24,12 @@ func TestVerify(t *testing.T) {
 	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return(gomock.Any().String(), nil)
 
-	ks := account.NewMemKeystore()
+	ks := NewMemKeystore()
 	accAddress := internalUtils.TestHexToFelt(
 		t,
 		"0x2d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457",
 	)
-	acc, err := account.NewAccount(
+	acc, err := NewAccount(
 		mockRPCProvider,
 		accAddress,
 		"0x3904dda2cdd58e15dd8667b51a49deec6ce9c53e17b28fffb28fe9ccfddda92",

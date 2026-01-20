@@ -1,4 +1,4 @@
-package account_test
+package account
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
@@ -109,39 +108,39 @@ func TestTransactionHashInvoke(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run("Transaction hash", func(t *testing.T) {
-			ks := account.NewMemKeystore()
+			ks := NewMemKeystore()
 			if test.SetKS {
 				privKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
 				require.True(t, ok)
 				ks.Put(test.PubKey, privKeyBI)
 			}
 
-			var acc *account.Account
+			var acc *Account
 			var err error
 			if tests.TEST_ENV == "testnet" {
 				var client rpc.ProviderWrapper
 				client, err = rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
 				require.NoError(t, err, "Error in rpc.NewClient")
-				acc, err = account.NewAccount(
+				acc, err = NewAccount(
 					client,
 					test.AccountAddress,
 					test.PubKey,
 					ks,
-					account.CairoV0,
+					CairoV0,
 				)
-				require.NoError(t, err, "error returned from account.NewAccount()")
+				require.NoError(t, err, "error returned from NewAccount()")
 			}
 			if tests.TEST_ENV == "mock" {
 				mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 
-				acc, err = account.NewAccount(
+				acc, err = NewAccount(
 					mockRPCProvider,
 					test.AccountAddress,
 					test.PubKey,
 					ks,
-					account.CairoV0,
+					CairoV0,
 				)
-				require.NoError(t, err, "error returned from account.NewAccount()")
+				require.NoError(t, err, "error returned from NewAccount()")
 			}
 			invokeTxn := types.InvokeTxnV1{
 				Calldata:      test.FnCall.Calldata,
@@ -151,7 +150,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				Version:       test.TxDetails.Version,
 			}
 			hashResp, err := acc.TransactionHashInvoke(invokeTxn)
-			require.NoError(t, err, "error returned from account.TransactionHash()")
+			require.NoError(t, err, "error returned from TransactionHash()")
 			require.Equal(
 				t,
 				test.ExpectedHash.String(),
@@ -189,7 +188,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 func TestTransactionHashDeclare(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv, tests.TestnetEnv)
 
-	var acnt *account.Account
+	var acnt *Account
 	var err error
 	if tests.TEST_ENV == "mock" {
 		mockCtrl := gomock.NewController(t)
@@ -197,24 +196,24 @@ func TestTransactionHashDeclare(t *testing.T) {
 		mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
-		acnt, err = account.NewAccount(
+		acnt, err = NewAccount(
 			mockRPCProvider,
 			&felt.Zero,
 			"",
-			account.NewMemKeystore(),
-			account.CairoV0,
+			NewMemKeystore(),
+			CairoV0,
 		)
 		require.NoError(t, err)
 	}
 	if tests.TEST_ENV == "testnet" {
 		client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
-		acnt, err = account.NewAccount(
+		acnt, err = NewAccount(
 			client,
 			&felt.Zero,
 			"",
-			account.NewMemKeystore(),
-			account.CairoV0,
+			NewMemKeystore(),
+			CairoV0,
 		)
 		require.NoError(t, err)
 	}
@@ -332,12 +331,12 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
-	acnt, err := account.NewAccount(
+	acnt, err := NewAccount(
 		mockRPCProvider,
 		&felt.Zero,
 		"",
-		account.NewMemKeystore(),
-		account.CairoV0,
+		NewMemKeystore(),
+		CairoV0,
 	)
 	require.NoError(t, err)
 
@@ -425,12 +424,12 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
-	acnt, err := account.NewAccount(
+	acnt, err := NewAccount(
 		mockRPCProvider,
 		&felt.Zero,
 		"",
-		account.NewMemKeystore(),
-		account.CairoV0,
+		NewMemKeystore(),
+		CairoV0,
 	)
 	require.NoError(t, err)
 

@@ -1,11 +1,10 @@
-package account_test
+package account
 
 import (
 	"context"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
@@ -34,14 +33,14 @@ func TestFmtCallData(t *testing.T) {
 	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 
 	type testSetType struct {
-		CairoVersion     account.CairoVersion
+		CairoVersion     CairoVersion
 		ChainID          string
 		FnCall           types.FunctionCall
 		ExpectedCallData []*felt.Felt
 	}
 	testSet := []testSetType{
 		{
-			CairoVersion: account.CairoV2,
+			CairoVersion: CairoV2,
 			ChainID:      "SN_SEPOLIA",
 			FnCall: types.FunctionCall{
 				ContractAddress: internalUtils.TestHexToFelt(
@@ -62,7 +61,7 @@ func TestFmtCallData(t *testing.T) {
 			}),
 		},
 		{
-			CairoVersion: account.CairoV2,
+			CairoVersion: CairoV2,
 			ChainID:      "SN_SEPOLIA",
 			FnCall: types.FunctionCall{
 				ContractAddress: internalUtils.TestHexToFelt(
@@ -86,11 +85,11 @@ func TestFmtCallData(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		acc, err := account.NewAccount(
+		acc, err := NewAccount(
 			mockRPCProvider,
 			&felt.Zero,
 			"pubkey",
-			account.NewMemKeystore(),
+			NewMemKeystore(),
 			test.CairoVersion,
 		)
 		require.NoError(t, err)
@@ -141,12 +140,12 @@ func TestChainIdMOCK(t *testing.T) {
 
 	for _, test := range testSet {
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		acc, err := account.NewAccount(
+		acc, err := NewAccount(
 			mockRPCProvider,
 			&felt.Zero,
 			"pubkey",
-			account.NewMemKeystore(),
-			account.CairoV0,
+			NewMemKeystore(),
+			CairoV0,
 		)
 		require.NoError(t, err)
 		require.Equal(t, test.ExpectedID, acc.ChainID.String())
@@ -185,12 +184,12 @@ func TestChainId(t *testing.T) {
 		client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
-		acc, err := account.NewAccount(
+		acc, err := NewAccount(
 			client,
 			&felt.Zero,
 			"pubkey",
-			account.NewMemKeystore(),
-			account.CairoV0,
+			NewMemKeystore(),
+			CairoV0,
 		)
 		require.NoError(t, err)
 		require.Equal(t, acc.ChainID.String(), test.ExpectedID)

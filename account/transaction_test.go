@@ -1,4 +1,4 @@
-package account_test
+package account
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
@@ -156,7 +155,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 	t.Run("compiled class hash", func(t *testing.T) {
 		testcases := []struct {
 			name                     string
-			txnOptions               *account.TxnOptions
+			txnOptions               *TxnOptions
 			starknetVersion          string
 			expectedCompileClassHash string
 		}{
@@ -168,7 +167,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 			},
 			{
 				name: "before 0.14.1 + UseBlake2sHash true",
-				txnOptions: &account.TxnOptions{
+				txnOptions: &TxnOptions{
 					UseBlake2sHash: &[]bool{true}[0],
 				},
 				starknetVersion:          "0.14.0",
@@ -176,7 +175,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 			},
 			{
 				name: "before 0.14.1 + UseBlake2sHash false",
-				txnOptions: &account.TxnOptions{
+				txnOptions: &TxnOptions{
 					UseBlake2sHash: &[]bool{false}[0],
 				},
 				starknetVersion:          "0.14.0",
@@ -190,7 +189,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 			},
 			{
 				name: "after 0.14.1 + UseBlake2sHash true",
-				txnOptions: &account.TxnOptions{
+				txnOptions: &TxnOptions{
 					UseBlake2sHash: &[]bool{true}[0],
 				},
 				starknetVersion:          "0.14.1",
@@ -198,7 +197,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 			},
 			{
 				name: "after 0.14.1 + UseBlake2sHash false",
-				txnOptions: &account.TxnOptions{
+				txnOptions: &TxnOptions{
 					UseBlake2sHash: &[]bool{false}[0],
 				},
 				starknetVersion:          "0.14.1",
@@ -211,15 +210,15 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 				ctrl := gomock.NewController(t)
 				mockRPCProvider := basicRPC.NewBasicRPC(ctrl)
 
-				ks, pub, _ := account.GetRandomKeys()
+				ks, pub, _ := GetRandomKeys()
 				// called when instantiating the account
 				mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
-				acnt, err := account.NewAccount(
+				acnt, err := NewAccount(
 					mockRPCProvider,
 					internalUtils.DeadBeef,
 					pub.String(),
 					ks,
-					account.CairoV2,
+					CairoV2,
 				)
 				require.NoError(t, err)
 
@@ -304,11 +303,11 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Get random keys to create the new account
-	ks, pub, _ := account.GetRandomKeys()
+	ks, pub, _ := GetRandomKeys()
 
 	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
 	// as for this case we only need the 'ks' to sign the deploy transaction.
-	tempAcc, err := account.NewAccount(provider, pub, pub.String(), ks, account.CairoV2)
+	tempAcc, err := NewAccount(provider, pub, pub.String(), ks, CairoV2)
 	if err != nil {
 		panic(err)
 	}
@@ -376,7 +375,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 // used to fund the new account with STRK tokens in the TestBuildAndEstimateDeployAccountTxn test
 func transferSTRKAndWaitConfirmation(
 	t *testing.T,
-	acc *account.Account,
+	acc *Account,
 	amount, recipient *felt.Felt,
 ) {
 	t.Helper()
@@ -482,17 +481,17 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			Return(new(felt.Felt).SetUint64(1), nil).
 			Times(2)
 
-		ks, pub, _ := account.GetRandomKeys()
+		ks, pub, _ := GetRandomKeys()
 
 		// called when instantiating the account
 		mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
 
-		acnt, err := account.NewAccount(
+		acnt, err := NewAccount(
 			mockRPCProvider,
 			internalUtils.DeadBeef,
 			pub.String(),
 			ks,
-			account.CairoV2,
+			CairoV2,
 		)
 		require.NoError(t, err)
 
@@ -569,7 +568,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					ContractAddress: internalUtils.DeadBeef,
 					FunctionName:    "transfer",
 				},
-			}, &account.TxnOptions{
+			}, &TxnOptions{
 				UseQueryBit: true,
 			})
 			require.NoError(t, err)
@@ -597,7 +596,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				t.Context(),
 				&casmClass,
 				&class,
-				&account.TxnOptions{
+				&TxnOptions{
 					UseQueryBit: true,
 				},
 			)
@@ -610,7 +609,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				internalUtils.DeadBeef,
 				[]*felt.Felt{pub},
-				&account.TxnOptions{
+				&TxnOptions{
 					UseQueryBit: true,
 				},
 			)
@@ -630,14 +629,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		_, acnts, err := newDevnet(t, tConfig.providerURL)
 		require.NoError(t, err, "Error setting up Devnet")
 
-		acnt := newDevnetAccount(t, client, acnts[0], account.CairoV2)
+		acnt := newDevnetAccount(t, client, acnts[0], CairoV2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			resp, err := acnt.BuildAndSendDeclareTxn(
 				t.Context(),
 				&casmClass,
 				&class,
-				&account.TxnOptions{
+				&TxnOptions{
 					UseQueryBit: true,
 				},
 			)
@@ -666,7 +665,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 					FunctionName: "transfer",
 					CallData:     append([]*felt.Felt{acntaddr2}, u256Amount...),
 				},
-			}, &account.TxnOptions{
+			}, &TxnOptions{
 				UseQueryBit: true,
 			})
 			require.NoError(t, err)
@@ -680,8 +679,8 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 
 		t.Run("BuildAndEstimateDeployAccountTxn", func(t *testing.T) {
 			// Get random keys to create the new account
-			ks, pub, _ := account.GetRandomKeys()
-			tempAcc, err := account.NewAccount(client, pub, pub.String(), ks, account.CairoV2)
+			ks, pub, _ := GetRandomKeys()
+			tempAcc, err := NewAccount(client, pub, pub.String(), ks, CairoV2)
 			require.NoError(t, err)
 
 			classHash := internalUtils.TestHexToFelt(
@@ -694,7 +693,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 				pub,
 				classHash,
 				[]*felt.Felt{pub},
-				&account.TxnOptions{
+				&TxnOptions{
 					UseQueryBit: true,
 				},
 			)
@@ -723,7 +722,7 @@ func TestSendInvokeTxn(t *testing.T) {
 
 	type testSetType struct {
 		ExpectedErr          *rpcerr.RPCError
-		CairoContractVersion account.CairoVersion
+		CairoContractVersion CairoVersion
 		SetKS                bool
 		AccountAddress       *felt.Felt
 		PubKey               *felt.Felt
@@ -735,7 +734,7 @@ func TestSendInvokeTxn(t *testing.T) {
 			{
 				// https://sepolia.voyager.online/tx/0x51d224a96a8a07e07e31754e20e713c9cccdcfd7f61105700b1a72b2715ed9f
 				ExpectedErr:          rpcv10.ErrInvalidTransactionNonce,
-				CairoContractVersion: account.CairoV2,
+				CairoContractVersion: CairoV2,
 				AccountAddress:       internalUtils.TestHexToFelt(t, "0x01AE6Fe02FcD9f61A3A8c30D68a8a7c470B0d7dD6F0ee685d5BBFa0d79406ff9"),
 				SetKS:                true,
 				PubKey:               internalUtils.TestHexToFelt(t, "0x022288424ec8116c73d2e2ed3b0663c5030d328d9c0fb44c2b54055db467f31e"),
@@ -787,19 +786,19 @@ func TestSendInvokeTxn(t *testing.T) {
 		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		// Set up ks
-		ks := account.NewMemKeystore()
+		ks := NewMemKeystore()
 		if test.SetKS {
 			fakePrivKeyBI, ok := new(big.Int).SetString(test.PrivKey.String(), 0)
 			require.True(t, ok)
 			ks.Put(test.PubKey.String(), fakePrivKeyBI)
 		}
 
-		acnt, err := account.NewAccount(
+		acnt, err := NewAccount(
 			client,
 			test.AccountAddress,
 			test.PubKey.String(),
 			ks,
-			account.CairoV2,
+			CairoV2,
 		)
 		require.NoError(t, err)
 
@@ -856,7 +855,7 @@ func TestSendDeclareTxn(t *testing.T) {
 		"0x04818374f8071c3b4c3070ff7ce766e7b9352628df7b815ea4de26e0fadb5cc9",
 	)
 
-	ks := account.NewMemKeystore()
+	ks := NewMemKeystore()
 	fakePrivKeyBI, ok := new(big.Int).SetString(PrivKey.String(), 0)
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
@@ -864,7 +863,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
-	acnt, err := account.NewAccount(client, AccountAddress, PubKey.String(), ks, account.CairoV0)
+	acnt, err := NewAccount(client, AccountAddress, PubKey.String(), ks, CairoV0)
 	require.NoError(t, err)
 
 	// Class
@@ -941,7 +940,7 @@ func TestSendDeclareTxn(t *testing.T) {
 // TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
 //
 // The test checks if the environment is set to "devnet" and skips the test if not. It then initialises a new RPC client
-// and provider using the tConfig.base URL. After that, it sets up a devnet environment and creates a fake user account. The
+// and provider using the tConfig.base URL. After that, it sets up a devnet environment and creates a fake user  The
 // fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
 // and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
 // user's address, public key, and keystore. Next, it converts a class hash to the appropriate format. The test
@@ -966,7 +965,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 
 	fakeUser := acnts[0]
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
-	acnt := newDevnetAccount(t, client, fakeUser, account.CairoV2)
+	acnt := newDevnetAccount(t, client, fakeUser, CairoV2)
 
 	classHash := internalUtils.TestHexToFelt(
 		t,
@@ -1002,7 +1001,7 @@ func TestSendDeployAccountDevnet(t *testing.T) {
 		FeeMode:       types.DAModeL1,
 	}
 
-	precomputedAddress := account.PrecomputeAccountAddress(
+	precomputedAddress := PrecomputeAccountAddress(
 		fakeUserPub,
 		classHash,
 		tx.ConstructorCalldata,
@@ -1048,14 +1047,14 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
-	acnt, err := account.NewAccount(
+	acnt, err := NewAccount(
 		mockRPCProvider,
 		&felt.Zero,
 		"",
-		account.NewMemKeystore(),
-		account.CairoV0,
+		NewMemKeystore(),
+		CairoV0,
 	)
-	require.NoError(t, err, "error returned from account.NewAccount()")
+	require.NoError(t, err, "error returned from NewAccount()")
 
 	type testSetType struct {
 		Timeout                      time.Duration
@@ -1147,14 +1146,14 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 	client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
 	require.NoError(t, err, "Error in rpc.NewProvider")
 
-	acnt, err := account.NewAccount(
+	acnt, err := NewAccount(
 		client,
 		&felt.Zero,
 		"pubkey",
-		account.NewMemKeystore(),
-		account.CairoV0,
+		NewMemKeystore(),
+		CairoV0,
 	)
-	require.NoError(t, err, "error returned from account.NewAccount()")
+	require.NoError(t, err, "error returned from NewAccount()")
 
 	type testSetType struct {
 		Timeout         int
