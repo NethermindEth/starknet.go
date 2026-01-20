@@ -15,7 +15,26 @@ import (
 // @todo make everything private
 // add tests where needed.
 
-type providerWrapper struct {
+//go:generate mockgen -destination=./wrapper_mock_test.go -package=account -source=wrapper.go providerWrapperI
+type providerWrapper interface {
+	ChainID(ctx context.Context) (string, error)
+	EstimateFee(
+		ctx context.Context,
+		requests []types.BroadcastTxn,
+		simulationFlags []types.SimulationFlag,
+		blockID types.BlockID,
+	) ([]types.FeeEstimation, error)
+	Nonce(ctx context.Context, blockID types.BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
+	TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
+	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (types.TransactionReceiptWithBlockInfo, error)
+	EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
+	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
+	AsV9() rpcv9.RPCProvider
+	AsV10() rpcv10.RPCProvider
+	Version() RPCVersion
+}
+
+type wrapper struct {
 	chainID string
 	version RPCVersion
 
@@ -23,13 +42,15 @@ type providerWrapper struct {
 	rpcv10 rpcv10.RPCProvider
 }
 
+var _ providerWrapper = (*wrapper)(nil)
+
 // @new
-type RPCProvider interface {
+type _RPCProvider interface {
 	*rpcv10.Provider | *rpcv9.Provider
 }
 
-func newWrapperFrom[P RPCProvider](provider P) *providerWrapper {
-	var wrapper providerWrapper
+func newWrapperFrom[P _RPCProvider](provider P) providerWrapper {
+	var wrapper wrapper
 
 	switch p := any(provider).(type) {
 	case *rpcv9.Provider:
@@ -43,28 +64,21 @@ func newWrapperFrom[P RPCProvider](provider P) *providerWrapper {
 	return &wrapper
 }
 
-type OtherMethods interface {
-	AsV9() rpcv9.RPCProvider
-	AsV10() rpcv10.RPCProvider
-	EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
-}
-
 // implementing the methods
-func (p *providerWrapper) ChainID(ctx context.Context) (string, error)
-func (p *providerWrapper) EstimateFee(
+func (p *wrapper) ChainID(ctx context.Context) (string, error)
+func (p *wrapper) EstimateFee(
 	ctx context.Context,
 	requests []types.BroadcastTxn,
 	simulationFlags []types.SimulationFlag,
 	blockID types.BlockID,
 ) ([]types.FeeEstimation, error)
-func (p *providerWrapper) Nonce(
+func (p *wrapper) Nonce(
 	ctx context.Context,
 	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error)
-func (p *providerWrapper) TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
-func (p *providerWrapper) TransactionReceipt(
+func (p *wrapper) TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
+func (p *wrapper) TransactionReceipt(
 	ctx context.Context,
 	transactionHash *felt.Felt,
 ) (types.TransactionReceiptWithBlockInfo, error)
@@ -74,17 +88,17 @@ func (p *providerWrapper) TransactionReceipt(
 // 	transactionHash *felt.Felt,
 // ) (types.TxnStatusResult, error)
 
-func (p *providerWrapper) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-func (p *providerWrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
-func (p *providerWrapper) AsV9() rpcv9.RPCProvider {
+func (p *wrapper) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
+func (p *wrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
+func (p *wrapper) AsV9() rpcv9.RPCProvider {
 	return p.rpcv9
 }
 
-func (p *providerWrapper) AsV10() rpcv10.RPCProvider {
+func (p *wrapper) AsV10() rpcv10.RPCProvider {
 	return p.rpcv10
 }
 
-func (p *providerWrapper) Version() RPCVersion {
+func (p *wrapper) Version() RPCVersion {
 	return p.version
 }
 

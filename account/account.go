@@ -77,7 +77,7 @@ var _ AccountInterface = (*Account)(nil)
 type Account struct {
 	// TODO: in the future, make all fields private and add getter methods
 	// @changed
-	provider     *providerWrapper
+	provider     providerWrapper
 	ChainID      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string

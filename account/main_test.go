@@ -22,8 +22,9 @@ type TestSetup struct {
 	PubKey         string
 	AccountAddress string
 
-	Wrapper *providerWrapper
-	Account *Account
+	Wrapper     providerWrapper
+	MockWrapper *MockproviderWrapper
+	Account     *Account
 }
 
 // TestMain is the main function for the account tests.
@@ -135,7 +136,7 @@ func newDevnet(t *testing.T, url string) (*devnet.DevNet, []devnet.TestAccount, 
 //   - error: An error, if any
 func newDevnetAccount(
 	t *testing.T,
-	provider *providerWrapper,
+	provider providerWrapper,
 	accData devnet.TestAccount,
 	cairoVersion CairoVersion,
 ) *Account {

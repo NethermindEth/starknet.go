@@ -300,7 +300,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // based on the tip multiplier.
 func calculateTip(
 	ctx context.Context,
-	provider *providerWrapper,
+	provider providerWrapper,
 	opts *TxnOptions,
 ) (types.U64, error) {
 	if opts.CustomTip != "" {
@@ -498,7 +498,7 @@ func (account *Account) WaitForTransactionReceipt(
 // Returns:
 //   - bool: whether to use the Blake2s hash function for the compiled class hash
 //   - error: an error if any
-func shouldUseBlake2sHash(ctx context.Context, provider *providerWrapper) (bool, error) {
+func shouldUseBlake2sHash(ctx context.Context, provider providerWrapper) (bool, error) {
 	// @todo at the end, remove this
 
 	// block, err := provider.BlockWithTxHashes(ctx, types.WithBlockTag(types.BlockTagLatest))
