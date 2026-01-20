@@ -8,7 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,9 +28,6 @@ import (
 //	none
 func TestFmtCallData(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
-
-	mockCtrl := gomock.NewController(t)
-	mockRPCProvider := basicRPC.NewBasicRPC(mockCtrl)
 
 	type testSetType struct {
 		CairoVersion     CairoVersion
@@ -84,15 +81,9 @@ func TestFmtCallData(t *testing.T) {
 	}
 
 	for _, test := range testSet {
-		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
-		acc, err := NewAccount(
-			mockRPCProvider,
-			&felt.Zero,
-			"pubkey",
-			NewMemKeystore(),
-			test.CairoVersion,
-		)
-		require.NoError(t, err)
+		_, acc := BeforeEach(t)
+
+		acc.CairoVersion = test.CairoVersion
 
 		fmtCallData, err := acc.FmtCalldata([]types.FunctionCall{test.FnCall})
 		require.NoError(t, err)
@@ -141,7 +132,7 @@ func TestChainIdMOCK(t *testing.T) {
 	for _, test := range testSet {
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 		acc, err := NewAccount(
-			mockRPCProvider,
+			&rpcv10.Provider{},
 			&felt.Zero,
 			"pubkey",
 			NewMemKeystore(),
@@ -167,6 +158,8 @@ func TestChainIdMOCK(t *testing.T) {
 func TestChainId(t *testing.T) {
 	tests.RunTestOn(t, tests.DevnetEnv)
 
+	tsetup, _ := BeforeEach(t)
+
 	type testSetType struct {
 		ChainID    string
 		ExpectedID string
@@ -181,7 +174,7 @@ func TestChainId(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
+		client, err := rpcv10.NewProvider(t.Context(), tsetup.ProviderURL)
 		require.NoError(t, err, "Error in rpc.NewClient")
 
 		acc, err := NewAccount(

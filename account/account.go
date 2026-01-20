@@ -119,6 +119,8 @@ const (
 // It returns:
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
+//
+// @todo make it a generic function
 func NewAccount(
 	// @changed
 	provider *rpcv10.Provider,

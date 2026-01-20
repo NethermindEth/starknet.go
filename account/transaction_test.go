@@ -15,7 +15,6 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -32,10 +31,9 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	// TODO: implement devnet support
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
+	tsetup, _ := BeforeEach(t)
 
-	acc, err := setupAcc(t, provider)
+	acc, err := setupAcc(t, &tsetup)
 	require.NoError(t, err, "Error in setupAcc")
 
 	// Build and send invoke txn
@@ -66,7 +64,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	assert.Equal(t, types.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 
 	// testing the default tip estimation feature
-	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	txn, err := acc.provider.TransactionByHash(t.Context(), resp.Hash)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
 	assert.NotEqual(t, "0x0", txn.Transaction.(types.InvokeTxnV3).Tip)
@@ -80,11 +78,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	// TODO: implement devnet support
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
-
-	acc, err := setupAcc(t, provider)
-	require.NoError(t, err, "Error in setupAcc")
+	_, acc := BeforeEach(t)
 
 	// Class
 	class := internalUtils.TestUnmarshalJSONFileToType[contracts.ContractClass](
@@ -132,7 +126,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	assert.Equal(t, types.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 
 	// testing the default tip estimation feature
-	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	txn, err := acc.provider.TransactionByHash(t.Context(), resp.Hash)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
 	assert.NotEqual(t, "0x0", txn.Transaction.(types.DeclareTxnV3).Tip)
@@ -214,7 +208,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 				// called when instantiating the account
 				mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
 				acnt, err := NewAccount(
-					mockRPCProvider,
+					&rpcv10.Provider{},
 					internalUtils.DeadBeef,
 					pub.String(),
 					ks,
@@ -295,19 +289,14 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	// TODO: implement devnet support
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
-
-	// we need this account to fund the new account with STRK tokens, in order to deploy it
-	acc, err := setupAcc(t, provider)
-	require.NoError(t, err, "Error in setupAcc")
+	tsetup, acc := BeforeEach(t)
 
 	// Get random keys to create the new account
 	ks, pub, _ := GetRandomKeys()
 
 	// Set up the account passing random values to 'accountAddress' and 'cairoVersion' variables,
 	// as for this case we only need the 'ks' to sign the deploy transaction.
-	tempAcc, err := NewAccount(provider, pub, pub.String(), ks, CairoV2)
+	tempAcc, err := NewAccount(&rpcv10.Provider{}, pub, pub.String(), ks, CairoV2)
 	if err != nil {
 		panic(err)
 	}
@@ -348,7 +337,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	// Deploy the new account
-	resp, err := provider.SendTransaction(t.Context(), deployAccTxn)
+	resp, err := tsetup.Wrapper.SendTransaction(t.Context(), deployAccTxn)
 	require.NoError(t, err, "Error deploying new account")
 
 	require.NotNil(t, resp.Hash)
@@ -365,7 +354,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	assert.Equal(t, types.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 
 	// testing the default tip estimation feature
-	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	txn, err := acc.provider.TransactionByHash(t.Context(), resp.Hash)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
 	assert.NotEqual(t, "0x0", txn.Transaction.(types.DeployAccountTxnV3).Tip)
@@ -408,7 +397,7 @@ func transferSTRKAndWaitConfirmation(
 
 	err = waitForTransactionStatus(
 		t.Context(),
-		acc.Provider,
+		acc.provider,
 		resp.Hash,
 		types.TxnStatusAcceptedOnL2,
 		500*time.Millisecond,
@@ -421,7 +410,7 @@ func transferSTRKAndWaitConfirmation(
 // TODO: make it an exported utility function
 func waitForTransactionStatus(
 	ctx context.Context,
-	provider rpc.ProviderWrapper,
+	provider providerWrapper,
 	transactionHash *felt.Felt,
 	txnStatus types.TxnStatus,
 	pollInterval time.Duration,
@@ -487,7 +476,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		mockRPCProvider.EXPECT().ChainID(gomock.Any()).Return("SN_SEPOLIA", nil).Times(1)
 
 		acnt, err := NewAccount(
-			mockRPCProvider,
+			&rpcv10.Provider{},
 			internalUtils.DeadBeef,
 			pub.String(),
 			ks,
@@ -623,13 +612,14 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 	t.Run("on devnet", func(t *testing.T) {
 		tests.RunTestOn(t, tests.DevnetEnv)
 
-		client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-		require.NoError(t, err, "Error in rpc.NewProvider")
+		tsetup, _ := BeforeEach(t)
 
-		_, acnts, err := newDevnet(t, tConfig.providerURL)
+		client := tsetup.Wrapper.AsV10()
+
+		_, acnts, err := newDevnet(t, tsetup.ProviderURL)
 		require.NoError(t, err, "Error setting up Devnet")
 
-		acnt := newDevnetAccount(t, client, acnts[0], CairoV2)
+		acnt := newDevnetAccount(t, tsetup.Wrapper, acnts[0], CairoV2)
 
 		t.Run("BuildAndSendDeclareTxn", func(t *testing.T) {
 			resp, err := acnt.BuildAndSendDeclareTxn(
@@ -680,7 +670,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		t.Run("BuildAndEstimateDeployAccountTxn", func(t *testing.T) {
 			// Get random keys to create the new account
 			ks, pub, _ := GetRandomKeys()
-			tempAcc, err := NewAccount(client, pub, pub.String(), ks, CairoV2)
+			tempAcc, err := NewAccount(&rpcv10.Provider{}, pub, pub.String(), ks, CairoV2)
 			require.NoError(t, err)
 
 			classHash := internalUtils.TestHexToFelt(
@@ -782,8 +772,6 @@ func TestSendInvokeTxn(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-		require.NoError(t, err, "Error in rpc.NewProvider")
 
 		// Set up ks
 		ks := NewMemKeystore()
@@ -794,7 +782,7 @@ func TestSendInvokeTxn(t *testing.T) {
 		}
 
 		acnt, err := NewAccount(
-			client,
+			&rpcv10.Provider{},
 			test.AccountAddress,
 			test.PubKey.String(),
 			ks,
@@ -860,10 +848,7 @@ func TestSendDeclareTxn(t *testing.T) {
 	require.True(t, ok)
 	ks.Put(PubKey.String(), fakePrivKeyBI)
 
-	client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
-
-	acnt, err := NewAccount(client, AccountAddress, PubKey.String(), ks, CairoV0)
+	acnt, err := NewAccount(&rpcv10.Provider{}, AccountAddress, PubKey.String(), ks, CairoV0)
 	require.NoError(t, err)
 
 	// Class
@@ -938,34 +923,17 @@ func TestSendDeclareTxn(t *testing.T) {
 }
 
 // TestAddDeployAccountDevnet tests the functionality of adding a deploy account in the devnet environment.
-//
-// The test checks if the environment is set to "devnet" and skips the test if not. It then initialises a new RPC client
-// and provider using the tConfig.base URL. After that, it sets up a devnet environment and creates a fake user  The
-// fake user's address and public key are converted to the appropriate format. The test also sets up a memory keystore
-// and puts the fake user's public key and private key in it. Then, it creates a new account using the provider, fake
-// user's address, public key, and keystore. Next, it converts a class hash to the appropriate format. The test
-// constructs a deploy account transaction and precomputes the address. It then signs the transaction and mints coins to
-// the precomputed address. Finally, it adds the deploy account transaction and verifies that no errors occurred and the
-// response is not nil.
-//
-// Parameters:
-//   - t: is the testing framework
-//
-// Returns:
-//
-//	none
 func TestSendDeployAccountDevnet(t *testing.T) {
 	tests.RunTestOn(t, tests.DevnetEnv)
 
-	client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
+	tsetup, _ := BeforeEach(t)
 
-	devnetClient, acnts, err := newDevnet(t, tConfig.providerURL)
+	devnetClient, acnts, err := newDevnet(t, tsetup.ProviderURL)
 	require.NoError(t, err, "Error setting up Devnet")
 
 	fakeUser := acnts[0]
 	fakeUserPub := internalUtils.TestHexToFelt(t, fakeUser.PublicKey)
-	acnt := newDevnetAccount(t, client, fakeUser, CairoV2)
+	acnt := newDevnetAccount(t, tsetup.Wrapper, fakeUser, CairoV2)
 
 	classHash := internalUtils.TestHexToFelt(
 		t,
@@ -1048,7 +1016,7 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := NewAccount(
-		mockRPCProvider,
+		&rpcv10.Provider{},
 		&felt.Zero,
 		"",
 		NewMemKeystore(),
@@ -1143,11 +1111,8 @@ func TestWaitForTransactionReceiptMOCK(t *testing.T) {
 func TestWaitForTransactionReceipt(t *testing.T) {
 	tests.RunTestOn(t, tests.DevnetEnv)
 
-	client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
-
 	acnt, err := NewAccount(
-		client,
+		&rpcv10.Provider{},
 		&felt.Zero,
 		"pubkey",
 		NewMemKeystore(),
@@ -1197,11 +1162,7 @@ func TestWaitForTransactionReceipt(t *testing.T) {
 func TestDeployContractWithUDC(t *testing.T) {
 	tests.RunTestOn(t, tests.TestnetEnv)
 
-	provider, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-	require.NoError(t, err, "Error in rpc.NewProvider")
-
-	accnt, err := setupAcc(t, provider)
-	require.NoError(t, err, "Error in setupAcc")
+	_, accnt := BeforeEach(t)
 
 	t.Run("UDCCairoV0, no constructor, udcOptions nil", func(t *testing.T) {
 		classHash, _ := utils.HexToFelt(

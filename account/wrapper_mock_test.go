@@ -177,6 +177,21 @@ func (mr *MockproviderWrapperMockRecorder) TransactionReceipt(ctx, transactionHa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionReceipt", reflect.TypeOf((*MockproviderWrapper)(nil).TransactionReceipt), ctx, transactionHash)
 }
 
+// TransactionStatus mocks base method.
+func (m *MockproviderWrapper) TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (types.TxnStatusResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TransactionStatus", ctx, transactionHash)
+	ret0, _ := ret[0].(types.TxnStatusResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TransactionStatus indicates an expected call of TransactionStatus.
+func (mr *MockproviderWrapperMockRecorder) TransactionStatus(ctx, transactionHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionStatus", reflect.TypeOf((*MockproviderWrapper)(nil).TransactionStatus), ctx, transactionHash)
+}
+
 // Version mocks base method.
 func (m *MockproviderWrapper) Version() RPCVersion {
 	m.ctrl.T.Helper()

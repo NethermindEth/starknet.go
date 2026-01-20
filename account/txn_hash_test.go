@@ -10,7 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -118,11 +118,8 @@ func TestTransactionHashInvoke(t *testing.T) {
 			var acc *Account
 			var err error
 			if tests.TEST_ENV == "testnet" {
-				var client rpc.ProviderWrapper
-				client, err = rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-				require.NoError(t, err, "Error in rpc.NewClient")
 				acc, err = NewAccount(
-					client,
+					&rpcv10.Provider{},
 					test.AccountAddress,
 					test.PubKey,
 					ks,
@@ -134,7 +131,7 @@ func TestTransactionHashInvoke(t *testing.T) {
 				mockRPCProvider.EXPECT().ChainID(context.Background()).Return(test.ChainID, nil)
 
 				acc, err = NewAccount(
-					mockRPCProvider,
+					&rpcv10.Provider{},
 					test.AccountAddress,
 					test.PubKey,
 					ks,
@@ -197,7 +194,7 @@ func TestTransactionHashDeclare(t *testing.T) {
 		mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 		acnt, err = NewAccount(
-			mockRPCProvider,
+			&rpcv10.Provider{},
 			&felt.Zero,
 			"",
 			NewMemKeystore(),
@@ -206,10 +203,8 @@ func TestTransactionHashDeclare(t *testing.T) {
 		require.NoError(t, err)
 	}
 	if tests.TEST_ENV == "testnet" {
-		client, err := rpc.NewProviderWrapper(t.Context(), tConfig.providerURL)
-		require.NoError(t, err, "Error in rpc.NewClient")
 		acnt, err = NewAccount(
-			client,
+			&rpcv10.Provider{},
 			&felt.Zero,
 			"",
 			NewMemKeystore(),
@@ -332,7 +327,7 @@ func TestTransactionHashInvokeV3(t *testing.T) {
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := NewAccount(
-		mockRPCProvider,
+		&rpcv10.Provider{},
 		&felt.Zero,
 		"",
 		NewMemKeystore(),
@@ -425,7 +420,7 @@ func TestTransactionHashdeployAccount(t *testing.T) {
 	mockRPCProvider.EXPECT().ChainID(context.Background()).Return("SN_SEPOLIA", nil)
 
 	acnt, err := NewAccount(
-		mockRPCProvider,
+		&rpcv10.Provider{},
 		&felt.Zero,
 		"",
 		NewMemKeystore(),

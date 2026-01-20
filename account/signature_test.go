@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/internal/tests/mocks/basicRPC"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -30,7 +31,7 @@ func TestVerify(t *testing.T) {
 		"0x2d54b7dc47eafa80f8e451cf39e7601f51fef6f1bfe5cea44ff12fa563e5457",
 	)
 	acc, err := NewAccount(
-		mockRPCProvider,
+		&rpcv10.Provider{},
 		accAddress,
 		"0x3904dda2cdd58e15dd8667b51a49deec6ce9c53e17b28fffb28fe9ccfddda92",
 		ks,

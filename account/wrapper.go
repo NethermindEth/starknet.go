@@ -27,6 +27,7 @@ type providerWrapper interface {
 	Nonce(ctx context.Context, blockID types.BlockID, contractAddress *felt.Felt) (*felt.Felt, error)
 	TransactionByHash(ctx context.Context, hash *felt.Felt) (types.BlockTransaction, error)
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (types.TransactionReceiptWithBlockInfo, error)
+	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (types.TxnStatusResult, error)
 	EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
 	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 	AsV9() rpcv9.RPCProvider
@@ -65,6 +66,7 @@ func newWrapperFrom[P _RPCProvider](provider P) providerWrapper {
 }
 
 // implementing the methods
+
 func (p *wrapper) ChainID(ctx context.Context) (string, error)
 func (p *wrapper) EstimateFee(
 	ctx context.Context,
@@ -82,12 +84,10 @@ func (p *wrapper) TransactionReceipt(
 	ctx context.Context,
 	transactionHash *felt.Felt,
 ) (types.TransactionReceiptWithBlockInfo, error)
-
-// func (p *providerWrapper) TransactionStatus(
-// 	ctx context.Context,
-// 	transactionHash *felt.Felt,
-// ) (types.TxnStatusResult, error)
-
+func (p *wrapper) TransactionStatus(
+	ctx context.Context,
+	transactionHash *felt.Felt,
+) (types.TxnStatusResult, error)
 func (p *wrapper) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
 func (p *wrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 func (p *wrapper) AsV9() rpcv9.RPCProvider {
