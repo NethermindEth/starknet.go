@@ -7,6 +7,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -78,11 +79,11 @@ func verboseInvoke(
 	}
 
 	// Estimate the transaction fee
-	feeRes, err := accnt.Provider.EstimateFee(
+	feeRes, err := accnt.ProviderAsV10().EstimateFee(
 		context.Background(),
-		[]types.BroadcastTxn{InvokeTx},
-		[]types.SimulationFlag{},
-		types.WithBlockTag(types.BlockTagPreConfirmed),
+		[]rpcv10.BroadcastTxn{InvokeTx},
+		[]rpcv10.SimulationFlag{},
+		rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
 	)
 	if err != nil {
 		panic(err)

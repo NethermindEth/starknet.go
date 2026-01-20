@@ -8,7 +8,8 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -75,12 +76,23 @@ var _ AccountInterface = (*Account)(nil)
 // @changed
 type Account struct {
 	// TODO: in the future, make all fields private and add getter methods
-	Provider     rpc.ProviderWrapper
+	// @changed
+	provider     *providerWrapper
 	ChainID      *felt.Felt
 	Address      *felt.Felt
 	publicKey    string
 	CairoVersion CairoVersion
 	ks           Keystore
+}
+
+// @new
+func (a *Account) ProviderAsV9() rpcv9.RPCProvider {
+	return a.provider.AsV9()
+}
+
+// @new
+func (a *Account) ProviderAsV10() rpcv10.RPCProvider {
+	return a.provider.AsV10()
 }
 
 // CairoVersion represents the version of Cairo used by the account contract.
@@ -108,7 +120,8 @@ const (
 //   - *Account: a pointer to newly created Account
 //   - error: an error if any
 func NewAccount(
-	provider rpc.ProviderWrapper,
+	// @changed
+	provider *rpcv10.Provider,
 	accountAddress *felt.Felt,
 	publicKey string,
 	keystore Keystore,
@@ -120,7 +133,7 @@ func NewAccount(
 	}
 
 	account := &Account{
-		Provider:     provider,
+		provider:     newWrapperFrom(provider),
 		Address:      accountAddress,
 		publicKey:    publicKey,
 		ks:           keystore,
@@ -133,7 +146,7 @@ func NewAccount(
 
 // Nonce retrieves the nonce for the account's contract address.
 func (account *Account) Nonce(ctx context.Context) (*felt.Felt, error) {
-	return account.Provider.Nonce(ctx, types.WithBlockTag("pre_confirmed"), account.Address)
+	return account.provider.Nonce(ctx, types.WithBlockTag("pre_confirmed"), account.Address)
 }
 
 // PrecomputeAccountAddress calculates the precomputed address for an account.

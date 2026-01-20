@@ -8,7 +8,6 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
@@ -49,7 +48,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	tip, err := calculateTip(ctx, account.Provider, opts)
+	tip, err := calculateTip(ctx, account.provider, opts)
 	if err != nil {
 		return response, err
 	}
@@ -73,7 +72,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.Provider.EstimateFee(
+	estimateFee, err := account.provider.EstimateFee(
 		ctx,
 		[]types.BroadcastTxn{broadcastInvokeTxnV3},
 		opts.SimulationFlags(),
@@ -99,7 +98,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return response, err
 	}
 
-	response, err = account.Provider.SendTransaction(ctx, broadcastInvokeTxnV3)
+	response, err = account.provider.SendTransaction(ctx, broadcastInvokeTxnV3)
 	if err != nil {
 		return response, err
 	}
@@ -136,14 +135,14 @@ func (account *Account) BuildAndSendDeclareTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	tip, err := calculateTip(ctx, account.Provider, opts)
+	tip, err := calculateTip(ctx, account.provider, opts)
 	if err != nil {
 		return response, err
 	}
 
 	var useBlake2sHash bool
 	if opts.UseBlake2sHash == nil {
-		useBlake2sHash, err = shouldUseBlake2sHash(ctx, account.Provider)
+		useBlake2sHash, err = shouldUseBlake2sHash(ctx, account.provider)
 		if err != nil {
 			return response, fmt.Errorf("failed to check whether to use Blake2s hash: %w", err)
 		}
@@ -174,7 +173,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.Provider.EstimateFee(
+	estimateFee, err := account.provider.EstimateFee(
 		ctx,
 		[]types.BroadcastTxn{broadcastDeclareTxnV3},
 		opts.SimulationFlags(),
@@ -200,7 +199,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		return response, err
 	}
 
-	response, err = account.Provider.SendTransaction(ctx, broadcastDeclareTxnV3)
+	response, err = account.provider.SendTransaction(ctx, broadcastDeclareTxnV3)
 	if err != nil {
 		return response, err
 	}
@@ -241,7 +240,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
-	tip, err := calculateTip(ctx, account.Provider, opts)
+	tip, err := calculateTip(ctx, account.provider, opts)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -267,7 +266,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	}
 
 	// estimate txn fee
-	estimateFee, err := account.Provider.EstimateFee(
+	estimateFee, err := account.provider.EstimateFee(
 		ctx,
 		[]types.BroadcastTxn{broadcastDepAccTxnV3},
 		opts.SimulationFlags(),
@@ -301,7 +300,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 // based on the tip multiplier.
 func calculateTip(
 	ctx context.Context,
-	provider rpc.ProviderWrapper,
+	provider *providerWrapper,
 	opts *TxnOptions,
 ) (types.U64, error) {
 	if opts.CustomTip != "" {
@@ -383,14 +382,14 @@ func (account *Account) SendTransaction(
 	// switch tx := txn.(type) {
 	// // broadcast invoke v3, pointer and struct
 	// case *types.BroadcastInvokeTxnV3:
-	// 	resp, err := account.Provider.AddInvokeTransaction(ctx, tx)
+	// 	resp, err := account.provider.AddInvokeTransaction(ctx, tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
 
 	// 	return types.TransactionResponse{Hash: resp.Hash}, nil
 	// case types.BroadcastInvokeTxnV3:
-	// 	resp, err := account.Provider.AddInvokeTransaction(ctx, &tx)
+	// 	resp, err := account.provider.AddInvokeTransaction(ctx, &tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
@@ -398,7 +397,7 @@ func (account *Account) SendTransaction(
 	// 	return types.TransactionResponse{Hash: resp.Hash}, nil
 	// // broadcast declare v3, pointer and struct
 	// case *types.BroadcastDeclareTxnV3:
-	// 	resp, err := account.Provider.AddDeclareTransaction(ctx, tx)
+	// 	resp, err := account.provider.AddDeclareTransaction(ctx, tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
@@ -408,7 +407,7 @@ func (account *Account) SendTransaction(
 	// 		ClassHash: resp.ClassHash,
 	// 	}, nil
 	// case types.BroadcastDeclareTxnV3:
-	// 	resp, err := account.Provider.AddDeclareTransaction(ctx, &tx)
+	// 	resp, err := account.provider.AddDeclareTransaction(ctx, &tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
@@ -419,7 +418,7 @@ func (account *Account) SendTransaction(
 	// 	}, nil
 	// // broadcast deploy account v3, pointer and struct
 	// case *types.BroadcastDeployAccountTxnV3:
-	// 	resp, err := account.Provider.AddDeployAccountTransaction(ctx, tx)
+	// 	resp, err := account.provider.AddDeployAccountTransaction(ctx, tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
@@ -429,7 +428,7 @@ func (account *Account) SendTransaction(
 	// 		ContractAddress: resp.ContractAddress,
 	// 	}, nil
 	// case types.BroadcastDeployAccountTxnV3:
-	// 	resp, err := account.Provider.AddDeployAccountTransaction(ctx, &tx)
+	// 	resp, err := account.provider.AddDeployAccountTransaction(ctx, &tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
@@ -445,7 +444,7 @@ func (account *Account) SendTransaction(
 	// 	)
 	// }
 
-	return account.Provider.SendTransaction(ctx, txn)
+	return account.provider.SendTransaction(ctx, txn)
 }
 
 // @changed
@@ -471,7 +470,7 @@ func (account *Account) WaitForTransactionReceipt(
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-t.C:
-			receiptWithBlockInfo, err := account.Provider.TransactionReceipt(ctx, transactionHash)
+			receiptWithBlockInfo, err := account.provider.TransactionReceipt(ctx, transactionHash)
 			if err != nil {
 				rpcErr := err.(*rpcerr.RPCError)
 				if rpcErr.Code == rpcv10.ErrHashNotFound.Code &&
@@ -499,7 +498,7 @@ func (account *Account) WaitForTransactionReceipt(
 // Returns:
 //   - bool: whether to use the Blake2s hash function for the compiled class hash
 //   - error: an error if any
-func shouldUseBlake2sHash(ctx context.Context, provider rpc.ProviderWrapper) (bool, error) {
+func shouldUseBlake2sHash(ctx context.Context, provider *providerWrapper) (bool, error) {
 	// @todo at the end, remove this
 
 	// block, err := provider.BlockWithTxHashes(ctx, types.WithBlockTag(types.BlockTagLatest))
