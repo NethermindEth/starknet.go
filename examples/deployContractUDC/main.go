@@ -9,7 +9,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -35,7 +35,7 @@ func main() {
 	publicKey := setup.GetPublicKey()
 
 	// Initialise connection to RPC provider
-	client, err := rpc.NewProviderWrapper(context.Background(), rpcProviderURL)
+	client, err := rpcv10.NewProvider(context.Background(), rpcProviderURL)
 	if err != nil {
 		panic(fmt.Sprintf("Error dialling the RPC provider: %s", err))
 	}
