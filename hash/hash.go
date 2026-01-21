@@ -668,26 +668,39 @@ func TransactionHashDeclareV0[T declareV0](tx T, chainID *felt.Felt) (*felt.Felt
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV1(txn *types.DeclareTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_2
-	if txn.SenderAddress == nil || txn.Version == "" || txn.ClassHash == nil ||
-		txn.MaxFee == nil || txn.Nonce == nil {
-		return nil, ErrNotAllParametersSet
+func TransactionHashDeclareV1[T declareV1](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#declare-v1
+	if tx == nil {
+		return nil, ErrTransactionNil
 	}
 
-	calldataHash := curve.PedersenArray(txn.ClassHash)
-
-	return calculateDeprecatedTransactionHashCommon(
-		prefixDeclare,
-		string(txn.Version),
-		txn.SenderAddress,
-		&felt.Zero,
-		calldataHash,
-		txn.MaxFee,
-		chainID,
-		[]*felt.Felt{txn.Nonce},
-	)
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.DeclareTxnV1:
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeclare,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			&felt.Zero,
+			curve.PedersenArray(typedTx.ClassHash),
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce},
+		)
+	case *rpcv10.DeclareTxnV1:
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeclare,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			&felt.Zero,
+			curve.PedersenArray(typedTx.ClassHash),
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
 }
 
 // TransactionHashDeclareV2 calculates the transaction hash for a declare V2
