@@ -16,11 +16,6 @@ var (
 	prefixInvoke        = new(felt.Felt).SetBytes([]byte("invoke"))
 	prefixDeclare       = new(felt.Felt).SetBytes([]byte("declare"))
 	prefixDeployAccount = new(felt.Felt).SetBytes([]byte("deploy_account"))
-
-	txnVersionV0, _ = new(felt.Felt).SetString(string(types.TransactionV0))
-	txnVersionV1, _ = new(felt.Felt).SetString(string(types.TransactionV1))
-	txnVersionV2, _ = new(felt.Felt).SetString(string(types.TransactionV2))
-	txnVersionV3, _ = new(felt.Felt).SetString(string(types.TransactionV3))
 )
 
 var (
@@ -53,7 +48,7 @@ var (
 //nolint:lll // The link would be unclickable if we break the line.
 func calculateDeprecatedTransactionHashCommon(
 	txHashPrefix *felt.Felt,
-	version *felt.Felt,
+	version string,
 	contractAddress *felt.Felt,
 	entryPointSelector *felt.Felt,
 	calldataHash *felt.Felt,
@@ -62,7 +57,7 @@ func calculateDeprecatedTransactionHashCommon(
 	additionalData []*felt.Felt,
 ) (*felt.Felt, error) {
 	if txHashPrefix == nil ||
-		version == nil ||
+		version == "" ||
 		contractAddress == nil ||
 		entryPointSelector == nil ||
 		calldataHash == nil ||
@@ -78,9 +73,14 @@ func calculateDeprecatedTransactionHashCommon(
 		}
 	}
 
+	versionFelt, err := new(felt.Felt).SetString(version)
+	if err != nil {
+		return nil, err
+	}
+
 	dataToHash := []*felt.Felt{
 		txHashPrefix,
-		version,
+		versionFelt,
 		contractAddress,
 		entryPointSelector,
 		calldataHash,
@@ -464,7 +464,7 @@ func TransactionHashInvokeV0[T invokeV0](tx T, chainID *felt.Felt) (*felt.Felt, 
 	case *rpcv9.InvokeTxnV0:
 		return calculateDeprecatedTransactionHashCommon(
 			prefixInvoke,
-			txnVersionV0,
+			string(typedTx.Version),
 			typedTx.ContractAddress,
 			typedTx.EntryPointSelector,
 			curve.PedersenArray(typedTx.Calldata...),
@@ -475,7 +475,7 @@ func TransactionHashInvokeV0[T invokeV0](tx T, chainID *felt.Felt) (*felt.Felt, 
 	case *rpcv10.InvokeTxnV0:
 		return calculateDeprecatedTransactionHashCommon(
 			prefixInvoke,
-			txnVersionV0,
+			string(typedTx.Version),
 			typedTx.ContractAddress,
 			typedTx.EntryPointSelector,
 			curve.PedersenArray(typedTx.Calldata...),
@@ -508,7 +508,7 @@ func TransactionHashInvokeV1[T invokeV1](tx T, chainID *felt.Felt) (*felt.Felt, 
 	case *rpcv9.InvokeTxnV1:
 		return calculateDeprecatedTransactionHashCommon(
 			prefixInvoke,
-			txnVersionV1,
+			string(typedTx.Version),
 			typedTx.SenderAddress,
 			&felt.Zero,
 			curve.PedersenArray(typedTx.Calldata...),
@@ -519,7 +519,7 @@ func TransactionHashInvokeV1[T invokeV1](tx T, chainID *felt.Felt) (*felt.Felt, 
 	case *rpcv10.InvokeTxnV1:
 		return calculateDeprecatedTransactionHashCommon(
 			prefixInvoke,
-			txnVersionV1,
+			string(typedTx.Version),
 			typedTx.SenderAddress,
 			&felt.Zero,
 			curve.PedersenArray(typedTx.Calldata...),
@@ -634,7 +634,7 @@ func TransactionHashDeclareV0[T declareV0](tx T, chainID *felt.Felt) (*felt.Felt
 	case *rpcv9.DeclareTxnV0:
 		return calculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
-			txnVersionV0,
+			string(typedTx.Version),
 			typedTx.SenderAddress,
 			&felt.Zero,
 			curve.PedersenArray(),
@@ -645,7 +645,7 @@ func TransactionHashDeclareV0[T declareV0](tx T, chainID *felt.Felt) (*felt.Felt
 	case *rpcv10.DeclareTxnV0:
 		return calculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
-			txnVersionV0,
+			string(typedTx.Version),
 			typedTx.SenderAddress,
 			&felt.Zero,
 			curve.PedersenArray(),
@@ -678,14 +678,9 @@ func TransactionHashDeclareV1(txn *types.DeclareTxnV1, chainID *felt.Felt) (*fel
 
 	calldataHash := curve.PedersenArray(txn.ClassHash)
 
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
-	}
-
 	return calculateDeprecatedTransactionHashCommon(
 		prefixDeclare,
-		txnVersionFelt,
+		string(txn.Version),
 		txn.SenderAddress,
 		&felt.Zero,
 		calldataHash,
@@ -721,14 +716,9 @@ func TransactionHashDeclareV2(
 
 	calldataHash := curve.PedersenArray(txn.ClassHash)
 
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
-	}
-
 	return calculateDeprecatedTransactionHashCommon(
 		prefixDeclare,
-		txnVersionFelt,
+		string(txn.Version),
 		txn.SenderAddress,
 		&felt.Zero,
 		calldataHash,
@@ -876,14 +866,9 @@ func TransactionHashDeployAccountV1(
 	calldata = append(calldata, txn.ConstructorCalldata...)
 	calldataHash := curve.PedersenArray(calldata...)
 
-	versionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
-	}
-
 	return calculateDeprecatedTransactionHashCommon(
 		prefixDeployAccount,
-		versionFelt,
+		string(txn.Version),
 		contractAddress,
 		&felt.Zero,
 		calldataHash,
