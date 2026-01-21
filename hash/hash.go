@@ -864,37 +864,74 @@ func TransactionHashBroadcastDeclareV3(
 	), nil
 }
 
-// TransactionHashDeployAccountV1 calculates the transaction hash for a deploy
-// account V1 transaction.
+// deployAccountV1 represents a pointer to a deploy account V1
+// transaction from all supported RPC versions.
+type deployAccountV1 interface {
+	*rpcv9.DeployAccountTxnV1 | *rpcv10.DeployAccountTxnV1
+}
+
+// deployAccountV3 represents a pointer to a deploy account V3
+// transaction from all supported RPC versions.
+type deployAccountV3 interface {
+	*rpcv9.DeployAccountTxnV3 | *rpcv10.DeployAccountTxnV3
+}
+
+// deployAccountTx represents a pointer to a deploy account transaction
+// from all supported RPC versions.
+type deployAccountTx interface {
+	deployAccountV1 | deployAccountV3
+}
+
+// TransactionHashDeployAccountV1 calculates the transaction hash for a deploy account V1 transaction.
 //
 // Parameters:
 //   - txn: The deploy account V1 transaction to calculate the hash for
-//   - contractAddress: The contract address as parameters as a *felt.Felt
 //   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeployAccountV1(
-	txn *types.DeployAccountTxnV1,
-	contractAddress, chainID *felt.Felt,
-) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation_3
-	calldata := []*felt.Felt{txn.ClassHash, txn.ContractAddressSalt}
-	calldata = append(calldata, txn.ConstructorCalldata...)
-	calldataHash := curve.PedersenArray(calldata...)
+func TransactionHashDeployAccountV1[T deployAccountV1](tx T, contractAddress, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#deploy-account-v1
+	if tx == nil {
+		return nil, ErrTransactionNil
+	}
 
-	return calculateDeprecatedTransactionHashCommon(
-		prefixDeployAccount,
-		string(txn.Version),
-		contractAddress,
-		&felt.Zero,
-		calldataHash,
-		txn.MaxFee,
-		chainID,
-		[]*felt.Felt{txn.Nonce},
-	)
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.DeployAccountTxnV1:
+		calldata := []*felt.Felt{typedTx.ClassHash, typedTx.ContractAddressSalt}
+		calldata = append(calldata, typedTx.ConstructorCalldata...)
+		calldataHash := curve.PedersenArray(calldata...)
+
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeployAccount,
+			string(typedTx.Version),
+			contractAddress,
+			&felt.Zero,
+			calldataHash,
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce},
+		)
+	case *rpcv10.DeployAccountTxnV1:
+		calldata := []*felt.Felt{typedTx.ClassHash, typedTx.ContractAddressSalt}
+		calldata = append(calldata, typedTx.ConstructorCalldata...)
+		calldataHash := curve.PedersenArray(calldata...)
+
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeployAccount,
+			string(typedTx.Version),
+			contractAddress,
+			&felt.Zero,
+			calldataHash,
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
 }
 
 // TransactionHashDeployAccountV3 calculates the transaction hash for a deploy
