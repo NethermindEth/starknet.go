@@ -45,6 +45,7 @@ func (account *Account) TransactionHashDeployAccount(
 	}
 }
 
+// @todo remove and move the tests to the hash package
 // TransactionHashInvoke calculates the transaction hash for the given invoke
 // transaction.
 //

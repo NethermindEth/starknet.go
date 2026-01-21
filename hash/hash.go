@@ -54,7 +54,18 @@ func CalculateDeprecatedTransactionHashCommon(
 	maxFee *felt.Felt,
 	chainID *felt.Felt,
 	additionalData []*felt.Felt,
-) *felt.Felt {
+) (*felt.Felt, error) {
+	if txHashPrefix == nil ||
+		version == nil ||
+		contractAddress == nil ||
+		entryPointSelector == nil ||
+		calldata == nil ||
+		maxFee == nil ||
+		chainID == nil ||
+		additionalData == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
 	dataToHash := []*felt.Felt{
 		txHashPrefix,
 		version,
@@ -66,7 +77,7 @@ func CalculateDeprecatedTransactionHashCommon(
 	}
 	dataToHash = append(dataToHash, additionalData...)
 
-	return curve.PedersenArray(dataToHash...)
+	return curve.PedersenArray(dataToHash...), nil
 }
 
 // ClassHash calculates the hash of a contract class.
@@ -432,6 +443,7 @@ type invokeTx interface {
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
 func TransactionHashInvokeV0[T allInvokeV0](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v0
 	if tx == nil {
 		return nil, ErrTransactionNil
 	}
@@ -461,6 +473,54 @@ func TransactionHashInvokeV0[T allInvokeV0](tx T, chainID *felt.Felt) (*felt.Fel
 	}
 }
 
+// TransactionHashInvokeV1 calculates the transaction hash for a invoke V1 transaction.
+//
+// Parameters:
+//   - txn: The invoke V1 transaction to calculate the hash for
+//   - chainID: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
+func TransactionHashInvokeV1[T allInvokeV1](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v1
+	if tx == nil {
+		return nil, ErrTransactionNil
+	}
+
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.InvokeTxnV1:
+		if typedTx.Nonce == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		return txHashInvokeV0AndV1(
+			typedTx.SenderAddress,
+			&felt.Zero,
+			typedTx.Calldata,
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce},
+		)
+	case *rpcv10.InvokeTxnV1:
+		if typedTx.Nonce == nil {
+			return nil, ErrNotAllParametersSet
+		}
+
+		return txHashInvokeV0AndV1(
+			typedTx.SenderAddress,
+			&felt.Zero,
+			typedTx.Calldata,
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
+}
+
 // txHashInvokeV0AndV1 calculates the transaction hash for a invoke V0 or V1 transaction.
 // Since both V0 and V1 transactions use the same hash calculation, only with different values,
 // we can use the same function for both.
@@ -472,9 +532,6 @@ func txHashInvokeV0AndV1(
 	chainID *felt.Felt,
 	additionalData []*felt.Felt,
 ) (*felt.Felt, error) {
-	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v0
-	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v1
-
 	if len(calldata) == 0 ||
 		contractAddress == nil ||
 		maxFee == nil ||
@@ -497,42 +554,7 @@ func txHashInvokeV0AndV1(
 		maxFee,
 		chainID,
 		additionalData,
-	), nil
-}
-
-// TransactionHashInvokeV1 calculates the transaction hash for a invoke V1 transaction.
-//
-// Parameters:
-//   - txn: The invoke V1 transaction to calculate the hash for
-//   - chainID: The chain ID as a *felt.Felt
-//
-// Returns:
-//   - *felt.Felt: the calculated transaction hash
-//   - error: an error if any
-func TransactionHashInvokeV1(txn *types.InvokeTxnV1, chainID *felt.Felt) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v1_deprecated_hash_calculation
-	if txn.Version == "" || len(txn.Calldata) == 0 || txn.Nonce == nil || txn.MaxFee == nil ||
-		txn.SenderAddress == nil {
-		return nil, ErrNotAllParametersSet
-	}
-
-	calldataHash := curve.PedersenArray(txn.Calldata...)
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
-	}
-
-	return CalculateDeprecatedTransactionHashCommon(
-		prefixInvoke,
-		txnVersionFelt,
-		txn.SenderAddress,
-		&felt.Zero,
-		calldataHash,
-		txn.MaxFee,
-		chainID,
-		[]*felt.Felt{txn.Nonce},
-	), nil
+	)
 }
 
 // TransactionHashInvokeV3 calculates the transaction hash for a invoke V3 transaction.
@@ -620,7 +642,7 @@ func TransactionHashDeclareV1(txn *types.DeclareTxnV1, chainID *felt.Felt) (*fel
 		txn.MaxFee,
 		chainID,
 		[]*felt.Felt{txn.Nonce},
-	), nil
+	)
 }
 
 // TransactionHashDeclareV2 calculates the transaction hash for a declare V2
@@ -663,7 +685,7 @@ func TransactionHashDeclareV2(
 		txn.MaxFee,
 		chainID,
 		[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
-	), nil
+	)
 }
 
 // TransactionHashDeclareV3 calculates the transaction hash for a declare V3 transaction.
@@ -818,7 +840,7 @@ func TransactionHashDeployAccountV1(
 		txn.MaxFee,
 		chainID,
 		[]*felt.Felt{txn.Nonce},
-	), nil
+	)
 }
 
 // TransactionHashDeployAccountV3 calculates the transaction hash for a deploy
