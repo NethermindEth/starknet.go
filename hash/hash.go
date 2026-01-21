@@ -703,8 +703,7 @@ func TransactionHashDeclareV1[T declareV1](tx T, chainID *felt.Felt) (*felt.Felt
 	}
 }
 
-// TransactionHashDeclareV2 calculates the transaction hash for a declare V2
-// transaction.
+// TransactionHashDeclareV2 calculates the transaction hash for a declare V2 transaction.
 //
 // Parameters:
 //   - txn: The declare V2 transaction to calculate the hash for
@@ -713,32 +712,39 @@ func TransactionHashDeclareV1[T declareV1](tx T, chainID *felt.Felt) (*felt.Felt
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV2(
-	txn *types.DeclareTxnV2,
-	chainID *felt.Felt,
-) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v2_deprecated_hash_calculation
-	if txn.CompiledClassHash == nil || txn.SenderAddress == nil ||
-		txn.Version == "" ||
-		txn.ClassHash == nil ||
-		txn.MaxFee == nil ||
-		txn.Nonce == nil {
-		return nil, ErrNotAllParametersSet
+func TransactionHashDeclareV2[T declareV2](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#declare-v2
+	if tx == nil {
+		return nil, ErrTransactionNil
 	}
 
-	calldataHash := curve.PedersenArray(txn.ClassHash)
-
-	return calculateDeprecatedTransactionHashCommon(
-		prefixDeclare,
-		string(txn.Version),
-		txn.SenderAddress,
-		&felt.Zero,
-		calldataHash,
-		txn.MaxFee,
-		chainID,
-		[]*felt.Felt{txn.Nonce, txn.CompiledClassHash},
-	)
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.DeclareTxnV2:
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeclare,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			&felt.Zero,
+			curve.PedersenArray(typedTx.ClassHash),
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce, typedTx.CompiledClassHash},
+		)
+	case *rpcv10.DeclareTxnV2:
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeclare,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			&felt.Zero,
+			curve.PedersenArray(typedTx.ClassHash),
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.Nonce, typedTx.CompiledClassHash},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
 }
 
 // TransactionHashDeclareV3 calculates the transaction hash for a declare V3 transaction.
