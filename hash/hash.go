@@ -42,7 +42,7 @@ var (
 //   - version: The version of the transaction
 //   - contractAddress: The address of the contract
 //   - entryPointSelector: The selector of the entry point
-//   - calldata: The data of the transaction
+//   - calldataHash: The hashed calldata of the transaction
 //   - maxFee: The maximum fee for the transaction
 //   - chainID: The ID of the blockchain
 //   - additionalData: Additional data to be included in the hash
@@ -56,7 +56,7 @@ func calculateDeprecatedTransactionHashCommon(
 	version *felt.Felt,
 	contractAddress *felt.Felt,
 	entryPointSelector *felt.Felt,
-	calldata *felt.Felt,
+	calldataHash *felt.Felt,
 	maxFee *felt.Felt,
 	chainID *felt.Felt,
 	additionalData []*felt.Felt,
@@ -65,7 +65,7 @@ func calculateDeprecatedTransactionHashCommon(
 		version == nil ||
 		contractAddress == nil ||
 		entryPointSelector == nil ||
-		calldata == nil ||
+		calldataHash == nil ||
 		maxFee == nil ||
 		chainID == nil ||
 		additionalData == nil {
@@ -83,7 +83,7 @@ func calculateDeprecatedTransactionHashCommon(
 		version,
 		contractAddress,
 		entryPointSelector,
-		calldata,
+		calldataHash,
 		maxFee,
 		chainID,
 	}
@@ -412,28 +412,28 @@ func hashCasmEntryPoints(
 
 // @todo after writing the changelog, split this file (separate tx hash from class hash)
 
-// allInvokeV0 represents a pointer to an invoke V0
+// invokeV0 represents a pointer to an invoke V0
 // transaction from all supported RPC versions.
-type allInvokeV0 interface {
+type invokeV0 interface {
 	*rpcv9.InvokeTxnV0 | *rpcv10.InvokeTxnV0
 }
 
-// allInvokeV1 represents a pointer to an invoke V1
+// invokeV1 represents a pointer to an invoke V1
 // transaction from all supported RPC versions.
-type allInvokeV1 interface {
+type invokeV1 interface {
 	*rpcv9.InvokeTxnV1 | *rpcv10.InvokeTxnV1
 }
 
-// allInvokeV3 represents a pointer to an invoke V3
+// invokeV3 represents a pointer to an invoke V3
 // transaction from all supported RPC versions.
-type allInvokeV3 interface {
+type invokeV3 interface {
 	*rpcv9.InvokeTxnV3 | *rpcv10.InvokeTxnV3
 }
 
 // invokeTx represents a pointer to an invoke transaction
 // from all supported RPC versions.
 type invokeTx interface {
-	allInvokeV0 | allInvokeV1 | allInvokeV3
+	invokeV0 | invokeV1 | invokeV3
 }
 
 // func TransactionHashInvoke[T invokeTx](txn T, chainID *felt.Felt) (*felt.Felt, error) {
@@ -454,7 +454,7 @@ type invokeTx interface {
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV0[T allInvokeV0](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV0[T invokeV0](tx T, chainID *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v0
 	if tx == nil {
 		return nil, ErrTransactionNil
@@ -498,7 +498,7 @@ func TransactionHashInvokeV0[T allInvokeV0](tx T, chainID *felt.Felt) (*felt.Fel
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV1[T allInvokeV1](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+func TransactionHashInvokeV1[T invokeV1](tx T, chainID *felt.Felt) (*felt.Felt, error) {
 	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v1
 	if tx == nil {
 		return nil, ErrTransactionNil
@@ -583,6 +583,80 @@ func TransactionHashInvokeV3(txn *types.InvokeTxnV3, chainID *felt.Felt) (*felt.
 		curve.PoseidonArray(txn.AccountDeploymentData...),
 		curve.PoseidonArray(txn.Calldata...),
 	), nil
+}
+
+// declareV0 represents a pointer to a declare V0
+// transaction from all supported RPC versions.
+type declareV0 interface {
+	*rpcv9.DeclareTxnV0 | *rpcv10.DeclareTxnV0
+}
+
+// declareV1 represents a pointer to a declare V1
+// transaction from all supported RPC versions.
+type declareV1 interface {
+	*rpcv9.DeclareTxnV1 | *rpcv10.DeclareTxnV1
+}
+
+// declareV2 represents a pointer to a declare V2
+// transaction from all supported RPC versions.
+type declareV2 interface {
+	*rpcv9.DeclareTxnV2 | *rpcv10.DeclareTxnV2
+}
+
+// declareV3 represents a pointer to a declare V3
+// transaction from all supported RPC versions.
+type declareV3 interface {
+	*rpcv9.DeclareTxnV3 | *rpcv10.DeclareTxnV3
+}
+
+// declareTx represents a pointer to a declare transaction
+// from all supported RPC versions.
+type declareTx interface {
+	declareV0 | declareV1 | declareV2 | declareV3
+}
+
+// TransactionHashDeclareV0 calculates the transaction hash for a declare V0 transaction.
+//
+// Parameters:
+//   - txn: The declare V0 transaction to calculate the hash for
+//   - chainID: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
+func TransactionHashDeclareV0[T declareV0](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#declare-v0
+	if tx == nil {
+		return nil, ErrTransactionNil
+	}
+
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.DeclareTxnV0:
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeclare,
+			txnVersionV0,
+			typedTx.SenderAddress,
+			&felt.Zero,
+			curve.PedersenArray(),
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.ClassHash},
+		)
+	case *rpcv10.DeclareTxnV0:
+		return calculateDeprecatedTransactionHashCommon(
+			prefixDeclare,
+			txnVersionV0,
+			typedTx.SenderAddress,
+			&felt.Zero,
+			curve.PedersenArray(),
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{typedTx.ClassHash},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
 }
 
 // TransactionHashDeclareV1 calculates the transaction hash for a declare V1 transaction.
