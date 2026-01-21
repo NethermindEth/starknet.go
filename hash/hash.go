@@ -7,6 +7,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -19,6 +21,10 @@ var (
 var (
 	ErrNotAllParametersSet = errors.New("not all necessary parameters have been set")
 	ErrFeltToBigInt        = errors.New("felt to BigInt error")
+	// @new
+	ErrTransactionNil = errors.New("transaction is nil")
+
+	errTxTypeNotSupported = errors.New("transaction type not supported")
 )
 
 // CalculateDeprecatedTransactionHashCommon calculates the transaction hash
@@ -378,7 +384,43 @@ func hashCasmEntryPoints(
 	}
 
 	return hashFunc(flattened...)
+
 }
+
+// @todo after writing the changelog, split this file (separate tx hash from class hash)
+
+// allInvokeV0 represents a pointer to an invoke V0
+// transaction from all supported RPC versions.
+type allInvokeV0 interface {
+	*rpcv9.InvokeTxnV0 | *rpcv10.InvokeTxnV0
+}
+
+// allInvokeV1 represents a pointer to an invoke V1
+// transaction from all supported RPC versions.
+type allInvokeV1 interface {
+	*rpcv9.InvokeTxnV1 | *rpcv10.InvokeTxnV1
+}
+
+// allInvokeV3 represents a pointer to an invoke V3
+// transaction from all supported RPC versions.
+type allInvokeV3 interface {
+	*rpcv9.InvokeTxnV3 | *rpcv10.InvokeTxnV3
+}
+
+// invokeTx represents a pointer to an invoke transaction
+// from all supported RPC versions.
+type invokeTx interface {
+	allInvokeV0 | allInvokeV1 | allInvokeV3
+}
+
+// func TransactionHashInvoke[T invokeTx](txn T, chainID *felt.Felt) (*felt.Felt, error) {
+// 	switch txn := txn.(type) {
+// 	case *rpcv9.InvokeTxnV0:
+// 		return TransactionHashInvokeV0(txn, chainID)
+// 	case *rpcv10.InvokeTxnV0:
+// 		return TransactionHashInvokeV0(txn, chainID)
+// 	}
+// }
 
 // TransactionHashInvokeV0 calculates the transaction hash for a invoke V0 transaction.
 //
@@ -389,16 +431,59 @@ func hashCasmEntryPoints(
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV0(txn *types.InvokeTxnV0, chainID *felt.Felt) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v0_deprecated_hash_calculation
-	if txn.Version == "" || len(txn.Calldata) == 0 || txn.MaxFee == nil ||
-		txn.EntryPointSelector == nil {
+func TransactionHashInvokeV0[T allInvokeV0](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	if tx == nil {
+		return nil, ErrTransactionNil
+	}
+
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.InvokeTxnV0:
+		return txHashInvokeV0AndV1(
+			typedTx.ContractAddress,
+			typedTx.EntryPointSelector,
+			typedTx.Calldata,
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{},
+		)
+	case *rpcv10.InvokeTxnV0:
+		return txHashInvokeV0AndV1(
+			typedTx.ContractAddress,
+			typedTx.EntryPointSelector,
+			typedTx.Calldata,
+			typedTx.MaxFee,
+			chainID,
+			[]*felt.Felt{},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
+}
+
+// txHashInvokeV0AndV1 calculates the transaction hash for a invoke V0 or V1 transaction.
+// Since both V0 and V1 transactions use the same hash calculation, only with different values,
+// we can use the same function for both.
+func txHashInvokeV0AndV1(
+	contractAddress *felt.Felt,
+	entryPointSelector *felt.Felt,
+	calldata []*felt.Felt,
+	maxFee *felt.Felt,
+	chainID *felt.Felt,
+	additionalData []*felt.Felt,
+) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v0
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v1
+
+	if len(calldata) == 0 ||
+		contractAddress == nil ||
+		maxFee == nil ||
+		entryPointSelector == nil ||
+		chainID == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
-	calldataHash := curve.PedersenArray(txn.Calldata...)
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
+	txnVersionFelt, err := new(felt.Felt).SetString(string(types.TransactionV0))
 	if err != nil {
 		return nil, err
 	}
@@ -406,12 +491,12 @@ func TransactionHashInvokeV0(txn *types.InvokeTxnV0, chainID *felt.Felt) (*felt.
 	return CalculateDeprecatedTransactionHashCommon(
 		prefixInvoke,
 		txnVersionFelt,
-		txn.ContractAddress,
-		txn.EntryPointSelector,
-		calldataHash,
-		txn.MaxFee,
+		contractAddress,
+		entryPointSelector,
+		curve.PedersenArray(calldata...),
+		maxFee,
 		chainID,
-		[]*felt.Felt{},
+		additionalData,
 	), nil
 }
 
