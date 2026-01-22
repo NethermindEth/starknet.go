@@ -25,6 +25,32 @@ type deployAccountTx interface {
 	deployAccountV1 | deployAccountV3
 }
 
+// @new
+// TransactionHashDeployAccount calculates the transaction hash for a deploy account transaction.
+//
+// Parameters:
+//   - txn: The deploy account transaction to calculate the hash for
+//   - chainID: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
+func TransactionHashDeployAccount[T deployAccountTx](tx T, contractAddress, chainID *felt.Felt) (*felt.Felt, error) {
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.DeployAccountTxnV1:
+		return TransactionHashDeployAccountV1(typedTx, contractAddress, chainID)
+	case *rpcv9.DeployAccountTxnV3:
+		return TransactionHashDeployAccountV3(typedTx, contractAddress, chainID)
+	case *rpcv10.DeployAccountTxnV1:
+		return TransactionHashDeployAccountV1(typedTx, contractAddress, chainID)
+	case *rpcv10.DeployAccountTxnV3:
+		return TransactionHashDeployAccountV3(typedTx, contractAddress, chainID)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
+}
+
 // TransactionHashDeployAccountV1 calculates the transaction hash for a deploy account V1 transaction.
 //
 // Parameters:
