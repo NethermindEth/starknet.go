@@ -151,15 +151,18 @@ func dataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint
 	return fee64 + nonce64<<dataAvailabilityModeBits, nil
 }
 
-// isOrContainsNil checks if any of the data is nil or contains nil elements.
-func isOrContainsNil(data ...[]*felt.Felt) bool {
+// isOrContainsNil checks if any of the data is nil. If it's not nil and
+// it's an array, it checks if any of the elements is nil.
+func isOrContainsNil(data ...any) bool {
 	for _, data := range data {
 		if data == nil {
 			return true
 		}
-		for _, d := range data {
-			if d == nil {
-				return true
+		if dataArray, ok := data.([]any); ok {
+			for _, d := range dataArray {
+				if d == nil {
+					return true
+				}
 			}
 		}
 	}

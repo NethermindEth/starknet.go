@@ -550,6 +550,9 @@ func TransactionHashInvokeV3[T invokeV3](tx T, chainID *felt.Felt) (*felt.Felt, 
 
 	switch typedTx := any(tx).(type) {
 	case *rpcv9.InvokeTxnV3:
+		if isOrContainsNil(typedTx.AccountDeploymentData, typedTx.Calldata) {
+			return nil, ErrNotAllParametersSet
+		}
 		return calculateV3TransactionHash(
 			prefixInvoke,
 			string(typedTx.Version),
@@ -561,10 +564,15 @@ func TransactionHashInvokeV3[T invokeV3](tx T, chainID *felt.Felt) (*felt.Felt, 
 			typedTx.Nonce,
 			typedTx.FeeMode,
 			typedTx.NonceDataMode,
-			typedTx.AccountDeploymentData,
-			typedTx.Calldata,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.AccountDeploymentData...),
+				curve.PoseidonArray(typedTx.Calldata...),
+			},
 		)
 	case *rpcv10.InvokeTxnV3:
+		if isOrContainsNil(typedTx.AccountDeploymentData, typedTx.Calldata) {
+			return nil, ErrNotAllParametersSet
+		}
 		return calculateV3TransactionHash(
 			prefixInvoke,
 			string(typedTx.Version),
@@ -576,8 +584,10 @@ func TransactionHashInvokeV3[T invokeV3](tx T, chainID *felt.Felt) (*felt.Felt, 
 			typedTx.Nonce,
 			typedTx.FeeMode,
 			typedTx.NonceDataMode,
-			typedTx.AccountDeploymentData,
-			typedTx.Calldata,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.AccountDeploymentData...),
+				curve.PoseidonArray(typedTx.Calldata...),
+			},
 		)
 	default:
 		// Should never happen due to the generic type constraint
@@ -606,7 +616,8 @@ type declareV2 interface {
 // declareV3 represents a pointer to a declare V3
 // transaction from all supported RPC versions.
 type declareV3 interface {
-	*rpcv9.DeclareTxnV3 | *rpcv10.DeclareTxnV3
+	*rpcv9.DeclareTxnV3 | *rpcv9.BroadcastDeclareTxnV3 |
+		*rpcv10.DeclareTxnV3 | *rpcv10.BroadcastDeclareTxnV3
 }
 
 // declareTx represents a pointer to a declare transaction
@@ -756,112 +767,103 @@ func TransactionHashDeclareV2[T declareV2](tx T, chainID *felt.Felt) (*felt.Felt
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeclareV3(
-	txn *types.DeclareTxnV3,
-	chainID *felt.Felt,
-) (*felt.Felt, error) {
-	//nolint:lll // The links would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
-	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil ||
-		txn.SenderAddress == nil ||
-		txn.PayMasterData == nil ||
-		txn.AccountDeploymentData == nil ||
-		txn.ClassHash == nil ||
-		txn.CompiledClassHash == nil {
-		return nil, ErrNotAllParametersSet
+func TransactionHashDeclareV3[T declareV3](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#declare-v3
+	if tx == nil {
+		return nil, ErrTransactionNil
 	}
 
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
+	switch typedTx := any(tx).(type) {
+	// **** v9 ****
+	case *rpcv9.DeclareTxnV3:
+		if isOrContainsNil(typedTx.AccountDeploymentData) {
+			return nil, ErrNotAllParametersSet
+		}
+		return calculateV3TransactionHash(
+			prefixInvoke,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.AccountDeploymentData...),
+				typedTx.ClassHash,
+				typedTx.CompiledClassHash,
+			},
+		)
+	case *rpcv9.BroadcastDeclareTxnV3:
+		if isOrContainsNil(typedTx.AccountDeploymentData, typedTx.ContractClass) {
+			return nil, ErrNotAllParametersSet
+		}
+		return calculateV3TransactionHash(
+			prefixInvoke,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.AccountDeploymentData...),
+				ClassHash(typedTx.ContractClass),
+				typedTx.CompiledClassHash,
+			},
+		)
+	// **** v10 ****
+	case *rpcv10.DeclareTxnV3:
+		if isOrContainsNil(typedTx.AccountDeploymentData) {
+			return nil, ErrNotAllParametersSet
+		}
+		return calculateV3TransactionHash(
+			prefixInvoke,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.AccountDeploymentData...),
+				typedTx.ClassHash,
+				typedTx.CompiledClassHash,
+			},
+		)
+	case *rpcv10.BroadcastDeclareTxnV3:
+		if isOrContainsNil(typedTx.AccountDeploymentData, typedTx.ContractClass) {
+			return nil, ErrNotAllParametersSet
+		}
+		return calculateV3TransactionHash(
+			prefixInvoke,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.AccountDeploymentData...),
+				ClassHash(typedTx.ContractClass),
+				typedTx.CompiledClassHash,
+			},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
 	}
-	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
-	if err != nil {
-		return nil, err
-	}
-	tipUint64, err := txn.Tip.ToUint64()
-	if err != nil {
-		return nil, err
-	}
-
-	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
-	if err != nil {
-		return nil, err
-	}
-
-	return curve.PoseidonArray(
-		prefixDeclare,
-		txnVersionFelt,
-		txn.SenderAddress,
-		tipAndResourceHash,
-		curve.PoseidonArray(txn.PayMasterData...),
-		chainID,
-		txn.Nonce,
-		felt.NewFromUint64[felt.Felt](DAUint64),
-		curve.PoseidonArray(txn.AccountDeploymentData...),
-		txn.ClassHash,
-		txn.CompiledClassHash,
-	), nil
-}
-
-// TransactionHashBroadcastDeclareV3 calculates the transaction hash for a
-// broadcast declare V3 transaction.
-//
-// Parameters:
-//   - txn: The broadcast declare V3 transaction to calculate the hash for
-//   - chainID: The chain ID as a *felt.Felt
-//
-// Returns:
-//   - *felt.Felt: the calculated transaction hash
-//   - error: an error if any
-func TransactionHashBroadcastDeclareV3(
-	txn *types.BroadcastDeclareTxnV3,
-	chainID *felt.Felt,
-) (*felt.Felt, error) {
-	//nolint:lll // The links would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_2
-	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil ||
-		txn.SenderAddress == nil ||
-		txn.PayMasterData == nil ||
-		txn.AccountDeploymentData == nil ||
-		txn.ContractClass == nil ||
-		txn.CompiledClassHash == nil {
-		return nil, ErrNotAllParametersSet
-	}
-
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
-	}
-	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
-	if err != nil {
-		return nil, err
-	}
-	tipUint64, err := txn.Tip.ToUint64()
-	if err != nil {
-		return nil, err
-	}
-
-	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
-	if err != nil {
-		return nil, err
-	}
-
-	return curve.PoseidonArray(
-		prefixDeclare,
-		txnVersionFelt,
-		txn.SenderAddress,
-		tipAndResourceHash,
-		curve.PoseidonArray(txn.PayMasterData...),
-		chainID,
-		txn.Nonce,
-		felt.NewFromUint64[felt.Felt](DAUint64),
-		curve.PoseidonArray(txn.AccountDeploymentData...),
-		ClassHash(txn.ContractClass),
-		txn.CompiledClassHash,
-	), nil
 }
 
 // deployAccountV1 represents a pointer to a deploy account V1
