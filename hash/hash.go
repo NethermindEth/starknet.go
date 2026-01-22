@@ -542,47 +542,47 @@ func TransactionHashInvokeV1[T invokeV1](tx T, chainID *felt.Felt) (*felt.Felt, 
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashInvokeV3(txn *types.InvokeTxnV3, chainID *felt.Felt) (*felt.Felt, error) {
-	//nolint:lll // The links would be unclickable if we break the line.
-	// https://github.com/starknet-io/SNIPs/blob/main/SNIPS/snip-8.md#protocol-changes
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation
-	if txn.Version == "" || txn.ResourceBounds == nil || len(txn.Calldata) == 0 ||
-		txn.Nonce == nil ||
-		txn.SenderAddress == nil ||
-		txn.PayMasterData == nil ||
-		txn.AccountDeploymentData == nil {
-		return nil, ErrNotAllParametersSet
+func TransactionHashInvokeV3[T invokeV3](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v3
+	if tx == nil {
+		return nil, ErrTransactionNil
 	}
 
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.InvokeTxnV3:
+		return calculateV3TransactionHash(
+			prefixInvoke,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			typedTx.AccountDeploymentData,
+			typedTx.Calldata,
+		)
+	case *rpcv10.InvokeTxnV3:
+		return calculateV3TransactionHash(
+			prefixInvoke,
+			string(typedTx.Version),
+			typedTx.SenderAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			typedTx.AccountDeploymentData,
+			typedTx.Calldata,
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
 	}
-	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
-	if err != nil {
-		return nil, err
-	}
-	tipUint64, err := txn.Tip.ToUint64()
-	if err != nil {
-		return nil, err
-	}
-	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
-	if err != nil {
-		return nil, err
-	}
-
-	return curve.PoseidonArray(
-		prefixInvoke,
-		txnVersionFelt,
-		txn.SenderAddress,
-		tipAndResourceHash,
-		curve.PoseidonArray(txn.PayMasterData...),
-		chainID,
-		txn.Nonce,
-		felt.NewFromUint64[felt.Felt](DAUint64),
-		curve.PoseidonArray(txn.AccountDeploymentData...),
-		curve.PoseidonArray(txn.Calldata...),
-	), nil
 }
 
 // declareV0 represents a pointer to a declare V0
