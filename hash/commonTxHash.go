@@ -9,6 +9,8 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 )
 
+// calculateV3TransactionHash calculates the hash of a V3 transaction;
+// a common function to be used for all V3 transactions.
 func calculateV3TransactionHash[
 	R *rpcv9.ResourceBoundsMapping | *rpcv10.ResourceBoundsMapping,
 ](
@@ -76,6 +78,7 @@ func calculateV3TransactionHash[
 	return curve.PoseidonArray(dataToHash...), nil
 }
 
+// tipAndResourcesHash calculates the hash of the tip and resources.
 func tipAndResourcesHash[
 	R *rpcv9.ResourceBoundsMapping | *rpcv10.ResourceBoundsMapping,
 ](
@@ -103,6 +106,7 @@ func tipAndResourcesHash[
 	}
 }
 
+// tipAndResourcesHashInner calculates the hash of the tip and resources.
 func tipAndResourcesHashInner[
 	resource interface{ ~string },
 	resourceBounds interface {
@@ -137,6 +141,8 @@ func tipAndResourcesHashInner[
 	), nil
 }
 
+// dataAvailabilityModeConcat concatenates the data availability modes
+// into a single uint64.
 func dataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint64, error) }) (uint64, error) {
 	const dataAvailabilityModeBits = 32
 	fee64, err := feeDAMode.UInt64()

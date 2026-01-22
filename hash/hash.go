@@ -936,58 +936,68 @@ func TransactionHashDeployAccountV1[T deployAccountV1](tx T, contractAddress, ch
 	}
 }
 
-// TransactionHashDeployAccountV3 calculates the transaction hash for a deploy
-// account V3 transaction.
+// TransactionHashDeployAccountV3 calculates the transaction hash for a deploy account V3 transaction.
 //
 // Parameters:
 //   - txn: The deploy account V3 transaction to calculate the hash for
-//   - contractAddress: The contract address as parameters as a *felt.Felt
 //   - chainID: The chain ID as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
-func TransactionHashDeployAccountV3(
-	txn *types.DeployAccountTxnV3,
-	contractAddress, chainID *felt.Felt,
-) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#v3_hash_calculation_3
-	if txn.Version == "" || txn.ResourceBounds == nil || txn.Nonce == nil ||
-		txn.PayMasterData == nil {
-		return nil, ErrNotAllParametersSet
+func TransactionHashDeployAccountV3[T deployAccountV3](tx T, contractAddress, chainID *felt.Felt) (*felt.Felt, error) {
+	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#deploy-account-v3
+	if tx == nil {
+		return nil, ErrTransactionNil
 	}
 
-	txnVersionFelt, err := new(felt.Felt).SetString(string(txn.Version))
-	if err != nil {
-		return nil, err
+	switch typedTx := any(tx).(type) {
+	case *rpcv9.DeployAccountTxnV3:
+		if isOrContainsNil(typedTx.ConstructorCalldata) {
+			return nil, ErrNotAllParametersSet
+		}
+		return calculateV3TransactionHash(
+			prefixDeployAccount,
+			string(typedTx.Version),
+			contractAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.ConstructorCalldata...),
+				typedTx.ClassHash,
+				typedTx.ContractAddressSalt,
+			},
+		)
+	case *rpcv10.DeployAccountTxnV3:
+		if isOrContainsNil(typedTx.ConstructorCalldata) {
+			return nil, ErrNotAllParametersSet
+		}
+		return calculateV3TransactionHash(
+			prefixDeployAccount,
+			string(typedTx.Version),
+			contractAddress,
+			typedTx.Tip,
+			typedTx.ResourceBounds,
+			typedTx.PayMasterData,
+			chainID,
+			typedTx.Nonce,
+			typedTx.FeeMode,
+			typedTx.NonceDataMode,
+			[]*felt.Felt{
+				curve.PoseidonArray(typedTx.ConstructorCalldata...),
+				typedTx.ClassHash,
+				typedTx.ContractAddressSalt,
+			},
+		)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
 	}
-	DAUint64, err := DataAvailabilityModeConc(txn.FeeMode, txn.NonceDataMode)
-	if err != nil {
-		return nil, err
-	}
-	tipUint64, err := txn.Tip.ToUint64()
-	if err != nil {
-		return nil, err
-	}
-	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, txn.ResourceBounds)
-	if err != nil {
-		return nil, err
-	}
-
-	return curve.PoseidonArray(
-		prefixDeployAccount,
-		txnVersionFelt,
-		contractAddress,
-		tipAndResourceHash,
-		curve.PoseidonArray(txn.PayMasterData...),
-		chainID,
-		txn.Nonce,
-		felt.NewFromUint64[felt.Felt](DAUint64),
-		curve.PoseidonArray(txn.ConstructorCalldata...),
-		txn.ClassHash,
-		txn.ContractAddressSalt,
-	), nil
 }
 
 func TipAndResourcesHash(
