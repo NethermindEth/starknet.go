@@ -159,4 +159,4 @@ func TestClassHashes(t *testing.T) {
 	})
 }
 
-// @todo add tests for TransactionHash... functions
+// @todo add tests for TransactionHash... functions (move them from the accoutn pkg, txn_hash_test.go)

@@ -31,14 +31,37 @@ type invokeTx interface {
 	invokeV0 | invokeV1 | invokeV3
 }
 
-// func TransactionHashInvoke[T invokeTx](txn T, chainID *felt.Felt) (*felt.Felt, error) {
-// 	switch txn := txn.(type) {
-// 	case *rpcv9.InvokeTxnV0:
-// 		return TransactionHashInvokeV0(txn, chainID)
-// 	case *rpcv10.InvokeTxnV0:
-// 		return TransactionHashInvokeV0(txn, chainID)
-// 	}
-// }
+// @new
+// TransactionHashInvoke calculates the transaction hash for an invoke transaction.
+//
+// Parameters:
+//   - txn: The invoke transaction to calculate the hash for
+//   - chainID: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
+func TransactionHashInvoke[T invokeTx](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	switch typedTx := any(tx).(type) {
+	// **** v9 ****
+	case *rpcv9.InvokeTxnV0:
+		return TransactionHashInvokeV0(typedTx, chainID)
+	case *rpcv9.InvokeTxnV1:
+		return TransactionHashInvokeV1(typedTx, chainID)
+	case *rpcv9.InvokeTxnV3:
+		return TransactionHashInvokeV3(typedTx, chainID)
+	// **** v10 ****
+	case *rpcv10.InvokeTxnV0:
+		return TransactionHashInvokeV0(typedTx, chainID)
+	case *rpcv10.InvokeTxnV1:
+		return TransactionHashInvokeV1(typedTx, chainID)
+	case *rpcv10.InvokeTxnV3:
+		return TransactionHashInvokeV3(typedTx, chainID)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
+}
 
 // @changed this and all other functions are now generic
 // TransactionHashInvokeV0 calculates the transaction hash for a invoke V0 transaction.
