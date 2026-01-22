@@ -22,8 +22,7 @@ func calculateV3TransactionHash[
 	nonce *felt.Felt,
 	feeMode interface{ UInt64() (uint64, error) },
 	nonceDataMode interface{ UInt64() (uint64, error) },
-	accountDeploymentData []*felt.Felt,
-	calldata []*felt.Felt,
+	additionalData []*felt.Felt,
 ) (*felt.Felt, error) {
 	if prefix == nil ||
 		version == "" ||
@@ -35,27 +34,12 @@ func calculateV3TransactionHash[
 		nonce == nil ||
 		feeMode == nil ||
 		nonceDataMode == nil ||
-		accountDeploymentData == nil ||
-		calldata == nil {
+		additionalData == nil {
 		return nil, ErrNotAllParametersSet
 	}
 
-	// @todo test if all this nil checks in all hash functions are needed (if the hash is correctly calculated when
-	// some of the data is nil)
-	for _, data := range paymasterData {
-		if data == nil {
-			return nil, ErrNotAllParametersSet
-		}
-	}
-	for _, data := range accountDeploymentData {
-		if data == nil {
-			return nil, ErrNotAllParametersSet
-		}
-	}
-	for _, data := range calldata {
-		if data == nil {
-			return nil, ErrNotAllParametersSet
-		}
+	if isOrContainsNil(paymasterData, additionalData) {
+		return nil, ErrNotAllParametersSet
 	}
 
 	versionFelt, err := new(felt.Felt).SetString(version)
@@ -77,7 +61,7 @@ func calculateV3TransactionHash[
 		return nil, err
 	}
 
-	return curve.PoseidonArray(
+	dataToHash := []*felt.Felt{
 		prefix,
 		versionFelt,
 		contractAddress,
@@ -86,9 +70,10 @@ func calculateV3TransactionHash[
 		chainID,
 		nonce,
 		felt.NewFromUint64[felt.Felt](DAUint64),
-		curve.PoseidonArray(accountDeploymentData...),
-		curve.PoseidonArray(calldata...),
-	), nil
+	}
+	dataToHash = append(dataToHash, additionalData...)
+
+	return curve.PoseidonArray(dataToHash...), nil
 }
 
 func tipAndResourcesHash[
@@ -164,4 +149,19 @@ func dataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint
 	}
 
 	return fee64 + nonce64<<dataAvailabilityModeBits, nil
+}
+
+// isOrContainsNil checks if any of the data is nil or contains nil elements.
+func isOrContainsNil(data ...[]*felt.Felt) bool {
+	for _, data := range data {
+		if data == nil {
+			return true
+		}
+		for _, d := range data {
+			if d == nil {
+				return true
+			}
+		}
+	}
+	return false
 }
