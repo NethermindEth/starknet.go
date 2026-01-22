@@ -39,6 +39,46 @@ type declareTx interface {
 }
 
 // @new
+// TransactionHashDeclare calculates the transaction hash for a declare transaction.
+//
+// Parameters:
+//   - txn: The declare transaction to calculate the hash for
+//   - chainID: The chain ID as a *felt.Felt
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//   - error: an error if any
+func TransactionHashDeclare[T declareTx](tx T, chainID *felt.Felt) (*felt.Felt, error) {
+	switch typedTx := any(tx).(type) {
+	// **** v9 ****
+	case *rpcv9.DeclareTxnV0:
+		return TransactionHashDeclareV0(typedTx, chainID)
+	case *rpcv9.DeclareTxnV1:
+		return TransactionHashDeclareV1(typedTx, chainID)
+	case *rpcv9.DeclareTxnV2:
+		return TransactionHashDeclareV2(typedTx, chainID)
+	case *rpcv9.DeclareTxnV3:
+		return TransactionHashDeclareV3(typedTx, chainID)
+	case *rpcv9.BroadcastDeclareTxnV3:
+		return TransactionHashDeclareV3(typedTx, chainID)
+	// **** v10 ****
+	case *rpcv10.DeclareTxnV0:
+		return TransactionHashDeclareV0(typedTx, chainID)
+	case *rpcv10.DeclareTxnV1:
+		return TransactionHashDeclareV1(typedTx, chainID)
+	case *rpcv10.DeclareTxnV2:
+		return TransactionHashDeclareV2(typedTx, chainID)
+	case *rpcv10.DeclareTxnV3:
+		return TransactionHashDeclareV3(typedTx, chainID)
+	case *rpcv10.BroadcastDeclareTxnV3:
+		return TransactionHashDeclareV3(typedTx, chainID)
+	default:
+		// Should never happen due to the generic type constraint
+		return nil, errTxTypeNotSupported
+	}
+}
+
+// @new
 // TransactionHashDeclareV0 calculates the transaction hash for a declare V0 transaction.
 //
 // Parameters:
