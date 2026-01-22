@@ -25,15 +25,54 @@ func calculateV3TransactionHash[
 	accountDeploymentData []*felt.Felt,
 	calldata []*felt.Felt,
 ) (*felt.Felt, error) {
+	if prefix == nil ||
+		version == "" ||
+		contractAddress == nil ||
+		tip == nil ||
+		resourceBounds == nil ||
+		paymasterData == nil ||
+		chainID == nil ||
+		nonce == nil ||
+		feeMode == nil ||
+		nonceDataMode == nil ||
+		accountDeploymentData == nil ||
+		calldata == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
+	// @todo test if all this nil checks in all hash functions are needed (if the hash is correctly calculated when
+	// some of the data is nil)
+	for _, data := range paymasterData {
+		if data == nil {
+			return nil, ErrNotAllParametersSet
+		}
+	}
+	for _, data := range accountDeploymentData {
+		if data == nil {
+			return nil, ErrNotAllParametersSet
+		}
+	}
+	for _, data := range calldata {
+		if data == nil {
+			return nil, ErrNotAllParametersSet
+		}
+	}
+
 	versionFelt, err := new(felt.Felt).SetString(version)
 	if err != nil {
 		return nil, err
 	}
+
 	tipUint64, err := tip.ToUint64()
 	if err != nil {
 		return nil, err
 	}
 	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, resourceBounds)
+	if err != nil {
+		return nil, err
+	}
+
+	DAUint64, err := dataAvailabilityModeConcat(feeMode, nonceDataMode)
 	if err != nil {
 		return nil, err
 	}
@@ -46,9 +85,9 @@ func calculateV3TransactionHash[
 		curve.PoseidonArray(paymasterData...),
 		chainID,
 		nonce,
-		// dataAvailabilityMode,
-		// curve.PoseidonArray(accountDeploymentData...),
-		// curve.PoseidonArray(calldata...),
+		felt.NewFromUint64[felt.Felt](DAUint64),
+		curve.PoseidonArray(accountDeploymentData...),
+		curve.PoseidonArray(calldata...),
 	), nil
 }
 
@@ -111,4 +150,18 @@ func tipAndResourcesHashInner[
 		l2Bounds,
 		l1DataGasBounds,
 	), nil
+}
+
+func dataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint64, error) }) (uint64, error) {
+	const dataAvailabilityModeBits = 32
+	fee64, err := feeDAMode.UInt64()
+	if err != nil {
+		return 0, err
+	}
+	nonce64, err := nonceDAMode.UInt64()
+	if err != nil {
+		return 0, err
+	}
+
+	return fee64 + nonce64<<dataAvailabilityModeBits, nil
 }
