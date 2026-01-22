@@ -9,7 +9,6 @@ import (
 	"github.com/NethermindEth/starknet.go/curve"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
-	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 var (
@@ -26,71 +25,6 @@ var (
 
 	errTxTypeNotSupported = errors.New("transaction type not supported")
 )
-
-// @changed
-// calculateDeprecatedTransactionHashCommon calculates the transaction hash
-// common to be used in the StarkNet network - a unique identifier of the transaction.
-// [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
-//
-// Parameters:
-//   - txHashPrefix: The prefix of the transaction hash
-//   - version: The version of the transaction
-//   - contractAddress: The address of the contract
-//   - entryPointSelector: The selector of the entry point
-//   - calldataHash: The hashed calldata of the transaction
-//   - maxFee: The maximum fee for the transaction
-//   - chainID: The ID of the blockchain
-//   - additionalData: Additional data to be included in the hash
-//
-// Returns:
-//   - *felt.Felt: the calculated transaction hash
-//
-//nolint:lll // The link would be unclickable if we break the line.
-func calculateDeprecatedTransactionHashCommon(
-	txHashPrefix *felt.Felt,
-	version string,
-	contractAddress *felt.Felt,
-	entryPointSelector *felt.Felt,
-	calldataHash *felt.Felt,
-	maxFee *felt.Felt,
-	chainID *felt.Felt,
-	additionalData []*felt.Felt,
-) (*felt.Felt, error) {
-	if txHashPrefix == nil ||
-		version == "" ||
-		contractAddress == nil ||
-		entryPointSelector == nil ||
-		calldataHash == nil ||
-		maxFee == nil ||
-		chainID == nil ||
-		additionalData == nil {
-		return nil, ErrNotAllParametersSet
-	}
-
-	for _, data := range additionalData {
-		if data == nil {
-			return nil, ErrNotAllParametersSet
-		}
-	}
-
-	versionFelt, err := new(felt.Felt).SetString(version)
-	if err != nil {
-		return nil, err
-	}
-
-	dataToHash := []*felt.Felt{
-		txHashPrefix,
-		versionFelt,
-		contractAddress,
-		entryPointSelector,
-		calldataHash,
-		maxFee,
-		chainID,
-	}
-	dataToHash = append(dataToHash, additionalData...)
-
-	return curve.PedersenArray(dataToHash...), nil
-}
 
 // ClassHash calculates the hash of a contract class.
 //
@@ -626,6 +560,7 @@ type declareTx interface {
 	declareV0 | declareV1 | declareV2 | declareV3
 }
 
+// @new
 // TransactionHashDeclareV0 calculates the transaction hash for a declare V0 transaction.
 //
 // Parameters:
@@ -1000,47 +935,5 @@ func TransactionHashDeployAccountV3[T deployAccountV3](tx T, contractAddress, ch
 	}
 }
 
-func TipAndResourcesHash(
-	tip uint64,
-	resourceBounds *types.ResourceBoundsMapping,
-) (*felt.Felt, error) {
-	if resourceBounds == nil {
-		return nil, errors.New("resource bounds are nil")
-	}
-	l1Bytes, err := resourceBounds.L1Gas.Bytes(types.ResourceL1Gas)
-	if err != nil {
-		return nil, err
-	}
-	l2Bytes, err := resourceBounds.L2Gas.Bytes(types.ResourceL2Gas)
-	if err != nil {
-		return nil, err
-	}
-	l1DataGasBytes, err := resourceBounds.L1DataGas.Bytes(types.ResourceL1DataGas)
-	if err != nil {
-		return nil, err
-	}
-	l1Bounds := new(felt.Felt).SetBytes(l1Bytes)
-	l2Bounds := new(felt.Felt).SetBytes(l2Bytes)
-	l1DataGasBounds := new(felt.Felt).SetBytes(l1DataGasBytes)
-
-	return curve.PoseidonArray(
-		felt.NewFromUint64[felt.Felt](tip),
-		l1Bounds,
-		l2Bounds,
-		l1DataGasBounds,
-	), nil
-}
-
-func DataAvailabilityModeConc(feeDAMode, nonceDAMode types.DataAvailabilityMode) (uint64, error) {
-	const dataAvailabilityModeBits = 32
-	fee64, err := feeDAMode.UInt64()
-	if err != nil {
-		return 0, err
-	}
-	nonce64, err := nonceDAMode.UInt64()
-	if err != nil {
-		return 0, err
-	}
-
-	return fee64 + nonce64<<dataAvailabilityModeBits, nil
-}
+// @removed TransactionHashBroadcastDeclareV3. The logic was included in the
+// TransactionHashDeclareV3 function.

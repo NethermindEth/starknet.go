@@ -9,6 +9,71 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 )
 
+// @changed it's private now
+// calculateDeprecatedTransactionHashCommon calculates the transaction hash
+// common to be used in the StarkNet network - a unique identifier of the transaction.
+// [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
+//
+// Parameters:
+//   - txHashPrefix: The prefix of the transaction hash
+//   - version: The version of the transaction
+//   - contractAddress: The address of the contract
+//   - entryPointSelector: The selector of the entry point
+//   - calldataHash: The hashed calldata of the transaction
+//   - maxFee: The maximum fee for the transaction
+//   - chainID: The ID of the blockchain
+//   - additionalData: Additional data to be included in the hash
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash
+//
+//nolint:lll // The link would be unclickable if we break the line.
+func calculateDeprecatedTransactionHashCommon(
+	txHashPrefix *felt.Felt,
+	version string,
+	contractAddress *felt.Felt,
+	entryPointSelector *felt.Felt,
+	calldataHash *felt.Felt,
+	maxFee *felt.Felt,
+	chainID *felt.Felt,
+	additionalData []*felt.Felt,
+) (*felt.Felt, error) {
+	if txHashPrefix == nil ||
+		version == "" ||
+		contractAddress == nil ||
+		entryPointSelector == nil ||
+		calldataHash == nil ||
+		maxFee == nil ||
+		chainID == nil ||
+		additionalData == nil {
+		return nil, ErrNotAllParametersSet
+	}
+
+	for _, data := range additionalData {
+		if data == nil {
+			return nil, ErrNotAllParametersSet
+		}
+	}
+
+	versionFelt, err := new(felt.Felt).SetString(version)
+	if err != nil {
+		return nil, err
+	}
+
+	dataToHash := []*felt.Felt{
+		txHashPrefix,
+		versionFelt,
+		contractAddress,
+		entryPointSelector,
+		calldataHash,
+		maxFee,
+		chainID,
+	}
+	dataToHash = append(dataToHash, additionalData...)
+
+	return curve.PedersenArray(dataToHash...), nil
+}
+
 // calculateV3TransactionHash calculates the hash of a V3 transaction;
 // a common function to be used for all V3 transactions.
 func calculateV3TransactionHash[
@@ -78,6 +143,7 @@ func calculateV3TransactionHash[
 	return curve.PoseidonArray(dataToHash...), nil
 }
 
+// @changed it's private now
 // tipAndResourcesHash calculates the hash of the tip and resources.
 func tipAndResourcesHash[
 	R *rpcv9.ResourceBoundsMapping | *rpcv10.ResourceBoundsMapping,
@@ -141,6 +207,7 @@ func tipAndResourcesHashInner[
 	), nil
 }
 
+// @changed it's private now
 // dataAvailabilityModeConcat concatenates the data availability modes
 // into a single uint64.
 func dataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint64, error) }) (uint64, error) {
