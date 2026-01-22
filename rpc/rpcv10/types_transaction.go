@@ -150,8 +150,9 @@ func (da DataAvailabilityMode) MarshalJSON() ([]byte, error) {
 	}
 }
 
-func (da *DataAvailabilityMode) UInt64() (uint64, error) {
-	switch *da {
+// @changed now is a value receiver instead of a pointer receiver
+func (da DataAvailabilityMode) UInt64() (uint64, error) {
+	switch da {
 	case DAModeL1:
 		return uint64(0), nil
 	case DAModeL2:
