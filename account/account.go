@@ -19,8 +19,6 @@ var (
 )
 
 // @changed
-//
-//go:generate mockgen -destination=../mocks/mock_account.go -package=mocks -source=account.go AccountInterface
 type AccountInterface interface {
 	BuildAndEstimateDeployAccountTxn(
 		ctx context.Context,
