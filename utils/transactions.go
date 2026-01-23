@@ -10,6 +10,9 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -231,26 +234,39 @@ func BuildDeployAccountTxn(
 	return &deployAccountTxn
 }
 
-// InvokeFuncCallsToFunctionCalls converts a slice of InvokeFunctionCall to a slice of FunctionCall.
+// @changed
+// InvokeFuncCallsToFunctionCalls converts a slice of [rpc.InvokeFunctionCall] to a
+// slice of rpcvX.FunctionCall from the provided rpc version.
 //
 // Parameters:
 //   - invokeFuncCalls: The invoke function calls to convert
 //
 // Returns:
-//   - []*types.FunctionCall: A new function calls
-func InvokeFuncCallsToFunctionCalls(
-	invokeFuncCalls []types.InvokeFunctionCall,
-) []types.FunctionCall {
-	functionCalls := make([]types.FunctionCall, len(invokeFuncCalls))
+//   - []rpcvX.FunctionCall: a slice of function calls from the provided rpc version
+func InvokeFuncCallsToFunctionCalls[FuncCall rpcv9.FunctionCall | rpcv10.FunctionCall](
+	invokeFuncCalls []rpc.InvokeFunctionCall,
+) []FuncCall {
+	functionCalls := make([]FuncCall, len(invokeFuncCalls))
+
 	for i, call := range invokeFuncCalls {
-		functionCalls[i] = types.FunctionCall{
-			ContractAddress:    call.ContractAddress,
-			EntryPointSelector: GetSelectorFromNameFelt(call.FunctionName),
-			Calldata:           call.CallData,
-		}
+		functionCalls[i] = toFunctionCall[FuncCall](call)
 	}
 
 	return functionCalls
+}
+
+func toFunctionCall[
+	FunctionCall ~struct {
+		ContractAddress    *felt.Felt   `json:"contract_address"`
+		EntryPointSelector *felt.Felt   `json:"entry_point_selector"`
+		Calldata           []*felt.Felt `json:"calldata"`
+	},
+](infc rpc.InvokeFunctionCall) FunctionCall {
+	return FunctionCall{
+		ContractAddress:    infc.ContractAddress,
+		EntryPointSelector: GetSelectorFromNameFelt(infc.FunctionName),
+		Calldata:           infc.CallData,
+	}
 }
 
 // FeeLimits is a struct with custom limits for the fee values, used

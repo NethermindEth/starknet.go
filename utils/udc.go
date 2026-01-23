@@ -6,7 +6,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/rpc"
 )
 
 // TODO: migrate this to contracts package (hard to do now due to circular imports errors,
@@ -63,6 +63,7 @@ const (
 	UDCCairoV2
 )
 
+// @changed
 // Builds the INVOKE txn function call to deploy a contract using the UDC.
 //
 // Parameters:
@@ -79,8 +80,8 @@ func BuildUDCCalldata(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
-) (types.InvokeFunctionCall, *felt.Felt, error) {
-	var result types.InvokeFunctionCall
+) (rpc.InvokeFunctionCall, *felt.Felt, error) {
+	var result rpc.InvokeFunctionCall
 	if classHash == nil {
 		return result, nil, errClassHashNotProvided
 	}
@@ -136,7 +137,7 @@ func BuildUDCCalldata(
 		return result, nil, errInvalidUDCVersion
 	}
 
-	result = types.InvokeFunctionCall{
+	result = rpc.InvokeFunctionCall{
 		ContractAddress: udcAddress,
 		FunctionName:    methodName,
 		CallData:        udcCallData,

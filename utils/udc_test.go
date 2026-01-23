@@ -5,7 +5,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -153,7 +153,7 @@ func TestBuildUDCCalldata(t *testing.T) {
 
 func checkCallDataContents(
 	t *testing.T,
-	result types.InvokeFunctionCall,
+	result rpc.InvokeFunctionCall,
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
