@@ -6,9 +6,9 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/internal"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
 // @changed it's private now
@@ -79,10 +79,10 @@ func calculateDeprecatedTransactionHashCommon(
 // calculateV3TransactionHash calculates the hash of a V3 transaction;
 // a common function to be used for all V3 transactions.
 func calculateV3TransactionHash[
-	u64 internal.U64,
-	u128 internal.U128,
-	RB internal.ResourceBounds[u64, u128],
-	RBM internal.ResourceBoundsMapping[u64, u128, RB],
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
 ](
 	prefix *felt.Felt,
 	version string,
@@ -124,7 +124,7 @@ func calculateV3TransactionHash[
 		return nil, err
 	}
 
-	innerResourceBounds := internal.ResourceBoundsMappingImpl[u64, u128, RB](*resourceBounds)
+	innerResourceBounds := constraints.ResourceBoundsMappingImpl[u64, u128, RB](*resourceBounds)
 	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, &innerResourceBounds)
 	if err != nil {
 		return nil, err
@@ -153,12 +153,12 @@ func calculateV3TransactionHash[
 // @changed it's private now
 // tipAndResourcesHash calculates the hash of the tip and resources.
 func tipAndResourcesHash[
-	u64 internal.U64,
-	u128 internal.U128,
-	RB internal.ResourceBounds[u64, u128],
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
 ](
 	tip uint64,
-	rbm *internal.ResourceBoundsMappingImpl[u64, u128, RB],
+	rbm *constraints.ResourceBoundsMappingImpl[u64, u128, RB],
 ) (*felt.Felt, error) {
 	l1Bytes, err := resourceBoundsBytes(&rbm.L1Gas, string(rpcv10.ResourceL1Gas))
 	if err != nil {
@@ -188,14 +188,14 @@ func tipAndResourcesHash[
 // resourceBoundsBytes converts the resource bounds to a byte format
 // necessary for the hash calculation.
 func resourceBoundsBytes[
-	u64 internal.U64,
-	u128 internal.U128,
-	RB internal.ResourceBounds[u64, u128],
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
 ](rb *RB, resource string) ([]byte, error) {
 	if rb == nil {
 		return nil, errors.New("resource bounds is nil")
 	}
-	innerRb := internal.ResourceBoundsImpl[u64, u128](*rb)
+	innerRb := constraints.ResourceBoundsImpl[u64, u128](*rb)
 
 	const eight = 8
 	maxAmountBytes := make([]byte, eight)

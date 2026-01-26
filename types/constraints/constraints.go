@@ -1,4 +1,4 @@
-package internal
+package constraints
 
 import (
 	"math/big"
