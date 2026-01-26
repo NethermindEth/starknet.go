@@ -17,11 +17,13 @@ type BlockTransaction struct {
 }
 
 type InvokeTxnV0 struct {
-	Type      TransactionType    `json:"type"`
-	MaxFee    *felt.Felt         `json:"max_fee"`
-	Version   TransactionVersion `json:"version"`
-	Signature []*felt.Felt       `json:"signature"`
-	FunctionCall
+	Type               TransactionType    `json:"type"`
+	MaxFee             *felt.Felt         `json:"max_fee"`
+	Version            TransactionVersion `json:"version"`
+	Signature          []*felt.Felt       `json:"signature"`
+	ContractAddress    *felt.Felt         `json:"contract_address"`
+	EntryPointSelector *felt.Felt         `json:"entry_point_selector"`
+	Calldata           []*felt.Felt       `json:"calldata"`
 }
 
 type InvokeTxnV1 struct {
