@@ -38,3 +38,19 @@ type BroadcastDeclareTxnV3 struct {
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
+
+func (tx BroadcastDeclareTxnV3) GetType() TransactionType                   { return tx.Type }
+func (tx BroadcastDeclareTxnV3) GetSenderAddress() *felt.Felt               { return tx.SenderAddress }
+func (tx BroadcastDeclareTxnV3) GetCompiledClassHash() *felt.Felt           { return tx.CompiledClassHash }
+func (tx BroadcastDeclareTxnV3) GetVersion() TransactionVersion             { return tx.Version }
+func (tx BroadcastDeclareTxnV3) GetSignature() []*felt.Felt                 { return tx.Signature }
+func (tx BroadcastDeclareTxnV3) GetNonce() *felt.Felt                       { return tx.Nonce }
+func (tx BroadcastDeclareTxnV3) GetContractClass() *contracts.ContractClass { return tx.ContractClass }
+func (tx BroadcastDeclareTxnV3) GetResourceBounds() *ResourceBoundsMapping  { return tx.ResourceBounds }
+func (tx BroadcastDeclareTxnV3) GetTip() U64                                { return tx.Tip }
+func (tx BroadcastDeclareTxnV3) GetPayMasterData() []*felt.Felt             { return tx.PayMasterData }
+func (tx BroadcastDeclareTxnV3) GetAccountDeploymentData() []*felt.Felt {
+	return tx.AccountDeploymentData
+}
+func (tx BroadcastDeclareTxnV3) GetNonceDataMode() DataAvailabilityMode { return tx.NonceDataMode }
+func (tx BroadcastDeclareTxnV3) GetFeeMode() DataAvailabilityMode       { return tx.FeeMode }
