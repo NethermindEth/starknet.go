@@ -1,12 +1,14 @@
 package hash
 
 import (
+	"encoding/binary"
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
+	"github.com/NethermindEth/starknet.go/internal"
+	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 )
 
 // @changed it's private now
@@ -77,13 +79,16 @@ func calculateDeprecatedTransactionHashCommon(
 // calculateV3TransactionHash calculates the hash of a V3 transaction;
 // a common function to be used for all V3 transactions.
 func calculateV3TransactionHash[
-	R *rpcv9.ResourceBoundsMapping | *rpcv10.ResourceBoundsMapping,
+	u64 internal.U64,
+	u128 internal.U128,
+	RB internal.ResourceBounds[u64, u128],
+	RBM internal.ResourceBoundsMapping[u64, u128, RB],
 ](
 	prefix *felt.Felt,
 	version string,
 	contractAddress *felt.Felt,
 	tip interface{ ToUint64() (uint64, error) },
-	resourceBounds R,
+	resourceBounds *RBM,
 	paymasterData []*felt.Felt,
 	chainID *felt.Felt,
 	nonce *felt.Felt,
@@ -118,7 +123,9 @@ func calculateV3TransactionHash[
 	if err != nil {
 		return nil, err
 	}
-	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, resourceBounds)
+
+	innerResourceBounds := internal.ResourceBoundsMappingImpl[u64, u128, RB](*resourceBounds)
+	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, &innerResourceBounds)
 	if err != nil {
 		return nil, err
 	}
@@ -146,51 +153,22 @@ func calculateV3TransactionHash[
 // @changed it's private now
 // tipAndResourcesHash calculates the hash of the tip and resources.
 func tipAndResourcesHash[
-	R *rpcv9.ResourceBoundsMapping | *rpcv10.ResourceBoundsMapping,
+	u64 internal.U64,
+	u128 internal.U128,
+	RB internal.ResourceBounds[u64, u128],
 ](
 	tip uint64,
-	resourceBounds R,
+	rbm *internal.ResourceBoundsMappingImpl[u64, u128, RB],
 ) (*felt.Felt, error) {
-	switch resourceBounds := any(resourceBounds).(type) {
-	case *rpcv9.ResourceBoundsMapping:
-		return tipAndResourcesHashInner(
-			tip,
-			resourceBounds.L1Gas,
-			resourceBounds.L2Gas,
-			resourceBounds.L1DataGas,
-		)
-	case *rpcv10.ResourceBoundsMapping:
-		return tipAndResourcesHashInner(
-			tip,
-			resourceBounds.L1Gas,
-			resourceBounds.L2Gas,
-			resourceBounds.L1DataGas,
-		)
-	default:
-		// should never happen due to generic type constraint
-		return nil, errors.New("invalid resource bounds type")
-	}
-}
-
-// tipAndResourcesHashInner calculates the hash of the tip and resources.
-func tipAndResourcesHashInner[
-	resource interface{ ~string },
-	resourceBounds interface {
-		Bytes(resource resource) ([]byte, error)
-	},
-](
-	tip uint64,
-	l1Gas, l2Gas, l1DataGas resourceBounds,
-) (*felt.Felt, error) {
-	l1Bytes, err := l1Gas.Bytes(resource(rpcv10.ResourceL1Gas))
+	l1Bytes, err := resourceBoundsBytes(&rbm.L1Gas, string(rpcv10.ResourceL1Gas))
 	if err != nil {
 		return nil, err
 	}
-	l2Bytes, err := l2Gas.Bytes(resource(rpcv10.ResourceL2Gas))
+	l2Bytes, err := resourceBoundsBytes(&rbm.L2Gas, string(rpcv10.ResourceL2Gas))
 	if err != nil {
 		return nil, err
 	}
-	l1DataGasBytes, err := l1DataGas.Bytes(resource(rpcv10.ResourceL1DataGas))
+	l1DataGasBytes, err := resourceBoundsBytes(&rbm.L1DataGas, string(rpcv10.ResourceL1DataGas))
 	if err != nil {
 		return nil, err
 	}
@@ -204,6 +182,39 @@ func tipAndResourcesHashInner[
 		l1Bounds,
 		l2Bounds,
 		l1DataGasBounds,
+	), nil
+}
+
+// resourceBoundsBytes converts the resource bounds to a byte format
+// necessary for the hash calculation.
+func resourceBoundsBytes[
+	u64 internal.U64,
+	u128 internal.U128,
+	RB internal.ResourceBounds[u64, u128],
+](rb *RB, resource string) ([]byte, error) {
+	if rb == nil {
+		return nil, errors.New("resource bounds is nil")
+	}
+	innerRb := internal.ResourceBoundsImpl[u64, u128](*rb)
+
+	const eight = 8
+	maxAmountBytes := make([]byte, eight)
+	maxAmountUint64, err := innerRb.MaxAmount.ToUint64()
+	if err != nil {
+		return nil, err
+	}
+	binary.BigEndian.PutUint64(maxAmountBytes, maxAmountUint64)
+	maxPricePerUnitFelt, err := new(felt.Felt).SetString(string(innerRb.MaxPricePerUnit))
+	if err != nil {
+		return nil, err
+	}
+	maxPriceBytes := maxPricePerUnitFelt.Bytes()
+
+	return internalUtils.Flatten(
+		[]byte{0},
+		[]byte(resource),
+		maxAmountBytes,
+		maxPriceBytes[16:], // uint128.
 	), nil
 }
 
