@@ -9,21 +9,6 @@ import (
 	"github.com/NethermindEth/starknet.go/curve"
 )
 
-var (
-	prefixInvoke        = new(felt.Felt).SetBytes([]byte("invoke"))
-	prefixDeclare       = new(felt.Felt).SetBytes([]byte("declare"))
-	prefixDeployAccount = new(felt.Felt).SetBytes([]byte("deploy_account"))
-)
-
-var (
-	ErrNotAllParametersSet = errors.New("not all necessary parameters have been set")
-	ErrFeltToBigInt        = errors.New("felt to BigInt error")
-	// @new
-	ErrTransactionNil = errors.New("transaction is nil")
-
-	errTxTypeNotSupported = errors.New("transaction type not supported")
-)
-
 // ClassHash calculates the hash of a contract class.
 //
 // Parameters:

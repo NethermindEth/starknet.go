@@ -11,6 +11,17 @@ import (
 	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
+var (
+	prefixInvoke        = new(felt.Felt).SetBytes([]byte("invoke"))
+	prefixDeclare       = new(felt.Felt).SetBytes([]byte("declare"))
+	prefixDeployAccount = new(felt.Felt).SetBytes([]byte("deploy_account"))
+)
+
+var (
+	// @removed ErrFeltToBigInt
+	ErrNotAllParametersSet = errors.New("not all necessary parameters have been set")
+)
+
 // CalculateDeprecatedTransactionHashCommon calculates the transaction hash
 // common to be used in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
