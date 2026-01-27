@@ -14,6 +14,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
 const (
@@ -47,8 +48,9 @@ var starknetLimits = FeeLimits{
 
 // Optional settings when building a transaction.
 type TxnOptions struct {
+	// @changed to string
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	Tip types.U64
+	Tip string
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
 	// will be `types.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
@@ -76,21 +78,26 @@ func (opts *TxnOptions) TxnVersion() types.TransactionVersion {
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set
 // or invalid, returns "0x0".
-func (opts *TxnOptions) SafeTip() types.U64 {
+func (opts *TxnOptions) SafeTip() string {
 	if opts.Tip == "" {
 		return "0x0"
 	}
+	tip := types.U64(opts.Tip)
 
-	if _, err := opts.Tip.ToUint64(); err != nil {
+	if _, err := tip.ToUint64(); err != nil {
 		return "0x0"
 	}
 
 	return opts.Tip
 }
 
-// BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
+// @changed all now accept generics
+// BuildInvokeTxn creates a new invoke transaction (v3) with the given parameters,
+// filled with default values for some fields.
 //
 // Parameters:
+//   - [InvokeTxn]: the type of the desired invoke transaction (rpcv9.InvokeTxnV3,
+//     rpcv10.InvokeTxnV3, etc.)
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
@@ -99,35 +106,41 @@ func (opts *TxnOptions) SafeTip() types.U64 {
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
+//   - *InvokeTxn: A invoke transaction with default values
 //     for signature, paymaster data, etc. Needs to be signed before being sent.
-func BuildInvokeTxn(
+func BuildInvokeTxn[
+	TransactionType, TransactionVersion ~string,
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+	DA constraints.DataAvailabilityMode,
+	InvokeTxn constraints.InvokeTxnV3[TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
+](
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
-	resourceBounds *types.ResourceBoundsMapping,
+	resourceBounds *RBM,
 	opts *TxnOptions,
-) *types.BroadcastInvokeTxnV3 {
+) *InvokeTxn {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	invokeTxn := types.BroadcastInvokeTxnV3{
-		Type:                  types.TransactionTypeInvoke,
+	return &InvokeTxn{
+		Type:                  TransactionType(rpcv10.TransactionTypeInvoke),
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
-		Version:               opts.TxnVersion(),
+		Version:               TransactionVersion(rpcv10.TransactionVersion(opts.TxnVersion())),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   opts.SafeTip(),
+		Tip:                   u64(opts.SafeTip()),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         types.DAModeL1,
-		FeeMode:               types.DAModeL1,
+		NonceDataMode:         DA(rpcv10.DAModeL1),
+		FeeMode:               DA(rpcv10.DAModeL1),
 	}
-
-	return &invokeTxn
 }
 
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.

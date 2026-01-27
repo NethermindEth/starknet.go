@@ -50,3 +50,28 @@ type InvokeTxnV3Interface[
 	GetNonceDataMode() DA
 	GetFeeMode() DA
 }
+
+type InvokeTxnV3[
+	TransactionType ~string,
+	TransactionVersion ~string,
+	u64 U64,
+	u128 U128,
+	RB ResourceBounds[u64, u128],
+	RBM ResourceBoundsMapping[u64, u128, RB],
+	DA DataAvailabilityMode,
+] interface {
+	~struct {
+		Type                  TransactionType    `json:"type"`
+		SenderAddress         *felt.Felt         `json:"sender_address"`
+		Calldata              []*felt.Felt       `json:"calldata"`
+		Version               TransactionVersion `json:"version"`
+		Signature             []*felt.Felt       `json:"signature"`
+		Nonce                 *felt.Felt         `json:"nonce"`
+		ResourceBounds        *RBM               `json:"resource_bounds"`
+		Tip                   u64                `json:"tip"`
+		PayMasterData         []*felt.Felt       `json:"paymaster_data"`
+		AccountDeploymentData []*felt.Felt       `json:"account_deployment_data"`
+		NonceDataMode         DA                 `json:"nonce_data_availability_mode"`
+		FeeMode               DA                 `json:"fee_data_availability_mode"`
+	}
+}
