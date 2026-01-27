@@ -80,6 +80,3 @@ func TransactionHashDeployAccountV3[
 		},
 	)
 }
-
-// @removed TransactionHashBroadcastDeclareV3. The logic was included in the
-// TransactionHashDeclareV3 function.
