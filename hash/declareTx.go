@@ -96,7 +96,7 @@ func TransactionHashDeclareV0[T declareV0](tx T, chainID *felt.Felt) (*felt.Felt
 
 	switch typedTx := any(tx).(type) {
 	case *rpcv9.DeclareTxnV0:
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -107,7 +107,7 @@ func TransactionHashDeclareV0[T declareV0](tx T, chainID *felt.Felt) (*felt.Felt
 			[]*felt.Felt{typedTx.ClassHash},
 		)
 	case *rpcv10.DeclareTxnV0:
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -140,7 +140,7 @@ func TransactionHashDeclareV1[T declareV1](tx T, chainID *felt.Felt) (*felt.Felt
 
 	switch typedTx := any(tx).(type) {
 	case *rpcv9.DeclareTxnV1:
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -151,7 +151,7 @@ func TransactionHashDeclareV1[T declareV1](tx T, chainID *felt.Felt) (*felt.Felt
 			[]*felt.Felt{typedTx.Nonce},
 		)
 	case *rpcv10.DeclareTxnV1:
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -184,7 +184,7 @@ func TransactionHashDeclareV2[T declareV2](tx T, chainID *felt.Felt) (*felt.Felt
 
 	switch typedTx := any(tx).(type) {
 	case *rpcv9.DeclareTxnV2:
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -195,7 +195,7 @@ func TransactionHashDeclareV2[T declareV2](tx T, chainID *felt.Felt) (*felt.Felt
 			[]*felt.Felt{typedTx.Nonce, typedTx.CompiledClassHash},
 		)
 	case *rpcv10.DeclareTxnV2:
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeclare,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -232,7 +232,7 @@ func TransactionHashDeclareV3[T declareV3](tx T, chainID *felt.Felt) (*felt.Felt
 		if isOrContainsNil(typedTx.AccountDeploymentData) {
 			return nil, ErrNotAllParametersSet
 		}
-		return calculateV3TransactionHash(
+		return CalculateV3TransactionHash(
 			prefixInvoke,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -253,7 +253,7 @@ func TransactionHashDeclareV3[T declareV3](tx T, chainID *felt.Felt) (*felt.Felt
 		if isOrContainsNil(typedTx.AccountDeploymentData, typedTx.ContractClass) {
 			return nil, ErrNotAllParametersSet
 		}
-		return calculateV3TransactionHash(
+		return CalculateV3TransactionHash(
 			prefixInvoke,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -275,7 +275,7 @@ func TransactionHashDeclareV3[T declareV3](tx T, chainID *felt.Felt) (*felt.Felt
 		if isOrContainsNil(typedTx.AccountDeploymentData) {
 			return nil, ErrNotAllParametersSet
 		}
-		return calculateV3TransactionHash(
+		return CalculateV3TransactionHash(
 			prefixInvoke,
 			string(typedTx.Version),
 			typedTx.SenderAddress,
@@ -296,7 +296,7 @@ func TransactionHashDeclareV3[T declareV3](tx T, chainID *felt.Felt) (*felt.Felt
 		if isOrContainsNil(typedTx.AccountDeploymentData, typedTx.ContractClass) {
 			return nil, ErrNotAllParametersSet
 		}
-		return calculateV3TransactionHash(
+		return CalculateV3TransactionHash(
 			prefixInvoke,
 			string(typedTx.Version),
 			typedTx.SenderAddress,

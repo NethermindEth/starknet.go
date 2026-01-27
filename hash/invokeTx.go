@@ -81,7 +81,7 @@ func TransactionHashInvokeV0[
 ) (*felt.Felt, error) {
 	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v0
 
-	return calculateDeprecatedTransactionHashCommon(
+	return CalculateDeprecatedTransactionHashCommon(
 		prefixInvoke,
 		string(tx.GetVersion()),
 		tx.GetContractAddress(),
@@ -109,7 +109,7 @@ func TransactionHashInvokeV1[
 ) (*felt.Felt, error) {
 	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v1
 
-	return calculateDeprecatedTransactionHashCommon(
+	return CalculateDeprecatedTransactionHashCommon(
 		prefixInvoke,
 		string(tx.GetVersion()),
 		tx.GetSenderAddress(),
@@ -142,7 +142,7 @@ func TransactionHashInvokeV3[
 ) (*felt.Felt, error) {
 	// https://docs.starknet.io/learn/cheatsheets/transactions-reference#invoke-v3
 
-	return calculateV3TransactionHash(
+	return CalculateV3TransactionHash(
 		prefixInvoke,
 		string(tx.GetVersion()),
 		tx.GetSenderAddress(),

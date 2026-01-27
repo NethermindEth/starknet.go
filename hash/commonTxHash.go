@@ -11,8 +11,7 @@ import (
 	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
-// @changed it's private now
-// calculateDeprecatedTransactionHashCommon calculates the transaction hash
+// CalculateDeprecatedTransactionHashCommon calculates the transaction hash
 // common to be used in the StarkNet network - a unique identifier of the transaction.
 // [specification]: https://github.com/starkware-libs/cairo-lang/blob/8276ac35830148a397e1143389f23253c8b80e93/src/starkware/starknet/core/os/transaction_hash/deprecated_transaction_hash.py#L29
 //
@@ -30,7 +29,7 @@ import (
 //   - *felt.Felt: the calculated transaction hash
 //
 //nolint:lll // The link would be unclickable if we break the line.
-func calculateDeprecatedTransactionHashCommon(
+func CalculateDeprecatedTransactionHashCommon(
 	txHashPrefix *felt.Felt,
 	version string,
 	contractAddress *felt.Felt,
@@ -76,9 +75,26 @@ func calculateDeprecatedTransactionHashCommon(
 	return curve.PedersenArray(dataToHash...), nil
 }
 
-// calculateV3TransactionHash calculates the hash of a V3 transaction;
+// @new
+// CalculateV3TransactionHash calculates the hash of a V3 transaction;
 // a common function to be used for all V3 transactions.
-func calculateV3TransactionHash[
+// Parameters:
+//   - prefix: The prefix of the transaction hash
+//   - version: The version of the transaction
+//   - contractAddress: An contract address. Its meaning depends on the transaction type.
+//   - tip: The tip for the transaction
+//   - resourceBounds: The resource bounds for the transaction
+//   - paymasterData: The paymaster data for the transaction
+//   - chainID: The ID of the blockchain
+//   - nonce: The nonce for the transaction
+//   - feeMode: The fee mode for the transaction
+//   - nonceDataMode: The nonce data mode for the transaction
+//   - additionalData: Additional data to be included in the hash. Each tx type has its own additional data.
+//
+// Returns:
+//   - *felt.Felt: the calculated transaction hash.
+//   - error: an error if any.
+func CalculateV3TransactionHash[
 	u64 constraints.U64,
 	u128 constraints.U128,
 	RB constraints.ResourceBounds[u64, u128],
@@ -125,12 +141,12 @@ func calculateV3TransactionHash[
 	}
 
 	innerResourceBounds := constraints.ResourceBoundsMappingImpl[u64, u128, RB](*resourceBounds)
-	tipAndResourceHash, err := tipAndResourcesHash(tipUint64, &innerResourceBounds)
+	tipAndResourceHash, err := TipAndResourcesHash(tipUint64, &innerResourceBounds)
 	if err != nil {
 		return nil, err
 	}
 
-	DAUint64, err := dataAvailabilityModeConcat(feeMode, nonceDataMode)
+	DAUint64, err := DataAvailabilityModeConcat(feeMode, nonceDataMode)
 	if err != nil {
 		return nil, err
 	}
@@ -150,9 +166,16 @@ func calculateV3TransactionHash[
 	return curve.PoseidonArray(dataToHash...), nil
 }
 
-// @changed it's private now
-// tipAndResourcesHash calculates the hash of the tip and resources.
-func tipAndResourcesHash[
+// @changed accepts a generic type
+// TipAndResourcesHash calculates the hash of the tip and resources.
+// Parameters:
+//   - tip: The tip for the transaction
+//   - rbm: The resource bounds mapping for the transaction
+//
+// Returns:
+//   - *felt.Felt: the calculated tip and resources hash.
+//   - error: an error if any.
+func TipAndResourcesHash[
 	u64 constraints.U64,
 	u128 constraints.U128,
 	RB constraints.ResourceBounds[u64, u128],
@@ -160,15 +183,15 @@ func tipAndResourcesHash[
 	tip uint64,
 	rbm *constraints.ResourceBoundsMappingImpl[u64, u128, RB],
 ) (*felt.Felt, error) {
-	l1Bytes, err := resourceBoundsBytes(&rbm.L1Gas, string(rpcv10.ResourceL1Gas))
+	l1Bytes, err := ResourceBoundsBytes(&rbm.L1Gas, string(rpcv10.ResourceL1Gas))
 	if err != nil {
 		return nil, err
 	}
-	l2Bytes, err := resourceBoundsBytes(&rbm.L2Gas, string(rpcv10.ResourceL2Gas))
+	l2Bytes, err := ResourceBoundsBytes(&rbm.L2Gas, string(rpcv10.ResourceL2Gas))
 	if err != nil {
 		return nil, err
 	}
-	l1DataGasBytes, err := resourceBoundsBytes(&rbm.L1DataGas, string(rpcv10.ResourceL1DataGas))
+	l1DataGasBytes, err := ResourceBoundsBytes(&rbm.L1DataGas, string(rpcv10.ResourceL1DataGas))
 	if err != nil {
 		return nil, err
 	}
@@ -185,9 +208,17 @@ func tipAndResourcesHash[
 	), nil
 }
 
-// resourceBoundsBytes converts the resource bounds to a byte format
+// @new
+// ResourceBoundsBytes converts the resource bounds to a byte format
 // necessary for the hash calculation.
-func resourceBoundsBytes[
+// Parameters:
+//   - rb: The resource bounds to convert
+//   - resource: The resource type name
+//
+// Returns:
+//   - []byte: the converted resource bounds
+//   - error: an error if any.
+func ResourceBoundsBytes[
 	u64 constraints.U64,
 	u128 constraints.U128,
 	RB constraints.ResourceBounds[u64, u128],
@@ -218,10 +249,17 @@ func resourceBoundsBytes[
 	), nil
 }
 
-// @changed it's private now
-// dataAvailabilityModeConcat concatenates the data availability modes
+// @changed accepts an interface
+// DataAvailabilityModeConcat concatenates the data availability modes
 // into a single uint64.
-func dataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint64, error) }) (uint64, error) {
+// Parameters:
+//   - feeDAMode: The fee data availability mode
+//   - nonceDAMode: The nonce data availability mode
+//
+// Returns:
+//   - uint64: the concatenated data availability modes
+//   - error: an error if any.
+func DataAvailabilityModeConcat(feeDAMode, nonceDAMode interface{ UInt64() (uint64, error) }) (uint64, error) {
 	const dataAvailabilityModeBits = 32
 	fee64, err := feeDAMode.UInt64()
 	if err != nil {

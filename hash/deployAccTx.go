@@ -72,7 +72,7 @@ func TransactionHashDeployAccountV1[T deployAccountV1](tx T, contractAddress, ch
 		calldata = append(calldata, typedTx.ConstructorCalldata...)
 		calldataHash := curve.PedersenArray(calldata...)
 
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeployAccount,
 			string(typedTx.Version),
 			contractAddress,
@@ -87,7 +87,7 @@ func TransactionHashDeployAccountV1[T deployAccountV1](tx T, contractAddress, ch
 		calldata = append(calldata, typedTx.ConstructorCalldata...)
 		calldataHash := curve.PedersenArray(calldata...)
 
-		return calculateDeprecatedTransactionHashCommon(
+		return CalculateDeprecatedTransactionHashCommon(
 			prefixDeployAccount,
 			string(typedTx.Version),
 			contractAddress,
@@ -123,7 +123,7 @@ func TransactionHashDeployAccountV3[T deployAccountV3](tx T, contractAddress, ch
 		if isOrContainsNil(typedTx.ConstructorCalldata) {
 			return nil, ErrNotAllParametersSet
 		}
-		return calculateV3TransactionHash(
+		return CalculateV3TransactionHash(
 			prefixDeployAccount,
 			string(typedTx.Version),
 			contractAddress,
@@ -144,7 +144,7 @@ func TransactionHashDeployAccountV3[T deployAccountV3](tx T, contractAddress, ch
 		if isOrContainsNil(typedTx.ConstructorCalldata) {
 			return nil, ErrNotAllParametersSet
 		}
-		return calculateV3TransactionHash(
+		return CalculateV3TransactionHash(
 			prefixDeployAccount,
 			string(typedTx.Version),
 			contractAddress,
