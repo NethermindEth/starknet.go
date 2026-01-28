@@ -90,23 +90,25 @@ func (opts *TxnOptions) SafeTip() string {
 	return opts.Tip
 }
 
-// @changed all now accept generics
-// BuildInvokeTxn creates a new broadcast invoke transaction (v3) with the given parameters,
-// filled with default values for other fields.
+// @changed all now accept generics + accepts a new tx parameter
+// BuildInvokeTxn creates a broadcast invoke transaction (v3) by accepting a pointer
+// to it and filling it with the given parameters and default values. It also
+// returns the pointer to the filled transaction.
 //
 // Parameters:
-//   - [BInvokeTxn]: the type of the desired broadcast invoke transaction
-//     (e.g. rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.)
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
 //   - opts: optional settings for the transaction
+//   - tx: A pointer to the desired broadcast invoke transaction (e.g.
+//     rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.) to be filled.
+//     It needs to be signed before being sent.
 //
 // Returns:
-//   - *BInvokeTxn: A broadcast invoke transaction with default values
-//     for signature, paymaster data, etc. Needs to be signed before being sent.
+//   - *tx: The pointer to the filled broadcast invoke transaction. It needs to be signed
+//     before being sent.
 func BuildInvokeTxn[
 	TransactionType, TransactionVersion ~string,
 	u64 constraints.U64,
@@ -121,12 +123,13 @@ func BuildInvokeTxn[
 	calldata []*felt.Felt,
 	resourceBounds *RBM,
 	opts *TxnOptions,
+	tx *BInvokeTxn,
 ) *BInvokeTxn {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	return &BInvokeTxn{
+	*tx = BInvokeTxn{
 		Type:                  TransactionType(rpcv10.TransactionTypeInvoke),
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
@@ -140,6 +143,8 @@ func BuildInvokeTxn[
 		NonceDataMode:         DA(rpcv10.DAModeL1),
 		FeeMode:               DA(rpcv10.DAModeL1),
 	}
+
+	return tx
 }
 
 // BuildDeclareTxn creates a new declare transaction (v3) with the given parameters,

@@ -823,13 +823,10 @@ func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 
 func TestTypes(t *testing.T) {
 
-	// _, _ = BuildInvokeTxn[rpcv10.BroadcastInvokeTxnV3](
-	// 	nil,
-	// 	nil,
-	// 	nil,
-	// 	nil,
-	// 	nil,
-	// )
+	_ = BuildInvokeTxn(nil, nil, nil, nil, nil,
+		&rpcv10.BroadcastInvokeTxnV3{},
+	)
+
 	// _, _ = BuildDeclareTxn[rpcv10.BroadcastDeclareTxnV3](
 	// 	nil, &contracts.CasmClass{}, nil, nil, nil, nil,
 	// )
