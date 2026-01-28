@@ -11,6 +11,7 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
 var (
@@ -254,17 +255,22 @@ func FmtCallDataCairo2(callArray []types.FunctionCall) []*felt.Felt {
 	return result
 }
 
-func makeResourceBoundsMapWithZeroValues() *types.ResourceBoundsMapping {
-	return &types.ResourceBoundsMapping{
-		L1Gas: types.ResourceBounds{
+func makeEmptyResourceBM[
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+](resourceBounds *RBM) *RBM {
+	return &RBM{
+		L1Gas: RB{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
-		L1DataGas: types.ResourceBounds{
+		L1DataGas: RB{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
-		L2Gas: types.ResourceBounds{
+		L2Gas: RB{
 			MaxAmount:       "0x0",
 			MaxPricePerUnit: "0x0",
 		},
