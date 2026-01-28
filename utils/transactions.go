@@ -92,12 +92,12 @@ func (opts *TxnOptions) SafeTip() string {
 }
 
 // @changed all now accept generics
-// BuildInvokeTxn creates a new invoke transaction (v3) with the given parameters,
-// filled with default values for some fields.
+// BuildInvokeTxn creates a new broadcast invoke transaction (v3) with the given parameters,
+// filled with default values for other fields.
 //
 // Parameters:
-//   - [InvokeTxn]: the type of the desired invoke transaction (rpcv9.InvokeTxnV3,
-//     rpcv10.InvokeTxnV3, etc.)
+//   - [BInvokeTxn]: the type of the desired broadcast invoke transaction
+//     (e.g. rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.)
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
@@ -106,7 +106,7 @@ func (opts *TxnOptions) SafeTip() string {
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - *InvokeTxn: A invoke transaction with default values
+//   - *BInvokeTxn: A broadcast invoke transaction with default values
 //     for signature, paymaster data, etc. Needs to be signed before being sent.
 func BuildInvokeTxn[
 	TransactionType, TransactionVersion ~string,
@@ -115,19 +115,19 @@ func BuildInvokeTxn[
 	RB constraints.ResourceBounds[u64, u128],
 	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
 	DA constraints.DataAvailabilityMode,
-	InvokeTxn constraints.InvokeTxnV3[TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
+	BInvokeTxn constraints.InvokeTxnV3[TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
 ](
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds *RBM,
 	opts *TxnOptions,
-) *InvokeTxn {
+) *BInvokeTxn {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	return &InvokeTxn{
+	return &BInvokeTxn{
 		Type:                  TransactionType(rpcv10.TransactionTypeInvoke),
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
@@ -143,10 +143,12 @@ func BuildInvokeTxn[
 	}
 }
 
-// BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
-// A declare transaction is used to declare a new contract class on the network.
+// BuildDeclareTxn creates a new declare transaction (v3) with the given parameters,
+// filled with default values for other fields.
 //
 // Parameters:
+//   - [BroadcastDeclareTxnV3]: the type of the desired broadcast declare
+//     transaction (rpcv9.BroadcastDeclareTxnV3, rpcv10.BroadcastDeclareTxnV3, etc.)
 //   - senderAddress: The address of the account sending the transaction
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The contract class to be declared
@@ -157,14 +159,23 @@ func BuildInvokeTxn[
 // Returns:
 //   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
 //     for signature, paymaster data, etc. Needs to be signed before being sent.
-func BuildDeclareTxn(
+func BuildDeclareTxn[
+	TransactionType, TransactionVersion ~string,
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+	DA constraints.DataAvailabilityMode,
+	BDeclareTxn constraints.BroadcastDeclareTxnV3[
+		TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
+](
 	senderAddress *felt.Felt,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
-	resourceBounds *types.ResourceBoundsMapping,
+	resourceBounds *RBM,
 	opts *TxnOptions,
-) (*types.BroadcastDeclareTxnV3, error) {
+) (*BDeclareTxn, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
@@ -184,23 +195,21 @@ func BuildDeclareTxn(
 		}
 	}
 
-	declareTxn := types.BroadcastDeclareTxnV3{
-		Type:                  types.TransactionTypeDeclare,
+	return &BDeclareTxn{
+		Type:                  TransactionType(rpcv10.TransactionTypeDeclare),
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
-		Version:               opts.TxnVersion(),
+		Version:               TransactionVersion(opts.TxnVersion()),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ContractClass:         contractClass,
 		ResourceBounds:        resourceBounds,
-		Tip:                   opts.SafeTip(),
+		Tip:                   u64(opts.SafeTip()),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         types.DAModeL1,
-		FeeMode:               types.DAModeL1,
-	}
-
-	return &declareTxn, nil
+		NonceDataMode:         DA(rpcv10.DAModeL1),
+		FeeMode:               DA(rpcv10.DAModeL1),
+	}, nil
 }
 
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
