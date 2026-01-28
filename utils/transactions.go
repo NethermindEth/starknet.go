@@ -96,18 +96,18 @@ func (opts *TxnOptions) SafeTip() string {
 // returns the pointer to the filled transaction.
 //
 // Parameters:
+//   - tx: A pointer to the desired broadcast invoke transaction (e.g.
+//     rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.) to be filled.
+//     It needs to be signed before being sent.
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
 //     this includes the called contract address and a function selector)
 //   - resourceBounds: Resource bounds for the transaction execution
 //   - opts: optional settings for the transaction
-//   - tx: A pointer to the desired broadcast invoke transaction (e.g.
-//     rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.) to be filled.
-//     It needs to be signed before being sent.
 //
 // Returns:
-//   - *tx: The pointer to the filled broadcast invoke transaction. It needs to be signed
+//   - *BInvokeTxn: The pointer to the filled broadcast invoke transaction. It needs to be signed
 //     before being sent.
 func BuildInvokeTxn[
 	TransactionType, TransactionVersion ~string,
@@ -118,12 +118,12 @@ func BuildInvokeTxn[
 	DA constraints.DataAvailabilityMode,
 	BInvokeTxn constraints.InvokeTxnV3[TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
 ](
+	tx *BInvokeTxn,
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
 	resourceBounds *RBM,
 	opts *TxnOptions,
-	tx *BInvokeTxn,
 ) *BInvokeTxn {
 	if opts == nil {
 		opts = new(TxnOptions)
@@ -147,12 +147,14 @@ func BuildInvokeTxn[
 	return tx
 }
 
-// BuildDeclareTxn creates a new declare transaction (v3) with the given parameters,
-// filled with default values for other fields.
+// BuildDeclareTxn creates a broadcast declare transaction (v3) by accepting a pointer
+// to it and filling it with the given parameters and default values. It also
+// returns the pointer to the filled transaction.
 //
 // Parameters:
-//   - [BroadcastDeclareTxnV3]: the type of the desired broadcast declare
-//     transaction (rpcv9.BroadcastDeclareTxnV3, rpcv10.BroadcastDeclareTxnV3, etc.)
+//   - tx: A pointer to the desired broadcast declare transaction (e.g.
+//     rpcv9.BroadcastDeclareTxnV3, rpcv10.BroadcastDeclareTxnV3, etc.) to be filled.
+//     It needs to be signed before being sent
 //   - senderAddress: The address of the account sending the transaction
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The contract class to be declared
@@ -161,8 +163,8 @@ func BuildInvokeTxn[
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
-//     for signature, paymaster data, etc. Needs to be signed before being sent.
+//   - *BDeclareTxn: The pointer to the filled broadcast declare transaction. It needs to be signed
+//     before being sent.
 func BuildDeclareTxn[
 	TransactionType, TransactionVersion ~string,
 	u64 constraints.U64,
@@ -173,6 +175,7 @@ func BuildDeclareTxn[
 	BDeclareTxn constraints.BroadcastDeclareTxnV3[
 		TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
 ](
+	tx *BDeclareTxn,
 	senderAddress *felt.Felt,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
@@ -199,7 +202,7 @@ func BuildDeclareTxn[
 		}
 	}
 
-	return &BDeclareTxn{
+	*tx = BDeclareTxn{
 		Type:                  TransactionType(rpcv10.TransactionTypeDeclare),
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
@@ -213,7 +216,9 @@ func BuildDeclareTxn[
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         DA(rpcv10.DAModeL1),
 		FeeMode:               DA(rpcv10.DAModeL1),
-	}, nil
+	}
+
+	return tx, nil
 }
 
 // BuildDeployAccountTxn creates a new broadcast deploy account transaction (v3) with the given parameters,

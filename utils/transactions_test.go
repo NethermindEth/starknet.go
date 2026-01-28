@@ -801,7 +801,8 @@ func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			declareTxn, err := BuildDeclareTxn[rpcv10.BroadcastDeclareTxnV3](
+			declareTxn, err := BuildDeclareTxn(
+				&rpcv9.BroadcastDeclareTxnV3{},
 				nil,
 				&casmClass,
 				nil,
@@ -823,9 +824,11 @@ func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 
 func TestTypes(t *testing.T) {
 
-	_ = BuildInvokeTxn(nil, nil, nil, nil, nil,
-		&rpcv10.BroadcastInvokeTxnV3{},
-	)
+	_ = BuildInvokeTxn(&rpcv9.BroadcastInvokeTxnV3{}, nil, nil, nil, nil, nil)
+	_ = BuildInvokeTxn(&rpcv10.BroadcastInvokeTxnV3{}, nil, nil, nil, nil, nil)
+
+	_, _ = BuildDeclareTxn(&rpcv9.BroadcastDeclareTxnV3{}, nil, nil, nil, nil, nil, nil)
+	_, _ = BuildDeclareTxn(&rpcv10.BroadcastDeclareTxnV3{}, nil, nil, nil, nil, nil, nil)
 
 	// _, _ = BuildDeclareTxn[rpcv10.BroadcastDeclareTxnV3](
 	// 	nil, &contracts.CasmClass{}, nil, nil, nil, nil,
