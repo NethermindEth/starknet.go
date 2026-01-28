@@ -221,12 +221,14 @@ func BuildDeclareTxn[
 	return tx, nil
 }
 
-// BuildDeployAccountTxn creates a new broadcast deploy account transaction (v3) with the given parameters,
-// filled with default values for other fields.
+// BuildDeployAccountTxn creates a broadcast deploy account transaction (v3) by
+// accepting a pointer to it and filling it with the given parameters and default
+// values. It also returns the pointer to the filled transaction.
 //
 // Parameters:
-//   - [BDeployAccountTxn]: the type of the desired broadcast deploy account
-//     transaction (e.g. rpcv9.BroadcastDeployAccountTxnV3, rpcv10.BroadcastDeployAccountTxnV3, etc.)
+//   - tx: A pointer to the desired broadcast deploy account transaction (e.g.
+//     rpcv9.BroadcastDeployAccountTxnV3, rpcv10.BroadcastDeployAccountTxnV3, etc.) to
+//     be filled. It needs to be signed before being sent
 //   - nonce: The account's nonce
 //   - contractAddressSalt: A value used to randomise the deployed contract address
 //   - constructorCalldata: The parameters for the constructor function
@@ -235,8 +237,8 @@ func BuildDeclareTxn[
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - *BDeployAccountTxn: A broadcast deploy account transaction with default values
-//     for signature, paymaster data, etc. Needs to be signed before being sent.
+//   - *BDeployAccountTxn: The pointer to the filled broadcast deploy account transaction.
+//     It needs to be signed before being sent.
 func BuildDeployAccountTxn[
 	TransactionType, TransactionVersion ~string,
 	u64 constraints.U64,
@@ -247,6 +249,7 @@ func BuildDeployAccountTxn[
 	BDeployAccountTxn constraints.DeployAccountTxnV3[
 		TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
 ](
+	tx *BDeployAccountTxn,
 	nonce *felt.Felt,
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
@@ -258,7 +261,7 @@ func BuildDeployAccountTxn[
 		opts = new(TxnOptions)
 	}
 
-	return &BDeployAccountTxn{
+	*tx = BDeployAccountTxn{
 		Type:                TransactionType(rpcv10.TransactionTypeDeployAccount),
 		Version:             TransactionVersion(opts.TxnVersion()),
 		Signature:           []*felt.Felt{},
@@ -272,6 +275,8 @@ func BuildDeployAccountTxn[
 		NonceDataMode:       DA(rpcv10.DAModeL1),
 		FeeMode:             DA(rpcv10.DAModeL1),
 	}
+
+	return tx
 }
 
 // @changed

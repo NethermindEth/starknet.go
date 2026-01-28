@@ -830,9 +830,8 @@ func TestTypes(t *testing.T) {
 	_, _ = BuildDeclareTxn(&rpcv9.BroadcastDeclareTxnV3{}, nil, nil, nil, nil, nil, nil)
 	_, _ = BuildDeclareTxn(&rpcv10.BroadcastDeclareTxnV3{}, nil, nil, nil, nil, nil, nil)
 
-	// _, _ = BuildDeclareTxn[rpcv10.BroadcastDeclareTxnV3](
-	// 	nil, &contracts.CasmClass{}, nil, nil, nil, nil,
-	// )
+	_ = BuildDeployAccountTxn(&rpcv9.BroadcastDeployAccountTxnV3{}, nil, nil, nil, nil, nil, nil)
+	_ = BuildDeployAccountTxn(&rpcv10.BroadcastDeployAccountTxnV3{}, nil, nil, nil, nil, nil, nil)
 
 	_ = InvokeFuncCallsToFunctionCalls[rpcv9.FunctionCall]([]rpc.InvokeFunctionCall{})
 	_ = InvokeFuncCallsToFunctionCalls[rpcv10.FunctionCall]([]rpc.InvokeFunctionCall{})
