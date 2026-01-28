@@ -52,19 +52,20 @@ func verboseInvoke(
 
 	// Using the BuildInvokeTxn helper to build the BroadInvokeTx
 	InvokeTx := utils.BuildInvokeTxn(
+		&rpcv10.BroadcastInvokeTxnV3{},
 		accnt.Address,
 		nonce,
 		calldata,
-		&types.ResourceBoundsMapping{
-			L1Gas: types.ResourceBounds{
+		&rpcv10.ResourceBoundsMapping{
+			L1Gas: rpcv10.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x0",
 			},
-			L1DataGas: types.ResourceBounds{
+			L1DataGas: rpcv10.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x0",
 			},
-			L2Gas: types.ResourceBounds{
+			L2Gas: rpcv10.ResourceBounds{
 				MaxAmount:       "0x0",
 				MaxPricePerUnit: "0x0",
 			},
@@ -90,7 +91,7 @@ func verboseInvoke(
 	}
 
 	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
-	InvokeTx.ResourceBounds = utils.FeeEstToResBoundsMap(feeRes[0], 1.5)
+	utils.FeeEstToResBoundsMap(&feeRes[0], InvokeTx.ResourceBounds, 1.5)
 
 	// As we changed the resource bounds, we need to sign the transaction again, since the resource bounds are part of the signature
 	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)
