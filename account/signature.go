@@ -8,7 +8,8 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 )
 
 // Sign signs the given felt message using the account's private key.
@@ -37,32 +38,38 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 //
 // Parameters:
 //   - ctx: the context.Context for the function execution.
-//   - invokeTx: the InvokeTxnV3 pointer representing the transaction to be invoked.
+//   - invokeTx: a pointer to the invoke transaction to be signed.
 //
 // Returns:
-//   - error: an error if there was an error in the signing or invoking process
+//   - error: an error if any
 func (account *Account) SignInvokeTransaction(
 	ctx context.Context,
-	invokeTx types.InvokeTxnType,
+	invokeTx any,
 ) error {
+	txHash, err := account.TransactionHashInvoke(invokeTx)
+	if err != nil {
+		return err
+	}
+	signature, err := account.Sign(ctx, txHash)
+	if err != nil {
+		return err
+	}
+
 	switch invoke := invokeTx.(type) {
-	case *types.InvokeTxnV0:
-		signature, err := signInvokeTransaction(ctx, account, invoke)
-		if err != nil {
-			return err
-		}
+	// invoke v0
+	case *rpcv9.InvokeTxnV0:
 		invoke.Signature = signature
-	case *types.InvokeTxnV1:
-		signature, err := signInvokeTransaction(ctx, account, invoke)
-		if err != nil {
-			return err
-		}
+	case *rpcv10.InvokeTxnV0:
 		invoke.Signature = signature
-	case *types.InvokeTxnV3:
-		signature, err := signInvokeTransaction(ctx, account, invoke)
-		if err != nil {
-			return err
-		}
+	// invoke v1
+	case *rpcv9.InvokeTxnV1:
+		invoke.Signature = signature
+	case *rpcv10.InvokeTxnV1:
+		invoke.Signature = signature
+	// invoke v3
+	case *rpcv9.InvokeTxnV3:
+		invoke.Signature = signature
+	case *rpcv10.InvokeTxnV3:
 		invoke.Signature = signature
 	default:
 		return fmt.Errorf(
@@ -74,50 +81,39 @@ func (account *Account) SignInvokeTransaction(
 	return nil
 }
 
-// signInvokeTransaction is a generic helper function that signs an invoke transaction.
-func signInvokeTransaction[T types.InvokeTxnType](
-	ctx context.Context,
-	account *Account,
-	invokeTx *T,
-) ([]*felt.Felt, error) {
-	txHash, err := account.TransactionHashInvoke(*invokeTx)
-	if err != nil {
-		return nil, err
-	}
-	signature, err := account.Sign(ctx, txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	return signature, nil
-}
-
 // SignDeployAccountTransaction signs a deploy account transaction.
 //
 // Parameters:
 //   - ctx: the context.Context for the function execution
-//   - tx: the *types.DeployAccountTxnV3 pointer representing the transaction to be signed
+//   - tx: a pointer to the deploy account transaction to be signed
 //   - precomputeAddress: the precomputed address for the transaction
 //
 // Returns:
 //   - error: an error if any
 func (account *Account) SignDeployAccountTransaction(
 	ctx context.Context,
-	tx types.DeployAccountType,
+	tx any,
 	precomputeAddress *felt.Felt,
 ) error {
+	txHash, err := account.TransactionHashDeployAccount(tx, precomputeAddress)
+	if err != nil {
+		return err
+	}
+	signature, err := account.Sign(ctx, txHash)
+	if err != nil {
+		return err
+	}
+
 	switch deployAcc := tx.(type) {
-	case *types.DeployAccountTxnV1:
-		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
-		if err != nil {
-			return err
-		}
+	// deployAcc v1
+	case *rpcv9.DeployAccountTxnV1:
 		deployAcc.Signature = signature
-	case *types.DeployAccountTxnV3:
-		signature, err := signDeployAccountTransaction(ctx, account, deployAcc, precomputeAddress)
-		if err != nil {
-			return err
-		}
+	case *rpcv10.DeployAccountTxnV1:
+		deployAcc.Signature = signature
+	// deployAcc v3
+	case *rpcv9.DeployAccountTxnV3:
+		deployAcc.Signature = signature
+	case *rpcv10.DeployAccountTxnV3:
 		deployAcc.Signature = signature
 	default:
 		return fmt.Errorf(
@@ -129,26 +125,6 @@ func (account *Account) SignDeployAccountTransaction(
 	return nil
 }
 
-// signDeployAccountTransaction is a generic helper function that signs a deploy
-// account transaction.
-func signDeployAccountTransaction[T types.DeployAccountType](
-	ctx context.Context,
-	account *Account,
-	tx *T,
-	precomputeAddress *felt.Felt,
-) ([]*felt.Felt, error) {
-	txHash, err := account.TransactionHashDeployAccount(*tx, precomputeAddress)
-	if err != nil {
-		return nil, err
-	}
-	signature, err := account.Sign(ctx, txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	return signature, nil
-}
-
 // SignDeclareTransaction signs a declare transaction using the provided Account.
 //
 // Parameters:
@@ -157,31 +133,36 @@ func signDeployAccountTransaction[T types.DeployAccountType](
 //
 // Returns:
 //   - error: an error if any
-func (account *Account) SignDeclareTransaction(ctx context.Context, tx types.DeclareTxnType) error {
+func (account *Account) SignDeclareTransaction(ctx context.Context, tx any) error {
+	txHash, err := account.TransactionHashDeclare(tx)
+	if err != nil {
+		return err
+	}
+	signature, err := account.Sign(ctx, txHash)
+	if err != nil {
+		return err
+	}
+
 	switch declare := tx.(type) {
-	case *types.DeclareTxnV1:
-		signature, err := signDeclareTransaction(ctx, account, declare)
-		if err != nil {
-			return err
-		}
+	// declare v1
+	case *rpcv9.DeclareTxnV1:
 		declare.Signature = signature
-	case *types.DeclareTxnV2:
-		signature, err := signDeclareTransaction(ctx, account, declare)
-		if err != nil {
-			return err
-		}
+	case *rpcv10.DeclareTxnV1:
 		declare.Signature = signature
-	case *types.DeclareTxnV3:
-		signature, err := signDeclareTransaction(ctx, account, declare)
-		if err != nil {
-			return err
-		}
+	// declare v2
+	case *rpcv9.DeclareTxnV2:
 		declare.Signature = signature
-	case *types.BroadcastDeclareTxnV3:
-		signature, err := signDeclareTransaction(ctx, account, declare)
-		if err != nil {
-			return err
-		}
+	case *rpcv10.DeclareTxnV2:
+		declare.Signature = signature
+	// declare v3
+	case *rpcv9.DeclareTxnV3:
+		declare.Signature = signature
+	case *rpcv10.DeclareTxnV3:
+		declare.Signature = signature
+	// broadcast declare v3
+	case *rpcv9.BroadcastDeclareTxnV3:
+		declare.Signature = signature
+	case *rpcv10.BroadcastDeclareTxnV3:
 		declare.Signature = signature
 	default:
 		return fmt.Errorf(
@@ -191,25 +172,6 @@ func (account *Account) SignDeclareTransaction(ctx context.Context, tx types.Dec
 	}
 
 	return nil
-}
-
-// signDeclareTransaction is a generic helper function that signs a declare
-// transaction.
-func signDeclareTransaction[T types.DeclareTxnType](
-	ctx context.Context,
-	account *Account,
-	tx *T,
-) ([]*felt.Felt, error) {
-	txHash, err := account.TransactionHashDeclare(*tx)
-	if err != nil {
-		return nil, err
-	}
-	signature, err := account.Sign(ctx, txHash)
-	if err != nil {
-		return nil, err
-	}
-
-	return signature, nil
 }
 
 // Verifies the validity of the signature for a given message hash using the

@@ -15,7 +15,6 @@ import (
 )
 
 // TestVerify tests the Verify method.
-
 func TestVerify(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 	t.Parallel()
@@ -158,3 +157,5 @@ func TestVerify(t *testing.T) {
 		})
 	}
 }
+
+// @todo add tests for the sign methods

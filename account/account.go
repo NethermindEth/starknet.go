@@ -49,13 +49,13 @@ type AccountInterface interface {
 	Nonce(ctx context.Context) (*felt.Felt, error)
 	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
-	SignInvokeTransaction(ctx context.Context, tx types.InvokeTxnType) error
+	SignInvokeTransaction(ctx context.Context, tx any) error
 	SignDeployAccountTransaction(
 		ctx context.Context,
-		tx types.DeployAccountType,
+		tx any,
 		precomputeAddress *felt.Felt,
 	) error
-	SignDeclareTransaction(ctx context.Context, tx types.DeclareTxnType) error
+	SignDeclareTransaction(ctx context.Context, tx any) error
 	TransactionHashInvoke(tx any) (*felt.Felt, error)
 	TransactionHashDeployAccount(
 		tx any,
