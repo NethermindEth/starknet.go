@@ -311,24 +311,40 @@ func InvokeFuncCallsToFunctionCalls[
 	return functionCalls
 }
 
-// FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
+// @changed
+// FeeEstToResBoundsMap converts a FeeEstimation to a ResourceBoundsMapping with
+// applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
+//   - resources: a pointer to the resource bounds mapping to fill
+//     (e.g. *rpcv9.ResourceBoundsMapping, *rpcv10.ResourceBoundsMapping, etc.)
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0.
 //     If multiplier <= 0, all resources bounds will be set to 0.
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
 // Returns:
-//   - types.ResourceBoundsMapping: Resource bounds with applied multipliers
-func FeeEstToResBoundsMap(
-	feeEstimation types.FeeEstimation,
+//   - *RBM: The pointer to the filled resource bounds mapping.
+func FeeEstToResBoundsMap[
+	PriceUnit ~string,
+	FE constraints.FeeEstimation[PriceUnit],
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+](
+	feeEstimation *FE,
+	resources *RBM,
 	multiplier float64,
-) *types.ResourceBoundsMapping {
-	bounds := CustomFeeEstToResBoundsMap(feeEstimation, multiplier, &starknetLimits)
+) *RBM {
+	bounds := CustomFeeEstToResBoundsMap(
+		feeEstimation,
+		resources,
+		multiplier,
+		&starknetLimits)
 
 	// TODO: return by value instead of pointer
-	return &bounds
+	return bounds
 }
 
 // FeeLimits is a struct with custom limits for the fee values, used
@@ -350,10 +366,12 @@ type FeeLimits struct {
 	L1DataGasAmountLimit types.U64
 }
 
+// @changed
 // CustomFeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied
 // multipliers and limits.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
+//   - resources: a pointer to the resource bounds mapping to fill
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0.
 //     If multiplier <= 0, all resources bounds will be set to 0.
@@ -362,42 +380,54 @@ type FeeLimits struct {
 //     values (U64 or U128).
 //
 // Returns:
-//   - types.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
-func CustomFeeEstToResBoundsMap(
-	feeEstimation types.FeeEstimation,
+//   - *RBM: The pointer to the filled resource bounds mapping.
+func CustomFeeEstToResBoundsMap[
+	PriceUnit ~string,
+	FE constraints.FeeEstimation[PriceUnit],
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+](
+	feeEstimation *FE,
+	resources *RBM,
 	multiplier float64,
 	limits *FeeLimits,
-) types.ResourceBoundsMapping {
+) *RBM {
+	innerFE := constraints.FeeEstimationImpl[PriceUnit](*feeEstimation)
+
 	// Create L1 resources bounds
-	l1Gas := toResourceBounds(
-		feeEstimation.L1GasPrice,
+	l1Gas := toResourceBounds[u64, u128, RB](
+		innerFE.L1GasPrice,
 		limits.L1GasPriceLimit,
-		feeEstimation.L1GasConsumed,
+		innerFE.L1GasConsumed,
 		limits.L1GasAmountLimit,
 		multiplier,
 	)
-	l1DataGas := toResourceBounds(
-		feeEstimation.L1DataGasPrice,
+	l1DataGas := toResourceBounds[u64, u128, RB](
+		innerFE.L1DataGasPrice,
 		limits.L1DataGasPriceLimit,
-		feeEstimation.L1DataGasConsumed,
+		innerFE.L1DataGasConsumed,
 		limits.L1DataGasAmountLimit,
 		multiplier,
 	)
 
 	// Create L2 resource bounds
-	l2Gas := toResourceBounds(
-		feeEstimation.L2GasPrice,
+	l2Gas := toResourceBounds[u64, u128, RB](
+		innerFE.L2GasPrice,
 		limits.L2GasPriceLimit,
-		feeEstimation.L2GasConsumed,
+		innerFE.L2GasConsumed,
 		limits.L2GasAmountLimit,
 		multiplier,
 	)
 
-	return types.ResourceBoundsMapping{
+	*resources = RBM{
 		L1Gas:     l1Gas,
 		L1DataGas: l1DataGas,
 		L2Gas:     l2Gas,
 	}
+
+	return resources
 }
 
 // toResourceBounds converts a gas price and gas consumed to a ResourceBounds with
@@ -414,18 +444,22 @@ func CustomFeeEstToResBoundsMap(
 //
 // Returns:
 //   - types.ResourceBounds: Resource bounds with applied multiplier
-func toResourceBounds(
+func toResourceBounds[
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+](
 	gasPrice *felt.Felt,
-	gasPriceLimit types.U128,
+	gasPriceLimit interface{ ToBigInt() (*big.Int, error) },
 	gasConsumed *felt.Felt,
-	gasAmountLimit types.U64,
+	gasAmountLimit interface{ ToUint64() (uint64, error) },
 	multiplier float64,
-) types.ResourceBounds {
+) RB {
 	// multiplier must be greater than 0. Default to 0 if not
 	if multiplier <= 0 {
-		return types.ResourceBounds{
-			MaxAmount:       types.U64("0x0"),
-			MaxPricePerUnit: types.U128("0x0"),
+		return RB{
+			MaxAmount:       u64("0x0"),
+			MaxPricePerUnit: u128("0x0"),
 		}
 	}
 
@@ -462,9 +496,9 @@ func toResourceBounds(
 		maxPricePerUnitInt = gasPL
 	}
 
-	return types.ResourceBounds{
-		MaxAmount:       types.U64(fmt.Sprintf("%#x", maxAmountInt)),
-		MaxPricePerUnit: types.U128(fmt.Sprintf("%#x", maxPricePerUnitInt)),
+	return RB{
+		MaxAmount:       u64(fmt.Sprintf("%#x", maxAmountInt)),
+		MaxPricePerUnit: u128(fmt.Sprintf("%#x", maxPricePerUnitInt)),
 	}
 }
 
