@@ -311,25 +311,6 @@ func InvokeFuncCallsToFunctionCalls[
 	return functionCalls
 }
 
-// FeeLimits is a struct with custom limits for the fee values, used
-// as a parameter for the `CustomFeeEstToResBoundsMap` function.
-type FeeLimits struct {
-	// Custom max value for L1 gas price
-	L1GasPriceLimit types.U128
-	// Custom max value for L1 gas amount
-	L1GasAmountLimit types.U64
-
-	// Custom max value for L2 gas price
-	L2GasPriceLimit types.U128
-	// Custom max value for L2 gas amount
-	L2GasAmountLimit types.U64
-
-	// Custom max value for L1 data gas price
-	L1DataGasPriceLimit types.U128
-	// Custom max value for L1 data gas amount
-	L1DataGasAmountLimit types.U64
-}
-
 // FeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied multipliers.
 // Parameters:
 //   - feeEstimation: The fee estimation to convert
@@ -348,6 +329,25 @@ func FeeEstToResBoundsMap(
 
 	// TODO: return by value instead of pointer
 	return &bounds
+}
+
+// FeeLimits is a struct with custom limits for the fee values, used
+// as a parameter for the `CustomFeeEstToResBoundsMap` function.
+type FeeLimits struct {
+	// Custom max value for L1 gas price
+	L1GasPriceLimit types.U128
+	// Custom max value for L1 gas amount
+	L1GasAmountLimit types.U64
+
+	// Custom max value for L2 gas price
+	L2GasPriceLimit types.U128
+	// Custom max value for L2 gas amount
+	L2GasAmountLimit types.U64
+
+	// Custom max value for L1 data gas price
+	L1DataGasPriceLimit types.U128
+	// Custom max value for L1 data gas amount
+	L1DataGasAmountLimit types.U64
 }
 
 // CustomFeeEstToResBoundsMap converts a FeeEstimation to ResourceBoundsMapping with applied
