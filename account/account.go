@@ -56,12 +56,12 @@ type AccountInterface interface {
 		precomputeAddress *felt.Felt,
 	) error
 	SignDeclareTransaction(ctx context.Context, tx types.DeclareTxnType) error
-	TransactionHashInvoke(invokeTxn types.InvokeTxnType) (*felt.Felt, error)
+	TransactionHashInvoke(tx any) (*felt.Felt, error)
 	TransactionHashDeployAccount(
-		tx types.DeployAccountType,
+		tx any,
 		contractAddress *felt.Felt,
 	) (*felt.Felt, error)
-	TransactionHashDeclare(tx types.DeclareTxnType) (*felt.Felt, error)
+	TransactionHashDeclare(tx any) (*felt.Felt, error)
 	Verify(msgHash *felt.Felt, signature []*felt.Felt) (bool, error)
 	WaitForTransactionReceipt(
 		ctx context.Context,

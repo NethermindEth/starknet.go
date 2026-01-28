@@ -5,79 +5,81 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/hash"
-	"github.com/NethermindEth/starknet.go/rpc/types"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 )
 
+// @changed now all these methods accept 'any' as the parameter
 // TransactionHashDeployAccount calculates the transaction hash for a deploy
 // account transaction.
 //
 // Parameters:
-//   - tx: The deploy account transaction to calculate the hash for. Can be of
-//     type DeployAccountTxn or DeployAccountTxnV3.
+//   - tx: A pointer to a deploy account transaction to calculate the hash.
 //   - contractAddress: The contract address as parameters as a *felt.Felt
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash
 //   - error: an error if any
+//
+// Deprecated: This method will be removed soon. Use the functions available in
+// the `hash` package instead.
 func (account *Account) TransactionHashDeployAccount(
-	tx types.DeployAccountType,
+	tx any,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
-	//nolint:lll // The link would be unclickable if we break the line.
-	// https://docs.starknet.io/architecture-and-concepts/network-architecture/transactions/#deploy_account_transaction
 	switch txn := tx.(type) {
-	// deployAccTxn v1, pointer and struct
-	case *types.DeployAccountTxnV1:
+	// deployAccTxn v1
+	case *rpcv9.DeployAccountTxnV1:
 		return hash.TransactionHashDeployAccountV1(txn, contractAddress, account.ChainID)
-	case types.DeployAccountTxnV1:
-		return hash.TransactionHashDeployAccountV1(&txn, contractAddress, account.ChainID)
-	// deployAccTxn v3, pointer and struct
-	case *types.DeployAccountTxnV3:
+	case *rpcv10.DeployAccountTxnV1:
+		return hash.TransactionHashDeployAccountV1(txn, contractAddress, account.ChainID)
+	// deployAccTxn v3
+	case *rpcv9.DeployAccountTxnV3:
 		return hash.TransactionHashDeployAccountV3(txn, contractAddress, account.ChainID)
-	case types.DeployAccountTxnV3:
-		return hash.TransactionHashDeployAccountV3(&txn, contractAddress, account.ChainID)
+	case *rpcv10.DeployAccountTxnV3:
+		return hash.TransactionHashDeployAccountV3(txn, contractAddress, account.ChainID)
 	default:
 		return nil, fmt.Errorf(
-			"%w: got '%T' instead of a valid invoke txn type",
+			"%w: got '%T' instead of a deploy account txn pointer",
 			ErrTxnTypeUnSupported,
 			txn,
 		)
 	}
 }
 
-// @todo remove and move the tests to the hash package
+// @todo move the tests to the hash package
 // TransactionHashInvoke calculates the transaction hash for the given invoke
 // transaction.
 //
 // Parameters:
-//   - tx: The invoke transaction to calculate the hash for. Can be of type
-//     InvokeTxnV0, InvokeTxnV1, or InvokeTxnV3.
+//   - tx: A pointer to an invoke transaction to calculate the hash.
 //
 // Returns:
 //   - *felt.Felt: The calculated transaction hash as a *felt.Felt
 //   - error: an error, if any
 //
-// If the transaction type is unsupported, the function returns an error.
-func (account *Account) TransactionHashInvoke(tx types.InvokeTxnType) (*felt.Felt, error) {
+// Deprecated: This method will be removed soon. Use the functions available in
+// the `hash` package instead.
+func (account *Account) TransactionHashInvoke(tx any) (*felt.Felt, error) {
 	switch txn := tx.(type) {
-	// invoke v0, pointer and struct
-	case *types.InvokeTxnV0:
+	// invoke v0
+	case *rpcv9.InvokeTxnV0:
 		return hash.TransactionHashInvokeV0(txn, account.ChainID)
-	case types.InvokeTxnV0:
-		return hash.TransactionHashInvokeV0(&txn, account.ChainID)
-	// invoke v1, pointer and struct
-	case *types.InvokeTxnV1:
+	case *rpcv10.InvokeTxnV0:
+		return hash.TransactionHashInvokeV0(txn, account.ChainID)
+	// invoke v1
+	case *rpcv9.InvokeTxnV1:
 		return hash.TransactionHashInvokeV1(txn, account.ChainID)
-	case types.InvokeTxnV1:
-		return hash.TransactionHashInvokeV1(&txn, account.ChainID)
-	// invoke v3, pointer and struct
-	case *types.InvokeTxnV3:
+	case *rpcv10.InvokeTxnV1:
+		return hash.TransactionHashInvokeV1(txn, account.ChainID)
+	// invoke v3
+	case *rpcv9.InvokeTxnV3:
 		return hash.TransactionHashInvokeV3(txn, account.ChainID)
-	case types.InvokeTxnV3:
-		return hash.TransactionHashInvokeV3(&txn, account.ChainID)
+	case *rpcv10.InvokeTxnV3:
+		return hash.TransactionHashInvokeV3(txn, account.ChainID)
 	default:
 		return nil, fmt.Errorf(
-			"%w: got '%T' instead of a valid invoke txn type",
+			"%w: got '%T' instead of an invoke txn pointer",
 			ErrTxnTypeUnSupported,
 			txn,
 		)
@@ -88,43 +90,46 @@ func (account *Account) TransactionHashInvoke(tx types.InvokeTxnType) (*felt.Fel
 // transaction type.
 //
 // Parameters:
-//   - tx: The `tx` parameter of type `types.DeclareTxnType`. Can be one of the
-//     types DeclareTxnV1/V2/V3, and BroadcastDeclareTxnV3
+//   - tx: A pointer to a declare transaction to calculate the hash.
 //
 // Returns:
 //   - *felt.Felt: the calculated transaction hash as `*felt.Felt` value
 //   - error: an error, if any
 //
-// If the `tx` parameter is not one of the supported types, the function returns
-// an error `ErrTxnTypeUnSupported`.
-func (account *Account) TransactionHashDeclare(tx types.DeclareTxnType) (*felt.Felt, error) {
+// Deprecated: This method will be removed soon. Use the functions available in
+// the `hash` package instead.
+func (account *Account) TransactionHashDeclare(tx any) (*felt.Felt, error) {
 	switch txn := tx.(type) {
-	// Due to inconsistencies in version 0 hash calculation we don't calculate the hash
-	case *types.DeclareTxnV0, types.DeclareTxnV0:
-		return nil, ErrTxnVersionUnSupported
-	// declare v1, pointer and struct
-	case *types.DeclareTxnV1:
+	// declare v0
+	case *rpcv9.DeclareTxnV0:
+		return hash.TransactionHashDeclareV0(txn, account.ChainID)
+	case *rpcv10.DeclareTxnV0:
+		return hash.TransactionHashDeclareV0(txn, account.ChainID)
+	// declare v1
+	case *rpcv9.DeclareTxnV1:
 		return hash.TransactionHashDeclareV1(txn, account.ChainID)
-	case types.DeclareTxnV1:
-		return hash.TransactionHashDeclareV1(&txn, account.ChainID)
-	// declare v2, pointer and struct
-	case *types.DeclareTxnV2:
+	case *rpcv10.DeclareTxnV1:
+		return hash.TransactionHashDeclareV1(txn, account.ChainID)
+	// declare v2
+	case *rpcv9.DeclareTxnV2:
 		return hash.TransactionHashDeclareV2(txn, account.ChainID)
-	case types.DeclareTxnV2:
-		return hash.TransactionHashDeclareV2(&txn, account.ChainID)
-	// declare v3, pointer and struct
-	case *types.DeclareTxnV3:
-		return hash.TransactionHashDeclareV3(txn, account.ChainID)
-	case types.DeclareTxnV3:
-		return hash.TransactionHashDeclareV3(&txn, account.ChainID)
-	// broadcast declare v3, pointer and struct
-	case *types.BroadcastDeclareTxnV3:
-		return hash.TransactionHashBroadcastDeclareV3(txn, account.ChainID)
-	case types.BroadcastDeclareTxnV3:
-		return hash.TransactionHashBroadcastDeclareV3(&txn, account.ChainID)
+	case *rpcv10.DeclareTxnV2:
+		return hash.TransactionHashDeclareV2(txn, account.ChainID)
+	// declare v3
+	case *rpcv9.DeclareTxnV3:
+		return hash.TransactionHashDeclareV3(txn, account.ChainID, txn.ClassHash)
+	case *rpcv10.DeclareTxnV3:
+		return hash.TransactionHashDeclareV3(txn, account.ChainID, txn.ClassHash)
+	// broadcast declare v3
+	case *rpcv9.BroadcastDeclareTxnV3:
+		return hash.TransactionHashDeclareV3(
+			txn, account.ChainID, hash.ClassHash(txn.ContractClass))
+	case *rpcv10.BroadcastDeclareTxnV3:
+		return hash.TransactionHashDeclareV3(
+			txn, account.ChainID, hash.ClassHash(txn.ContractClass))
 	default:
 		return nil, fmt.Errorf(
-			"%w: got '%T' instead of a valid declare txn type",
+			"%w: got '%T' instead of a declare txn pointer",
 			ErrTxnTypeUnSupported,
 			txn,
 		)
