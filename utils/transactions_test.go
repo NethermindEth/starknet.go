@@ -7,6 +7,9 @@ import (
 
 	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -798,7 +801,7 @@ func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			declareTxn, err := BuildDeclareTxn(
+			declareTxn, err := BuildDeclareTxn[rpcv10.BroadcastDeclareTxnV3](
 				nil,
 				&casmClass,
 				nil,
@@ -816,4 +819,21 @@ func TestBuildDeclareTxnWithBlake2sHash(t *testing.T) {
 			)
 		})
 	}
+}
+
+func TestTypes(t *testing.T) {
+
+	// _, _ = BuildInvokeTxn[rpcv10.BroadcastInvokeTxnV3](
+	// 	nil,
+	// 	nil,
+	// 	nil,
+	// 	nil,
+	// 	nil,
+	// )
+	// _, _ = BuildDeclareTxn[rpcv10.BroadcastDeclareTxnV3](
+	// 	nil, &contracts.CasmClass{}, nil, nil, nil, nil,
+	// )
+
+	_ = InvokeFuncCallsToFunctionCalls[rpcv9.FunctionCall]([]rpc.InvokeFunctionCall{})
+	_ = InvokeFuncCallsToFunctionCalls[rpcv10.FunctionCall]([]rpc.InvokeFunctionCall{})
 }

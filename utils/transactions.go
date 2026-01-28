@@ -12,7 +12,6 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/types/constraints"
 )
@@ -267,37 +266,34 @@ func BuildDeployAccountTxn[
 
 // @changed
 // InvokeFuncCallsToFunctionCalls converts a slice of [rpc.InvokeFunctionCall] to a
-// slice of rpcvX.FunctionCall from the provided rpc version.
+// slice of rpcvX.FunctionCall from the provided FunctionCall type.
 //
 // Parameters:
-//   - invokeFuncCalls: The invoke function calls to convert
+//   - [FunctionCall]: the type of the desired function call
+//     (e.g. rpcv9.FunctionCall, rpcv10.FunctionCall, etc.)
+//   - invokeFuncCalls: A slice of invoke function calls to convert
 //
 // Returns:
-//   - []rpcvX.FunctionCall: a slice of function calls from the provided rpc version
-func InvokeFuncCallsToFunctionCalls[FuncCall rpcv9.FunctionCall | rpcv10.FunctionCall](
-	invokeFuncCalls []rpc.InvokeFunctionCall,
-) []FuncCall {
-	functionCalls := make([]FuncCall, len(invokeFuncCalls))
-
-	for i, call := range invokeFuncCalls {
-		functionCalls[i] = toFunctionCall[FuncCall](call)
-	}
-
-	return functionCalls
-}
-
-func toFunctionCall[
+//   - []rpcvX.FunctionCall: a slice of function calls from the provided FunctionCall type
+func InvokeFuncCallsToFunctionCalls[
 	FunctionCall ~struct {
 		ContractAddress    *felt.Felt   `json:"contract_address"`
 		EntryPointSelector *felt.Felt   `json:"entry_point_selector"`
 		Calldata           []*felt.Felt `json:"calldata"`
-	},
-](infc rpc.InvokeFunctionCall) FunctionCall {
-	return FunctionCall{
-		ContractAddress:    infc.ContractAddress,
-		EntryPointSelector: GetSelectorFromNameFelt(infc.FunctionName),
-		Calldata:           infc.CallData,
+	}](
+	invokeFuncCalls []rpc.InvokeFunctionCall,
+) []FunctionCall {
+	functionCalls := make([]FunctionCall, len(invokeFuncCalls))
+
+	for i, call := range invokeFuncCalls {
+		functionCalls[i] = FunctionCall{
+			ContractAddress:    call.ContractAddress,
+			EntryPointSelector: GetSelectorFromNameFelt(call.FunctionName),
+			Calldata:           call.CallData,
+		}
 	}
+
+	return functionCalls
 }
 
 // FeeLimits is a struct with custom limits for the fee values, used
