@@ -506,6 +506,7 @@ func toResourceBounds[
 // applied multipliers.
 // Parameters:
 //   - resBounds: The resource bounds to calculate the fee for
+//     (e.g. *rpcv9.ResourceBoundsMapping, *rpcv10.ResourceBoundsMapping, etc.)
 //   - multiplier: Multiplier for max amount and max price per unit. Recommended to be 1.5,
 //     but at least greater than 0
 //   - tip: The tip amount in FRI in hexadecimal string format
@@ -513,14 +514,20 @@ func toResourceBounds[
 // Returns:
 //   - *felt.Felt: The overall fee in FRI
 //   - error: An error if any
-func ResBoundsMapToOverallFee(
-	resBounds *types.ResourceBoundsMapping,
+func ResBoundsMapToOverallFee[
+	u64, Tip constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+](
+	resBounds *RBM,
 	multiplier float64,
-	tip types.U64,
+	tip Tip,
 ) (*felt.Felt, error) {
 	if resBounds == nil {
 		return nil, errors.New("resource bounds are nil")
 	}
+	innerResBounds := constraints.ResourceBoundsMappingImpl[u64, u128, RB](*resBounds)
 
 	// negative multiplier is not allowed
 	if multiplier <= 0 {
@@ -547,32 +554,32 @@ func ResBoundsMapToOverallFee(
 		return val, nil
 	}
 
-	l1GasAmount, err := parseBound(string(resBounds.L1Gas.MaxAmount))
+	innerL1Gas := constraints.ResourceBoundsImpl[u64, u128](innerResBounds.L1Gas)
+	l1GasAmount, err := parseBound(string(innerL1Gas.MaxAmount))
+	if err != nil {
+		return nil, err
+	}
+	l1GasPrice, err := parseBound(string(innerL1Gas.MaxPricePerUnit))
 	if err != nil {
 		return nil, err
 	}
 
-	l1GasPrice, err := parseBound(string(resBounds.L1Gas.MaxPricePerUnit))
+	innerL1DataGas := constraints.ResourceBoundsImpl[u64, u128](innerResBounds.L1DataGas)
+	l1DataGasAmount, err := parseBound(string(innerL1DataGas.MaxAmount))
+	if err != nil {
+		return nil, err
+	}
+	l1DataGasPrice, err := parseBound(string(innerL1DataGas.MaxPricePerUnit))
 	if err != nil {
 		return nil, err
 	}
 
-	l1DataGasAmount, err := parseBound(string(resBounds.L1DataGas.MaxAmount))
+	innerL2Gas := constraints.ResourceBoundsImpl[u64, u128](innerResBounds.L2Gas)
+	l2GasAmount, err := parseBound(string(innerL2Gas.MaxAmount))
 	if err != nil {
 		return nil, err
 	}
-
-	l1DataGasPrice, err := parseBound(string(resBounds.L1DataGas.MaxPricePerUnit))
-	if err != nil {
-		return nil, err
-	}
-
-	l2GasAmount, err := parseBound(string(resBounds.L2Gas.MaxAmount))
-	if err != nil {
-		return nil, err
-	}
-
-	l2GasPrice, err := parseBound(string(resBounds.L2Gas.MaxPricePerUnit))
+	l2GasPrice, err := parseBound(string(innerL2Gas.MaxPricePerUnit))
 	if err != nil {
 		return nil, err
 	}

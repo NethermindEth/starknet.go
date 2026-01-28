@@ -827,4 +827,7 @@ func TestTypes(t *testing.T) {
 	_ = FeeEstToResBoundsMap(&rpcv9.FeeEstimation{}, &rpcv9.ResourceBoundsMapping{}, 0)
 	_ = FeeEstToResBoundsMap(&rpcv10.FeeEstimation{}, &rpcv10.ResourceBoundsMapping{}, 0)
 	_ = FeeEstToResBoundsMap(&rpcv9.FeeEstimation{}, &rpcv10.ResourceBoundsMapping{}, 0)
+
+	_, _ = ResBoundsMapToOverallFee(&rpcv9.ResourceBoundsMapping{}, 0, rpcv9.U64("0x0"))
+	_, _ = ResBoundsMapToOverallFee(&rpcv10.ResourceBoundsMapping{}, 0, rpcv10.U64("0x0"))
 }
