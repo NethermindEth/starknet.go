@@ -212,10 +212,12 @@ func BuildDeclareTxn[
 	}, nil
 }
 
-// BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
-// A deploy account transaction is used to deploy a new account contract on the network.
+// BuildDeployAccountTxn creates a new broadcast deploy account transaction (v3) with the given parameters,
+// filled with default values for other fields.
 //
 // Parameters:
+//   - [BDeployAccountTxn]: the type of the desired broadcast deploy account
+//     transaction (e.g. rpcv9.BroadcastDeployAccountTxnV3, rpcv10.BroadcastDeployAccountTxnV3, etc.)
 //   - nonce: The account's nonce
 //   - contractAddressSalt: A value used to randomise the deployed contract address
 //   - constructorCalldata: The parameters for the constructor function
@@ -224,36 +226,43 @@ func BuildDeclareTxn[
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - rpc.BroadcastDeployAccountTxnV3: A broadcast deploy account transaction with default values
+//   - *BDeployAccountTxn: A broadcast deploy account transaction with default values
 //     for signature, paymaster data, etc. Needs to be signed before being sent.
-func BuildDeployAccountTxn(
+func BuildDeployAccountTxn[
+	TransactionType, TransactionVersion ~string,
+	u64 constraints.U64,
+	u128 constraints.U128,
+	RB constraints.ResourceBounds[u64, u128],
+	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
+	DA constraints.DataAvailabilityMode,
+	BDeployAccountTxn constraints.DeployAccountTxnV3[
+		TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
+](
 	nonce *felt.Felt,
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
-	resourceBounds *types.ResourceBoundsMapping,
+	resourceBounds *RBM,
 	opts *TxnOptions,
-) *types.BroadcastDeployAccountTxnV3 {
+) *BDeployAccountTxn {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	deployAccountTxn := types.BroadcastDeployAccountTxnV3{
-		Type:                types.TransactionTypeDeployAccount,
-		Version:             opts.TxnVersion(),
+	return &BDeployAccountTxn{
+		Type:                TransactionType(rpcv10.TransactionTypeDeployAccount),
+		Version:             TransactionVersion(opts.TxnVersion()),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,
 		ContractAddressSalt: contractAddressSalt,
 		ConstructorCalldata: constructorCalldata,
 		ClassHash:           classHash,
 		ResourceBounds:      resourceBounds,
-		Tip:                 opts.SafeTip(),
+		Tip:                 u64(opts.SafeTip()),
 		PayMasterData:       []*felt.Felt{},
-		NonceDataMode:       types.DAModeL1,
-		FeeMode:             types.DAModeL1,
+		NonceDataMode:       DA(rpcv10.DAModeL1),
+		FeeMode:             DA(rpcv10.DAModeL1),
 	}
-
-	return &deployAccountTxn
 }
 
 // @changed
