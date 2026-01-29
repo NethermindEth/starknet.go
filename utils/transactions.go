@@ -10,7 +10,6 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/types/constraints"
@@ -280,28 +279,21 @@ func BuildDeployAccountTxn[
 }
 
 // @changed
-// InvokeFuncCallsToFunctionCalls converts a slice of [rpc.InvokeFunctionCall] to a
-// slice of rpcvX.FunctionCall from the provided FunctionCall type.
+// InvokeFuncCallsToFunctionCalls converts a slice of [types.InvokeFunctionCall] to a
+// slice of [types.FunctionCall].
 //
 // Parameters:
-//   - [FunctionCall]: the type of the desired function call
-//     (e.g. rpcv9.FunctionCall, rpcv10.FunctionCall, etc.)
 //   - invokeFuncCalls: A slice of invoke function calls to convert
 //
 // Returns:
-//   - []rpcvX.FunctionCall: a slice of function calls from the provided FunctionCall type
-func InvokeFuncCallsToFunctionCalls[
-	FunctionCall ~struct {
-		ContractAddress    *felt.Felt   `json:"contract_address"`
-		EntryPointSelector *felt.Felt   `json:"entry_point_selector"`
-		Calldata           []*felt.Felt `json:"calldata"`
-	}](
-	invokeFuncCalls []rpc.InvokeFunctionCall,
-) []FunctionCall {
-	functionCalls := make([]FunctionCall, len(invokeFuncCalls))
+//   - []types.FunctionCall: a slice of function calls
+func InvokeFuncCallsToFunctionCalls(
+	invokeFuncCalls []types.InvokeFunctionCall,
+) []types.FunctionCall {
+	functionCalls := make([]types.FunctionCall, len(invokeFuncCalls))
 
 	for i, call := range invokeFuncCalls {
-		functionCalls[i] = FunctionCall{
+		functionCalls[i] = types.FunctionCall{
 			ContractAddress:    call.ContractAddress,
 			EntryPointSelector: GetSelectorFromNameFelt(call.FunctionName),
 			Calldata:           call.CallData,

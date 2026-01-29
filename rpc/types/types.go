@@ -64,6 +64,7 @@ type FunctionCall struct {
 	Calldata []*felt.Felt `json:"calldata"`
 }
 
+// @changed moved from the rpcvX pkg
 // InvokeFunctionCall represents a function call to be invoked on a contract.
 // It's a helper type used to build a FunctionCall for a v3 Invoke transaction.
 type InvokeFunctionCall struct {

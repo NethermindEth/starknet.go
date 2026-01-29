@@ -30,7 +30,7 @@ type TransactionResponse struct {
 //
 // Parameters:
 //   - ctx: The context.Context for the request.
-//   - functionCalls: A slice of rpc.InvokeFunctionCall representing the function
+//   - functionCalls: A slice of types.InvokeFunctionCall representing the function
 //     calls for the transaction, allowing either single or multiple function calls
 //     in the same transaction.
 //   - opts: options for building/estimating the transaction. Pass `nil` to use

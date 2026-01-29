@@ -6,7 +6,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/curve"
-	"github.com/NethermindEth/starknet.go/rpc"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // TODO: migrate this to contracts package (hard to do now due to circular imports errors,
@@ -80,8 +80,8 @@ func BuildUDCCalldata(
 	classHash *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	opts *UDCOptions,
-) (rpc.InvokeFunctionCall, *felt.Felt, error) {
-	var result rpc.InvokeFunctionCall
+) (types.InvokeFunctionCall, *felt.Felt, error) {
+	var result types.InvokeFunctionCall
 	if classHash == nil {
 		return result, nil, errClassHashNotProvided
 	}
@@ -137,7 +137,7 @@ func BuildUDCCalldata(
 		return result, nil, errInvalidUDCVersion
 	}
 
-	result = rpc.InvokeFunctionCall{
+	result = types.InvokeFunctionCall{
 		ContractAddress: udcAddress,
 		FunctionName:    methodName,
 		CallData:        udcCallData,

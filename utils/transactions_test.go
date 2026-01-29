@@ -7,7 +7,6 @@ import (
 
 	"github.com/NethermindEth/starknet.go/contracts"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
@@ -816,9 +815,6 @@ func TestTypes(t *testing.T) {
 
 	_ = BuildDeployAccountTxn(&rpcv9.BroadcastDeployAccountTxnV3{}, nil, nil, nil, nil, nil, nil)
 	_ = BuildDeployAccountTxn(&rpcv10.BroadcastDeployAccountTxnV3{}, nil, nil, nil, nil, nil, nil)
-
-	_ = InvokeFuncCallsToFunctionCalls[rpcv9.FunctionCall]([]rpc.InvokeFunctionCall{})
-	_ = InvokeFuncCallsToFunctionCalls[rpcv10.FunctionCall]([]rpc.InvokeFunctionCall{})
 
 	_ = CustomFeeEstToResBoundsMap(&rpcv9.FeeEstimation{}, &rpcv9.ResourceBoundsMapping{}, 0, nil)
 	_ = CustomFeeEstToResBoundsMap(&rpcv10.FeeEstimation{}, &rpcv10.ResourceBoundsMapping{}, 0, nil)
