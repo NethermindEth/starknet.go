@@ -13,6 +13,16 @@ import (
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
+// TransactionResponse is a generic response for all transaction types sent to the network.
+type TransactionResponse struct {
+	// Present for all transaction types
+	Hash *felt.Felt `json:"transaction_hash"`
+	// Present only for declare transactions
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+	// Present only for deploy_account transactions
+	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+}
+
 // BuildAndSendInvokeTxn builds and sends a v3 invoke transaction with the
 // given function calls. It automatically calculates the nonce, formats the
 // calldata, estimates fees, and signs the transaction with the account's private
@@ -33,8 +43,8 @@ func (account *Account) BuildAndSendInvokeTxn(
 	ctx context.Context,
 	functionCalls []types.InvokeFunctionCall,
 	opts *TxnOptions,
-) (types.TransactionResponse, error) {
-	var response types.TransactionResponse
+) (TransactionResponse, error) {
+	var response TransactionResponse
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return response, err
@@ -58,7 +68,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		account.Address,
 		nonce,
 		callData,
-		makeResourceBoundsMapWithZeroValues(),
+		makeEmptyResourceBM(),
 		&utils.TxnOptions{
 			Tip:            tip,
 			UseQueryBit:    opts.UseQueryBit,
@@ -125,8 +135,8 @@ func (account *Account) BuildAndSendDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	opts *TxnOptions,
-) (types.TransactionResponse, error) {
-	var response types.TransactionResponse
+) (TransactionResponse, error) {
+	var response TransactionResponse
 	nonce, err := account.Nonce(ctx)
 	if err != nil {
 		return response, err
@@ -156,7 +166,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 		casmClass,
 		contractClass,
 		nonce,
-		makeResourceBoundsMapWithZeroValues(),
+		makeEmptyResourceBM(),
 		&utils.TxnOptions{
 			Tip:            tip,
 			UseQueryBit:    opts.UseQueryBit,
@@ -250,7 +260,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 		salt,
 		constructorCalldata,
 		classHash,
-		makeResourceBoundsMapWithZeroValues(),
+		makeEmptyResourceBM(),
 		&utils.TxnOptions{
 			Tip:            tip,
 			UseQueryBit:    opts.UseQueryBit,
@@ -340,8 +350,8 @@ func (account *Account) DeployContractWithUDC(
 	constructorCalldata []*felt.Felt,
 	txnOpts *TxnOptions,
 	udcOpts *UDCOptions,
-) (types.TransactionResponse, *felt.Felt, error) {
-	var response types.TransactionResponse
+) (TransactionResponse, *felt.Felt, error) {
+	var response TransactionResponse
 	udcCallData, salt, err := utils.BuildUDCCalldata(classHash, constructorCalldata, udcOpts)
 	if err != nil {
 		return response, nil, err
@@ -368,17 +378,17 @@ func (account *Account) DeployContractWithUDC(
 //   - txn: the Broadcast V3 Transaction to be sent
 //
 // Returns:
-//   - types.TransactionResponse: the transaction response for each TransactionResponse
+//   - TransactionResponse: the transaction response for each TransactionResponse
 //   - error: an error if any
 //
 //nolint:exhaustruct // Setting only the correct fields
 func (account *Account) SendTransaction(
 	ctx context.Context,
 	txn types.BroadcastTxn,
-) (types.TransactionResponse, error) {
+) (TransactionResponse, error) {
 	// @todo move this to basicprovider.SendTransaction
 
-	// var response types.TransactionResponse
+	// var response TransactionResponse
 	// switch tx := txn.(type) {
 	// // broadcast invoke v3, pointer and struct
 	// case *types.BroadcastInvokeTxnV3:
@@ -387,14 +397,14 @@ func (account *Account) SendTransaction(
 	// 		return response, err
 	// 	}
 
-	// 	return types.TransactionResponse{Hash: resp.Hash}, nil
+	// 	return TransactionResponse{Hash: resp.Hash}, nil
 	// case types.BroadcastInvokeTxnV3:
 	// 	resp, err := account.provider.AddInvokeTransaction(ctx, &tx)
 	// 	if err != nil {
 	// 		return response, err
 	// 	}
 
-	// 	return types.TransactionResponse{Hash: resp.Hash}, nil
+	// 	return TransactionResponse{Hash: resp.Hash}, nil
 	// // broadcast declare v3, pointer and struct
 	// case *types.BroadcastDeclareTxnV3:
 	// 	resp, err := account.provider.AddDeclareTransaction(ctx, tx)
@@ -402,7 +412,7 @@ func (account *Account) SendTransaction(
 	// 		return response, err
 	// 	}
 
-	// 	return types.TransactionResponse{
+	// 	return TransactionResponse{
 	// 		Hash:      resp.Hash,
 	// 		ClassHash: resp.ClassHash,
 	// 	}, nil
@@ -412,7 +422,7 @@ func (account *Account) SendTransaction(
 	// 		return response, err
 	// 	}
 
-	// 	return types.TransactionResponse{
+	// 	return TransactionResponse{
 	// 		Hash:      resp.Hash,
 	// 		ClassHash: resp.ClassHash,
 	// 	}, nil
@@ -423,7 +433,7 @@ func (account *Account) SendTransaction(
 	// 		return response, err
 	// 	}
 
-	// 	return types.TransactionResponse{
+	// 	return TransactionResponse{
 	// 		Hash:            resp.Hash,
 	// 		ContractAddress: resp.ContractAddress,
 	// 	}, nil
@@ -433,7 +443,7 @@ func (account *Account) SendTransaction(
 	// 		return response, err
 	// 	}
 
-	// 	return types.TransactionResponse{
+	// 	return TransactionResponse{
 	// 		Hash:            resp.Hash,
 	// 		ContractAddress: resp.ContractAddress,
 	// 	}, nil

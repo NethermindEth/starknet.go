@@ -32,22 +32,22 @@ type AccountInterface interface {
 		ctx context.Context,
 		functionCalls []types.InvokeFunctionCall,
 		opts *TxnOptions,
-	) (types.TransactionResponse, error)
+	) (TransactionResponse, error)
 	BuildAndSendDeclareTxn(
 		ctx context.Context,
 		casmClass *contracts.CasmClass,
 		contractClass *contracts.ContractClass,
 		opts *TxnOptions,
-	) (types.TransactionResponse, error)
+	) (TransactionResponse, error)
 	DeployContractWithUDC(
 		ctx context.Context,
 		classHash *felt.Felt,
 		constructorCalldata []*felt.Felt,
 		txnOpts *TxnOptions,
 		udcOpts *UDCOptions,
-	) (types.TransactionResponse, *felt.Felt, error)
+	) (TransactionResponse, *felt.Felt, error)
 	Nonce(ctx context.Context) (*felt.Felt, error)
-	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
+	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (TransactionResponse, error)
 	Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt, error)
 	SignInvokeTransaction(ctx context.Context, tx any) error
 	SignDeployAccountTransaction(

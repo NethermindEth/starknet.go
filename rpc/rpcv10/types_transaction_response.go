@@ -19,4 +19,4 @@ type AddInvokeTransactionResponse struct {
 	Hash *felt.Felt `json:"transaction_hash"`
 }
 
-// @changed TransactionResponse removed
+// @changed TransactionResponse moved to account

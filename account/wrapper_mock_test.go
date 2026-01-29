@@ -133,10 +133,10 @@ func (mr *MockproviderWrapperMockRecorder) Nonce(ctx, blockID, contractAddress a
 }
 
 // SendTransaction mocks base method.
-func (m *MockproviderWrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error) {
+func (m *MockproviderWrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (TransactionResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendTransaction", ctx, txn)
-	ret0, _ := ret[0].(types.TransactionResponse)
+	ret0, _ := ret[0].(TransactionResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

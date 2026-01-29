@@ -29,7 +29,7 @@ type providerWrapper interface {
 	TransactionReceipt(ctx context.Context, transactionHash *felt.Felt) (types.TransactionReceiptWithBlockInfo, error)
 	TransactionStatus(ctx context.Context, transactionHash *felt.Felt) (types.TxnStatusResult, error)
 	EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
+	SendTransaction(ctx context.Context, txn types.BroadcastTxn) (TransactionResponse, error)
 	AsV9() rpcv9.RPCProvider
 	AsV10() rpcv10.RPCProvider
 	Version() RPCVersion
@@ -89,7 +89,7 @@ func (p *wrapper) TransactionStatus(
 	transactionHash *felt.Felt,
 ) (types.TxnStatusResult, error)
 func (p *wrapper) EstimateTip(ctx context.Context, multiplier float64) (tip types.U64, err error)
-func (p *wrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (types.TransactionResponse, error)
+func (p *wrapper) SendTransaction(ctx context.Context, txn types.BroadcastTxn) (TransactionResponse, error)
 func (p *wrapper) AsV9() rpcv9.RPCProvider {
 	return p.rpcv9
 }
