@@ -13,6 +13,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 var (
@@ -96,6 +97,8 @@ func NewWebsocketProvider(
 	return &WsProvider{s: s}, nil
 }
 
+// @changed
+//
 //go:generate mockgen -destination=../../internal/tests/mocks/ock/rpc.go -package=ock -source=provider.go
 type RPCProvider interface {
 	AddInvokeTransaction(
@@ -116,7 +119,7 @@ type RPCProvider interface {
 	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
 	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
 	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
-	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
+	Call(ctx context.Context, call types.FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
 	ClassAt(

@@ -214,15 +214,6 @@ type AddDeclareTransactionOutput struct {
 	ClassHash       *felt.Felt `json:"class_hash"`
 }
 
-// FunctionCall function call information
-type FunctionCall struct {
-	ContractAddress    *felt.Felt `json:"contract_address"`
-	EntryPointSelector *felt.Felt `json:"entry_point_selector"`
-
-	// Calldata The parameters passed to the function
-	Calldata []*felt.Felt `json:"calldata"`
-}
-
 // @changed InvokeFunctionCall moved to rpc pkg
 
 // @removed TxDetails

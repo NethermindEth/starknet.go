@@ -6,6 +6,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // @todo implement all the methods
@@ -69,9 +70,10 @@ func (provider *Provider) BlockWithTxs(
 	return nil, nil
 }
 
+// @changed
 func (provider *Provider) Call(
 	ctx context.Context,
-	call FunctionCall,
+	call types.FunctionCall,
 	block BlockID,
 ) ([]*felt.Felt, error) {
 	return nil, nil

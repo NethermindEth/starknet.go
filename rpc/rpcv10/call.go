@@ -7,13 +7,14 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Call calls the Starknet Provider's function with the given (Starknet) request and block ID.
 //
 // Parameters:
 //   - ctx: the context.Context object for the function call
-//   - request: the FunctionCall object representing the request
+//   - request: the types.FunctionCall object representing the request
 //   - blockID: the BlockID object representing the block ID
 //
 // Returns
@@ -22,7 +23,7 @@ import (
 func Call(
 	ctx context.Context,
 	c callers.Caller,
-	request FunctionCall,
+	request types.FunctionCall,
 	blockID BlockID,
 ) ([]*felt.Felt, error) {
 	if request.Calldata == nil {

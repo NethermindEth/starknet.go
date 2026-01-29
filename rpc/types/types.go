@@ -54,6 +54,7 @@ func (u U128) ToBigInt() (*big.Int, error) {
 
 // @changed this entire pkg is new and contains migrated code
 
+// @changed moved from the rpcvX pkg
 // FunctionCall function call information
 type FunctionCall struct {
 	ContractAddress    *felt.Felt `json:"contract_address"`
