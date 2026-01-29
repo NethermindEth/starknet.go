@@ -50,7 +50,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 		return response, err
 	}
 
-	callData, err := account.FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
+	callData, err := FmtCalldata(utils.InvokeFuncCallsToFunctionCalls(functionCalls))
 	if err != nil {
 		return response, err
 	}

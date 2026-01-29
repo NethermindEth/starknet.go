@@ -177,13 +177,27 @@ func PrecomputeAccountAddress(
 //   - a slice of *felt.Felt representing the formatted calldata.
 //   - an error if Cairo version is not supported.
 func (account *Account) FmtCalldata(fnCalls []types.FunctionCall) ([]*felt.Felt, error) {
-	switch account.CairoVersion {
+	return FmtCalldata(account.CairoVersion, fnCalls)
+}
+
+// @new
+// FmtCalldata generates the formatted calldata for the given function calls and Cairo version.
+//
+// Parameters:
+//   - cairoVersion: the Cairo version to use
+//   - fnCalls: a slice of types.FunctionCall representing the function calls.
+//
+// Returns:
+//   - a slice of *felt.Felt representing the formatted calldata.
+//   - an error if Cairo version is not supported.
+func FmtCalldata(cairoVersion CairoVersion, fnCalls []types.FunctionCall) ([]*felt.Felt, error) {
+	switch cairoVersion {
 	case CairoV0:
 		return FmtCallDataCairo0(fnCalls), nil
 	case CairoV2:
 		return FmtCallDataCairo2(fnCalls), nil
 	default:
-		return nil, fmt.Errorf("account cairo version '%d' not supported", account.CairoVersion)
+		return nil, fmt.Errorf("account cairo version '%d' not supported", cairoVersion)
 	}
 }
 
