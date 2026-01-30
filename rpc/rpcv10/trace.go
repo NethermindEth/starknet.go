@@ -38,7 +38,7 @@ func SimulateTransactions(
 	c callers.Caller,
 	blockID BlockID,
 	txns []BroadcastTxn,
-	simulationFlags []SimulationFlag,
+	simulationFlags []types.SimulationFlag,
 ) ([]SimulatedTransaction, error) {
 	var output []SimulatedTransaction
 	if err := internal.Do(

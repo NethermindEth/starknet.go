@@ -128,7 +128,7 @@ func (provider *Provider) CompiledCasm(
 func (provider *Provider) EstimateFee(
 	ctx context.Context,
 	requests []BroadcastTxn,
-	simulationFlags []SimulationFlag,
+	simulationFlags []types.SimulationFlag,
 	blockID BlockID,
 ) ([]FeeEstimation, error) {
 	return nil, nil
@@ -165,7 +165,7 @@ func (provider *Provider) SimulateTransactions(
 	ctx context.Context,
 	blockID BlockID,
 	txns []BroadcastTxn,
-	simulationFlags []SimulationFlag,
+	simulationFlags []types.SimulationFlag,
 ) ([]SimulatedTransaction, error) {
 	return nil, nil
 }

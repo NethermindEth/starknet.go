@@ -1,9 +1,6 @@
 package rpcv10
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
@@ -50,81 +47,8 @@ type OrderedMsg struct {
 }
 
 type FeePayment struct {
-	Amount *felt.Felt `json:"amount"`
-	Unit   PriceUnit  `json:"unit"`
-}
-
-// Units in which the fee is given
-type PriceUnit string
-
-const (
-	UnitWei PriceUnit = "WEI"
-	UnitFri PriceUnit = "FRI"
-)
-
-// Representation of the unit WEI
-type PriceUnitWei string
-
-const (
-	WeiUnit PriceUnitWei = "WEI"
-)
-
-// Representation of the unit FRI
-type PriceUnitFri string
-
-const (
-	FriUnit PriceUnitFri = "FRI"
-)
-
-// Unmarshals the JSON data into a PriceUnit.
-func (f *PriceUnit) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-
-	switch unquoted {
-	case "WEI":
-		*f = UnitWei
-	case "FRI":
-		*f = UnitFri
-	default:
-		return fmt.Errorf("unsupported price unit: %s", data)
-	}
-
-	return nil
-}
-
-// Unmarshals the JSON data into a PriceUnitWei.
-func (f *PriceUnitWei) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-
-	if unquoted != string(WeiUnit) {
-		return fmt.Errorf("price unit should be WEI, got: %s", data)
-	}
-
-	*f = WeiUnit
-
-	return nil
-}
-
-// Unmarshals the JSON data into a PriceUnitFri.
-func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
-	unquoted, err := strconv.Unquote(string(data))
-	if err != nil {
-		return err
-	}
-
-	if unquoted != string(FriUnit) {
-		return fmt.Errorf("price unit should be FRI, got: %s", data)
-	}
-
-	*f = FriUnit
-
-	return nil
+	Amount *felt.Felt      `json:"amount"`
+	Unit   types.PriceUnit `json:"unit"`
 }
 
 // TransactionReceipt represents the common structure of a transaction receipt.

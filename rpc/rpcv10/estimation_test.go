@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +24,7 @@ func TestEstimateFee(t *testing.T) {
 	type testSetType struct {
 		description   string
 		txs           []BroadcastTxn
-		simFlags      []SimulationFlag
+		simFlags      []types.SimulationFlag
 		blockID       BlockID
 		expectedError *RPCError
 	}
@@ -49,7 +50,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []SimulationFlag{},
+				simFlags: []types.SimulationFlag{},
 				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
@@ -57,7 +58,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []SimulationFlag{SkipValidate},
+				simFlags: []types.SimulationFlag{types.SkipValidate},
 				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
@@ -83,7 +84,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
+				simFlags:      []types.SimulationFlag{},
 				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 			},
@@ -92,7 +93,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
+				simFlags:      []types.SimulationFlag{types.SkipValidate},
 				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 			},
@@ -121,7 +122,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
+				simFlags:      []types.SimulationFlag{},
 				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
@@ -130,7 +131,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
+				simFlags:      []types.SimulationFlag{types.SkipValidate},
 				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},

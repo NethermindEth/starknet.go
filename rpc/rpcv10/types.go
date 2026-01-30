@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type ResultPageRequest struct {
@@ -239,7 +240,7 @@ type FeeEstimation struct {
 	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
 	// Units in which the fee is given, can only be FRI
-	Unit PriceUnitFri `json:"unit"`
+	Unit types.PriceUnitFri `json:"unit"`
 }
 
 // @changed now it contains all the fields from the FeeEstimationCommon type
@@ -264,5 +265,5 @@ type MessageFeeEstimation struct {
 	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
 	OverallFee *felt.Felt `json:"overall_fee"`
 	// Units in which the fee is given, can only be WEI
-	Unit PriceUnitWei `json:"unit"`
+	Unit types.PriceUnitWei `json:"unit"`
 }
