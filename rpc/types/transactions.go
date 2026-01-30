@@ -10,6 +10,16 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 )
 
+// TransactionResponse is a generic response for all transaction types sent to the network.
+type TransactionResponse struct {
+	// Present for all transaction types
+	Hash *felt.Felt `json:"transaction_hash"`
+	// Present only for declare transactions
+	ClassHash *felt.Felt `json:"class_hash,omitempty"`
+	// Present only for deploy_account transactions
+	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
+}
+
 // DA_MODE: Specifies a storage domain in Starknet. Each domain has different
 // guarantees regarding availability
 type DataAvailabilityMode string
@@ -158,14 +168,4 @@ func (tt *TransactionType) UnmarshalJSON(data []byte) error {
 // MarshalJSON marshals the TransactionType to JSON.
 func (tt TransactionType) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(string(tt))), nil
-}
-
-// TransactionResponse is a generic response for all transaction types sent to the network.
-type TransactionResponse struct {
-	// Present for all transaction types
-	Hash *felt.Felt `json:"transaction_hash"`
-	// Present only for declare transactions
-	ClassHash *felt.Felt `json:"class_hash,omitempty"`
-	// Present only for deploy_account transactions
-	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 }
