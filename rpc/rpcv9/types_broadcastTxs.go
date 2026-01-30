@@ -3,6 +3,7 @@ package rpcv9
 import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type BroadcastTxn interface{}
@@ -28,7 +29,7 @@ type BroadcastDeclareTxnV3 struct {
 	Nonce             *felt.Felt               `json:"nonce"`
 	ContractClass     *contracts.ContractClass `json:"contract_class"`
 	ResourceBounds    *ResourceBoundsMapping   `json:"resource_bounds"`
-	Tip               U64                      `json:"tip"`
+	Tip               types.U64                `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -47,7 +48,7 @@ func (tx BroadcastDeclareTxnV3) GetSignature() []*felt.Felt                 { re
 func (tx BroadcastDeclareTxnV3) GetNonce() *felt.Felt                       { return tx.Nonce }
 func (tx BroadcastDeclareTxnV3) GetContractClass() *contracts.ContractClass { return tx.ContractClass }
 func (tx BroadcastDeclareTxnV3) GetResourceBounds() *ResourceBoundsMapping  { return tx.ResourceBounds }
-func (tx BroadcastDeclareTxnV3) GetTip() U64                                { return tx.Tip }
+func (tx BroadcastDeclareTxnV3) GetTip() types.U64                          { return tx.Tip }
 func (tx BroadcastDeclareTxnV3) GetPayMasterData() []*felt.Felt             { return tx.PayMasterData }
 func (tx BroadcastDeclareTxnV3) GetAccountDeploymentData() []*felt.Felt {
 	return tx.AccountDeploymentData
