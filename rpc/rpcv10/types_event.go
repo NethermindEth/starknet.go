@@ -43,9 +43,9 @@ type EmittedEvent struct {
 
 type EventFilter struct {
 	// FromBlock from block
-	FromBlock BlockID `json:"from_block,omitempty"`
+	FromBlock types.BlockID `json:"from_block,omitempty"`
 	// ToBlock to block
-	ToBlock BlockID `json:"to_block,omitempty"`
+	ToBlock types.BlockID `json:"to_block,omitempty"`
 	// Address from contract
 	Address *felt.Felt `json:"address,omitempty"`
 	// Keys the values used to filter the events
@@ -69,7 +69,7 @@ type EventSubscriptionInput struct {
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
 	// (Optional) The block to get notifications from, default is latest, limited
 	// to 1024 blocks back
-	SubBlockID SubscriptionBlockID `json:"block_id,omitzero"`
+	SubBlockID types.SubscriptionBlockID `json:"block_id,omitzero"`
 	// (Optional) The finality status of the most recent events to include.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is `ACCEPTED_ON_L2`.
 	// If PRE_CONFIRMED finality is selected, events might appear multiple times,

@@ -20,7 +20,7 @@ var (
 type StorageProofInput struct {
 	// Required. The hash of the requested block, or number (height) of the
 	// requested block, or a block tag
-	BlockID BlockID `json:"block_id"`
+	blockID types.BlockID `json:"block_id"`
 	// Optional. A list of the class hashes for which we want to prove
 	// membership in the classes trie
 	ClassHashes []*felt.Felt `json:"class_hashes,omitempty"`

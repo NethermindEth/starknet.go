@@ -36,7 +36,7 @@ import (
 func SimulateTransactions(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 	txns []BroadcastTxn,
 	simulationFlags []types.SimulationFlag,
 ) ([]SimulatedTransaction, error) {
@@ -62,7 +62,7 @@ func SimulateTransactions(
 func TraceBlockTransactions(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 ) ([]Trace, error) {
 	err := checkForPreConfirmed(blockID)
 	if err != nil {

@@ -31,7 +31,7 @@ func EstimateFee(
 	c callers.Caller,
 	requests []BroadcastTxn,
 	simulationFlags []types.SimulationFlag,
-	blockID BlockID,
+	blockID types.BlockID,
 ) ([]FeeEstimation, error) {
 	var raw []FeeEstimation
 	if err := internal.Do(
@@ -62,7 +62,7 @@ func EstimateMessageFee(
 	ctx context.Context,
 	c callers.Caller,
 	msg MsgFromL1,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (MessageFeeEstimation, error) {
 	var raw MessageFeeEstimation
 	if err := internal.Do(

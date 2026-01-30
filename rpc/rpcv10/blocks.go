@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // BlockHashAndNumber retrieves the hash and number of the current block.
@@ -58,7 +59,7 @@ func BlockNumber(ctx context.Context, c callers.Caller) (uint64, error) {
 func BlockTransactionCount(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (uint64, error) {
 	var result uint64
 	if err := internal.Do(ctx, c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
@@ -72,7 +73,7 @@ func BlockTransactionCount(
 func GetBlockWithReceipts(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (interface{}, error) {
 	var result json.RawMessage
 	if err := internal.Do(ctx, c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
@@ -114,7 +115,7 @@ func GetBlockWithReceipts(
 func BlockWithTxHashes(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (interface{}, error) {
 	var result BlockTxHashes
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxHashes", &result, blockID); err != nil {
@@ -153,7 +154,7 @@ func BlockWithTxHashes(
 func BlockWithTxs(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (interface{}, error) {
 	var result Block
 	if err := internal.Do(ctx, c, "starknet_getBlockWithTxs", &result, blockID); err != nil {

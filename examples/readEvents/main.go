@@ -10,6 +10,7 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -359,7 +360,7 @@ func filterWithWebsocket(provider *rpcv10.Provider, websocketURL string) {
 			FromAddress: contractAddress,
 			// Subscribe to events from the latest block minus 10 (it'll return
 			// events from the last 10 blocks and progressively update as new blocks are added)
-			SubBlockID: new(rpcv10.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
+			SubBlockID: new(types.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
 			Keys: [][]*felt.Felt{
 				// the 'keys'filter behaves the same way as the RPC provider `starknet_getEvents` explained above.
 				// So this will return all events that have the 'Transfer' selector as the first key.

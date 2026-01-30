@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Class retrieves the class information from the Provider with the given hash.
@@ -24,7 +25,7 @@ import (
 func Class(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 	classHash *felt.Felt,
 ) (ClassOutput, error) {
 	var rawClass map[string]any
@@ -48,7 +49,7 @@ func Class(
 func ClassAt(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (ClassOutput, error) {
 	var rawClass map[string]any
@@ -106,7 +107,7 @@ func typecastClassOutput(rawClass map[string]any) (ClassOutput, error) {
 func ClassHashAt(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 	contractAddress *felt.Felt,
 ) (*felt.Felt, error) {
 	var result *felt.Felt

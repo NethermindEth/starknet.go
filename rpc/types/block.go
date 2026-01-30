@@ -83,6 +83,67 @@ func (b BlockID) MarshalJSON() ([]byte, error) {
 	return json.Marshal(nil)
 }
 
+// TODO: rename it to SubBlockID
+
+// Block hash, number or tag, same as BLOCK_ID, but without 'pre_confirmed' or 'l1_accepted'
+type SubscriptionBlockID BlockID
+
+// BlockID returns a BlockID from a SubscriptionBlockID.
+func (b *SubscriptionBlockID) BlockID() BlockID {
+	return BlockID{
+		Number: b.Number,
+		Hash:   b.Hash,
+		Tag:    b.Tag,
+	}
+}
+
+func (b *SubscriptionBlockID) UnmarshalJSON(data []byte) error {
+	var aux BlockID
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.Tag == BlockTagPreConfirmed || aux.Tag == BlockTagL1Accepted {
+		return fmt.Errorf("invalid block tag for this type: %s", aux.Tag)
+	}
+
+	*b = SubscriptionBlockID(aux)
+
+	return nil
+}
+
+func (b SubscriptionBlockID) MarshalJSON() ([]byte, error) {
+	if b.Tag == BlockTagPreConfirmed || b.Tag == BlockTagL1Accepted {
+		return nil, fmt.Errorf("invalid block tag for this type: %s", b.Tag)
+	}
+
+	return BlockID(b).MarshalJSON()
+}
+
+// TODO: remove methods and make tem WithSubBlockNumber, ...
+
+// WithBlockNumber sets the block number for the SubscriptionBlockID.
+func (b *SubscriptionBlockID) WithBlockNumber(number uint64) SubscriptionBlockID {
+	b.Number = &number
+
+	return *b
+}
+
+// WithBlockHash sets the block hash for the SubscriptionBlockID.
+func (b *SubscriptionBlockID) WithBlockHash(hash *felt.Felt) SubscriptionBlockID {
+	b.Hash = hash
+
+	return *b
+}
+
+// WithLatestTag sets the block tag to latest for the SubscriptionBlockID.
+// It's the only block tag allowed for this type.
+func (b *SubscriptionBlockID) WithLatestTag() SubscriptionBlockID {
+	b.Tag = BlockTagLatest
+
+	return *b
+}
+
 // WithBlockNumber returns a BlockID with the given block number.
 //
 // Parameters:

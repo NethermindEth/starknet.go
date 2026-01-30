@@ -7,6 +7,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Events subscription.
@@ -63,14 +64,14 @@ func SubscribeNewHeads(
 	ctx context.Context,
 	ws callers.Subscriber,
 	headers chan<- *BlockHeader,
-	subBlockID SubscriptionBlockID,
+	subBlockID types.SubscriptionBlockID,
 ) (*client.ClientSubscription, error) {
 	var sub *client.ClientSubscription
 	var err error
 
 	// @todo see why not accept subBlockID as a pointer
 	// if subBlockID is empty, don't send it to the server to avoid it being marshalled as 'null'
-	if subBlockID == (SubscriptionBlockID{}) { //nolint:exhaustruct // Asserting the type
+	if subBlockID == (types.SubscriptionBlockID{}) { //nolint:exhaustruct // Asserting the type
 		sub, err = ws.SubscribeWithSliceArgs(ctx, "starknet", "_subscribeNewHeads", headers)
 	} else {
 		sub, err = ws.SubscribeWithSliceArgs(

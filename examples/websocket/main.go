@@ -8,6 +8,7 @@ import (
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 	sub, err := wsClient.SubscribeNewHeads(
 		context.Background(),
 		newHeadsChan,
-		rpcv10.SubscriptionBlockID{},
+		types.SubscriptionBlockID{},
 	)
 	if err != nil {
 		panic(err)
@@ -74,7 +75,7 @@ loop1:
 	sub, err = wsClient.SubscribeNewHeads(
 		context.Background(),
 		newHeadsChan,
-		new(rpcv10.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10),
+		new(types.SubscriptionBlockID).WithBlockNumber(latestBlockNumber-10),
 	)
 	if err != nil {
 		panic(err)

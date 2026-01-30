@@ -24,7 +24,7 @@ func Call(
 	ctx context.Context,
 	c callers.Caller,
 	request types.FunctionCall,
-	blockID BlockID,
+	blockID types.BlockID,
 ) ([]*felt.Felt, error) {
 	if request.Calldata == nil {
 		request.Calldata = []*felt.Felt{}

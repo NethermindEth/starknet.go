@@ -25,7 +25,7 @@ func TestEstimateFee(t *testing.T) {
 		description   string
 		txs           []BroadcastTxn
 		simFlags      []types.SimulationFlag
-		blockID       BlockID
+		blockID       types.BlockID
 		expectedError *RPCError
 	}
 
@@ -51,7 +51,7 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags: []types.SimulationFlag{},
-				blockID:  WithBlockTag(BlockTagLatest),
+				blockID:  types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				description: "with flag",
@@ -59,14 +59,14 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags: []types.SimulationFlag{types.SkipValidate},
-				blockID:  WithBlockTag(BlockTagLatest),
+				blockID:  types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				description: "invalid transaction",
 				txs: []BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
-				blockID:       WithBlockNumber(100000),
+				blockID:       types.WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -74,7 +74,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -85,7 +85,7 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags:      []types.SimulationFlag{},
-				blockID:       WithBlockNumber(574447),
+				blockID:       types.WithBlockNumber(574447),
 				expectedError: nil,
 			},
 			{
@@ -94,7 +94,7 @@ func TestEstimateFee(t *testing.T) {
 					sepoliaInvokeV3,
 				},
 				simFlags:      []types.SimulationFlag{types.SkipValidate},
-				blockID:       WithBlockNumber(574447),
+				blockID:       types.WithBlockNumber(574447),
 				expectedError: nil,
 			},
 			{
@@ -102,7 +102,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					invalidSepoliaInvokeV3,
 				},
-				blockID:       WithBlockNumber(100000),
+				blockID:       types.WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -110,7 +110,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 			// the contract_not_found error will not be tested since it's still not clear
@@ -123,7 +123,7 @@ func TestEstimateFee(t *testing.T) {
 					integrationInvokeV3,
 				},
 				simFlags:      []types.SimulationFlag{},
-				blockID:       WithBlockNumber(1_300_000),
+				blockID:       types.WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
 			{
@@ -132,7 +132,7 @@ func TestEstimateFee(t *testing.T) {
 					integrationInvokeV3,
 				},
 				simFlags:      []types.SimulationFlag{types.SkipValidate},
-				blockID:       WithBlockNumber(1_300_000),
+				blockID:       types.WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
 			{
@@ -140,7 +140,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					invalidIntegrationInvokeV3,
 				},
-				blockID:       WithBlockNumber(100000),
+				blockID:       types.WithBlockNumber(100000),
 				expectedError: ErrTxnExec,
 			},
 			{
@@ -148,7 +148,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				blockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -169,7 +169,7 @@ func TestEstimateFee(t *testing.T) {
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
 						txs := args[0].([]BroadcastTxn)
-						blockID := args[2].(BlockID)
+						blockID := args[2].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -243,7 +243,7 @@ func TestEstimateMessageFee(t *testing.T) {
 	type testSetType struct {
 		Description string
 		MsgFromL1
-		BlockID       BlockID
+		blockID       types.BlockID
 		ExpectedError *RPCError
 	}
 
@@ -278,24 +278,24 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				Description: "normal call",
 				MsgFromL1:   l1Handler,
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:   "contract error",
 				MsgFromL1:     l1HandlerInvalidSelector,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				blockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrContractError,
 			},
 			{
 				Description:   "contract not found",
 				MsgFromL1:     l1HandlerInvalidToAddress,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				blockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
 			{
 				Description:   "invalid block",
 				MsgFromL1:     l1Handler,
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
@@ -303,24 +303,24 @@ func TestEstimateMessageFee(t *testing.T) {
 			{
 				Description: "normal call",
 				MsgFromL1:   l1Handler,
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:   "contract error",
 				MsgFromL1:     l1HandlerInvalidSelector,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				blockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrContractError,
 			},
 			{
 				Description:   "contract not found",
 				MsgFromL1:     l1HandlerInvalidToAddress,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				blockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrContractNotFound,
 			},
 			{
 				Description:   "invalid block",
 				MsgFromL1:     l1Handler,
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
@@ -335,12 +335,12 @@ func TestEstimateMessageFee(t *testing.T) {
 						gomock.Any(),
 						"starknet_estimateMessageFee",
 						test.MsgFromL1,
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
 						msgFromL1 := args[0].(MsgFromL1)
-						blockID := args[1].(BlockID)
+						blockID := args[1].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -386,7 +386,7 @@ func TestEstimateMessageFee(t *testing.T) {
 				t.Context(),
 				testConfig.Provider,
 				test.MsgFromL1,
-				test.BlockID,
+				test.blockID,
 			)
 			if test.ExpectedError != nil {
 				rpcErr, ok := err.(*RPCError)

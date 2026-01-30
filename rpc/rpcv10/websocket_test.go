@@ -99,8 +99,8 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "with block ID only",
 			input: &EventSubscriptionInput{
-				SubBlockID: SubscriptionBlockID{
-					Tag: BlockTagLatest,
+				SubBlockID: types.SubscriptionBlockID{
+					Tag: types.BlockTagLatest,
 				},
 			},
 		},
@@ -121,7 +121,7 @@ func TestSubscribeEvents(t *testing.T) {
 			input: &EventSubscriptionInput{
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
-				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
+				SubBlockID:     new(types.SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
@@ -135,14 +135,14 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "error: too many blocks back",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+				SubBlockID: new(types.SubscriptionBlockID).WithBlockNumber(3_000_000),
 			},
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description: "error: block not found",
 			input: &EventSubscriptionInput{
-				SubBlockID: new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				SubBlockID: new(types.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			},
 			expectedError: ErrBlockNotFound,
 		},
@@ -359,7 +359,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 
 	type testSetType struct {
 		description   string
-		subBlockID    SubscriptionBlockID
+		subBlockID    types.SubscriptionBlockID
 		expectedError error
 	}
 
@@ -369,16 +369,16 @@ func TestSubscribeNewHeads(t *testing.T) {
 		},
 		{
 			description: "with tag latest",
-			subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
+			subBlockID:  new(types.SubscriptionBlockID).WithLatestTag(),
 		},
 		{
 			description:   "error - too many blocks back",
-			subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+			subBlockID:    new(types.SubscriptionBlockID).WithBlockNumber(3_000_000),
 			expectedError: ErrTooManyBlocksBack,
 		},
 		{
 			description:   "error - block not found",
-			subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+			subBlockID:    new(types.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 			expectedError: ErrBlockNotFound,
 		},
 	}
@@ -386,16 +386,16 @@ func TestSubscribeNewHeads(t *testing.T) {
 		tests.MockEnv: {
 			{
 				description: "with tag latest",
-				subBlockID:  new(SubscriptionBlockID).WithLatestTag(),
+				subBlockID:  new(types.SubscriptionBlockID).WithLatestTag(),
 			},
 			{
 				description:   "error - too many blocks back",
-				subBlockID:    new(SubscriptionBlockID).WithBlockNumber(3_000_000),
+				subBlockID:    new(types.SubscriptionBlockID).WithBlockNumber(3_000_000),
 				expectedError: ErrTooManyBlocksBack,
 			},
 			{
 				description:   "error - block not found",
-				subBlockID:    new(SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
+				subBlockID:    new(types.SubscriptionBlockID).WithBlockHash(internalUtils.DeadBeef),
 				expectedError: ErrBlockNotFound,
 			},
 		},
@@ -420,7 +420,7 @@ func TestSubscribeNewHeads(t *testing.T) {
 					).
 					DoAndReturn(func(_, _, _, channel any, args ...any) (*client.ClientSubscription, error) {
 						ch := channel.(chan json.RawMessage)
-						subBlockID := args[0].(SubscriptionBlockID)
+						subBlockID := args[0].(types.SubscriptionBlockID)
 
 						if subBlockID.Number != nil && *subBlockID.Number == 3_000_000 {
 							return nil, RPCError{

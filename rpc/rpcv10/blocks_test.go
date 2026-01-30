@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -118,35 +119,35 @@ func TestBlockTransactionCount(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		blockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -157,13 +158,13 @@ func TestBlockTransactionCount(t *testing.T) {
 		blockIDs := GetCommonBlockIDs(t, provider)
 		for _, blockID := range blockIDs {
 			testSet = append(testSet, testSetType{
-				BlockID: blockID,
+				blockID: blockID,
 			})
 		}
 	}
 
 	for _, test := range testSet {
-		blockID, _ := test.BlockID.MarshalJSON()
+		blockID, _ := test.blockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				testConfig.MockClient.EXPECT().
@@ -171,14 +172,14 @@ func TestBlockTransactionCount(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getBlockTransactionCount",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
-							if blockID.Tag == BlockTagLatest {
+							if blockID.Tag == types.BlockTagLatest {
 								*rawResp = json.RawMessage("100")
 							}
 
@@ -198,7 +199,7 @@ func TestBlockTransactionCount(t *testing.T) {
 			count, err := BlockTransactionCount(
 				t.Context(),
 				testConfig.Provider,
-				test.BlockID,
+				test.blockID,
 			)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
@@ -230,38 +231,38 @@ func TestBlockWithReceipts(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		blockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				blockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				blockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				blockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				blockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -272,13 +273,13 @@ func TestBlockWithReceipts(t *testing.T) {
 		blockIDs := GetCommonBlockIDs(t, provider)
 		for _, blockID := range blockIDs {
 			testSet = append(testSet, testSetType{
-				BlockID: blockID,
+				blockID: blockID,
 			})
 		}
 	}
 
 	for _, test := range testSet {
-		blockID, _ := test.BlockID.MarshalJSON()
+		blockID, _ := test.blockID.MarshalJSON()
 		t.Run(string(blockID), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
@@ -297,17 +298,17 @@ func TestBlockWithReceipts(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getBlockWithReceipts",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
 							switch blockID.Tag {
-							case BlockTagPreConfirmed:
+							case types.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case BlockTagLatest:
+							case types.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 
@@ -323,7 +324,7 @@ func TestBlockWithReceipts(t *testing.T) {
 					).
 					Times(1)
 			}
-			result, err := GetBlockWithReceipts(t.Context(), testConfig.Provider, test.BlockID)
+			result, err := GetBlockWithReceipts(t.Context(), testConfig.Provider, test.blockID)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedErr.Error())
@@ -363,38 +364,38 @@ func TestBlockWithTxHashes(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		blockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -405,13 +406,13 @@ func TestBlockWithTxHashes(t *testing.T) {
 		blockIDs := GetCommonBlockIDs(t, provider)
 		for _, blockID := range blockIDs {
 			testSet = append(testSet, testSetType{
-				BlockID: blockID,
+				blockID: blockID,
 			})
 		}
 	}
 
 	for _, test := range testSet {
-		blockID, _ := test.BlockID.MarshalJSON()
+		blockID, _ := test.blockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
@@ -430,17 +431,17 @@ func TestBlockWithTxHashes(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getBlockWithTxHashes",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
 							switch blockID.Tag {
-							case BlockTagPreConfirmed:
+							case types.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case BlockTagLatest:
+							case types.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 
@@ -457,7 +458,7 @@ func TestBlockWithTxHashes(t *testing.T) {
 					Times(1)
 			}
 
-			result, err := BlockWithTxHashes(t.Context(), testConfig.Provider, test.BlockID)
+			result, err := BlockWithTxHashes(t.Context(), testConfig.Provider, test.blockID)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedErr.Error())
@@ -496,38 +497,38 @@ func TestBlockWithTxs(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		blockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -538,13 +539,13 @@ func TestBlockWithTxs(t *testing.T) {
 		blockIDs := GetCommonBlockIDs(t, provider)
 		for _, blockID := range blockIDs {
 			testSet = append(testSet, testSetType{
-				BlockID: blockID,
+				blockID: blockID,
 			})
 		}
 	}
 
 	for _, test := range testSet {
-		blockID, _ := test.BlockID.MarshalJSON()
+		blockID, _ := test.blockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
@@ -563,17 +564,17 @@ func TestBlockWithTxs(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getBlockWithTxs",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
 							switch blockID.Tag {
-							case BlockTagPreConfirmed:
+							case types.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case BlockTagLatest:
+							case types.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 
@@ -593,7 +594,7 @@ func TestBlockWithTxs(t *testing.T) {
 			blockWithTxsInterface, err := BlockWithTxs(
 				t.Context(),
 				testConfig.Provider,
-				test.BlockID,
+				test.blockID,
 			)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)

@@ -10,6 +10,7 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // StateUpdate is a function that performs a state update operation
@@ -25,7 +26,7 @@ import (
 func GetStateUpdate(
 	ctx context.Context,
 	c callers.Caller,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (*StateUpdateOutput, error) {
 	var state StateUpdateOutput
 	if err := internal.Do(ctx, c, "starknet_getStateUpdate", &state, blockID); err != nil {
@@ -51,7 +52,7 @@ func StorageAt(
 	c callers.Caller,
 	contractAddress *felt.Felt,
 	key string,
-	blockID BlockID,
+	blockID types.BlockID,
 ) (string, error) {
 	var value string
 	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
@@ -82,7 +83,7 @@ func StorageProof(
 	c callers.Caller,
 	storageProofInput StorageProofInput,
 ) (*StorageProofResult, error) {
-	err := checkForPreConfirmed(storageProofInput.BlockID)
+	err := checkForPreConfirmed(storageProofInput.blockID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +105,8 @@ func StorageProof(
 // checkForPreConfirmed checks if the block ID has the 'pre_confirmed' tag. If it
 // does, it returns an error. This is used to prevent the user from using the
 // 'pre_confirmed' tag on methods that do not support it.
-func checkForPreConfirmed(b BlockID) error {
-	if b.Tag == BlockTagPreConfirmed {
+func checkForPreConfirmed(b types.BlockID) error {
+	if b.Tag == types.BlockTagPreConfirmed {
 		return errors.Join(
 			ErrInvalidBlockID,
 			errors.New("'pre_confirmed' tag is not supported on this method"),

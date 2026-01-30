@@ -29,38 +29,38 @@ func TestStateUpdate(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
+		blockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 			},
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.MainnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID:     WithBlockNumber(99999999999999999),
+				blockID:     types.WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
@@ -71,13 +71,13 @@ func TestStateUpdate(t *testing.T) {
 		blockIDs := GetCommonBlockIDs(t, provider)
 		for _, blockID := range blockIDs {
 			testSet = append(testSet, testSetType{
-				BlockID: blockID,
+				blockID: blockID,
 			})
 		}
 	}
 
 	for _, test := range testSet {
-		blockID, _ := test.BlockID.MarshalJSON()
+		blockID, _ := test.blockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
@@ -96,17 +96,17 @@ func TestStateUpdate(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getStateUpdate",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(
 						func(_, result, _ any, args ...any) error {
 							rawResp := result.(*json.RawMessage)
-							blockID := args[0].(BlockID)
+							blockID := args[0].(types.BlockID)
 
 							switch blockID.Tag {
-							case BlockTagPreConfirmed:
+							case types.BlockTagPreConfirmed:
 								*rawResp = blockSepoliaPreConfirmed
-							case BlockTagLatest:
+							case types.BlockTagLatest:
 								*rawResp = blockSepolia3100000
 							}
 
@@ -126,7 +126,7 @@ func TestStateUpdate(t *testing.T) {
 			stateUpdate, err := GetStateUpdate(
 				t.Context(),
 				provider,
-				test.BlockID,
+				test.blockID,
 			)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
@@ -162,7 +162,7 @@ func TestStorageAt(t *testing.T) {
 		Description     string
 		ContractAddress *felt.Felt
 		StorageKey      string
-		Block           BlockID
+		Block           types.BlockID
 		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
@@ -171,20 +171,20 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 				StorageKey:      "_signer",
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -193,7 +193,7 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:      "ERC20_name",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 		tests.TestnetEnv: {
@@ -201,20 +201,20 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
 				StorageKey:      "_signer",
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -223,7 +223,7 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 				StorageKey:      "ERC20_decimals",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
@@ -231,7 +231,7 @@ func TestStorageAt(t *testing.T) {
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
 				StorageKey:      "_signer",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -252,7 +252,7 @@ func TestStorageAt(t *testing.T) {
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
 						contractAddress := args[0].(*felt.Felt)
-						blockID := args[2].(BlockID)
+						blockID := args[2].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -318,7 +318,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -348,21 +348,21 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagPreConfirmed),
+					blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockHash(internalUtils.DeadBeef),
+					blockID: types.WithBlockHash(internalUtils.DeadBeef),
 				},
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockNumber(123456),
+					blockID: types.WithBlockNumber(123456),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
 			},
@@ -371,13 +371,13 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 				},
 			},
 			{
 				Description: "block_id + class_hashes parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 					},
@@ -386,7 +386,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contract_addresses parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ContractAddresses: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					},
@@ -395,7 +395,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -409,7 +409,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -439,21 +439,21 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagPreConfirmed),
+					blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockHash(internalUtils.DeadBeef),
+					blockID: types.WithBlockHash(internalUtils.DeadBeef),
 				},
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockNumber(123456),
+					blockID: types.WithBlockNumber(123456),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
 			},
@@ -462,13 +462,13 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "normal call, only required field block_id with 'latest' tag",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 				},
 			},
 			{
 				Description: "block_id + class_hashes parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 					},
@@ -477,7 +477,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contract_addresses parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ContractAddresses: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
 					},
@@ -486,7 +486,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ContractsStorageKeys: []ContractStorageKeys{
 						{
 							ContractAddress: internalUtils.TestHexToFelt(t, "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"),
@@ -500,7 +500,7 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "block_id + class_hashes + contract_addresses + contracts_storage_keys parameter",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagLatest),
+					blockID: types.WithBlockTag(types.BlockTagLatest),
 					ClassHashes: []*felt.Felt{
 						internalUtils.TestHexToFelt(t, "0x076791ef97c042f81fbf352ad95f39a22554ee8d7927b2ce3c681f3418b5206a"),
 						internalUtils.TestHexToFelt(t, "0x009524a94b41c4440a16fd96d7c1ef6ad6f44c1c013e96662734502cd4ee9b1f"),
@@ -530,21 +530,21 @@ func TestStorageProof(t *testing.T) {
 			{
 				Description: "error: using pre_confirmed tag in block_id",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockTag(BlockTagPreConfirmed),
+					blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				},
 				ExpectedError: ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockHash(internalUtils.DeadBeef),
+					blockID: types.WithBlockHash(internalUtils.DeadBeef),
 				},
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description: "error: storage proof not supported",
 				StorageProofInput: StorageProofInput{
-					BlockID: WithBlockNumber(123456),
+					blockID: types.WithBlockNumber(123456),
 				},
 				ExpectedError: ErrStorageProofNotSupported,
 			},
@@ -554,7 +554,7 @@ func TestStorageProof(t *testing.T) {
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv &&
-				test.StorageProofInput.BlockID.Tag != BlockTagPreConfirmed {
+				test.StorageProofInput.blockID.Tag != types.BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContext(
 						t.Context(),
@@ -565,7 +565,7 @@ func TestStorageProof(t *testing.T) {
 					DoAndReturn(func(_, result, _ any, arg any) error {
 						rawResp := result.(*json.RawMessage)
 						storageProofInput := arg.(StorageProofInput)
-						blockID := storageProofInput.BlockID
+						blockID := storageProofInput.blockID
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{

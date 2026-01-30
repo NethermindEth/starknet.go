@@ -22,7 +22,7 @@ func TestSimulateTransaction(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type simulateTxnInput struct {
-		BlockID         BlockID                `json:"block_id"`
+		blockID         types.BlockID          `json:"block_id"`
 		Txns            []BroadcastTxn         `json:"transactions"`
 		SimulationFlags []types.SimulationFlag `json:"simulation_flags"`
 	}
@@ -31,7 +31,7 @@ func TestSimulateTransaction(t *testing.T) {
 
 	type testSetType struct {
 		Description     string
-		BlockID         BlockID
+		blockID         types.BlockID
 		Txns            []BroadcastTxn
 		SimulationFlags []types.SimulationFlag
 		ExpectedError   *RPCError
@@ -41,20 +41,20 @@ func TestSimulateTransaction(t *testing.T) {
 		tests.MockEnv: {
 			{
 				Description:     "valid call, all flags",
-				BlockID:         input.BlockID,
+				blockID:         input.blockID,
 				Txns:            input.Txns,
 				SimulationFlags: []types.SimulationFlag{types.SkipValidate, types.SkipFeeCharge},
 			},
 			{
 				Description:     "block not found",
-				BlockID:         WithBlockHash(internalUtils.DeadBeef),
+				blockID:         types.WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         WithBlockTag(BlockTagPreConfirmed),
+				blockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
 				Txns:            input.Txns,
 				SimulationFlags: []types.SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
@@ -63,26 +63,26 @@ func TestSimulateTransaction(t *testing.T) {
 		tests.TestnetEnv: {
 			{
 				Description:     "valid call, no flags",
-				BlockID:         input.BlockID,
+				blockID:         input.blockID,
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 			},
 			{
 				Description:     "valid call, all flags",
-				BlockID:         input.BlockID,
+				blockID:         input.blockID,
 				Txns:            input.Txns,
 				SimulationFlags: []types.SimulationFlag{types.SkipValidate, types.SkipFeeCharge},
 			},
 			{
 				Description:     "exec error, pre confirmed",
-				BlockID:         WithBlockTag(BlockTagPreConfirmed),
+				blockID:         types.WithBlockTag(types.BlockTagPreConfirmed),
 				Txns:            input.Txns,
 				SimulationFlags: []types.SimulationFlag{},
 				ExpectedError:   ErrTxnExec, // due to invalid nonce
 			},
 			{
 				Description:     "block not found",
-				BlockID:         WithBlockHash(internalUtils.DeadBeef),
+				blockID:         types.WithBlockHash(internalUtils.DeadBeef),
 				Txns:            input.Txns,
 				SimulationFlags: input.SimulationFlags,
 				ExpectedError:   ErrBlockNotFound,
@@ -98,13 +98,13 @@ func TestSimulateTransaction(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_simulateTransactions",
-						test.BlockID,
+						test.blockID,
 						test.Txns,
 						test.SimulationFlags,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -113,7 +113,7 @@ func TestSimulateTransaction(t *testing.T) {
 							}
 						}
 
-						if blockID.Tag == BlockTagPreConfirmed {
+						if blockID.Tag == types.BlockTagPreConfirmed {
 							return RPCError{
 								Code:    41,
 								Message: "Transaction execution error",
@@ -134,7 +134,7 @@ func TestSimulateTransaction(t *testing.T) {
 			resp, err := SimulateTransactions(
 				t.Context(),
 				testConfig.Provider,
-				test.BlockID,
+				test.blockID,
 				test.Txns,
 				test.SimulationFlags,
 			)
@@ -166,41 +166,41 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID     BlockID
+		blockID     types.BlockID
 		ExpectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				blockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
 				ExpectedErr: ErrInvalidBlockID,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockNumber(99433),
+				blockID: types.WithBlockNumber(99433),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
+				blockID: types.WithBlockTag(types.BlockTagL1Accepted),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
+				blockID:     types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
 				ExpectedErr: ErrInvalidBlockID,
 			},
@@ -208,18 +208,18 @@ func TestTraceBlockTransactions(t *testing.T) {
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
-			if tests.TEST_ENV == tests.MockEnv && test.BlockID.Tag != BlockTagPreConfirmed {
+		t.Run(fmt.Sprintf("blockID: %v", test.blockID), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && test.blockID.Tag != types.BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
 						t.Context(),
 						gomock.Any(),
 						"starknet_traceBlockTransactions",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -242,7 +242,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			resp, err := TraceBlockTransactions(
 				t.Context(),
 				testConfig.Provider,
-				test.BlockID,
+				test.blockID,
 			)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)

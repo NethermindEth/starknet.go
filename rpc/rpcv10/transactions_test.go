@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,7 +23,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID       BlockID
+		blockID       types.BlockID
 		Index         uint64
 		ExpectedError error
 	}
@@ -30,59 +31,59 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				blockID: types.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
 			},
 			{
-				BlockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				blockID:       types.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:         99999999999999999,
 				ExpectedError: ErrInvalidTxnIndex,
 			},
 			{
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				Index:         3,
 				ExpectedError: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				blockID: types.WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				Index:   0,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
+				blockID: types.WithBlockTag(types.BlockTagL1Accepted),
 				Index:   0,
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: types.WithBlockTag(types.BlockTagLatest),
 				Index:   0,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
-				BlockID: WithBlockNumber(1_300_000),
+				blockID: types.WithBlockNumber(1_300_000),
 				Index:   0,
 			},
 		},
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
+		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.blockID), func(t *testing.T) {
 			if tests.TEST_ENV == tests.MockEnv {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
 						t.Context(),
 						gomock.Any(),
 						"starknet_getTransactionByBlockIdAndIndex",
-						test.BlockID,
+						test.blockID,
 						test.Index,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 
 						if blockID.Hash == internalUtils.DeadBeef {
 							return RPCError{
@@ -112,7 +113,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 			tx, err := TransactionByBlockIDAndIndex(
 				t.Context(),
 				testConfig.Provider,
-				test.BlockID,
+				test.blockID,
 				test.Index,
 			)
 			if test.ExpectedError != nil {

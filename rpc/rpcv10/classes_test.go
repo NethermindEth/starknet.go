@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +24,7 @@ func TestClass(t *testing.T) {
 
 	type testSetType struct {
 		Description   string
-		BlockID       BlockID
+		blockID       types.BlockID
 		ClassHash     *felt.Felt
 		ExpectedError error
 	}
@@ -33,61 +34,61 @@ func TestClass(t *testing.T) {
 			{
 				Description: "deprecated class",
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x123"),
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description: "sierra class",
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x456"),
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:   "invalid block",
 				ClassHash:     internalUtils.TestHexToFelt(t, "0x789"),
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description:   "invalid class hash",
 				ClassHash:     internalUtils.DeadBeef,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				blockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrClassHashNotFound,
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				Description: "deprecated class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x036c7e49a16f8fc760a6fbdf71dde543d98be1fee2eda5daff59a0eeae066ed9"),
 			},
 			{
 				Description: "sierra class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
 			},
 			{
 				Description:   "invalid block",
 				ClassHash:     internalUtils.TestHexToFelt(t, "0x01f372292df22d28f2d4c5798734421afe9596e6a566b8bc9b7b50e26521b855"),
-				BlockID:       WithBlockHash(internalUtils.DeadBeef),
+				blockID:       types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError: ErrBlockNotFound,
 			},
 			{
 				Description:   "invalid class hash",
 				ClassHash:     internalUtils.DeadBeef,
-				BlockID:       WithBlockTag(BlockTagLatest),
+				blockID:       types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError: ErrClassHashNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
 			{
 				Description: "sierra class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x941a2dc3ab607819fdc929bea95831a2e0c1aab2f2f34b3a23c55cebc8a040"),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				Description: "sierra class",
-				BlockID:     WithBlockTag(BlockTagLatest),
+				blockID:     types.WithBlockTag(types.BlockTagLatest),
 				ClassHash:   internalUtils.TestHexToFelt(t, "0x029927c8af6bccf3f6fda035981e765a7bdbf18a2dc0d630494f8758aa908e2b"),
 			},
 		},
@@ -101,12 +102,12 @@ func TestClass(t *testing.T) {
 						t.Context(),
 						gomock.Any(),
 						"starknet_getClass",
-						test.BlockID,
+						test.blockID,
 						test.ClassHash,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 						classHash := args[1].(*felt.Felt)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
@@ -151,7 +152,7 @@ func TestClass(t *testing.T) {
 			resp, err := Class(
 				t.Context(),
 				testConfig.Provider,
-				test.BlockID,
+				test.blockID,
 				test.ClassHash,
 			)
 			if test.ExpectedError != nil {
@@ -194,7 +195,7 @@ func TestClassAt(t *testing.T) {
 	type testSetType struct {
 		Description     string
 		ContractAddress *felt.Felt
-		Block           BlockID
+		Block           types.BlockID
 		ExpectedError   error
 	}
 	testSet := map[tests.TestEnv][]testSetType{
@@ -202,23 +203,23 @@ func TestClassAt(t *testing.T) {
 			{
 				Description:     "deprecated class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x456"),
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x789"),
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 		},
@@ -226,23 +227,23 @@ func TestClassAt(t *testing.T) {
 			{
 				Description:     "deprecated class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x073ad76dCF68168cBF68EA3EC0382a3605F3dEAf24dc076C355e275769b3c561"),
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 			{
 				Description:     "invalid contract",
 				ContractAddress: internalUtils.DeadBeef,
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04dAadB9d30c887E1ab2cf7D78DFE444A77AAB5a49C3353d6d9977e7eD669902"),
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 		},
@@ -250,14 +251,14 @@ func TestClassAt(t *testing.T) {
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				Description:     "sierra class",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x004b3d247e79c58e77c93e2c52025d0bb1727957cc9c33b33f7216f369c77be5"),
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 			},
 		},
 	}[tests.TEST_ENV]
@@ -275,7 +276,7 @@ func TestClassAt(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 						contractAddress := args[1].(*felt.Felt)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
@@ -365,7 +366,7 @@ func TestClassHashAt(t *testing.T) {
 
 	type testSetType struct {
 		Description     string
-		Block           BlockID
+		Block           types.BlockID
 		ContractAddress *felt.Felt
 		ExpectedError   error
 	}
@@ -373,18 +374,18 @@ func TestClassHashAt(t *testing.T) {
 		tests.MockEnv: {
 			{
 				Description:     "normal call",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 			},
 			{
 				Description:     "invalid contract",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.DeadBeef,
 				ExpectedError:   ErrContractNotFound,
 			},
 			{
 				Description:     "invalid block",
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
 				ExpectedError:   ErrBlockNotFound,
 			},
@@ -392,25 +393,25 @@ func TestClassHashAt(t *testing.T) {
 		tests.DevnetEnv: {
 			{
 				Description:     "normal call",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x41A78E741E5AF2FEC34B695679BC6891742439F7AFB8484ECD7766661AD02BF"),
 			},
 		},
 		tests.TestnetEnv: {
 			{
 				Description:     "normal call",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
 			},
 			{
 				Description:     "invalid contract",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.DeadBeef,
 				ExpectedError:   ErrContractNotFound,
 			},
 			{
 				Description:     "invalid block",
-				Block:           WithBlockHash(internalUtils.DeadBeef),
+				Block:           types.WithBlockHash(internalUtils.DeadBeef),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x05C0f2F029693e7E3A5500710F740f59C5462bd617A48F0Ed14b6e2d57adC2E9"),
 				ExpectedError:   ErrBlockNotFound,
 			},
@@ -418,14 +419,14 @@ func TestClassHashAt(t *testing.T) {
 		tests.IntegrationEnv: {
 			{
 				Description:     "normal call",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
 			},
 		},
 		tests.MainnetEnv: {
 			{
 				Description:     "normal call",
-				Block:           WithBlockTag(BlockTagLatest),
+				Block:           types.WithBlockTag(types.BlockTagLatest),
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x3b4be7def2fc08589348966255e101824928659ebb724855223ff3a8c831efa"),
 			},
 		},
@@ -444,7 +445,7 @@ func TestClassHashAt(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						blockID := args[0].(BlockID)
+						blockID := args[0].(types.BlockID)
 						contractAddress := args[1].(*felt.Felt)
 
 						if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
