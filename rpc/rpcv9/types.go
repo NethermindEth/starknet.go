@@ -1,0 +1,269 @@
+package rpcv9
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+
+	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc/types"
+)
+
+type ResultPageRequest struct {
+	// a pointer to the last element of the delivered page, use this token in a
+	// subsequent query to obtain the next page
+	ContinuationToken string `json:"continuation_token,omitempty"`
+	ChunkSize         int    `json:"chunk_size"`
+}
+
+type StorageEntry struct {
+	Key   *felt.Felt `json:"key"`
+	Value *felt.Felt `json:"value"`
+}
+
+// type StorageEntries struct {
+// 	StorageEntry []StorageEntry
+// }
+
+// ContractStorageDiffItem is a change in a single storage item
+type ContractStorageDiffItem struct {
+	// ContractAddress is the contract address for which the state changed
+	Address        *felt.Felt     `json:"address"`
+	StorageEntries []StorageEntry `json:"storage_entries"`
+}
+
+// The declared class hash and compiled class hash
+type DeclaredClassesItem struct {
+	// The hash of the declared class
+	ClassHash *felt.Felt `json:"class_hash"`
+	// The Cairo assembly hash corresponding to the declared class
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
+// A new contract deployed as part of the new state
+type DeployedContractItem struct {
+	// ContractAddress is the address of the contract
+	Address *felt.Felt `json:"address"`
+	// ClassHash is the hash of the contract code
+	ClassHash *felt.Felt `json:"class_hash"`
+}
+
+// The list of contracts whose class was replaced
+type ReplacedClassesItem struct {
+	// The address of the contract whose class was replaced
+	ContractClass *felt.Felt `json:"contract_address"`
+	// The new class hash
+	ClassHash *felt.Felt `json:"class_hash"`
+}
+
+// ContractNonce is a the updated nonce per contract address
+type ContractNonce struct {
+	// ContractAddress is the address of the contract
+	ContractAddress *felt.Felt `json:"contract_address"`
+	// Nonce is the nonce for the given address at the end of the block"
+	Nonce *felt.Felt `json:"nonce"`
+}
+
+// The class hash and the new Blake-migrated compiled class hash
+type MigratedCompiledClass struct {
+	// The hash of the class
+	ClassHash *felt.Felt `json:"class_hash"`
+	// The Blake-migrated Cairo assembly hash corresponding to the class
+	CompiledClassHash *felt.Felt `json:"compiled_class_hash"`
+}
+
+// StateDiff is the change in state applied in this block, given as a
+// mapping of addresses to the new values and/or new contracts.
+type StateDiff struct {
+	// A list of declared classes
+	DeclaredClasses []DeclaredClassesItem `json:"declared_classes"`
+	// A list of new contracts deployed as part of the state update
+	DeployedContracts []DeployedContractItem `json:"deployed_contracts"`
+	// A list of hashes of deprecated declared classes
+	DeprecatedDeclaredClasses []*felt.Felt `json:"deprecated_declared_classes"`
+	// A list of migrated compiled classes
+	MigratedCompiledClasses []MigratedCompiledClass `json:"migrated_compiled_classes"`
+	// Updated nonces per contract addresses
+	Nonces []ContractNonce `json:"nonces"`
+	// The list of contracts whose class was replaced
+	ReplacedClasses []ReplacedClassesItem `json:"replaced_classes"`
+	// The changes in the storage per contract address
+	StorageDiffs []ContractStorageDiffItem `json:"storage_diffs"`
+}
+
+// The output of the StateUpdate method.
+// It can be either a StateUpdate or a PreConfirmedStateUpdate, depending
+// whether the requested block is a pre-confirmed block or not.
+type StateUpdateOutput struct {
+	// The block state update. Nil if the requested block is a pre-confirmed block.
+	StateUpdate *StateUpdate
+	// The pre-confirmed block state update. Nil if the requested block is not
+	// a pre-confirmed block.
+	PreConfirmedStateUpdate *PreConfirmedStateUpdate
+}
+
+// UnmarshalJSON unmarshals the JSON data into a StateUpdateOutput struct.
+func (o *StateUpdateOutput) UnmarshalJSON(data []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	var preConfirmedStateUpdate PreConfirmedStateUpdate
+	if err := decoder.Decode(&preConfirmedStateUpdate); err == nil {
+		o.PreConfirmedStateUpdate = &preConfirmedStateUpdate
+
+		return nil
+	}
+
+	var stateUpdate StateUpdate
+	if err := json.Unmarshal(data, &stateUpdate); err == nil {
+		o.StateUpdate = &stateUpdate
+
+		return nil
+	}
+
+	return errors.New("invalid state update")
+}
+
+// MarshalJSON marshals the StateUpdateOutput struct into JSON format.
+func (o StateUpdateOutput) MarshalJSON() ([]byte, error) {
+	if o.StateUpdate != nil {
+		return json.Marshal(o.StateUpdate)
+	}
+
+	return json.Marshal(o.PreConfirmedStateUpdate)
+}
+
+// The information about the state update of the requested block.
+type StateUpdate struct {
+	BlockHash *felt.Felt `json:"block_hash"`
+	// The new global state root.
+	NewRoot *felt.Felt `json:"new_root"`
+	// The previous global state root.
+	OldRoot   *felt.Felt `json:"old_root"`
+	StateDiff *StateDiff `json:"state_diff"`
+}
+
+// The information about the state update of the pre-confirmed block
+type PreConfirmedStateUpdate struct {
+	// The previous global state root.
+	OldRoot   *felt.Felt `json:"old_root,omitempty"`
+	StateDiff *StateDiff `json:"state_diff"`
+}
+
+// SyncStatus is An object describing the node synchronisation status
+type SyncStatus struct {
+	// A boolean indicating whether the node is syncing. If false, all other fields are empty.
+	IsSyncing bool
+
+	// All these fields are only present if IsSyncing is true.
+	StartingBlockHash *felt.Felt `json:"starting_block_hash,omitempty"`
+	StartingBlockNum  uint64     `json:"starting_block_num,omitempty"`
+	CurrentBlockHash  *felt.Felt `json:"current_block_hash,omitempty"`
+	CurrentBlockNum   uint64     `json:"current_block_num,omitempty"`
+	HighestBlockHash  *felt.Felt `json:"highest_block_hash,omitempty"`
+	HighestBlockNum   uint64     `json:"highest_block_num,omitempty"`
+}
+
+// MarshalJSON marshals the SyncStatus struct into JSON format.
+func (s SyncStatus) MarshalJSON() ([]byte, error) {
+	if !s.IsSyncing {
+		return []byte("false"), nil
+	}
+	output := map[string]interface{}{}
+	output["starting_block_hash"] = s.StartingBlockHash
+	output["starting_block_num"] = s.StartingBlockNum
+	output["current_block_hash"] = s.CurrentBlockHash
+	output["current_block_num"] = s.CurrentBlockNum
+	output["highest_block_hash"] = s.HighestBlockHash
+	output["highest_block_num"] = s.HighestBlockNum
+
+	return json.Marshal(output)
+}
+
+// UnmarshalJSON unmarshals the JSON data into the SyncStatus struct.
+//
+// Parameters:
+//
+//	-data: It takes a byte slice as input representing the JSON data to be unmarshaled.
+//
+// Returns:
+//   - error: an error if the unmarshaling fails
+func (s *SyncStatus) UnmarshalJSON(data []byte) error {
+	if string(data) == "false" {
+		s.IsSyncing = false
+
+		return nil
+	}
+
+	type alias SyncStatus
+	var result alias
+	err := json.Unmarshal(data, &result)
+	if err != nil {
+		return err
+	}
+
+	*s = SyncStatus(result)
+	s.IsSyncing = true
+
+	return nil
+}
+
+// AddDeclareTransactionOutput provides the output for AddDeclareTransaction.
+type AddDeclareTransactionOutput struct {
+	TransactionHash *felt.Felt `json:"transaction_hash"`
+	ClassHash       *felt.Felt `json:"class_hash"`
+}
+
+// @changed InvokeFunctionCall moved to rpc pkg
+
+// @removed TxDetails
+// @removed FeeEstimationCommon
+
+// @changed now it contains all the fields from the FeeEstimationCommon type
+type FeeEstimation struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+	// Units in which the fee is given, can only be FRI
+	Unit types.PriceUnitFri `json:"unit"`
+}
+
+// @changed now it contains all the fields from the FeeEstimationCommon type
+type MessageFeeEstimation struct {
+	// The Ethereum gas consumption of the transaction, charged for L1->L2
+	// messages and, depending on the block's DA_MODE, state diffs
+	L1GasConsumed *felt.Felt `json:"l1_gas_consumed"`
+	// The gas price (in wei or fri, depending on the tx version) that was
+	// used in the cost estimation.
+	L1GasPrice *felt.Felt `json:"l1_gas_price"`
+	// The L2 gas consumption of the transaction
+	L2GasConsumed *felt.Felt `json:"l2_gas_consumed"`
+	// The L2 gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L2GasPrice *felt.Felt `json:"l2_gas_price"`
+	// The Ethereum data gas consumption of the transaction.
+	L1DataGasConsumed *felt.Felt `json:"l1_data_gas_consumed"`
+	// The data gas price (in wei or fri, depending on the tx version) that
+	// was used in the cost estimation.
+	L1DataGasPrice *felt.Felt `json:"l1_data_gas_price"`
+	// The estimated fee for the transaction (in wei or fri, depending on the
+	// tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price.
+	OverallFee *felt.Felt `json:"overall_fee"`
+	// Units in which the fee is given, can only be WEI
+	Unit types.PriceUnitWei `json:"unit"`
+}
