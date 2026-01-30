@@ -75,3 +75,22 @@ type InvokeFunctionCall struct {
 	// The parameters passed to the function
 	CallData []*felt.Felt
 }
+
+// FeeLimits is a struct with custom limits for the fee values, used
+// as a parameter for the `CustomFeeEstToResBoundsMap` function.
+type FeeLimits struct {
+	// Custom max value for L1 gas price
+	L1GasPriceLimit U128
+	// Custom max value for L1 gas amount
+	L1GasAmountLimit U64
+
+	// Custom max value for L2 gas price
+	L2GasPriceLimit U128
+	// Custom max value for L2 gas amount
+	L2GasAmountLimit U64
+
+	// Custom max value for L1 data gas price
+	L1DataGasPriceLimit U128
+	// Custom max value for L1 data gas amount
+	L1DataGasAmountLimit U64
+}
