@@ -75,7 +75,7 @@ func BuildInvokeTxn(
 	}
 
 	return &rpcv10.BroadcastInvokeTxnV3{
-		Type:                  rpcv10.TransactionTypeInvoke,
+		Type:                  types.TransactionTypeInvoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
 		Version:               opts.TxnVersion(),

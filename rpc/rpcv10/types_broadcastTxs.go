@@ -21,7 +21,7 @@ type BroadcastInvokeTxnV3 = InvokeTxnV3
 type BroadcastDeployAccountTxnV3 = DeployAccountTxnV3
 
 type BroadcastDeclareTxnV3 struct {
-	Type              TransactionType          `json:"type"`
+	Type              types.TransactionType    `json:"type"`
 	SenderAddress     *felt.Felt               `json:"sender_address"`
 	CompiledClassHash *felt.Felt               `json:"compiled_class_hash"`
 	Version           types.TransactionVersion `json:"version"`
@@ -40,7 +40,7 @@ type BroadcastDeclareTxnV3 struct {
 	FeeMode types.DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
-func (tx BroadcastDeclareTxnV3) GetType() TransactionType                   { return tx.Type }
+func (tx BroadcastDeclareTxnV3) GetType() types.TransactionType             { return tx.Type }
 func (tx BroadcastDeclareTxnV3) GetSenderAddress() *felt.Felt               { return tx.SenderAddress }
 func (tx BroadcastDeclareTxnV3) GetCompiledClassHash() *felt.Felt           { return tx.CompiledClassHash }
 func (tx BroadcastDeclareTxnV3) GetVersion() types.TransactionVersion       { return tx.Version }

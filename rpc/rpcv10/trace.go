@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // SimulateTransactions simulates transactions on the blockchain.
@@ -105,7 +106,7 @@ func TraceTransaction(
 	}
 
 	switch rawTxnTrace["type"] {
-	case string(TransactionTypeInvoke):
+	case string(types.TransactionTypeInvoke):
 		var trace InvokeTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -113,7 +114,7 @@ func TraceTransaction(
 		}
 
 		return trace, nil
-	case string(TransactionTypeDeclare):
+	case string(types.TransactionTypeDeclare):
 		var trace DeclareTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -121,7 +122,7 @@ func TraceTransaction(
 		}
 
 		return trace, nil
-	case string(TransactionTypeDeployAccount):
+	case string(types.TransactionTypeDeployAccount):
 		var trace DeployAccountTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {
@@ -129,7 +130,7 @@ func TraceTransaction(
 		}
 
 		return trace, nil
-	case string(TransactionTypeL1Handler):
+	case string(types.TransactionTypeL1Handler):
 		var trace L1HandlerTxnTrace
 		err = json.Unmarshal(rawTraceByte, &trace)
 		if err != nil {

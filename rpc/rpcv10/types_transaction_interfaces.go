@@ -9,7 +9,7 @@ import (
 // It is used to provide a common interface for all transaction types.
 // The 'Type' and 'Version' fields are present in all transaction types.
 type Transaction interface {
-	GetType() TransactionType
+	GetType() types.TransactionType
 	GetVersion() types.TransactionVersion
 }
 

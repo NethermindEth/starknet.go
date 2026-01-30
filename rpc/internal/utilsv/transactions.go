@@ -10,7 +10,6 @@ import (
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/hash"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/types/constraints"
 )
@@ -93,7 +92,7 @@ func BuildDeclareTxn[
 	}
 
 	*tx = BDeclareTxn{
-		Type:                  TransactionType(rpcv10.TransactionTypeDeclare),
+		Type:                  TransactionType(types.TransactionTypeDeclare),
 		SenderAddress:         senderAddress,
 		CompiledClassHash:     compiledClassHash,
 		Version:               TransactionVersion(opts.TxnVersion()),
@@ -149,7 +148,7 @@ func BuildDeployAccountTxn[
 	opts Opts,
 ) *BDeployAccountTxn {
 	*tx = BDeployAccountTxn{
-		Type:                TransactionType(rpcv10.TransactionTypeDeployAccount),
+		Type:                TransactionType(types.TransactionTypeDeployAccount),
 		Version:             TransactionVersion(opts.TxnVersion()),
 		Signature:           []*felt.Felt{},
 		Nonce:               nonce,

@@ -81,7 +81,7 @@ func EstimateTip(
 	// sum up the tips from all transactions
 	for _, transaction := range latestBlock.Transactions {
 		// L1Handler transactions don't have a tip
-		if transaction.GetType() == TransactionTypeL1Handler {
+		if transaction.GetType() == types.TransactionTypeL1Handler {
 			continue
 		}
 
