@@ -12,7 +12,7 @@ import (
 type TxnOptions struct {
 	// @changed to string
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
-	Tip string
+	Tip types.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
 	// will be `rpcv10.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
@@ -40,13 +40,11 @@ func (opts *TxnOptions) TxnVersion() rpcv10.TransactionVersion {
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set
 // or invalid, returns "0x0".
-func (opts *TxnOptions) SafeTip() string {
+func (opts *TxnOptions) SafeTip() types.U64 {
 	if opts.Tip == "" {
 		return "0x0"
 	}
-	tip := types.U64(opts.Tip)
-
-	if _, err := tip.ToUint64(); err != nil {
+	if _, err := opts.Tip.ToUint64(); err != nil {
 		return "0x0"
 	}
 

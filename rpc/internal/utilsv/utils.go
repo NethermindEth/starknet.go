@@ -44,10 +44,9 @@ var StarknetLimits = types.FeeLimits{
 	L2GasAmountLimit:     maxL2GasAmount,
 }
 
-// Optional settings when building a transaction.
 type TxnOptions[TxVersion ~string] interface {
 	TxnVersion() TxVersion
-	SafeTip() string
+	SafeTip() types.U64
 }
 
 // BuildDeclareTxn creates a broadcast declare transaction (v3) by accepting a pointer
