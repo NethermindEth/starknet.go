@@ -4,7 +4,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
 	"github.com/NethermindEth/starknet.go/rpc/internal/utilsv"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv9"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
@@ -14,8 +14,8 @@ type TxnOptions struct {
 	Tip types.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
-	// will be `rpcv10.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
-	// If false, the transaction version will be `rpcv10.TransactionV3` (0x3).
+	// will be `rpcv9.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `rpcv9.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
 	UseQueryBit bool
 
@@ -27,14 +27,14 @@ type TxnOptions struct {
 	// TODO: remove this field after the Starknet v0.14.1 upgrade
 }
 
-// TxnVersion returns `rpcv10.TransactionV3WithQueryBit` when UseQueryBit is true, and
-// `rpcv10.TransactionV3` if false.
-func (opts *TxnOptions) TxnVersion() rpcv10.TransactionVersion {
+// TxnVersion returns `rpcv9.TransactionV3WithQueryBit` when UseQueryBit is true, and
+// `rpcv9.TransactionV3` if false.
+func (opts *TxnOptions) TxnVersion() rpcv9.TransactionVersion {
 	if opts.UseQueryBit {
-		return rpcv10.TransactionV3WithQueryBit
+		return rpcv9.TransactionV3WithQueryBit
 	}
 
-	return rpcv10.TransactionV3
+	return rpcv9.TransactionV3
 }
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set
@@ -67,15 +67,15 @@ func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
-	resourceBounds *rpcv10.ResourceBoundsMapping,
+	resourceBounds *rpcv9.ResourceBoundsMapping,
 	opts *TxnOptions,
-) *rpcv10.BroadcastInvokeTxnV3 {
+) *rpcv9.BroadcastInvokeTxnV3 {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	return &rpcv10.BroadcastInvokeTxnV3{
-		Type:                  rpcv10.TransactionTypeInvoke,
+	return &rpcv9.BroadcastInvokeTxnV3{
+		Type:                  rpcv9.TransactionTypeInvoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
 		Version:               opts.TxnVersion(),
@@ -85,8 +85,8 @@ func BuildInvokeTxn(
 		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         rpcv10.DAModeL1,
-		FeeMode:               rpcv10.DAModeL1,
+		NonceDataMode:         rpcv9.DAModeL1,
+		FeeMode:               rpcv9.DAModeL1,
 	}
 }
 
@@ -109,14 +109,14 @@ func BuildDeclareTxn(
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
-	resourceBounds *rpcv10.ResourceBoundsMapping,
+	resourceBounds *rpcv9.ResourceBoundsMapping,
 	opts *TxnOptions,
-) (*rpcv10.BroadcastDeclareTxnV3, error) {
+) (*rpcv9.BroadcastDeclareTxnV3, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	var tx rpcv10.BroadcastDeclareTxnV3
+	var tx rpcv9.BroadcastDeclareTxnV3
 	return utilsv.BuildDeclareTxn(
 		&tx,
 		senderAddress,
@@ -147,14 +147,14 @@ func BuildDeployAccountTxn(
 	contractAddressSalt *felt.Felt,
 	constructorCalldata []*felt.Felt,
 	classHash *felt.Felt,
-	resourceBounds *rpcv10.ResourceBoundsMapping,
+	resourceBounds *rpcv9.ResourceBoundsMapping,
 	opts *TxnOptions,
-) *rpcv10.BroadcastDeployAccountTxnV3 {
+) *rpcv9.BroadcastDeployAccountTxnV3 {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	var tx rpcv10.BroadcastDeployAccountTxnV3
+	var tx rpcv9.BroadcastDeployAccountTxnV3
 	return utilsv.BuildDeployAccountTxn(
 		&tx,
 		nonce,
@@ -177,10 +177,10 @@ func BuildDeployAccountTxn(
 // Returns:
 //   - types.ResourceBoundsMapping: Resource bounds with applied multipliers
 func FeeEstToResBoundsMap(
-	feeEstimation *rpcv10.FeeEstimation,
+	feeEstimation *rpcv9.FeeEstimation,
 	multiplier float64,
-) *rpcv10.ResourceBoundsMapping {
-	var resources rpcv10.ResourceBoundsMapping
+) *rpcv9.ResourceBoundsMapping {
+	var resources rpcv9.ResourceBoundsMapping
 
 	utilsv.FeeEstToResBoundsMap(
 		feeEstimation,
@@ -206,11 +206,11 @@ func FeeEstToResBoundsMap(
 // Returns:
 //   - types.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
 func CustomFeeEstToResBoundsMap(
-	feeEstimation *rpcv10.FeeEstimation,
+	feeEstimation *rpcv9.FeeEstimation,
 	multiplier float64,
 	limits *types.FeeLimits,
-) rpcv10.ResourceBoundsMapping {
-	var resources rpcv10.ResourceBoundsMapping
+) rpcv9.ResourceBoundsMapping {
+	var resources rpcv9.ResourceBoundsMapping
 
 	utilsv.CustomFeeEstToResBoundsMap(
 		feeEstimation,
@@ -234,7 +234,7 @@ func CustomFeeEstToResBoundsMap(
 //   - *felt.Felt: The overall fee in FRI
 //   - error: An error if any
 func ResBoundsMapToOverallFee(
-	resBounds *rpcv10.ResourceBoundsMapping,
+	resBounds *rpcv9.ResourceBoundsMapping,
 	multiplier float64,
 	tip types.U64,
 ) (*felt.Felt, error) {
