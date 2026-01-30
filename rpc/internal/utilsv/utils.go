@@ -50,63 +50,6 @@ type TxnOptions[TxVersion ~string] interface {
 	SafeTip() string
 }
 
-// @changed all now accept generics + accepts a new tx parameter
-// BuildInvokeTxn creates a broadcast invoke transaction (v3) by accepting a pointer
-// to it and filling it with the given parameters and default values. It also
-// returns the pointer to the filled transaction.
-//
-// Parameters:
-//   - tx: A pointer to the desired broadcast invoke transaction (e.g.
-//     rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.) to be filled.
-//     It needs to be signed before being sent.
-//   - senderAddress: The address of the account sending the transaction
-//   - nonce: The account's nonce
-//   - calldata: The data expected by the account's `execute` function (in most usecases,
-//     this includes the called contract address and a function selector)
-//   - resourceBounds: Resource bounds for the transaction execution
-//   - opts: optional settings for the transaction
-//
-// Returns:
-//   - *BInvokeTxn: The pointer to the filled broadcast invoke transaction. It needs to be signed
-//     before being sent.
-func BuildInvokeTxn[
-	TransactionType, TransactionVersion ~string,
-	u64 constraints.U64,
-	u128 constraints.U128,
-	RB constraints.ResourceBounds[u64, u128],
-	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
-	DA constraints.DataAvailabilityMode,
-	BInvokeTxn constraints.InvokeTxnV3[TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
-](
-	tx *BInvokeTxn,
-	senderAddress *felt.Felt,
-	nonce *felt.Felt,
-	calldata []*felt.Felt,
-	resourceBounds *RBM,
-	opts *TxnOptions,
-) *BInvokeTxn {
-	if opts == nil {
-		opts = new(TxnOptions)
-	}
-
-	*tx = BInvokeTxn{
-		Type:                  TransactionType(rpcv10.TransactionTypeInvoke),
-		SenderAddress:         senderAddress,
-		Calldata:              calldata,
-		Version:               TransactionVersion(rpcv10.TransactionVersion(opts.TxnVersion())),
-		Signature:             []*felt.Felt{},
-		Nonce:                 nonce,
-		ResourceBounds:        resourceBounds,
-		Tip:                   u64(opts.SafeTip()),
-		PayMasterData:         []*felt.Felt{},
-		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         DA(rpcv10.DAModeL1),
-		FeeMode:               DA(rpcv10.DAModeL1),
-	}
-
-	return tx
-}
-
 // BuildDeclareTxn creates a broadcast declare transaction (v3) by accepting a pointer
 // to it and filling it with the given parameters and default values. It also
 // returns the pointer to the filled transaction.

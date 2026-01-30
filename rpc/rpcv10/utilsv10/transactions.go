@@ -6,7 +6,6 @@ import (
 	"github.com/NethermindEth/starknet.go/rpc/internal/utilsv"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
-	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
 // Optional settings when building a transaction.
@@ -54,15 +53,9 @@ func (opts *TxnOptions) SafeTip() string {
 	return opts.Tip
 }
 
-// @changed all now accept generics + accepts a new tx parameter
-// BuildInvokeTxn creates a broadcast invoke transaction (v3) by accepting a pointer
-// to it and filling it with the given parameters and default values. It also
-// returns the pointer to the filled transaction.
+// BuildInvokeTxn creates a new invoke transaction (v3) for the StarkNet network.
 //
 // Parameters:
-//   - tx: A pointer to the desired broadcast invoke transaction (e.g.
-//     rpcv9.BroadcastInvokeTxnV3, rpcv10.BroadcastInvokeTxnV3, etc.) to be filled.
-//     It needs to be signed before being sent.
 //   - senderAddress: The address of the account sending the transaction
 //   - nonce: The account's nonce
 //   - calldata: The data expected by the account's `execute` function (in most usecases,
@@ -71,44 +64,33 @@ func (opts *TxnOptions) SafeTip() string {
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - *BInvokeTxn: The pointer to the filled broadcast invoke transaction. It needs to be signed
-//     before being sent.
-func BuildInvokeTxn[
-	TransactionType, TransactionVersion ~string,
-	u64 constraints.U64,
-	u128 constraints.U128,
-	RB constraints.ResourceBounds[u64, u128],
-	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
-	DA constraints.DataAvailabilityMode,
-	BInvokeTxn constraints.InvokeTxnV3[TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
-](
-	tx *BInvokeTxn,
+//   - rpc.BroadcastInvokev3Txn: A broadcast invoke transaction with default values
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
+func BuildInvokeTxn(
 	senderAddress *felt.Felt,
 	nonce *felt.Felt,
 	calldata []*felt.Felt,
-	resourceBounds *RBM,
+	resourceBounds *rpcv10.ResourceBoundsMapping,
 	opts *TxnOptions,
-) *BInvokeTxn {
+) *rpcv10.BroadcastInvokeTxnV3 {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	*tx = BInvokeTxn{
-		Type:                  TransactionType(rpcv10.TransactionTypeInvoke),
+	return &rpcv10.BroadcastInvokeTxnV3{
+		Type:                  rpcv10.TransactionTypeInvoke,
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
-		Version:               TransactionVersion(rpcv10.TransactionVersion(opts.TxnVersion())),
+		Version:               opts.TxnVersion(),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   u64(opts.SafeTip()),
+		Tip:                   rpcv10.U64(opts.SafeTip()),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         DA(rpcv10.DAModeL1),
-		FeeMode:               DA(rpcv10.DAModeL1),
+		NonceDataMode:         rpcv10.DAModeL1,
+		FeeMode:               rpcv10.DAModeL1,
 	}
-
-	return tx
 }
 
 // BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
