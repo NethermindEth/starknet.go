@@ -3,7 +3,6 @@ package utilsv10
 import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
-	"github.com/NethermindEth/starknet.go/hash"
 	"github.com/NethermindEth/starknet.go/rpc/internal/utilsv"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
@@ -112,14 +111,10 @@ func BuildInvokeTxn[
 	return tx
 }
 
-// BuildDeclareTxn creates a broadcast declare transaction (v3) by accepting a pointer
-// to it and filling it with the given parameters and default values. It also
-// returns the pointer to the filled transaction.
+// BuildDeclareTxn creates a new declare transaction (v3) for the StarkNet network.
+// A declare transaction is used to declare a new contract class on the network.
 //
 // Parameters:
-//   - tx: A pointer to the desired broadcast declare transaction (e.g.
-//     rpcv9.BroadcastDeclareTxnV3, rpcv10.BroadcastDeclareTxnV3, etc.) to be filled.
-//     It needs to be signed before being sent
 //   - senderAddress: The address of the account sending the transaction
 //   - casmClass: The casm class of the contract to be declared
 //   - contractClass: The contract class to be declared
@@ -128,62 +123,30 @@ func BuildInvokeTxn[
 //   - opts: optional settings for the transaction
 //
 // Returns:
-//   - *BDeclareTxn: The pointer to the filled broadcast declare transaction. It needs to be signed
-//     before being sent.
-func BuildDeclareTxn[
-	TransactionType, TransactionVersion ~string,
-	u64 constraints.U64,
-	u128 constraints.U128,
-	RB constraints.ResourceBounds[u64, u128],
-	RBM constraints.ResourceBoundsMapping[u64, u128, RB],
-	DA constraints.DataAvailabilityMode,
-	BDeclareTxn constraints.BroadcastDeclareTxnV3[
-		TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
-](
-	tx *BDeclareTxn,
+//   - rpc.BroadcastDeclareTxnV3: A broadcast declare transaction with default values
+//     for signature, paymaster data, etc. Needs to be signed before being sent.
+func BuildDeclareTxn(
 	senderAddress *felt.Felt,
 	casmClass *contracts.CasmClass,
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
-	resourceBounds *RBM,
+	resourceBounds *rpcv10.ResourceBoundsMapping,
 	opts *TxnOptions,
-) (*BDeclareTxn, error) {
+) (*rpcv10.BroadcastDeclareTxnV3, error) {
 	if opts == nil {
 		opts = new(TxnOptions)
 	}
 
-	var compiledClassHash *felt.Felt
-	var err error
-
-	if opts.UseBlake2sHash {
-		compiledClassHash, err = hash.CompiledClassHashV2(casmClass)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		compiledClassHash, err = hash.CompiledClassHash(casmClass)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	*tx = BDeclareTxn{
-		Type:                  TransactionType(rpcv10.TransactionTypeDeclare),
-		SenderAddress:         senderAddress,
-		CompiledClassHash:     compiledClassHash,
-		Version:               TransactionVersion(opts.TxnVersion()),
-		Signature:             []*felt.Felt{},
-		Nonce:                 nonce,
-		ContractClass:         contractClass,
-		ResourceBounds:        resourceBounds,
-		Tip:                   u64(opts.SafeTip()),
-		PayMasterData:         []*felt.Felt{},
-		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         DA(rpcv10.DAModeL1),
-		FeeMode:               DA(rpcv10.DAModeL1),
-	}
-
-	return tx, nil
+	var tx rpcv10.BroadcastDeclareTxnV3
+	return utilsv.BuildDeclareTxn(
+		&tx,
+		senderAddress,
+		casmClass,
+		contractClass,
+		nonce,
+		resourceBounds,
+		opts,
+	)
 }
 
 // BuildDeployAccountTxn creates a new deploy account transaction (v3) for the StarkNet network.
@@ -208,6 +171,10 @@ func BuildDeployAccountTxn(
 	resourceBounds *rpcv10.ResourceBoundsMapping,
 	opts *TxnOptions,
 ) *rpcv10.BroadcastDeployAccountTxnV3 {
+	if opts == nil {
+		opts = new(TxnOptions)
+	}
+
 	var tx rpcv10.BroadcastDeployAccountTxnV3
 	return utilsv.BuildDeployAccountTxn(
 		&tx,

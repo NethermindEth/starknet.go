@@ -134,6 +134,7 @@ func BuildDeclareTxn[
 	DA constraints.DataAvailabilityMode,
 	BDeclareTxn constraints.BroadcastDeclareTxnV3[
 		TransactionType, TransactionVersion, u64, u128, RB, RBM, DA],
+	Opts TxnOptions[TransactionVersion],
 ](
 	tx *BDeclareTxn,
 	senderAddress *felt.Felt,
@@ -141,25 +142,12 @@ func BuildDeclareTxn[
 	contractClass *contracts.ContractClass,
 	nonce *felt.Felt,
 	resourceBounds *RBM,
-	opts *TxnOptions,
+	opts Opts,
 ) (*BDeclareTxn, error) {
-	if opts == nil {
-		opts = new(TxnOptions)
-	}
 
-	var compiledClassHash *felt.Felt
-	var err error
-
-	if opts.UseBlake2sHash {
-		compiledClassHash, err = hash.CompiledClassHashV2(casmClass)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		compiledClassHash, err = hash.CompiledClassHash(casmClass)
-		if err != nil {
-			return nil, err
-		}
+	compiledClassHash, err := hash.CompiledClassHashV2(casmClass)
+	if err != nil {
+		return nil, err
 	}
 
 	*tx = BDeclareTxn{
