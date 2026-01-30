@@ -425,7 +425,7 @@ type SubNewTxnReceiptsInput struct {
 	// Optional: A vector of finality statuses to receive updates for.
 	// Only `PRE_CONFIRMED` and `ACCEPTED_ON_L2` are supported. Default is
 	// `ACCEPTED_ON_L2`.
-	FinalityStatus []TxnFinalityStatus `json:"finality_status,omitempty"`
+	FinalityStatus []types.TxnFinalityStatus `json:"finality_status,omitempty"`
 	// Optional: Filter transaction receipts to only include transactions
 	// sent by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
@@ -437,7 +437,7 @@ type SubNewTxnsInput struct {
 	// Optional: A vector of finality statuses to receive updates for.
 	// Support all transaction statuses, except `ACCEPTED_ON_L1`. Default is
 	// `ACCEPTED_ON_L2`.
-	FinalityStatus []TxnStatus `json:"finality_status,omitempty"`
+	FinalityStatus []types.TxnStatus `json:"finality_status,omitempty"`
 	// Optional: Filter transaction receipts to only include transactions sent
 	// by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
@@ -449,7 +449,7 @@ type TxnWithHashAndStatus struct {
 	// Transaction with hash and status
 	BlockTransaction
 	// Finality status of the transaction, except `ACCEPTED_ON_L1`.
-	FinalityStatus TxnStatus `json:"finality_status"`
+	FinalityStatus types.TxnStatus `json:"finality_status"`
 }
 
 func (txn *TxnWithHashAndStatus) UnmarshalJSON(data []byte) error {
@@ -462,7 +462,7 @@ func (txn *TxnWithHashAndStatus) UnmarshalJSON(data []byte) error {
 	}
 
 	var aux2 struct {
-		FinalityStatus TxnStatus `json:"finality_status"`
+		FinalityStatus types.TxnStatus `json:"finality_status"`
 	}
 
 	err = json.Unmarshal(data, &aux2)

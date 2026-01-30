@@ -10,6 +10,7 @@ import (
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,13 +107,13 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusPreConfirmed,
+				FinalityStatus: types.TxnFinalityStatusPreConfirmed,
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &EventSubscriptionInput{
-				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -121,7 +122,7 @@ func TestSubscribeEvents(t *testing.T) {
 				FromAddress:    fromAddress,
 				Keys:           [][]*felt.Felt{{key}},
 				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
-				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
+				FinalityStatus: types.TxnFinalityStatusAcceptedOnL2,
 			},
 		},
 		{
@@ -538,22 +539,22 @@ func TestSubscribeNewTransactionReceipts(t *testing.T) {
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusPreConfirmed},
+				FinalityStatus: []types.TxnFinalityStatus{types.TxnFinalityStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnReceiptsInput{
-				FinalityStatus: []TxnFinalityStatus{TxnFinalityStatusAcceptedOnL2},
+				FinalityStatus: []types.TxnFinalityStatus{types.TxnFinalityStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnReceiptsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []TxnFinalityStatus{
-					TxnFinalityStatusAcceptedOnL2,
-					TxnFinalityStatusPreConfirmed,
+				FinalityStatus: []types.TxnFinalityStatus{
+					types.TxnFinalityStatusAcceptedOnL2,
+					types.TxnFinalityStatusPreConfirmed,
 				},
 			},
 		},
@@ -781,36 +782,36 @@ func TestSubscribeNewTransactions(t *testing.T) {
 		{
 			description: "with finality status RECEIVED",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []TxnStatus{TxnStatusReceived},
+				FinalityStatus: []types.TxnStatus{types.TxnStatusReceived},
 			},
 		},
 		{
 			description: "with finality status CANDIDATE",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []TxnStatus{TxnStatusCandidate},
+				FinalityStatus: []types.TxnStatus{types.TxnStatusCandidate},
 			},
 		},
 		{
 			description: "with finality status PRE_CONFIRMED",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
+				FinalityStatus: []types.TxnStatus{types.TxnStatusPreConfirmed},
 			},
 		},
 		{
 			description: "with finality status ACCEPTED_ON_L2",
 			input: &SubNewTxnsInput{
-				FinalityStatus: []TxnStatus{TxnStatusAcceptedOnL2},
+				FinalityStatus: []types.TxnStatus{types.TxnStatusAcceptedOnL2},
 			},
 		},
 		{
 			description: "all filters",
 			input: &SubNewTxnsInput{
 				SenderAddress: []*felt.Felt{randAddress},
-				FinalityStatus: []TxnStatus{
-					TxnStatusReceived,
-					TxnStatusCandidate,
-					TxnStatusPreConfirmed,
-					TxnStatusAcceptedOnL2,
+				FinalityStatus: []types.TxnStatus{
+					types.TxnStatusReceived,
+					types.TxnStatusCandidate,
+					types.TxnStatusPreConfirmed,
+					types.TxnStatusAcceptedOnL2,
 				},
 			},
 		},
@@ -1034,7 +1035,7 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 			tempSetup.WsProvider,
 			txns,
 			&SubNewTxnsInput{
-				FinalityStatus: []TxnStatus{TxnStatusPreConfirmed},
+				FinalityStatus: []types.TxnStatus{types.TxnStatusPreConfirmed},
 			},
 		)
 		require.NoError(t, err)

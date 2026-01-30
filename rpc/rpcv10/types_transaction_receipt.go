@@ -36,9 +36,9 @@ type MessageStatus struct {
 	// The finality status of the L1_HANDLER transaction, including the case the txn
 	// is still in the mempool or
 	// failed validation during the block construction phase
-	FinalityStatus TxnFinalityStatus `json:"finality_status"`
+	FinalityStatus types.TxnFinalityStatus `json:"finality_status"`
 	// The execution status of the L1_HANDLER transaction
-	ExecutionStatus TxnExecutionStatus `json:"execution_status"`
+	ExecutionStatus types.TxnExecutionStatus `json:"execution_status"`
 	// The failure reason. Only appears if `execution_status` is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }
@@ -129,14 +129,14 @@ func (f *PriceUnitFri) UnmarshalJSON(data []byte) error {
 
 // TransactionReceipt represents the common structure of a transaction receipt.
 type TransactionReceipt struct {
-	Hash               *felt.Felt         `json:"transaction_hash"`
-	Type               TransactionType    `json:"type"`
-	ActualFee          FeePayment         `json:"actual_fee"`
-	FinalityStatus     TxnFinalityStatus  `json:"finality_status"`
-	MessagesSent       []MsgToL1          `json:"messages_sent"`
-	Events             []Event            `json:"events"`
-	ExecutionResources ExecutionResources `json:"execution_resources"`
-	ExecutionStatus    TxnExecutionStatus `json:"execution_status"`
+	Hash               *felt.Felt               `json:"transaction_hash"`
+	Type               TransactionType          `json:"type"`
+	ActualFee          FeePayment               `json:"actual_fee"`
+	FinalityStatus     types.TxnFinalityStatus  `json:"finality_status"`
+	MessagesSent       []MsgToL1                `json:"messages_sent"`
+	Events             []Event                  `json:"events"`
+	ExecutionResources ExecutionResources       `json:"execution_resources"`
+	ExecutionStatus    types.TxnExecutionStatus `json:"execution_status"`
 	// Only present in case of a Deploy or DeployAccount transaction receipt
 	ContractAddress *felt.Felt `json:"contract_address,omitempty"`
 	// Only appears if the transaction is a L1Handler transaction
@@ -218,20 +218,10 @@ type ExecutionResources struct {
 	L2Gas uint `json:"l2_gas"`
 }
 
-type TxnStatus string
-
-const (
-	TxnStatusReceived     TxnStatus = "RECEIVED"
-	TxnStatusCandidate    TxnStatus = "CANDIDATE"
-	TxnStatusPreConfirmed TxnStatus = "PRE_CONFIRMED"
-	TxnStatusAcceptedOnL2 TxnStatus = "ACCEPTED_ON_L2"
-	TxnStatusAcceptedOnL1 TxnStatus = "ACCEPTED_ON_L1"
-)
-
 // Transaction status result, including finality status and execution status
 type TxnStatusResult struct {
-	FinalityStatus  TxnStatus          `json:"finality_status"`
-	ExecutionStatus TxnExecutionStatus `json:"execution_status,omitempty"`
+	FinalityStatus  types.TxnStatus          `json:"finality_status"`
+	ExecutionStatus types.TxnExecutionStatus `json:"execution_status,omitempty"`
 	// the failure reason, only appears if execution_status is REVERTED
 	FailureReason string `json:"failure_reason,omitempty"`
 }
