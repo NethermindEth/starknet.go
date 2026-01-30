@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/account"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10/utilsv10"
 	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
@@ -51,8 +52,7 @@ func verboseInvoke(
 	}
 
 	// Using the BuildInvokeTxn helper to build the BroadInvokeTx
-	InvokeTx := utils.BuildInvokeTxn(
-		&rpcv10.BroadcastInvokeTxnV3{},
+	InvokeTx := utilsv10.BuildInvokeTxn(
 		accnt.Address,
 		nonce,
 		calldata,
@@ -83,15 +83,15 @@ func verboseInvoke(
 	feeRes, err := accnt.ProviderAsV10().EstimateFee(
 		context.Background(),
 		[]rpcv10.BroadcastTxn{InvokeTx},
-		[]rpcv10.SimulationFlag{},
-		rpcv10.WithBlockTag(rpcv10.BlockTagPreConfirmed),
+		[]types.SimulationFlag{},
+		types.WithBlockTag(types.BlockTagPreConfirmed),
 	)
 	if err != nil {
 		panic(err)
 	}
 
 	// assign the estimated fee to the transaction, multiplying the estimated fee by 1.5 for a better chance of success
-	utils.FeeEstToResBoundsMap(&feeRes[0], InvokeTx.ResourceBounds, 1.5)
+	utilsv10.FeeEstToResBoundsMap(&feeRes[0], 1.5)
 
 	// As we changed the resource bounds, we need to sign the transaction again, since the resource bounds are part of the signature
 	err = accnt.SignInvokeTransaction(context.Background(), InvokeTx)

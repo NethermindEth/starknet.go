@@ -8,6 +8,7 @@ import (
 	"github.com/NethermindEth/starknet.go/account"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/rpcv10/utilsv10"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -65,7 +66,7 @@ func main() {
 
 	// Convert the estimated fee to STRK. The multiplier is 1, as we already estimated the
 	// fee in BuildAndEstimateDeployAccountTxn multiplying by 1.5.
-	overallFee, err := utils.ResBoundsMapToOverallFee(
+	overallFee, err := utilsv10.ResBoundsMapToOverallFee(
 		deployAccountTxn.ResourceBounds,
 		1,
 		deployAccountTxn.Tip,

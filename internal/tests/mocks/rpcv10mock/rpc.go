@@ -17,6 +17,7 @@ import (
 	client "github.com/NethermindEth/starknet.go/client"
 	contracts "github.com/NethermindEth/starknet.go/contracts"
 	rpcv10 "github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	types "github.com/NethermindEth/starknet.go/rpc/types"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -120,7 +121,7 @@ func (mr *MockRPCProviderMockRecorder) BlockNumber(ctx any) *gomock.Call {
 }
 
 // BlockTransactionCount mocks base method.
-func (m *MockRPCProvider) BlockTransactionCount(ctx context.Context, blockID rpcv10.BlockID) (uint64, error) {
+func (m *MockRPCProvider) BlockTransactionCount(ctx context.Context, blockID types.BlockID) (uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockTransactionCount", ctx, blockID)
 	ret0, _ := ret[0].(uint64)
@@ -135,7 +136,7 @@ func (mr *MockRPCProviderMockRecorder) BlockTransactionCount(ctx, blockID any) *
 }
 
 // BlockWithReceipts mocks base method.
-func (m *MockRPCProvider) BlockWithReceipts(ctx context.Context, blockID rpcv10.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithReceipts(ctx context.Context, blockID types.BlockID) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockWithReceipts", ctx, blockID)
 	ret0, _ := ret[0].(any)
@@ -150,7 +151,7 @@ func (mr *MockRPCProviderMockRecorder) BlockWithReceipts(ctx, blockID any) *gomo
 }
 
 // BlockWithTxHashes mocks base method.
-func (m *MockRPCProvider) BlockWithTxHashes(ctx context.Context, blockID rpcv10.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithTxHashes(ctx context.Context, blockID types.BlockID) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockWithTxHashes", ctx, blockID)
 	ret0, _ := ret[0].(any)
@@ -165,7 +166,7 @@ func (mr *MockRPCProviderMockRecorder) BlockWithTxHashes(ctx, blockID any) *gomo
 }
 
 // BlockWithTxs mocks base method.
-func (m *MockRPCProvider) BlockWithTxs(ctx context.Context, blockID rpcv10.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithTxs(ctx context.Context, blockID types.BlockID) (any, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BlockWithTxs", ctx, blockID)
 	ret0, _ := ret[0].(any)
@@ -180,7 +181,7 @@ func (mr *MockRPCProviderMockRecorder) BlockWithTxs(ctx, blockID any) *gomock.Ca
 }
 
 // Call mocks base method.
-func (m *MockRPCProvider) Call(ctx context.Context, call rpcv10.FunctionCall, block rpcv10.BlockID) ([]*felt.Felt, error) {
+func (m *MockRPCProvider) Call(ctx context.Context, call types.FunctionCall, block types.BlockID) ([]*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Call", ctx, call, block)
 	ret0, _ := ret[0].([]*felt.Felt)
@@ -210,7 +211,7 @@ func (mr *MockRPCProviderMockRecorder) ChainID(ctx any) *gomock.Call {
 }
 
 // Class mocks base method.
-func (m *MockRPCProvider) Class(ctx context.Context, blockID rpcv10.BlockID, classHash *felt.Felt) (rpcv10.ClassOutput, error) {
+func (m *MockRPCProvider) Class(ctx context.Context, blockID types.BlockID, classHash *felt.Felt) (rpcv10.ClassOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Class", ctx, blockID, classHash)
 	ret0, _ := ret[0].(rpcv10.ClassOutput)
@@ -225,7 +226,7 @@ func (mr *MockRPCProviderMockRecorder) Class(ctx, blockID, classHash any) *gomoc
 }
 
 // ClassAt mocks base method.
-func (m *MockRPCProvider) ClassAt(ctx context.Context, blockID rpcv10.BlockID, contractAddress *felt.Felt) (rpcv10.ClassOutput, error) {
+func (m *MockRPCProvider) ClassAt(ctx context.Context, blockID types.BlockID, contractAddress *felt.Felt) (rpcv10.ClassOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClassAt", ctx, blockID, contractAddress)
 	ret0, _ := ret[0].(rpcv10.ClassOutput)
@@ -240,7 +241,7 @@ func (mr *MockRPCProviderMockRecorder) ClassAt(ctx, blockID, contractAddress any
 }
 
 // ClassHashAt mocks base method.
-func (m *MockRPCProvider) ClassHashAt(ctx context.Context, blockID rpcv10.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (m *MockRPCProvider) ClassHashAt(ctx context.Context, blockID types.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClassHashAt", ctx, blockID, contractAddress)
 	ret0, _ := ret[0].(*felt.Felt)
@@ -270,7 +271,7 @@ func (mr *MockRPCProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.
 }
 
 // EstimateFee mocks base method.
-func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []rpcv10.BroadcastTxn, simulationFlags []rpcv10.SimulationFlag, blockID rpcv10.BlockID) ([]rpcv10.FeeEstimation, error) {
+func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []rpcv10.BroadcastTxn, simulationFlags []types.SimulationFlag, blockID types.BlockID) ([]rpcv10.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
 	ret0, _ := ret[0].([]rpcv10.FeeEstimation)
@@ -285,7 +286,7 @@ func (mr *MockRPCProviderMockRecorder) EstimateFee(ctx, requests, simulationFlag
 }
 
 // EstimateMessageFee mocks base method.
-func (m *MockRPCProvider) EstimateMessageFee(ctx context.Context, msg rpcv10.MsgFromL1, blockID rpcv10.BlockID) (rpcv10.MessageFeeEstimation, error) {
+func (m *MockRPCProvider) EstimateMessageFee(ctx context.Context, msg rpcv10.MsgFromL1, blockID types.BlockID) (rpcv10.MessageFeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateMessageFee", ctx, msg, blockID)
 	ret0, _ := ret[0].(rpcv10.MessageFeeEstimation)
@@ -315,7 +316,7 @@ func (mr *MockRPCProviderMockRecorder) Events(ctx, input any) *gomock.Call {
 }
 
 // MessagesStatus mocks base method.
-func (m *MockRPCProvider) MessagesStatus(ctx context.Context, transactionHash rpcv10.NumAsHex) ([]rpcv10.MessageStatus, error) {
+func (m *MockRPCProvider) MessagesStatus(ctx context.Context, transactionHash types.NumAsHex) ([]rpcv10.MessageStatus, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MessagesStatus", ctx, transactionHash)
 	ret0, _ := ret[0].([]rpcv10.MessageStatus)
@@ -330,7 +331,7 @@ func (mr *MockRPCProviderMockRecorder) MessagesStatus(ctx, transactionHash any) 
 }
 
 // Nonce mocks base method.
-func (m *MockRPCProvider) Nonce(ctx context.Context, blockID rpcv10.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
+func (m *MockRPCProvider) Nonce(ctx context.Context, blockID types.BlockID, contractAddress *felt.Felt) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Nonce", ctx, blockID, contractAddress)
 	ret0, _ := ret[0].(*felt.Felt)
@@ -345,7 +346,7 @@ func (mr *MockRPCProviderMockRecorder) Nonce(ctx, blockID, contractAddress any) 
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID rpcv10.BlockID, txns []rpcv10.BroadcastTxn, simulationFlags []rpcv10.SimulationFlag) ([]rpcv10.SimulatedTransaction, error) {
+func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID types.BlockID, txns []rpcv10.BroadcastTxn, simulationFlags []types.SimulationFlag) ([]rpcv10.SimulatedTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
 	ret0, _ := ret[0].([]rpcv10.SimulatedTransaction)
@@ -375,7 +376,7 @@ func (mr *MockRPCProviderMockRecorder) SpecVersion(ctx any) *gomock.Call {
 }
 
 // StateUpdate mocks base method.
-func (m *MockRPCProvider) StateUpdate(ctx context.Context, blockID rpcv10.BlockID) (*rpcv10.StateUpdateOutput, error) {
+func (m *MockRPCProvider) StateUpdate(ctx context.Context, blockID types.BlockID) (*rpcv10.StateUpdateOutput, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StateUpdate", ctx, blockID)
 	ret0, _ := ret[0].(*rpcv10.StateUpdateOutput)
@@ -390,7 +391,7 @@ func (mr *MockRPCProviderMockRecorder) StateUpdate(ctx, blockID any) *gomock.Cal
 }
 
 // StorageAt mocks base method.
-func (m *MockRPCProvider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID rpcv10.BlockID) (string, error) {
+func (m *MockRPCProvider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID types.BlockID) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StorageAt", ctx, contractAddress, key, blockID)
 	ret0, _ := ret[0].(string)
@@ -435,7 +436,7 @@ func (mr *MockRPCProviderMockRecorder) Syncing(ctx any) *gomock.Call {
 }
 
 // TraceBlockTransactions mocks base method.
-func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpcv10.BlockID) ([]rpcv10.Trace, error) {
+func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID types.BlockID) ([]rpcv10.Trace, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
 	ret0, _ := ret[0].([]rpcv10.Trace)
@@ -465,7 +466,7 @@ func (mr *MockRPCProviderMockRecorder) TraceTransaction(ctx, transactionHash any
 }
 
 // TransactionByBlockIDAndIndex mocks base method.
-func (m *MockRPCProvider) TransactionByBlockIDAndIndex(ctx context.Context, blockID rpcv10.BlockID, index uint64) (*rpcv10.BlockTransaction, error) {
+func (m *MockRPCProvider) TransactionByBlockIDAndIndex(ctx context.Context, blockID types.BlockID, index uint64) (*rpcv10.BlockTransaction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TransactionByBlockIDAndIndex", ctx, blockID, index)
 	ret0, _ := ret[0].(*rpcv10.BlockTransaction)
@@ -564,7 +565,7 @@ func (mr *MockWebsocketProviderMockRecorder) SubscribeEvents(ctx, events, option
 }
 
 // SubscribeNewHeads mocks base method.
-func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpcv10.BlockHeader, subBlockID rpcv10.SubscriptionBlockID) (*client.ClientSubscription, error) {
+func (m *MockWebsocketProvider) SubscribeNewHeads(ctx context.Context, headers chan<- *rpcv10.BlockHeader, subBlockID types.SubscriptionBlockID) (*client.ClientSubscription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SubscribeNewHeads", ctx, headers, subBlockID)
 	ret0, _ := ret[0].(*client.ClientSubscription)

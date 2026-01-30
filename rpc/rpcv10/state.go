@@ -108,7 +108,7 @@ func StorageProof(
 func checkForPreConfirmed(b types.BlockID) error {
 	if b.Tag == types.BlockTagPreConfirmed {
 		return errors.Join(
-			ErrInvalidBlockID,
+			types.ErrInvalidBlockID,
 			errors.New("'pre_confirmed' tag is not supported on this method"),
 		)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	setup "github.com/NethermindEth/starknet.go/examples/internal"
 	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/utils"
 )
 
@@ -51,14 +52,14 @@ func main() {
 	}
 
 	// Get token's decimals. As the contract method doesn't require any parameters, we can omit the calldata field.
-	getDecimalsTx := rpcv10.FunctionCall{
+	getDecimalsTx := types.FunctionCall{
 		ContractAddress:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethod),
 	}
 	decimalsResp, rpcErr := client.Call(
 		context.Background(),
 		getDecimalsTx,
-		rpcv10.WithBlockTag(rpcv10.BlockTagLatest),
+		types.WithBlockTag(types.BlockTagLatest),
 	)
 	if rpcErr != nil {
 		panic(rpcErr)
@@ -67,12 +68,12 @@ func main() {
 	fmt.Printf("Decimals: %v \n", decimals)
 
 	// Get balance from specified account address. As the contract method requires a parameter, we need to pass it in the calldata field.
-	tx := rpcv10.FunctionCall{
+	tx := types.FunctionCall{
 		ContractAddress:    contractAddress,
 		EntryPointSelector: utils.GetSelectorFromNameFelt(contractMethodWithCalldata),
 		Calldata:           []*felt.Felt{accountAddressInFelt},
 	}
-	balanceResp, rpcErr := client.Call(context.Background(), tx, rpcv10.WithBlockTag(rpcv10.BlockTagLatest))
+	balanceResp, rpcErr := client.Call(context.Background(), tx, types.WithBlockTag(types.BlockTagLatest))
 	if rpcErr != nil {
 		panic(rpcErr)
 	}

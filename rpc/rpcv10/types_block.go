@@ -2,15 +2,12 @@ package rpcv10
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/NethermindEth/juno/core/felt"
 )
-
-var ErrInvalidBlockID = errors.New("invalid blockid")
 
 type Block struct {
 	BlockHeader

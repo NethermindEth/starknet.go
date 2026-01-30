@@ -350,7 +350,7 @@ func TestStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				},
-				ExpectedError: ErrInvalidBlockID,
+				ExpectedError: types.ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
@@ -441,7 +441,7 @@ func TestStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				},
-				ExpectedError: ErrInvalidBlockID,
+				ExpectedError: types.ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",
@@ -532,7 +532,7 @@ func TestStorageProof(t *testing.T) {
 				StorageProofInput: StorageProofInput{
 					blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				},
-				ExpectedError: ErrInvalidBlockID,
+				ExpectedError: types.ErrInvalidBlockID,
 			},
 			{
 				Description: "error: invalid block number",

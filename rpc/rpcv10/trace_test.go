@@ -182,7 +182,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			{
 				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: ErrInvalidBlockID,
+				ExpectedErr: types.ErrInvalidBlockID,
 			},
 		},
 		tests.TestnetEnv: {
@@ -202,7 +202,7 @@ func TestTraceBlockTransactions(t *testing.T) {
 			{
 				blockID: types.WithBlockTag(types.BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: ErrInvalidBlockID,
+				ExpectedErr: types.ErrInvalidBlockID,
 			},
 		},
 	}[tests.TEST_ENV]
