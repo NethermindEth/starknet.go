@@ -7,7 +7,7 @@ import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/curve"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
-	"github.com/NethermindEth/starknet.go/rpc/rpcv10"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 	"github.com/NethermindEth/starknet.go/types/constraints"
 )
 
@@ -194,15 +194,15 @@ func TipAndResourcesHash[
 	tip uint64,
 	rbm *constraints.ResourceBoundsMappingImpl[u64, u128, RB],
 ) (*felt.Felt, error) {
-	l1Bytes, err := ResourceBoundsBytes(&rbm.L1Gas, string(rpcv10.ResourceL1Gas))
+	l1Bytes, err := ResourceBoundsBytes(&rbm.L1Gas, string(types.ResourceL1Gas))
 	if err != nil {
 		return nil, err
 	}
-	l2Bytes, err := ResourceBoundsBytes(&rbm.L2Gas, string(rpcv10.ResourceL2Gas))
+	l2Bytes, err := ResourceBoundsBytes(&rbm.L2Gas, string(types.ResourceL2Gas))
 	if err != nil {
 		return nil, err
 	}
-	l1DataGasBytes, err := ResourceBoundsBytes(&rbm.L1DataGas, string(rpcv10.ResourceL1DataGas))
+	l1DataGasBytes, err := ResourceBoundsBytes(&rbm.L1DataGas, string(types.ResourceL1DataGas))
 	if err != nil {
 		return nil, err
 	}

@@ -14,8 +14,8 @@ type TxnOptions struct {
 	Tip types.U64
 	// A boolean flag indicating whether the transaction version should have
 	// the query bit when estimating fees. If true, the transaction version
-	// will be `rpcv10.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
-	// If false, the transaction version will be `rpcv10.TransactionV3` (0x3).
+	// will be `types.TransactionV3WithQueryBit` (0x100000000000000000000000000000003).
+	// If false, the transaction version will be `types.TransactionV3` (0x3).
 	// In case of doubt, set to `false`. Default: `false`.
 	UseQueryBit bool
 
@@ -27,14 +27,14 @@ type TxnOptions struct {
 	// TODO: remove this field after the Starknet v0.14.1 upgrade
 }
 
-// TxnVersion returns `rpcv10.TransactionV3WithQueryBit` when UseQueryBit is true, and
-// `rpcv10.TransactionV3` if false.
-func (opts *TxnOptions) TxnVersion() rpcv10.TransactionVersion {
+// TxnVersion returns `types.TransactionV3WithQueryBit` when UseQueryBit is true, and
+// `types.TransactionV3` if false.
+func (opts *TxnOptions) TxnVersion() types.TransactionVersion {
 	if opts.UseQueryBit {
-		return rpcv10.TransactionV3WithQueryBit
+		return types.TransactionV3WithQueryBit
 	}
 
-	return rpcv10.TransactionV3
+	return types.TransactionV3
 }
 
 // SafeTip returns the tip amount in FRI for the transaction. If the tip is not set
@@ -85,8 +85,8 @@ func BuildInvokeTxn(
 		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         rpcv10.DAModeL1,
-		FeeMode:               rpcv10.DAModeL1,
+		NonceDataMode:         types.DAModeL1,
+		FeeMode:               types.DAModeL1,
 	}
 }
 
@@ -175,7 +175,7 @@ func BuildDeployAccountTxn(
 //     If resource bounds overflow, they will be set to the max allowed value (U64 or U128).
 //
 // Returns:
-//   - types.ResourceBoundsMapping: Resource bounds with applied multipliers
+//   - rpcv10.ResourceBoundsMapping: Resource bounds with applied multipliers
 func FeeEstToResBoundsMap(
 	feeEstimation *rpcv10.FeeEstimation,
 	multiplier float64,
@@ -204,7 +204,7 @@ func FeeEstToResBoundsMap(
 //     values (U64 or U128).
 //
 // Returns:
-//   - types.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
+//   - rpcv10.ResourceBoundsMapping: Resource bounds with applied multipliers and limits
 func CustomFeeEstToResBoundsMap(
 	feeEstimation *rpcv10.FeeEstimation,
 	multiplier float64,

@@ -24,7 +24,7 @@ type BroadcastDeclareTxnV3 struct {
 	Type              TransactionType          `json:"type"`
 	SenderAddress     *felt.Felt               `json:"sender_address"`
 	CompiledClassHash *felt.Felt               `json:"compiled_class_hash"`
-	Version           TransactionVersion       `json:"version"`
+	Version           types.TransactionVersion `json:"version"`
 	Signature         []*felt.Felt             `json:"signature"`
 	Nonce             *felt.Felt               `json:"nonce"`
 	ContractClass     *contracts.ContractClass `json:"contract_class"`
@@ -35,15 +35,15 @@ type BroadcastDeclareTxnV3 struct {
 	// The data needed to deploy the account contract from which this tx will be initiated
 	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
-	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	NonceDataMode types.DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
-	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+	FeeMode types.DataAvailabilityMode `json:"fee_data_availability_mode"`
 }
 
 func (tx BroadcastDeclareTxnV3) GetType() TransactionType                   { return tx.Type }
 func (tx BroadcastDeclareTxnV3) GetSenderAddress() *felt.Felt               { return tx.SenderAddress }
 func (tx BroadcastDeclareTxnV3) GetCompiledClassHash() *felt.Felt           { return tx.CompiledClassHash }
-func (tx BroadcastDeclareTxnV3) GetVersion() TransactionVersion             { return tx.Version }
+func (tx BroadcastDeclareTxnV3) GetVersion() types.TransactionVersion       { return tx.Version }
 func (tx BroadcastDeclareTxnV3) GetSignature() []*felt.Felt                 { return tx.Signature }
 func (tx BroadcastDeclareTxnV3) GetNonce() *felt.Felt                       { return tx.Nonce }
 func (tx BroadcastDeclareTxnV3) GetContractClass() *contracts.ContractClass { return tx.ContractClass }
@@ -53,5 +53,7 @@ func (tx BroadcastDeclareTxnV3) GetPayMasterData() []*felt.Felt             { re
 func (tx BroadcastDeclareTxnV3) GetAccountDeploymentData() []*felt.Felt {
 	return tx.AccountDeploymentData
 }
-func (tx BroadcastDeclareTxnV3) GetNonceDataMode() DataAvailabilityMode { return tx.NonceDataMode }
-func (tx BroadcastDeclareTxnV3) GetFeeMode() DataAvailabilityMode       { return tx.FeeMode }
+func (tx BroadcastDeclareTxnV3) GetNonceDataMode() types.DataAvailabilityMode {
+	return tx.NonceDataMode
+}
+func (tx BroadcastDeclareTxnV3) GetFeeMode() types.DataAvailabilityMode { return tx.FeeMode }

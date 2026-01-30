@@ -2,6 +2,7 @@ package rpcv10
 
 import (
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Transaction is an interface that represents a Starknet transaction.
@@ -9,7 +10,7 @@ import (
 // The 'Type' and 'Version' fields are present in all transaction types.
 type Transaction interface {
 	GetType() TransactionType
-	GetVersion() TransactionVersion
+	GetVersion() types.TransactionVersion
 }
 
 var (

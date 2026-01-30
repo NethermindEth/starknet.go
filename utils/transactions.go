@@ -132,15 +132,15 @@ func BuildInvokeTxn[
 		Type:                  TransactionType(rpcv10.TransactionTypeInvoke),
 		SenderAddress:         senderAddress,
 		Calldata:              calldata,
-		Version:               TransactionVersion(rpcv10.TransactionVersion(opts.TxnVersion())),
+		Version:               TransactionVersion(types.TransactionVersion(opts.TxnVersion())),
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
 		Tip:                   u64(opts.SafeTip()),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         DA(rpcv10.DAModeL1),
-		FeeMode:               DA(rpcv10.DAModeL1),
+		NonceDataMode:         DA(types.DAModeL1),
+		FeeMode:               DA(types.DAModeL1),
 	}
 
 	return tx
@@ -213,8 +213,8 @@ func BuildDeclareTxn[
 		Tip:                   u64(opts.SafeTip()),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         DA(rpcv10.DAModeL1),
-		FeeMode:               DA(rpcv10.DAModeL1),
+		NonceDataMode:         DA(types.DAModeL1),
+		FeeMode:               DA(types.DAModeL1),
 	}
 
 	return tx, nil
@@ -271,8 +271,8 @@ func BuildDeployAccountTxn[
 		ResourceBounds:      resourceBounds,
 		Tip:                 u64(opts.SafeTip()),
 		PayMasterData:       []*felt.Felt{},
-		NonceDataMode:       DA(rpcv10.DAModeL1),
-		FeeMode:             DA(rpcv10.DAModeL1),
+		NonceDataMode:       DA(types.DAModeL1),
+		FeeMode:             DA(types.DAModeL1),
 	}
 
 	return tx

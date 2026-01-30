@@ -104,8 +104,8 @@ func BuildDeclareTxn[
 		Tip:                   u64(opts.SafeTip()),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
-		NonceDataMode:         DA(rpcv10.DAModeL1),
-		FeeMode:               DA(rpcv10.DAModeL1),
+		NonceDataMode:         DA(types.DAModeL1),
+		FeeMode:               DA(types.DAModeL1),
 	}
 
 	return tx, nil
@@ -159,8 +159,8 @@ func BuildDeployAccountTxn[
 		ResourceBounds:      resourceBounds,
 		Tip:                 u64(opts.SafeTip()),
 		PayMasterData:       []*felt.Felt{},
-		NonceDataMode:       DA(rpcv10.DAModeL1),
-		FeeMode:             DA(rpcv10.DAModeL1),
+		NonceDataMode:       DA(types.DAModeL1),
+		FeeMode:             DA(types.DAModeL1),
 	}
 
 	return tx
@@ -279,7 +279,7 @@ func CustomFeeEstToResBoundsMap[
 //   - multiplier: Multiplier for max amount and max price per unit
 //
 // Returns:
-//   - types.ResourceBounds: Resource bounds with applied multiplier
+//   - RB: Resource bounds with applied multiplier
 func toResourceBounds[
 	u64 constraints.U64,
 	u128 constraints.U128,
