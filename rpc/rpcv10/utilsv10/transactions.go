@@ -10,7 +10,6 @@ import (
 
 // Optional settings when building a transaction.
 type TxnOptions struct {
-	// @changed to string
 	// Tip amount in FRI for the transaction. Default: `"0x0"`.
 	Tip types.U64
 	// A boolean flag indicating whether the transaction version should have
@@ -83,7 +82,7 @@ func BuildInvokeTxn(
 		Signature:             []*felt.Felt{},
 		Nonce:                 nonce,
 		ResourceBounds:        resourceBounds,
-		Tip:                   rpcv10.U64(opts.SafeTip()),
+		Tip:                   opts.SafeTip(),
 		PayMasterData:         []*felt.Felt{},
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpcv10.DAModeL1,

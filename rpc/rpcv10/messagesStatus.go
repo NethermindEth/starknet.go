@@ -6,6 +6,7 @@ import (
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/rpc/callers"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // Given an L1 tx hash, returns the associated l1_handler tx hashes and statuses
@@ -22,7 +23,7 @@ import (
 func MessagesStatus(
 	ctx context.Context,
 	c callers.Caller,
-	transactionHash NumAsHex,
+	transactionHash types.NumAsHex,
 ) ([]MessageStatus, error) {
 	var response []MessageStatus
 	err := internal.Do(ctx, c, "starknet_getMessagesStatus", &response, transactionHash)

@@ -145,7 +145,7 @@ type RPCProvider interface {
 		blockID BlockID,
 	) (MessageFeeEstimation, error)
 	Events(ctx context.Context, input EventsInput) (*EventChunk, error)
-	MessagesStatus(ctx context.Context, transactionHash NumAsHex) ([]MessageStatus, error)
+	MessagesStatus(ctx context.Context, transactionHash types.NumAsHex) ([]MessageStatus, error)
 	Nonce(
 		ctx context.Context,
 		blockID BlockID,

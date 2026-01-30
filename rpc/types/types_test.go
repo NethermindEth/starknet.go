@@ -1,4 +1,4 @@
-package rpcv10
+package types
 
 import (
 	"math"
@@ -61,8 +61,8 @@ func TestU128_ToBigInt(t *testing.T) {
 	}
 }
 
-// TestU128_ToUint64 tests the ToUint64 method of the U128 type.
-func TestU128_ToUint64(t *testing.T) {
+// TestU64_ToUint64 tests the ToUint64 method of the U64 type.
+func TestU64_ToUint64(t *testing.T) {
 	tests.RunTestOn(t, tests.MockEnv)
 
 	testCases := []struct {

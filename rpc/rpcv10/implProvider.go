@@ -148,7 +148,7 @@ func (provider *Provider) Events(ctx context.Context, input EventsInput) (*Event
 
 func (provider *Provider) MessagesStatus(
 	ctx context.Context,
-	transactionHash NumAsHex,
+	transactionHash types.NumAsHex,
 ) ([]MessageStatus, error) {
 	return nil, nil
 }

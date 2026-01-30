@@ -9,6 +9,7 @@ import (
 
 	"github.com/NethermindEth/juno/core/felt"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 type BlockTransaction struct {
@@ -64,7 +65,7 @@ type InvokeTxnV3 struct {
 	Signature      []*felt.Felt           `json:"signature"`
 	Nonce          *felt.Felt             `json:"nonce"`
 	ResourceBounds *ResourceBoundsMapping `json:"resource_bounds"`
-	Tip            U64                    `json:"tip"`
+	Tip            types.U64              `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -82,7 +83,7 @@ func (tx InvokeTxnV3) GetVersion() TransactionVersion            { return tx.Ver
 func (tx InvokeTxnV3) GetSignature() []*felt.Felt                { return tx.Signature }
 func (tx InvokeTxnV3) GetNonce() *felt.Felt                      { return tx.Nonce }
 func (tx InvokeTxnV3) GetResourceBounds() *ResourceBoundsMapping { return tx.ResourceBounds }
-func (tx InvokeTxnV3) GetTip() U64                               { return tx.Tip }
+func (tx InvokeTxnV3) GetTip() types.U64                         { return tx.Tip }
 func (tx InvokeTxnV3) GetPayMasterData() []*felt.Felt            { return tx.PayMasterData }
 func (tx InvokeTxnV3) GetAccountDeploymentData() []*felt.Felt    { return tx.AccountDeploymentData }
 func (tx InvokeTxnV3) GetNonceDataMode() DataAvailabilityMode    { return tx.NonceDataMode }
@@ -155,7 +156,7 @@ type DeclareTxnV3 struct {
 	Nonce             *felt.Felt             `json:"nonce"`
 	ClassHash         *felt.Felt             `json:"class_hash"`
 	ResourceBounds    *ResourceBoundsMapping `json:"resource_bounds"`
-	Tip               U64                    `json:"tip"`
+	Tip               types.U64              `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The data needed to deploy the account contract from which this tx will be initiated
@@ -174,7 +175,7 @@ func (tx DeclareTxnV3) GetSignature() []*felt.Felt                { return tx.Si
 func (tx DeclareTxnV3) GetNonce() *felt.Felt                      { return tx.Nonce }
 func (tx DeclareTxnV3) GetClassHash() *felt.Felt                  { return tx.ClassHash }
 func (tx DeclareTxnV3) GetResourceBounds() *ResourceBoundsMapping { return tx.ResourceBounds }
-func (tx DeclareTxnV3) GetTip() U64                               { return tx.Tip }
+func (tx DeclareTxnV3) GetTip() types.U64                         { return tx.Tip }
 func (tx DeclareTxnV3) GetPayMasterData() []*felt.Felt            { return tx.PayMasterData }
 func (tx DeclareTxnV3) GetAccountDeploymentData() []*felt.Felt    { return tx.AccountDeploymentData }
 func (tx DeclareTxnV3) GetNonceDataMode() DataAvailabilityMode    { return tx.NonceDataMode }
@@ -213,7 +214,7 @@ type DeployAccountTxnV3 struct {
 	ConstructorCalldata []*felt.Felt           `json:"constructor_calldata"`
 	ClassHash           *felt.Felt             `json:"class_hash"`
 	ResourceBounds      *ResourceBoundsMapping `json:"resource_bounds"`
-	Tip                 U64                    `json:"tip"`
+	Tip                 types.U64              `json:"tip"`
 	// The data needed to allow the paymaster to pay for the transaction in native tokens
 	PayMasterData []*felt.Felt `json:"paymaster_data"`
 	// The storage domain of the account's nonce (an account has a nonce per DA mode)
@@ -230,7 +231,7 @@ func (tx DeployAccountTxnV3) GetContractAddressSalt() *felt.Felt        { return
 func (tx DeployAccountTxnV3) GetConstructorCalldata() []*felt.Felt      { return tx.ConstructorCalldata }
 func (tx DeployAccountTxnV3) GetClassHash() *felt.Felt                  { return tx.ClassHash }
 func (tx DeployAccountTxnV3) GetResourceBounds() *ResourceBoundsMapping { return tx.ResourceBounds }
-func (tx DeployAccountTxnV3) GetTip() U64                               { return tx.Tip }
+func (tx DeployAccountTxnV3) GetTip() types.U64                         { return tx.Tip }
 func (tx DeployAccountTxnV3) GetPayMasterData() []*felt.Felt            { return tx.PayMasterData }
 func (tx DeployAccountTxnV3) GetNonceDataMode() DataAvailabilityMode    { return tx.NonceDataMode }
 func (tx DeployAccountTxnV3) GetFeeMode() DataAvailabilityMode          { return tx.FeeMode }
@@ -327,9 +328,9 @@ const (
 
 type ResourceBounds struct {
 	// The max amount of the resource that can be used in the tx
-	MaxAmount U64 `json:"max_amount"`
+	MaxAmount types.U64 `json:"max_amount"`
 	// The max price per unit of this resource for this tx
-	MaxPricePerUnit U128 `json:"max_price_per_unit"`
+	MaxPricePerUnit types.U128 `json:"max_price_per_unit"`
 }
 
 func (rb ResourceBounds) Bytes(resource Resource) ([]byte, error) {

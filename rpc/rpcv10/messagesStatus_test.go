@@ -6,6 +6,7 @@ import (
 
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	"github.com/NethermindEth/starknet.go/rpc/internal"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func TestMessagesStatus(t *testing.T) {
 	testConfig := internal.BeforeEach(t, false)
 
 	type testSetType struct {
-		TxHash      NumAsHex
+		TxHash      types.NumAsHex
 		ExpectedErr error
 	}
 
@@ -56,7 +57,7 @@ func TestMessagesStatus(t *testing.T) {
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
-						txnHash := args[0].(NumAsHex)
+						txnHash := args[0].(types.NumAsHex)
 
 						if txnHash == "0xdeadbeef" {
 							return RPCError{

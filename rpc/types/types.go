@@ -12,6 +12,10 @@ import (
 // An unsigned integer number in hex format (0x...)
 type NumAsHex string
 
+// A storage key, represented as a string of hex digits.
+// Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
+type StorageKey string
+
 // 64 bit unsigned integers, represented by hex string of length at most 16
 type U64 string
 
