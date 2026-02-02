@@ -4,21 +4,22 @@ import (
 	"math/big"
 
 	"github.com/NethermindEth/juno/core/felt"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
-type ResourceBounds[u64 U64, u128 U128] interface {
+type ResourceBounds interface {
 	~struct {
-		MaxAmount       u64  `json:"max_amount"`
-		MaxPricePerUnit u128 `json:"max_price_per_unit"`
+		MaxAmount       types.U64  `json:"max_amount"`
+		MaxPricePerUnit types.U128 `json:"max_price_per_unit"`
 	}
 }
 
-type ResourceBoundsImpl[u64 U64, u128 U128] struct {
-	MaxAmount       u64  `json:"max_amount"`
-	MaxPricePerUnit u128 `json:"max_price_per_unit"`
+type ResourceBoundsImpl struct {
+	MaxAmount       types.U64  `json:"max_amount"`
+	MaxPricePerUnit types.U128 `json:"max_price_per_unit"`
 }
 
-type ResourceBoundsMapping[u64 U64, u128 U128, B ResourceBounds[u64, u128]] interface {
+type ResourceBoundsMapping[B ResourceBounds] interface {
 	~struct {
 		L1Gas     B `json:"l1_gas"`
 		L1DataGas B `json:"l1_data_gas"`
@@ -26,7 +27,7 @@ type ResourceBoundsMapping[u64 U64, u128 U128, B ResourceBounds[u64, u128]] inte
 	}
 }
 
-type ResourceBoundsMappingImpl[u64 U64, u128 U128, B ResourceBounds[u64, u128]] struct {
+type ResourceBoundsMappingImpl[B ResourceBounds] struct {
 	L1Gas     B `json:"l1_gas"`
 	L1DataGas B `json:"l1_data_gas"`
 	L2Gas     B `json:"l2_gas"`

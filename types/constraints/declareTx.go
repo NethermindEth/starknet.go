@@ -3,6 +3,7 @@ package constraints
 import (
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/contracts"
+	"github.com/NethermindEth/starknet.go/rpc/types"
 )
 
 // @todo add comments for everything in the pkg
@@ -46,22 +47,19 @@ type DeclareTxnV2Interface[
 }
 
 type DeclareTxnV3Interface[
-	TransactionType ~string,
-	TransactionVersion ~string,
-	u64 U64,
-	u128 U128,
-	RB ResourceBounds[u64, u128],
-	RBM ResourceBoundsMapping[u64, u128, RB],
+	TxType, TxVersion ~string,
+	RB ResourceBounds,
+	RBM ResourceBoundsMapping[RB],
 	DA DataAvailabilityMode,
 ] interface {
-	GetType() TransactionType
+	GetType() TxType
 	GetSenderAddress() *felt.Felt
 	GetCompiledClassHash() *felt.Felt
-	GetVersion() TransactionVersion
+	GetVersion() TxVersion
 	GetSignature() []*felt.Felt
 	GetNonce() *felt.Felt
 	GetResourceBounds() *RBM
-	GetTip() u64
+	GetTip() types.U64
 	GetPayMasterData() []*felt.Felt
 	GetAccountDeploymentData() []*felt.Felt
 	GetNonceDataMode() DA
@@ -75,24 +73,21 @@ type DeclareTxnV3Interface[
 }
 
 type BroadcastDeclareTxnV3[
-	TransactionType ~string,
-	TransactionVersion ~string,
-	u64 U64,
-	u128 U128,
-	RB ResourceBounds[u64, u128],
-	RBM ResourceBoundsMapping[u64, u128, RB],
+	TxType, TxVersion ~string,
+	RB ResourceBounds,
+	RBM ResourceBoundsMapping[RB],
 	DA DataAvailabilityMode,
 ] interface {
 	~struct {
-		Type                  TransactionType          `json:"type"`
+		Type                  TxType                   `json:"type"`
 		SenderAddress         *felt.Felt               `json:"sender_address"`
 		CompiledClassHash     *felt.Felt               `json:"compiled_class_hash"`
-		Version               TransactionVersion       `json:"version"`
+		Version               TxVersion                `json:"version"`
 		Signature             []*felt.Felt             `json:"signature"`
 		Nonce                 *felt.Felt               `json:"nonce"`
 		ContractClass         *contracts.ContractClass `json:"contract_class"`
 		ResourceBounds        *RBM                     `json:"resource_bounds"`
-		Tip                   u64                      `json:"tip"`
+		Tip                   types.U64                `json:"tip"`
 		PayMasterData         []*felt.Felt             `json:"paymaster_data"`
 		AccountDeploymentData []*felt.Felt             `json:"account_deployment_data"`
 		NonceDataMode         DA                       `json:"nonce_data_availability_mode"`
