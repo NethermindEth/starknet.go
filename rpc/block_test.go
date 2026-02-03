@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/internal/tests"
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 	"github.com/stretchr/testify/assert"
@@ -245,8 +246,9 @@ func TestBlockWithTxs(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
-		ExpectedErr error
+		BlockID       BlockID
+		ExpectedErr   error
+		ResponseFlags []TxnResponseFlag
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
@@ -258,6 +260,10 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
+				BlockID:       WithBlockNumber(1),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
+			{
 				BlockID:     WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
@@ -267,17 +273,29 @@ func TestBlockWithTxs(t *testing.T) {
 				BlockID:     WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
 		},
 		tests.MainnetEnv: {
 			{
 				BlockID:     WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
 			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
 		},
 		tests.TestnetEnv: {
 			{
 				BlockID:     WithBlockNumber(99999999999999999),
 				ExpectedErr: ErrBlockNotFound,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
 			},
 		},
 	}[tests.TEST_ENV]
@@ -299,6 +317,9 @@ func TestBlockWithTxs(t *testing.T) {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithTxns/sepolia3100000.json", "result",
+				)
+				blockSepolia3100000WithFlags := json.RawMessage(
+					"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
 				)
 
 				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
@@ -326,10 +347,15 @@ func TestBlockWithTxs(t *testing.T) {
 								*rawResp = blockSepolia3100000
 							}
 
-							if blockID.Number != nil && *blockID.Number == 99999999999999999 {
-								return RPCError{
-									Code:    24,
-									Message: "Block not found",
+							if blockID.Number != nil {
+								switch *blockID.Number {
+								case 1:
+									*rawResp = blockSepolia3100000WithFlags
+								case 99999999999999999:
+									return RPCError{
+										Code:    24,
+										Message: "Block not found",
+									}
 								}
 							}
 
@@ -342,6 +368,7 @@ func TestBlockWithTxs(t *testing.T) {
 			blockWithTxsInterface, err := provider.BlockWithTxs(
 				t.Context(),
 				test.BlockID,
+				test.ResponseFlags,
 			)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
@@ -616,8 +643,9 @@ func TestBlockWithReceipts(t *testing.T) {
 	provider := testConfig.Provider
 
 	type testSetType struct {
-		BlockID     BlockID
-		ExpectedErr error
+		BlockID       BlockID
+		ResponseFlags []TxnResponseFlag
+		ExpectedErr   error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
@@ -629,11 +657,19 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
+				BlockID:     WithBlockHash(felt.NewFromUint64[felt.Felt](1)),
+				ExpectedErr: ErrBlockNotFound,
+			},
+			{
 				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.IntegrationEnv: {
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
 			{
 				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
@@ -641,11 +677,19 @@ func TestBlockWithReceipts(t *testing.T) {
 		},
 		tests.MainnetEnv: {
 			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
+			{
 				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
 			},
 		},
 		tests.TestnetEnv: {
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
 			{
 				BlockID:     WithBlockHash(internalUtils.DeadBeef),
 				ExpectedErr: ErrBlockNotFound,
@@ -670,6 +714,9 @@ func TestBlockWithReceipts(t *testing.T) {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
 					"./testData/blockWithReceipts/sepolia3100000.json", "result",
+				)
+				blockSepolia3100000WithFlags := json.RawMessage(
+					"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
 				)
 
 				blockSepoliaPreConfirmed := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
@@ -697,10 +744,15 @@ func TestBlockWithReceipts(t *testing.T) {
 								*rawResp = blockSepolia3100000
 							}
 
-							if blockID.Hash != nil && blockID.Hash == internalUtils.DeadBeef {
-								return RPCError{
-									Code:    24,
-									Message: "Block not found",
+							if blockID.Hash != nil {
+								switch blockID.Hash {
+								case felt.NewFromUint64[felt.Felt](1):
+									*rawResp = blockSepolia3100000WithFlags
+								case internalUtils.DeadBeef:
+									return RPCError{
+										Code:    24,
+										Message: "Block not found",
+									}
 								}
 							}
 
@@ -709,7 +761,7 @@ func TestBlockWithReceipts(t *testing.T) {
 					).
 					Times(1)
 			}
-			result, err := provider.BlockWithReceipts(t.Context(), test.BlockID)
+			result, err := provider.BlockWithReceipts(t.Context(), test.BlockID, test.ResponseFlags)
 			if test.ExpectedErr != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedErr.Error())
