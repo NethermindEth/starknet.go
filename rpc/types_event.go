@@ -43,8 +43,8 @@ type EventFilter struct {
 	FromBlock BlockID `json:"from_block,omitempty"`
 	// ToBlock to block
 	ToBlock BlockID `json:"to_block,omitempty"`
-	// Address from contract
-	Address *felt.Felt `json:"address,omitempty"`
+	// A list of addresses from which events should originate.
+	Address []*felt.Felt `json:"address,omitempty"`
 	// Keys the values used to filter the events
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
 }

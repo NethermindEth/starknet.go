@@ -72,9 +72,9 @@ func main() {
 
 	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
 		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(660000), // from block 660000
-			ToBlock:   rpc.WithBlockNumber(660100), // to block 660100
-			Address:   contractAddress,             // sent from this contract address
+			FromBlock: rpc.WithBlockNumber(660000),   // from block 660000
+			ToBlock:   rpc.WithBlockNumber(660100),   // to block 660100
+			Address:   []*felt.Felt{contractAddress}, // sent from this contract address
 			Keys: [][]*felt.Felt{
 				// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
 				// (all events that have one of these selectors as the first key)
@@ -185,7 +185,7 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 		EventFilter: rpc.EventFilter{
 			FromBlock: rpc.WithBlockNumber(0),
 			ToBlock:   rpc.WithBlockNumber(100),
-			Address:   contractAddress,
+			Address:   []*felt.Felt{contractAddress},
 		},
 		ResultPageRequest: rpc.ResultPageRequest{
 			ChunkSize: 1000,
