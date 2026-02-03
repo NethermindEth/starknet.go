@@ -64,7 +64,7 @@ func TestBuildAndSendInvokeTxn(t *testing.T) {
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 
 	// testing the default tip estimation feature
-	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash, nil)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
 	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.InvokeTxnV3).Tip)
@@ -130,7 +130,7 @@ func TestBuildAndSendDeclareTxn(t *testing.T) {
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 
 	// testing the default tip estimation feature
-	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash, nil)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
 	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeclareTxnV3).Tip)
@@ -226,7 +226,7 @@ func TestBuildAndSendDeclareTxnMock(t *testing.T) {
 					Return(new(felt.Felt).SetUint64(1), nil).
 					Times(1)
 				mockRPCProvider.EXPECT().
-					BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+					BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest), nil).
 					Return(&rpc.Block{}, nil).Times(1)
 				mockRPCProvider.EXPECT().
 					EstimateFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
@@ -361,7 +361,7 @@ func TestBuildAndEstimateDeployAccountTxn(t *testing.T) {
 	assert.Equal(t, rpc.TxnExecutionStatusSUCCEEDED, txReceipt.ExecutionStatus)
 
 	// testing the default tip estimation feature
-	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash)
+	txn, err := acc.Provider.TransactionByHash(t.Context(), resp.Hash, nil)
 	require.NoError(t, err, "Error getting transaction by hash")
 	require.NotNil(t, txn)
 	assert.NotEqual(t, "0x0", txn.Transaction.(rpc.DeployAccountTxnV3).Tip)
@@ -528,7 +528,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 		)
 		// called when estimating the tip
 		mockRPCProvider.EXPECT().
-			BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest)).
+			BlockWithTxs(t.Context(), rpc.WithBlockTag(rpc.BlockTagLatest), nil).
 			Return(&rpc.Block{
 				BlockHeader: rpc.BlockHeader{},
 				Status:      rpc.BlockStatusAcceptedOnL2,
@@ -636,7 +636,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			txn, err := client.TransactionByHash(t.Context(), resp.Hash)
+			txn, err := client.TransactionByHash(t.Context(), resp.Hash, nil)
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
@@ -664,7 +664,7 @@ func TestBuildAndSendMethodsWithQueryBit(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			txn, err := client.TransactionByHash(t.Context(), resp.Hash)
+			txn, err := client.TransactionByHash(t.Context(), resp.Hash, nil)
 			require.NoError(t, err)
 
 			// assert the returned transaction does NOT have the query bit version
