@@ -12,6 +12,8 @@ import (
 // Parameters:
 //   - ctx: The context.Context object for the request.
 //   - hash: The hash of the transaction.
+//   - responseFlags: Flags that control what additional fields are included in the
+//     response. Pass nil for default behavior.
 //
 // Returns:
 //   - BlockTransaction: The retrieved Transaction
@@ -19,9 +21,12 @@ import (
 func (provider *Provider) TransactionByHash(
 	ctx context.Context,
 	hash *felt.Felt,
+	responseFlags []TxnResponseFlag,
 ) (*BlockTransaction, error) {
 	var tx BlockTransaction
-	if err := do(ctx, provider.c, "starknet_getTransactionByHash", &tx, hash); err != nil {
+	if err := do(
+		ctx, provider.c, "starknet_getTransactionByHash", &tx, hash, responseFlags,
+	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrHashNotFound)
 	}
 
@@ -34,6 +39,8 @@ func (provider *Provider) TransactionByHash(
 //   - ctx: The context.Context object for the request.
 //   - blockID: The ID of the block containing the transaction.
 //   - index: The index of the transaction within the block.
+//   - responseFlags: Flags that control what additional fields are included in the
+//     response. Pass nil for default behavior.
 //
 // Returns:
 //   - BlockTransaction: The retrieved Transaction object
@@ -42,10 +49,17 @@ func (provider *Provider) TransactionByBlockIDAndIndex(
 	ctx context.Context,
 	blockID BlockID,
 	index uint64,
+	responseFlags []TxnResponseFlag,
 ) (*BlockTransaction, error) {
 	var tx BlockTransaction
 	if err := do(
-		ctx, provider.c, "starknet_getTransactionByBlockIdAndIndex", &tx, blockID, index,
+		ctx,
+		provider.c,
+		"starknet_getTransactionByBlockIdAndIndex",
+		&tx,
+		blockID,
+		index,
+		responseFlags,
 	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrInvalidTxnIndex, ErrBlockNotFound)
 	}

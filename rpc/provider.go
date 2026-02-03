@@ -131,9 +131,17 @@ type RPCProvider interface {
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
-	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithReceipts(
+		ctx context.Context,
+		blockID BlockID,
+		responseFlags []TxnResponseFlag,
+	) (interface{}, error)
 	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
-	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithTxs(
+		ctx context.Context,
+		blockID BlockID,
+		responseFlags []TxnResponseFlag,
+	) (interface{}, error)
 	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
@@ -183,8 +191,13 @@ type RPCProvider interface {
 		ctx context.Context,
 		blockID BlockID,
 		index uint64,
+		responseFlags []TxnResponseFlag,
 	) (*BlockTransaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+	TransactionByHash(
+		ctx context.Context,
+		hash *felt.Felt,
+		responseFlags []TxnResponseFlag,
+	) (*BlockTransaction, error)
 	TransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,

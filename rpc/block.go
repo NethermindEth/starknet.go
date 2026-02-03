@@ -179,15 +179,28 @@ func (provider *Provider) BlockTransactionCount(
 // Parameters:
 //   - ctx: The context.Context object for the request
 //   - blockID: The ID of the block to retrieve
+//   - responseFlags: Flags that control what additional fields are included
+//     in transaction responses. Pass nil for default behavior.
 //
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
 //nolint:dupl // Similar to BlockWithTxHashes, but it's a different method.
-func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error) {
+func (provider *Provider) BlockWithTxs(
+	ctx context.Context,
+	blockID BlockID,
+	responseFlags []TxnResponseFlag,
+) (interface{}, error) {
 	var result Block
-	if err := do(ctx, provider.c, "starknet_getBlockWithTxs", &result, blockID); err != nil {
+	if err := do(
+		ctx,
+		provider.c,
+		"starknet_getBlockWithTxs",
+		&result,
+		blockID,
+		responseFlags,
+	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 	// if header.Hash == nil it's a pre_confirmed block
@@ -211,12 +224,30 @@ func (provider *Provider) BlockWithTxs(ctx context.Context, blockID BlockID) (in
 }
 
 // Get block information with full transactions and receipts given the block id
+//
+// Parameters:
+//   - ctx: The context.Context object for the request
+//   - blockID: The ID of the block to retrieve
+//   - responseFlags: Flags that control what additional fields are included
+//     in transaction responses. Pass nil for default behavior.
+//
+// Returns:
+//   - interface{}: The retrieved block
+//   - error: An error, if any
 func (provider *Provider) BlockWithReceipts(
 	ctx context.Context,
 	blockID BlockID,
+	responseFlags []TxnResponseFlag,
 ) (interface{}, error) {
 	var result json.RawMessage
-	if err := do(ctx, provider.c, "starknet_getBlockWithReceipts", &result, blockID); err != nil {
+	if err := do(
+		ctx,
+		provider.c,
+		"starknet_getBlockWithReceipts",
+		&result,
+		blockID,
+		responseFlags,
+	); err != nil {
 		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
