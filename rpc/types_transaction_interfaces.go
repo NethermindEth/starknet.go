@@ -125,6 +125,14 @@ func (tx InvokeTxnV3) GetVersion() TransactionVersion {
 	return tx.Version
 }
 
+func (tx BroadcastInvokeTxnV3) GetType() TransactionType {
+	return tx.Type
+}
+
+func (tx BroadcastInvokeTxnV3) GetVersion() TransactionVersion {
+	return tx.Version
+}
+
 // Declare transactions
 func (tx DeclareTxnV0) GetType() TransactionType {
 	return tx.Type
@@ -217,6 +225,10 @@ func (tx InvokeTxnV1) GetCalldata() []*felt.Felt {
 }
 
 func (tx InvokeTxnV3) GetCalldata() []*felt.Felt {
+	return tx.Calldata
+}
+
+func (tx BroadcastInvokeTxnV3) GetCalldata() []*felt.Felt {
 	return tx.Calldata
 }
 

@@ -53,6 +53,8 @@ type InvokeTxnV3 struct {
 	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+	// Optional proof facts for the transaction
+	ProofFacts []*felt.Felt `json:"proof_facts"`
 }
 
 type L1HandlerTxn struct {
