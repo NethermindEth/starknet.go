@@ -13,7 +13,7 @@ import (
 //   - ctx: The context.Context object for the request.
 //   - hash: The hash of the transaction.
 //   - responseFlags: Flags that control what additional fields are included in the
-//     response. Pass nil for default behavior.
+//     response. Pass nil for default behaviour.
 //
 // Returns:
 //   - BlockTransaction: The retrieved Transaction
@@ -40,7 +40,7 @@ func (provider *Provider) TransactionByHash(
 //   - blockID: The ID of the block containing the transaction.
 //   - index: The index of the transaction within the block.
 //   - responseFlags: Flags that control what additional fields are included in the
-//     response. Pass nil for default behavior.
+//     response. Pass nil for default behaviour.
 //
 // Returns:
 //   - BlockTransaction: The retrieved Transaction object

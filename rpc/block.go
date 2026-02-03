@@ -101,7 +101,7 @@ func WithBlockTag(tag BlockTag) BlockID {
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
-//nolint:dupl // Similar to BlockWithTxs, but it's a different method.
+
 func (provider *Provider) BlockWithTxHashes(
 	ctx context.Context,
 	blockID BlockID,
@@ -180,13 +180,13 @@ func (provider *Provider) BlockTransactionCount(
 //   - ctx: The context.Context object for the request
 //   - blockID: The ID of the block to retrieve
 //   - responseFlags: Flags that control what additional fields are included
-//     in transaction responses. Pass nil for default behavior.
+//     in transaction responses. Pass nil for default behaviour.
 //
 // Returns:
 //   - interface{}: The retrieved block
 //   - error: An error, if any
 //
-//nolint:dupl // Similar to BlockWithTxHashes, but it's a different method.
+
 func (provider *Provider) BlockWithTxs(
 	ctx context.Context,
 	blockID BlockID,
@@ -229,7 +229,7 @@ func (provider *Provider) BlockWithTxs(
 //   - ctx: The context.Context object for the request
 //   - blockID: The ID of the block to retrieve
 //   - responseFlags: Flags that control what additional fields are included
-//     in transaction responses. Pass nil for default behavior.
+//     in transaction responses. Pass nil for default behaviour.
 //
 // Returns:
 //   - interface{}: The retrieved block

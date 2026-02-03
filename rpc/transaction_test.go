@@ -3,6 +3,7 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -21,6 +22,7 @@ func TestTransactionByHash(t *testing.T) {
 
 	type testSetType struct {
 		TxHash        *felt.Felt
+		ResponseFlags []TxnResponseFlag
 		ExpectedError error
 	}
 
@@ -28,6 +30,10 @@ func TestTransactionByHash(t *testing.T) {
 		tests.MockEnv: {
 			{
 				TxHash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+			},
+			{
+				TxHash:        internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
 			},
 			{
 				TxHash:        internalUtils.DeadBeef,
@@ -39,6 +45,10 @@ func TestTransactionByHash(t *testing.T) {
 				TxHash: internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
 			},
 			{
+				TxHash:        internalUtils.TestHexToFelt(t, "0xd109474cd037bad60a87ba0ccf3023d5f2d1cd45220c62091d41a614d38eda"),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
+			{
 				TxHash:        internalUtils.DeadBeef,
 				ExpectedError: ErrHashNotFound,
 			},
@@ -46,6 +56,10 @@ func TestTransactionByHash(t *testing.T) {
 		tests.IntegrationEnv: {
 			{
 				TxHash: internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+			},
+			{
+				TxHash:        internalUtils.TestHexToFelt(t, "0x38f7c9972f2b6f6d92d474cf605a077d154d58de938125180e7c87f22c5b019"),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
 			},
 			{
 				TxHash:        internalUtils.DeadBeef,
@@ -73,18 +87,30 @@ func TestTransactionByHash(t *testing.T) {
 							}
 						}
 
-						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/txnWithHash/sepoliaTxn.json",
-							"result",
-						)
+						if test.ResponseFlags != nil {
+							if slices.Contains(test.ResponseFlags, TxnFlagIncludeProofFacts) {
+								*rawResp = json.RawMessage(
+									"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+								)
+							}
+						} else {
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/txnWithHash/sepoliaTxn.json",
+								"result",
+							)
+						}
 
 						return nil
 					}).
 					Times(1)
 			}
 
-			tx, err := testConfig.Provider.TransactionByHash(t.Context(), test.TxHash)
+			tx, err := testConfig.Provider.TransactionByHash(
+				t.Context(),
+				test.TxHash,
+				test.ResponseFlags,
+			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
 				assert.EqualError(t, err, test.ExpectedError.Error())
@@ -111,6 +137,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	type testSetType struct {
 		BlockID       BlockID
 		Index         uint64
+		ResponseFlags []TxnResponseFlag
 		ExpectedError error
 	}
 
@@ -119,6 +146,11 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 			{
 				BlockID: WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
 				Index:   3,
+			},
+			{
+				BlockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
+				Index:         3,
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
 			},
 			{
 				BlockID:       WithBlockHash(internalUtils.TestHexToFelt(t, "0x873a3d4e1159ccecec5488e07a31c9a4ba8c6d2365b6aa48d39f5fd54e6bd0")),
@@ -148,11 +180,21 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 				Index:   0,
 			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				Index:         0,
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
+			},
 		},
 		tests.IntegrationEnv: {
 			{
 				BlockID: WithBlockNumber(1_300_000),
 				Index:   0,
+			},
+			{
+				BlockID:       WithBlockTag(BlockTagLatest),
+				Index:         0,
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
 			},
 		},
 	}[tests.TEST_ENV]
@@ -185,11 +227,19 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 							}
 						}
 
-						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/txnWithHash/sepoliaTxn.json",
-							"result",
-						)
+						if test.ResponseFlags != nil {
+							if slices.Contains(test.ResponseFlags, TxnFlagIncludeProofFacts) {
+								*rawResp = json.RawMessage(
+									"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+								)
+							}
+						} else {
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/txnWithHash/sepoliaTxn.json",
+								"result",
+							)
+						}
 
 						return nil
 					}).
@@ -200,6 +250,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 				t.Context(),
 				test.BlockID,
 				test.Index,
+				test.ResponseFlags,
 			)
 			if test.ExpectedError != nil {
 				require.Error(t, err)
