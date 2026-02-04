@@ -114,68 +114,32 @@ func (provider *Provider) TraceBlockTransactions(
 //   - simulationFlags: Describes what parts of the transaction should be executed
 //
 // Returns:
-//   - []SimulatedTransaction: The execution trace and consumed resources of the
-//     required transactions
+//   - SimulateTxResult: The execution trace and consumed resources of the
+//     required transactions + initial reads if the RETURN_INITIAL_READS flag was set.
 //   - error: An error if any occurred during the execution
 func (provider *Provider) SimulateTransactions(
 	ctx context.Context,
 	blockID BlockID,
 	txns []BroadcastTxn,
 	simulationFlags []SimulationFlag,
-) ([]SimulatedTransaction, error) {
-	var output []SimulatedTransaction
+) (SimulateTxResult, error) {
+	var output SimulateTxResult
 	if err := do(
 		ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
+		return output, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
 
 	return output, nil
 }
 
-// The set of state values fetched from the underlying state reader
-// during execution. This is a complete witness sufficient to reconstruct
-// the cached state needed for re-execution.
-type InitialReads struct {
-	// Storage entries that were read during simulation:
-	// (contract_address, storage_key) -> value
-	Storage []TraceStorageEntry `json:"storage"`
-	// Contract nonces that were read during simulation:
-	// contract_address -> nonce
-	Nonces []TraceNonce `json:"nonces"`
-	// Contract class hashes that were read during simulation:
-	// contract_address -> class_hash
-	ClassHashes []TraceClassHash `json:"class_hashes"`
-	// Class declaration statuses that were read during simulation:
-	// class_hash -> is_declared
-	DeclaredContracts []TraceDeclaredContract `json:"declared_contracts"`
-}
-
-// TraceStorageEntry is a storage entry that was read during simulation.
-// (contract_address, key) -> value
-type TraceStorageEntry struct {
-	ContractAddress *felt.Felt `json:"contract_address"`
-	Key             StorageKey `json:"key"`
-	Value           *felt.Felt `json:"value"`
-}
-
-// Contract nonce that was read during simulation.
-// contract_address -> nonce
-type TraceNonce struct {
-	ContractAddress *felt.Felt `json:"contract_address"`
-	Nonce           *felt.Felt `json:"nonce"`
-}
-
-// Contract class hashes that were read during simulation:
-// contract_address -> class_hash
-type TraceClassHash struct {
-	ContractAddress *felt.Felt `json:"contract_address"`
-	ClassHash       *felt.Felt `json:"class_hash"`
-}
-
-// Class declaration status that was read during simulation.
-// class_hash -> is_declared
-type TraceDeclaredContract struct {
-	ClassHash  *felt.Felt `json:"class_hash"`
-	IsDeclared bool       `json:"is_declared"`
+// SimutaleTxResult is the response of the `starknet_simulateTransactions`
+// RPC method. It contains an array of simulated transactions,
+type SimulateTxResult struct {
+	// The execution trace and consumed resources of the required transactions.
+	SimulatedTransactions []SimulatedTransaction `json:"simulated_transactions"`
+	// The set of state values fetched from the underlying state reader during
+	// execution for all transactions in the simulation. only present when the
+	// RETURN_INITIAL_READS flag is present in simulation_flags, otherwise, is nil.
+	InitialReads *InitialReads `json:"initial_reads"`
 }

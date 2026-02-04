@@ -345,10 +345,10 @@ func (mr *MockRPCProviderMockRecorder) Nonce(ctx, blockID, contractAddress any) 
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) (rpc.SimulateTxResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
-	ret0, _ := ret[0].([]rpc.SimulatedTransaction)
+	ret0, _ := ret[0].(rpc.SimulateTxResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

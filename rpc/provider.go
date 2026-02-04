@@ -171,7 +171,7 @@ type RPCProvider interface {
 		blockID BlockID,
 		txns []BroadcastTxn,
 		simulationFlags []SimulationFlag,
-	) ([]SimulatedTransaction, error)
+	) (SimulateTxResult, error)
 	SpecVersion(ctx context.Context) (string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(
