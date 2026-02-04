@@ -361,7 +361,19 @@ type SubNewTxnsInput struct {
 	// Optional: Filter transaction receipts to only include transactions sent
 	// by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
+	// Optional: Tags that control what additional fields are included in
+	// transaction responses
+	Tags []SubscriptionTag `json:"tags,omitempty"`
 }
+
+// Tags that control what additional fields are included in subscription responses.
+type SubscriptionTag string
+
+const (
+	// Include proof_facts field when available (only for INVOKE transactions
+	// with version 3)
+	SubTagIncludeProofFacts SubscriptionTag = "INCLUDE_PROOF_FACTS"
+)
 
 // TxnWithHashAndStatus is the response of the
 // starknet_subscribeNewTransactions subscription.

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"slices"
 	"testing"
 	"time"
 
@@ -793,6 +794,12 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			},
 		},
 		{
+			description: "with tag INCLUDE_PROOF_FACTS",
+			input: &SubNewTxnsInput{
+				Tags: []SubscriptionTag{SubTagIncludeProofFacts},
+			},
+		},
+		{
 			description: "all filters",
 			input: &SubNewTxnsInput{
 				SenderAddress: []*felt.Felt{randAddress},
@@ -802,6 +809,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 					TxnStatusPreConfirmed,
 					TxnStatusAcceptedOnL2,
 				},
+				Tags: []SubscriptionTag{SubTagIncludeProofFacts},
 			},
 		},
 		{
@@ -845,11 +853,20 @@ func TestSubscribeNewTransactions(t *testing.T) {
 							}
 						}
 
-						msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/ws/sepoliaNewTxns.json",
-							"params", "result",
-						)
+						var msg json.RawMessage
+						if input.Tags != nil &&
+							slices.Contains(input.Tags, SubTagIncludeProofFacts) {
+							t.Fatal("waiting for nodes to implement rpcv0.10.1")
+							msg = json.RawMessage(
+								"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+							)
+						} else {
+							msg = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/ws/sepoliaNewTxns.json",
+								"params", "result",
+							)
+						}
 
 						go func() {
 							for {
