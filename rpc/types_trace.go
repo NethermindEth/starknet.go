@@ -21,12 +21,37 @@ const (
 // sequencer behaviour is replicated locally (enough funds are expected to be
 // in the account, and fee will be deducted from the balance before the
 // simulation of the next transaction). To skip the fee charge, use
-// the SKIP_FEE_CHARGE flag.
+// the SKIP_FEE_CHARGE flag. When RETURN_INITIAL_READS is present, the node
+// returns the minimal set of concrete state values fetched from the underlying
+// state reader during execution for all transactions in the simulation."
 type SimulationFlag string
 
 const (
+	// Flag to skip the fee charge when simulating a transaction.
 	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
-	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
+	// Flag to skip the validation when simulating a transaction.
+	SkipValidate SimulationFlag = "SKIP_VALIDATE"
+	// With this flag, the node returns the minimal set of concrete state values
+	// fetched from the underlying state reader during execution for all
+	// transactions in the simulation.
+	ReturnInitialReads SimulationFlag = "RETURN_INITIAL_READS"
+)
+
+// Flags that indicate what additional information should be included in the trace.
+// When RETURN_INITIAL_READS is present, the node returns the minimal set of concrete
+// state values fetched from the underlying state reader during execution for all
+// transactions in the block. Returns an empty object instead of INITIAL_READS when
+// the execution trace for the referenced block is inconsistent with the canonical
+// block trace.
+type TraceFlag string
+
+const (
+	// Flag to return the minimal set of concrete
+	// state values fetched from the underlying state reader during execution for all
+	// transactions in the block. Returns an empty object instead of INITIAL_READS when
+	// the execution trace for the referenced block is inconsistent with the canonical
+	// block trace.
+	TraceFlagReturnInitialReads TraceFlag = "RETURN_INITIAL_READS"
 )
 
 type SimulatedTransaction struct {

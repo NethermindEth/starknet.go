@@ -152,10 +152,14 @@ func TestSimulateTransaction(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				Description:     "valid call, all flags",
-				BlockID:         input.BlockID,
-				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+				Description: "valid call, all flags",
+				BlockID:     input.BlockID,
+				Txns:        input.Txns,
+				SimulationFlags: []SimulationFlag{
+					SkipValidate,
+					SkipFeeCharge,
+					ReturnInitialReads,
+				},
 			},
 			{
 				Description:     "block not found",
@@ -180,10 +184,14 @@ func TestSimulateTransaction(t *testing.T) {
 				SimulationFlags: input.SimulationFlags,
 			},
 			{
-				Description:     "valid call, all flags",
-				BlockID:         input.BlockID,
-				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+				Description: "valid call, all flags",
+				BlockID:     input.BlockID,
+				Txns:        input.Txns,
+				SimulationFlags: []SimulationFlag{
+					SkipValidate,
+					SkipFeeCharge,
+					ReturnInitialReads,
+				},
 			},
 			{
 				Description:     "exec error, pre confirmed",
