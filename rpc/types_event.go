@@ -96,8 +96,9 @@ type EventsInput struct {
 // EventSubscriptionInput is the input for the 'starknet_subscribeEvents' method.
 
 type EventSubscriptionInput struct {
-	// (Optional) Filter events by from_address which emitted the event
-	FromAddress *felt.Felt `json:"from_address,omitempty"`
+	// (Optional) A contract address or a list of addresses from which events
+	// should originate
+	FromAddress AddressList `json:"from_address,omitempty"`
 	// (Optional) Per key (by position), designate the possible values to be
 	// matched for events to be returned. Empty array designates 'any' value
 	Keys [][]*felt.Felt `json:"keys,omitempty"`

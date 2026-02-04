@@ -241,7 +241,7 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "from address only",
 			input: &EventSubscriptionInput{
-				FromAddress: fromAddress,
+				FromAddress: AddressList{fromAddress},
 			},
 		},
 		{
@@ -273,7 +273,7 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "all filters",
 			input: &EventSubscriptionInput{
-				FromAddress:    fromAddress,
+				FromAddress:    AddressList{fromAddress},
 				Keys:           [][]*felt.Felt{{key}},
 				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
