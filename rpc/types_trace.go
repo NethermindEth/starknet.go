@@ -312,13 +312,52 @@ func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
 }
 
+// TraceBlockTxResult is the response of the `starknet_traceBlockTransactions`
+// RPC method. It contains an array of traces of all transactions in the block.
+type TraceBlockTxsResult struct {
+	// The traces of all transactions in the block
+	Traces []Trace `json:"traces"`
+	// The set of state values fetched from the underlying state reader during
+	// execution for all transactions in the block. Returns an empty object
+	// instead of INITIAL_READS when the execution trace for the referenced
+	// block is inconsistent with the canonical block trace. Only present when
+	// RETURN_INITIAL_READS is present in trace_flags, otherwise, is nil.
+	InitialReads *InitialReads `json:"initial_reads"`
+}
+
+// UnmarshalJSON unmarshals the data into a TraceBlockTxsResult object.
+func (t *TraceBlockTxsResult) UnmarshalJSON(data []byte) error {
+	var txs []Trace
+	if err := json.Unmarshal(data, &txs); err != nil {
+		type aux TraceBlockTxsResult
+		var tresp aux
+		err2 := json.Unmarshal(data, &tresp)
+		if err2 != nil {
+			return errors.Join(
+				errors.New("failed to unmarshal traces"),
+				err,
+				err2,
+			)
+		}
+		*t = TraceBlockTxsResult(tresp)
+
+		return nil
+	}
+	*t = TraceBlockTxsResult{
+		Traces:       txs,
+		InitialReads: nil,
+	}
+
+	return nil
+}
+
 // SimutaleTxResult is the response of the `starknet_simulateTransactions`
 // RPC method. It contains an array of simulated transactions,
 type SimulateTxResult struct {
 	// The execution trace and consumed resources of the required transactions.
 	SimulatedTransactions []SimulatedTransaction `json:"simulated_transactions"`
 	// The set of state values fetched from the underlying state reader during
-	// execution for all transactions in the simulation. only present when the
+	// execution for all transactions in the simulation. Only present when the
 	// RETURN_INITIAL_READS flag is present in simulation_flags, otherwise, is nil.
 	InitialReads *InitialReads `json:"initial_reads"`
 }

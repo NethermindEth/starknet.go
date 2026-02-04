@@ -435,10 +435,10 @@ func (mr *MockRPCProviderMockRecorder) Syncing(ctx any) *gomock.Call {
 }
 
 // TraceBlockTransactions mocks base method.
-func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) (rpc.TraceBlockTxsResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
-	ret0, _ := ret[0].([]rpc.Trace)
+	ret0, _ := ret[0].(rpc.TraceBlockTxsResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
