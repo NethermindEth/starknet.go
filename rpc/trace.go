@@ -99,14 +99,10 @@ func (provider *Provider) TraceBlockTransactions(
 	return output, nil
 }
 
-// SimulateTransactions simulates transactions on the blockchain.
-// Simulate a given sequence of transactions on the requested state, and generate
-// the execution traces.
-// Note that some of the transactions may revert, in which case no error is thrown,
-// but revert details can be seen on the returned trace object.
-// Note that some of the transactions may revert, this will be reflected by the
-// revert_error property in the trace. Other types of failures (e.g. unexpected error
-// or failure in the validation phase) will result in TRANSACTION_EXECUTION_ERROR.
+// SimulateTransactions returns the execution trace and consumed resources of the
+// required transactions. When RETURN_INITIAL_READS is not present in simulation_flags,
+// returns an array. When RETURN_INITIAL_READS is present in simulation_flags, returns an
+// object with simulated_transactions and initial_reads fields.
 //
 // Parameters:
 //   - ctx: The context of the function call
@@ -135,4 +131,51 @@ func (provider *Provider) SimulateTransactions(
 	}
 
 	return output, nil
+}
+
+// The set of state values fetched from the underlying state reader
+// during execution. This is a complete witness sufficient to reconstruct
+// the cached state needed for re-execution.
+type InitialReads struct {
+	// Storage entries that were read during simulation:
+	// (contract_address, storage_key) -> value
+	Storage []TraceStorageEntry `json:"storage"`
+	// Contract nonces that were read during simulation:
+	// contract_address -> nonce
+	Nonces []TraceNonce `json:"nonces"`
+	// Contract class hashes that were read during simulation:
+	// contract_address -> class_hash
+	ClassHashes []TraceClassHash `json:"class_hashes"`
+	// Class declaration statuses that were read during simulation:
+	// class_hash -> is_declared
+	DeclaredContracts []TraceDeclaredContract `json:"declared_contracts"`
+}
+
+// TraceStorageEntry is a storage entry that was read during simulation.
+// (contract_address, key) -> value
+type TraceStorageEntry struct {
+	ContractAddress *felt.Felt `json:"contract_address"`
+	Key             StorageKey `json:"key"`
+	Value           *felt.Felt `json:"value"`
+}
+
+// Contract nonce that was read during simulation.
+// contract_address -> nonce
+type TraceNonce struct {
+	ContractAddress *felt.Felt `json:"contract_address"`
+	Nonce           *felt.Felt `json:"nonce"`
+}
+
+// Contract class hashes that were read during simulation:
+// contract_address -> class_hash
+type TraceClassHash struct {
+	ContractAddress *felt.Felt `json:"contract_address"`
+	ClassHash       *felt.Felt `json:"class_hash"`
+}
+
+// Class declaration status that was read during simulation.
+// class_hash -> is_declared
+type TraceDeclaredContract struct {
+	ClassHash  *felt.Felt `json:"class_hash"`
+	IsDeclared bool       `json:"is_declared"`
 }
