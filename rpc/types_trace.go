@@ -9,6 +9,14 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
+// Flags that indicate how to estimate the fee of a given transaction.
+// By default, the sequencer behaviour is replicated locally.
+type EstimateFeeFlag string
+
+const (
+	EstimateFeeSkipValidate EstimateFeeFlag = "SKIP_VALIDATE"
+)
+
 // Flags that indicate how to simulate a given transaction. By default, the
 // sequencer behaviour is replicated locally (enough funds are expected to be
 // in the account, and fee will be deducted from the balance before the

@@ -189,7 +189,7 @@ func (provider *Provider) Nonce(
 func (provider *Provider) EstimateFee(
 	ctx context.Context,
 	requests []BroadcastTxn,
-	simulationFlags []SimulationFlag,
+	simulationFlags []EstimateFeeFlag,
 	blockID BlockID,
 ) ([]FeeEstimation, error) {
 	var raw []FeeEstimation

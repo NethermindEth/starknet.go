@@ -270,7 +270,7 @@ func (mr *MockRPCProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.
 }
 
 // EstimateFee mocks base method.
-func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
+func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.EstimateFeeFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
 	ret0, _ := ret[0].([]rpc.FeeEstimation)

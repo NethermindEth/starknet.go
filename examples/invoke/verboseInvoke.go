@@ -81,7 +81,7 @@ func verboseInvoke(
 	feeRes, err := accnt.Provider.EstimateFee(
 		context.Background(),
 		[]rpc.BroadcastTxn{InvokeTx},
-		[]rpc.SimulationFlag{},
+		[]rpc.EstimateFeeFlag{},
 		rpc.WithBlockTag("pre_confirmed"),
 	)
 	if err != nil {
