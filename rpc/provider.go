@@ -185,7 +185,11 @@ type RPCProvider interface {
 		storageProofInput StorageProofInput,
 	) (*StorageProofResult, error)
 	Syncing(ctx context.Context) (SyncStatus, error)
-	TraceBlockTransactions(ctx context.Context, blockID BlockID) (TraceBlockTxsResult, error)
+	TraceBlockTransactions(
+		ctx context.Context,
+		blockID BlockID,
+		traceFlags []TraceFlag,
+	) (TraceBlockTxsResult, error)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 	TransactionByBlockIDAndIndex(
 		ctx context.Context,

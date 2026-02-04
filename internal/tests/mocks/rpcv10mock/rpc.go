@@ -435,18 +435,18 @@ func (mr *MockRPCProviderMockRecorder) Syncing(ctx any) *gomock.Call {
 }
 
 // TraceBlockTransactions mocks base method.
-func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) (rpc.TraceBlockTxsResult, error) {
+func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID, traceFlags []rpc.TraceFlag) (rpc.TraceBlockTxsResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
+	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID, traceFlags)
 	ret0, _ := ret[0].(rpc.TraceBlockTxsResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TraceBlockTransactions indicates an expected call of TraceBlockTransactions.
-func (mr *MockRPCProviderMockRecorder) TraceBlockTransactions(ctx, blockID any) *gomock.Call {
+func (mr *MockRPCProviderMockRecorder) TraceBlockTransactions(ctx, blockID, traceFlags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRPCProvider)(nil).TraceBlockTransactions), ctx, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRPCProvider)(nil).TraceBlockTransactions), ctx, blockID, traceFlags)
 }
 
 // TraceTransaction mocks base method.

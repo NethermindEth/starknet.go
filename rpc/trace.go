@@ -76,6 +76,8 @@ func (provider *Provider) TraceTransaction(
 // Parameters:
 //   - ctx: the context.Context object for controlling the request
 //   - blockID: the block to retrieve the traces from. `pre_confirmed` tag is not allowed
+//   - traceFlags: Flags that indicate what additional information should be included in
+//     the trace
 //
 // Returns:
 //   - TraceBlockTxsResult: a TraceBlockTxsResult object representing the traces of
@@ -84,6 +86,7 @@ func (provider *Provider) TraceTransaction(
 func (provider *Provider) TraceBlockTransactions(
 	ctx context.Context,
 	blockID BlockID,
+	traceFlags []TraceFlag,
 ) (TraceBlockTxsResult, error) {
 	var output TraceBlockTxsResult
 	err := checkForPreConfirmed(blockID)
@@ -92,7 +95,7 @@ func (provider *Provider) TraceBlockTransactions(
 	}
 
 	if err := do(
-		ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID,
+		ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID, traceFlags,
 	); err != nil {
 		return output, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
