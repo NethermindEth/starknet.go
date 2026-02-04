@@ -132,14 +132,3 @@ func (provider *Provider) SimulateTransactions(
 
 	return output, nil
 }
-
-// SimutaleTxResult is the response of the `starknet_simulateTransactions`
-// RPC method. It contains an array of simulated transactions,
-type SimulateTxResult struct {
-	// The execution trace and consumed resources of the required transactions.
-	SimulatedTransactions []SimulatedTransaction `json:"simulated_transactions"`
-	// The set of state values fetched from the underlying state reader during
-	// execution for all transactions in the simulation. only present when the
-	// RETURN_INITIAL_READS flag is present in simulation_flags, otherwise, is nil.
-	InitialReads *InitialReads `json:"initial_reads"`
-}

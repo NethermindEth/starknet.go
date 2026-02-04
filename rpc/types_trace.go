@@ -312,6 +312,43 @@ func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
 }
 
+// SimutaleTxResult is the response of the `starknet_simulateTransactions`
+// RPC method. It contains an array of simulated transactions,
+type SimulateTxResult struct {
+	// The execution trace and consumed resources of the required transactions.
+	SimulatedTransactions []SimulatedTransaction `json:"simulated_transactions"`
+	// The set of state values fetched from the underlying state reader during
+	// execution for all transactions in the simulation. only present when the
+	// RETURN_INITIAL_READS flag is present in simulation_flags, otherwise, is nil.
+	InitialReads *InitialReads `json:"initial_reads"`
+}
+
+// UnmarshalJSON unmarshals the data into a SimulateTxResult object.
+func (s *SimulateTxResult) UnmarshalJSON(data []byte) error {
+	var txs []SimulatedTransaction
+	if err := json.Unmarshal(data, &txs); err != nil {
+		type aux SimulateTxResult
+		var sresp aux
+		err2 := json.Unmarshal(data, &sresp)
+		if err2 != nil {
+			return errors.Join(
+				errors.New("failed to unmarshal simulated transactions"),
+				err,
+				err2,
+			)
+		}
+		*s = SimulateTxResult(sresp)
+
+		return nil
+	}
+	*s = SimulateTxResult{
+		SimulatedTransactions: txs,
+		InitialReads:          nil,
+	}
+
+	return nil
+}
+
 // The set of state values fetched from the underlying state reader
 // during execution. This is a complete witness sufficient to reconstruct
 // the cached state needed for re-execution.

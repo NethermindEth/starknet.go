@@ -3,6 +3,7 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -240,11 +241,19 @@ func TestSimulateTransaction(t *testing.T) {
 								Data:    &TransactionExecErrData{},
 							}
 						}
-						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/trace/sepoliaSimulateInvokeTxResp.json",
-							"result",
-						)
+
+						if test.SimulationFlags != nil &&
+							slices.Contains(test.SimulationFlags, ReturnInitialReads) {
+							*rawResp = json.RawMessage(
+								"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+							)
+						} else {
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/trace/sepoliaSimulateInvokeTxResp.json",
+								"result",
+							)
+						}
 
 						return nil
 					}).
@@ -270,7 +279,16 @@ func TestSimulateTransaction(t *testing.T) {
 			require.NoError(t, err)
 
 			rawExpectedResp := testConfig.RPCSpy.LastResponse()
-			rawResp, err := json.Marshal(resp)
+			var rawResp []byte
+			// this is due to the way the RPC method returns the data. It will return an
+			// array or an object depending on the flags. If the InitialReads is nil, the
+			// node response captured by the spy will be an array, so we only marshal the
+			// SimulatedTransactions field to compare with the expected response.
+			if resp.InitialReads == nil {
+				rawResp, err = json.Marshal(resp.SimulatedTransactions)
+			} else {
+				rawResp, err = json.Marshal(resp)
+			}
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
 		})
