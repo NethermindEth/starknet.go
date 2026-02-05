@@ -501,7 +501,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Fe
 		curve.PoseidonArray(txn.Calldata...),
 	}
 
-	if txn.ProofFacts != nil {
+	if len(txn.ProofFacts) > 0 {
 		hashContent = append(hashContent, curve.PoseidonArray(txn.ProofFacts...))
 	}
 
