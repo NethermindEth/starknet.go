@@ -355,7 +355,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
 		eventsChan,
 		&rpc.EventSubscriptionInput{
 			// Only events from this contract address
-			FromAddress: contractAddress,
+			FromAddress: rpc.AddressList{contractAddress},
 			// Subscribe to events from the latest block minus 10 (it'll return
 			// events from the last 10 blocks and progressively update as new blocks are added)
 			SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),
