@@ -53,6 +53,8 @@ type InvokeTxnV3 struct {
 	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+	// Optional proof facts for the transaction
+	ProofFacts []*felt.Felt `json:"proof_facts"`
 }
 
 type L1HandlerTxn struct {
@@ -359,7 +361,19 @@ type SubNewTxnsInput struct {
 	// Optional: Filter transaction receipts to only include transactions sent
 	// by the specified addresses
 	SenderAddress []*felt.Felt `json:"sender_address,omitempty"`
+	// Optional: Tags that control what additional fields are included in
+	// transaction responses
+	Tags []SubscriptionTag `json:"tags,omitempty"`
 }
+
+// Tags that control what additional fields are included in subscription responses.
+type SubscriptionTag string
+
+const (
+	// Include proof_facts field when available (only for INVOKE transactions
+	// with version 3)
+	SubTagIncludeProofFacts SubscriptionTag = "INCLUDE_PROOF_FACTS"
+)
 
 // TxnWithHashAndStatus is the response of the
 // starknet_subscribeNewTransactions subscription.

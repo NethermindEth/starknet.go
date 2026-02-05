@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ## [Unreleased](https://github.com/NethermindEth/starknet.go/compare/v0.17.1...HEAD) <!-- Update the version number on each new release -->
 <!-- template to copy:
 ### Added
@@ -14,6 +15,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Security
 -->
+
+## [0.18.0-beta.2](https://github.com/NethermindEth/starknet.go/releases/tag/v0.18.0-beta.2) - 2026-02-05
+### Added
+- Full support for RPC v0.10.1-rc.2. All new types and changes implemented. For more details, see the [RPC v0.10.1-rc.2](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.10.1-rc.2) specification.
+  - rpc pkg:
+    - New `AddressList` type.
+    - New `EstimateFeeFlag` enum type + `EstimateFeeSkipValidate` flag.
+    - New `SimulationFlag` enum entry: `ReturnInitialReads` flag.
+    - New `TraceFlag` enum type + `TraceFlagReturnInitialReads` flag.
+    - New `TraceBlockTxsResult` type.
+    - New `SimulateTxResult` type.
+    - New `InitialReads` type + subtypes for its fields.
+    - New `SubscriptionTag` enum type + `SubTagIncludeProofFacts` flag.
+    - New `TxnResponseFlag` enum type + `TxnFlagIncludeProofFacts` flag.
+
+
+### Changed
+  - account pkg:
+    - `TxnOptions.SimulationFlag` field was changed to `EstimateFeeFlags` field, and is now of type `[]rpc.EstimateFeeFlag`.
+    - `TxnOptions.SimulationFlags()` method was changed to `EstimateFlags()` method, and now returns a `[]rpc.EstimateFeeFlag`.
+  - rpc pkg:
+    - methods:
+      - The `provider.BlockWithReceipts` and `provider.BlockWithTxs` methods accept a new `responseFlags` parameter.
+      - In the `provider.EstimateFee` method, the `simulationFlags` parameter is now of type `[]rpc.EstimateFeeFlag`.
+      - The `provider.TraceBlockTransactions` method has a new `traceFlags` parameter, and now returns a `TraceBlockTxsResult` type. 
+      - The `provider.SimulateTransactions` method now returns a `SimulateTxResult` type. 
+      - The `provider.TransactionReceipt` and `provider.TransactionByBlockIDAndIndex` methods accept a new `responseFlags` parameter.
+    - types:
+      - The `InvokeTxnV3` has a new `ProofFacts` field.
+      - The `BroadcastInvokeTxnV3` type is no longer the same as the `InvokeTxnV3` type. Now it's a new type with all the 
+        fields of the `InvokeTxnV3` type, plus the `Proof` and `ProofFacts` fields.
+      - The `EventFilter.Address` field is now of type `AddressList`.
+      - The `EventSubscriptionInput.FromAddress` field is now of type `AddressList`.
+      - The `SubNewTxnsInput` type has a new `Tags` field.
+    
+
+
+## [0.18.0-beta](https://github.com/NethermindEth/starknet.go/releases/tag/v0.18.0-beta) - 2025-11-28
 ### Added
 - Full support for RPC v0.10.0. All new types and changes implemented. For more details, see the [RPC v0.10.0](https://github.com/starkware-libs/starknet-specs/releases/tag/v0.10.0) specification.
   - `ErrContractNotFound` is now returned by the `rpc.EstimateFee` and `rpc.EstimateMessageFee` methods.

@@ -135,18 +135,18 @@ func (mr *MockRPCProviderMockRecorder) BlockTransactionCount(ctx, blockID any) *
 }
 
 // BlockWithReceipts mocks base method.
-func (m *MockRPCProvider) BlockWithReceipts(ctx context.Context, blockID rpc.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithReceipts(ctx context.Context, blockID rpc.BlockID, responseFlags []rpc.TxnResponseFlag) (any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockWithReceipts", ctx, blockID)
+	ret := m.ctrl.Call(m, "BlockWithReceipts", ctx, blockID, responseFlags)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BlockWithReceipts indicates an expected call of BlockWithReceipts.
-func (mr *MockRPCProviderMockRecorder) BlockWithReceipts(ctx, blockID any) *gomock.Call {
+func (mr *MockRPCProviderMockRecorder) BlockWithReceipts(ctx, blockID, responseFlags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockWithReceipts", reflect.TypeOf((*MockRPCProvider)(nil).BlockWithReceipts), ctx, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockWithReceipts", reflect.TypeOf((*MockRPCProvider)(nil).BlockWithReceipts), ctx, blockID, responseFlags)
 }
 
 // BlockWithTxHashes mocks base method.
@@ -165,18 +165,18 @@ func (mr *MockRPCProviderMockRecorder) BlockWithTxHashes(ctx, blockID any) *gomo
 }
 
 // BlockWithTxs mocks base method.
-func (m *MockRPCProvider) BlockWithTxs(ctx context.Context, blockID rpc.BlockID) (any, error) {
+func (m *MockRPCProvider) BlockWithTxs(ctx context.Context, blockID rpc.BlockID, responseFlags []rpc.TxnResponseFlag) (any, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockWithTxs", ctx, blockID)
+	ret := m.ctrl.Call(m, "BlockWithTxs", ctx, blockID, responseFlags)
 	ret0, _ := ret[0].(any)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // BlockWithTxs indicates an expected call of BlockWithTxs.
-func (mr *MockRPCProviderMockRecorder) BlockWithTxs(ctx, blockID any) *gomock.Call {
+func (mr *MockRPCProviderMockRecorder) BlockWithTxs(ctx, blockID, responseFlags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockWithTxs", reflect.TypeOf((*MockRPCProvider)(nil).BlockWithTxs), ctx, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockWithTxs", reflect.TypeOf((*MockRPCProvider)(nil).BlockWithTxs), ctx, blockID, responseFlags)
 }
 
 // Call mocks base method.
@@ -270,7 +270,7 @@ func (mr *MockRPCProviderMockRecorder) CompiledCasm(ctx, classHash any) *gomock.
 }
 
 // EstimateFee mocks base method.
-func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
+func (m *MockRPCProvider) EstimateFee(ctx context.Context, requests []rpc.BroadcastTxn, simulationFlags []rpc.EstimateFeeFlag, blockID rpc.BlockID) ([]rpc.FeeEstimation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EstimateFee", ctx, requests, simulationFlags, blockID)
 	ret0, _ := ret[0].([]rpc.FeeEstimation)
@@ -345,10 +345,10 @@ func (mr *MockRPCProviderMockRecorder) Nonce(ctx, blockID, contractAddress any) 
 }
 
 // SimulateTransactions mocks base method.
-func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) ([]rpc.SimulatedTransaction, error) {
+func (m *MockRPCProvider) SimulateTransactions(ctx context.Context, blockID rpc.BlockID, txns []rpc.BroadcastTxn, simulationFlags []rpc.SimulationFlag) (rpc.SimulateTxResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SimulateTransactions", ctx, blockID, txns, simulationFlags)
-	ret0, _ := ret[0].([]rpc.SimulatedTransaction)
+	ret0, _ := ret[0].(rpc.SimulateTxResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -435,18 +435,18 @@ func (mr *MockRPCProviderMockRecorder) Syncing(ctx any) *gomock.Call {
 }
 
 // TraceBlockTransactions mocks base method.
-func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID) ([]rpc.Trace, error) {
+func (m *MockRPCProvider) TraceBlockTransactions(ctx context.Context, blockID rpc.BlockID, traceFlags []rpc.TraceFlag) (rpc.TraceBlockTxsResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID)
-	ret0, _ := ret[0].([]rpc.Trace)
+	ret := m.ctrl.Call(m, "TraceBlockTransactions", ctx, blockID, traceFlags)
+	ret0, _ := ret[0].(rpc.TraceBlockTxsResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TraceBlockTransactions indicates an expected call of TraceBlockTransactions.
-func (mr *MockRPCProviderMockRecorder) TraceBlockTransactions(ctx, blockID any) *gomock.Call {
+func (mr *MockRPCProviderMockRecorder) TraceBlockTransactions(ctx, blockID, traceFlags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRPCProvider)(nil).TraceBlockTransactions), ctx, blockID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TraceBlockTransactions", reflect.TypeOf((*MockRPCProvider)(nil).TraceBlockTransactions), ctx, blockID, traceFlags)
 }
 
 // TraceTransaction mocks base method.
@@ -465,33 +465,33 @@ func (mr *MockRPCProviderMockRecorder) TraceTransaction(ctx, transactionHash any
 }
 
 // TransactionByBlockIDAndIndex mocks base method.
-func (m *MockRPCProvider) TransactionByBlockIDAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64) (*rpc.BlockTransaction, error) {
+func (m *MockRPCProvider) TransactionByBlockIDAndIndex(ctx context.Context, blockID rpc.BlockID, index uint64, responseFlags []rpc.TxnResponseFlag) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionByBlockIDAndIndex", ctx, blockID, index)
+	ret := m.ctrl.Call(m, "TransactionByBlockIDAndIndex", ctx, blockID, index, responseFlags)
 	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TransactionByBlockIDAndIndex indicates an expected call of TransactionByBlockIDAndIndex.
-func (mr *MockRPCProviderMockRecorder) TransactionByBlockIDAndIndex(ctx, blockID, index any) *gomock.Call {
+func (mr *MockRPCProviderMockRecorder) TransactionByBlockIDAndIndex(ctx, blockID, index, responseFlags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionByBlockIDAndIndex", reflect.TypeOf((*MockRPCProvider)(nil).TransactionByBlockIDAndIndex), ctx, blockID, index)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionByBlockIDAndIndex", reflect.TypeOf((*MockRPCProvider)(nil).TransactionByBlockIDAndIndex), ctx, blockID, index, responseFlags)
 }
 
 // TransactionByHash mocks base method.
-func (m *MockRPCProvider) TransactionByHash(ctx context.Context, hash *felt.Felt) (*rpc.BlockTransaction, error) {
+func (m *MockRPCProvider) TransactionByHash(ctx context.Context, hash *felt.Felt, responseFlags []rpc.TxnResponseFlag) (*rpc.BlockTransaction, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TransactionByHash", ctx, hash)
+	ret := m.ctrl.Call(m, "TransactionByHash", ctx, hash, responseFlags)
 	ret0, _ := ret[0].(*rpc.BlockTransaction)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // TransactionByHash indicates an expected call of TransactionByHash.
-func (mr *MockRPCProviderMockRecorder) TransactionByHash(ctx, hash any) *gomock.Call {
+func (mr *MockRPCProviderMockRecorder) TransactionByHash(ctx, hash, responseFlags any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionByHash", reflect.TypeOf((*MockRPCProvider)(nil).TransactionByHash), ctx, hash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransactionByHash", reflect.TypeOf((*MockRPCProvider)(nil).TransactionByHash), ctx, hash, responseFlags)
 }
 
 // TransactionReceipt mocks base method.

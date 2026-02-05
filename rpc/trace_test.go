@@ -3,6 +3,7 @@ package rpc
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/NethermindEth/juno/core/felt"
@@ -152,10 +153,14 @@ func TestSimulateTransaction(t *testing.T) {
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				Description:     "valid call, all flags",
-				BlockID:         input.BlockID,
-				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+				Description: "valid call, all flags",
+				BlockID:     input.BlockID,
+				Txns:        input.Txns,
+				SimulationFlags: []SimulationFlag{
+					SkipValidate,
+					SkipFeeCharge,
+					ReturnInitialReads,
+				},
 			},
 			{
 				Description:     "block not found",
@@ -180,10 +185,14 @@ func TestSimulateTransaction(t *testing.T) {
 				SimulationFlags: input.SimulationFlags,
 			},
 			{
-				Description:     "valid call, all flags",
-				BlockID:         input.BlockID,
-				Txns:            input.Txns,
-				SimulationFlags: []SimulationFlag{SkipValidate, SkipFeeCharge},
+				Description: "valid call, all flags",
+				BlockID:     input.BlockID,
+				Txns:        input.Txns,
+				SimulationFlags: []SimulationFlag{
+					SkipValidate,
+					SkipFeeCharge,
+					ReturnInitialReads,
+				},
 			},
 			{
 				Description:     "exec error, pre confirmed",
@@ -232,11 +241,19 @@ func TestSimulateTransaction(t *testing.T) {
 								Data:    &TransactionExecErrData{},
 							}
 						}
-						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/trace/sepoliaSimulateInvokeTxResp.json",
-							"result",
-						)
+
+						if test.SimulationFlags != nil &&
+							slices.Contains(test.SimulationFlags, ReturnInitialReads) {
+							*rawResp = json.RawMessage(
+								"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+							)
+						} else {
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/trace/sepoliaSimulateInvokeTxResp.json",
+								"result",
+							)
+						}
 
 						return nil
 					}).
@@ -262,7 +279,16 @@ func TestSimulateTransaction(t *testing.T) {
 			require.NoError(t, err)
 
 			rawExpectedResp := testConfig.RPCSpy.LastResponse()
-			rawResp, err := json.Marshal(resp)
+			var rawResp []byte
+			// this is due to the way the RPC method returns the data. It will return an
+			// array or an object depending on the flags. If the InitialReads is nil, the
+			// node response captured by the spy will be an array, so we only marshal the
+			// SimulatedTransactions field to compare with the expected response.
+			if resp.InitialReads == nil {
+				rawResp, err = json.Marshal(resp.SimulatedTransactions)
+			} else {
+				rawResp, err = json.Marshal(resp)
+			}
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
 		})
@@ -276,56 +302,69 @@ func TestTraceBlockTransactions(t *testing.T) {
 	testConfig := BeforeEach(t, false)
 
 	type testSetType struct {
-		BlockID     BlockID
-		ExpectedErr error
+		blockID     BlockID
+		traceFlags  []TraceFlag
+		expectedErr error
 	}
 
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
-				ExpectedErr: ErrBlockNotFound,
+				blockID: WithBlockTag(BlockTagLatest),
+				traceFlags: []TraceFlag{
+					TraceFlagReturnInitialReads,
+				},
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID:     WithBlockHash(internalUtils.DeadBeef),
+				expectedErr: ErrBlockNotFound,
+			},
+			{
+				blockID: WithBlockTag(BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: ErrInvalidBlockID,
+				expectedErr: ErrInvalidBlockID,
 			},
 		},
 		tests.TestnetEnv: {
 			{
-				BlockID: WithBlockNumber(99433),
+				blockID: WithBlockNumber(99433),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagLatest),
+				blockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagL1Accepted),
+				blockID: WithBlockTag(BlockTagLatest),
+				traceFlags: []TraceFlag{
+					TraceFlagReturnInitialReads,
+				},
 			},
 			{
-				BlockID:     WithBlockHash(internalUtils.DeadBeef),
-				ExpectedErr: ErrBlockNotFound,
+				blockID: WithBlockTag(BlockTagL1Accepted),
 			},
 			{
-				BlockID: WithBlockTag(BlockTagPreConfirmed),
+				blockID:     WithBlockHash(internalUtils.DeadBeef),
+				expectedErr: ErrBlockNotFound,
+			},
+			{
+				blockID: WithBlockTag(BlockTagPreConfirmed),
 				// not the exact error, but it should contain it due to the checkForPreConfirmed() function
-				ExpectedErr: ErrInvalidBlockID,
+				expectedErr: ErrInvalidBlockID,
 			},
 		},
 	}[tests.TEST_ENV]
 
 	for _, test := range testSet {
-		t.Run(fmt.Sprintf("blockID: %v", test.BlockID), func(t *testing.T) {
-			if tests.TEST_ENV == tests.MockEnv && test.BlockID.Tag != BlockTagPreConfirmed {
+		t.Run(fmt.Sprintf("blockID: %v", test.blockID), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && test.blockID.Tag != BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
 						t.Context(),
 						gomock.Any(),
 						"starknet_traceBlockTransactions",
-						test.BlockID,
+						test.blockID,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)
@@ -338,11 +377,18 @@ func TestTraceBlockTransactions(t *testing.T) {
 							}
 						}
 
-						*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
-							"result",
-						)
+						if test.traceFlags != nil &&
+							slices.Contains(test.traceFlags, TraceFlagReturnInitialReads) {
+							*rawResp = json.RawMessage(
+								"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+							)
+						} else {
+							*rawResp = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/trace/sepoliaBlockTrace_0x42a4c6a4c3dffee2cce78f04259b499437049b0084c3296da9fbbec7eda79b2.json",
+								"result",
+							)
+						}
 
 						return nil
 					}).
@@ -351,18 +397,28 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 			resp, err := testConfig.Provider.TraceBlockTransactions(
 				t.Context(),
-				test.BlockID,
+				test.blockID,
+				test.traceFlags,
 			)
-			if test.ExpectedErr != nil {
+			if test.expectedErr != nil {
 				require.Error(t, err)
-				assert.ErrorContains(t, err, test.ExpectedErr.Error())
+				assert.ErrorContains(t, err, test.expectedErr.Error())
 
 				return
 			}
 			require.NoError(t, err)
 
 			rawExpectedResp := testConfig.RPCSpy.LastResponse()
-			rawResp, err := json.Marshal(resp)
+			var rawResp []byte
+			// this is due to the way the RPC method returns the data. It will return an
+			// array or an object depending on the flags. If the InitialReads is nil, the
+			// node response captured by the spy will be an array, so we only marshal the
+			// Traces field to compare with the expected response.
+			if resp.InitialReads == nil {
+				rawResp, err = json.Marshal(resp.Traces)
+			} else {
+				rawResp, err = json.Marshal(resp)
+			}
 			require.NoError(t, err)
 			assert.JSONEq(t, string(rawExpectedResp), string(rawResp))
 		})

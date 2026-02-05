@@ -1,6 +1,11 @@
 package rpc
 
-import "github.com/NethermindEth/juno/core/felt"
+import (
+	"encoding/json"
+	"errors"
+
+	"github.com/NethermindEth/juno/core/felt"
+)
 
 type OrderedEvent struct {
 	// The order of the event within the transaction
@@ -43,10 +48,42 @@ type EventFilter struct {
 	FromBlock BlockID `json:"from_block,omitempty"`
 	// ToBlock to block
 	ToBlock BlockID `json:"to_block,omitempty"`
-	// Address from contract
-	Address *felt.Felt `json:"address,omitempty"`
+	// A contract address or a list of addresses from which events should originate"
+	Address AddressList `json:"address,omitempty"`
 	// Keys the values used to filter the events
 	Keys [][]*felt.Felt `json:"keys,omitempty"`
+}
+
+// AddressList is a list of addresses from which events should originate.
+// If the list contains a single address, it will be marshalled
+// as a single string in the JSON response, otherwise as an array.
+type AddressList []*felt.Felt
+
+// MarshalJSON marshals the AddressList into JSON.
+func (al AddressList) MarshalJSON() ([]byte, error) {
+	if len(al) == 1 {
+		return json.Marshal(al[0])
+	}
+
+	return json.Marshal([]*felt.Felt(al))
+}
+
+// UnmarshalJSON unmarshals the JSON data into an AddressList.
+func (al *AddressList) UnmarshalJSON(data []byte) error {
+	var arr []*felt.Felt
+	err := json.Unmarshal(data, &arr)
+	if err != nil {
+		var singleF *felt.Felt
+		err2 := json.Unmarshal(data, &singleF)
+		if err2 != nil {
+			return errors.Join(errors.New("failed to unmarshal address list"), err, err2)
+		}
+		*al = AddressList{singleF}
+	} else {
+		*al = arr
+	}
+
+	return nil
 }
 
 // EventsInput is the input for the 'starknet_getEvents' method.
@@ -59,8 +96,9 @@ type EventsInput struct {
 // EventSubscriptionInput is the input for the 'starknet_subscribeEvents' method.
 
 type EventSubscriptionInput struct {
-	// (Optional) Filter events by from_address which emitted the event
-	FromAddress *felt.Felt `json:"from_address,omitempty"`
+	// (Optional) A contract address or a list of addresses from which events
+	// should originate
+	FromAddress AddressList `json:"from_address,omitempty"`
 	// (Optional) Per key (by position), designate the possible values to be
 	// matched for events to be returned. Empty array designates 'any' value
 	Keys [][]*felt.Felt `json:"keys,omitempty"`

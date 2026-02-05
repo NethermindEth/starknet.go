@@ -22,10 +22,6 @@ type StorageEntry struct {
 	Value *felt.Felt `json:"value"`
 }
 
-// type StorageEntries struct {
-// 	StorageEntry []StorageEntry
-// }
-
 // ContractStorageDiffItem is a change in a single storage item
 type ContractStorageDiffItem struct {
 	// ContractAddress is the contract address for which the state changed
@@ -415,4 +411,65 @@ func (fs TxnFinalityStatus) MarshalJSON() ([]byte, error) {
 //   - string: the string representation of the TxnFinalityStatus
 func (fs TxnFinalityStatus) String() string {
 	return string(fs)
+}
+
+// Flags that control what additional fields are included in transaction responses.
+type TxnResponseFlag int
+
+const (
+	// Include proof_facts field when available (only for transactions submitted
+	// through the gateway with proof facts).
+	TxnFlagIncludeProofFacts TxnResponseFlag = iota
+)
+
+// String returns the string representation of the TxnResponseFlag.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+//   - string: the string representation of the TxnResponseFlag
+func (f TxnResponseFlag) String() string {
+	if f == TxnFlagIncludeProofFacts {
+		return "INCLUDE_PROOF_FACTS"
+	}
+
+	return "UNKNOWN_FLAG"
+}
+
+// MarshalJSON marshals the TxnResponseFlag into JSON.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+//   - []byte: a byte slice
+//   - error: an error if any
+func (f TxnResponseFlag) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(f.String())), nil
+}
+
+// UnmarshalJSON unmarshals the JSON data into a TxnResponseFlag.
+//
+// Parameters:
+//
+//	none
+//
+// Returns:
+//   - error: an error if the unmarshaling fails
+func (f *TxnResponseFlag) UnmarshalJSON(data []byte) error {
+	unquoted, err := strconv.Unquote(string(data))
+	if err != nil {
+		return err
+	}
+	switch unquoted {
+	case "INCLUDE_PROOF_FACTS":
+		*f = TxnFlagIncludeProofFacts
+	default:
+		return fmt.Errorf("unknown flag: %s", data)
+	}
+
+	return nil
 }

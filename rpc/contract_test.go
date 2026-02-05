@@ -951,7 +951,7 @@ func TestEstimateFee(t *testing.T) {
 	type testSetType struct {
 		description   string
 		txs           []BroadcastTxn
-		simFlags      []SimulationFlag
+		simFlags      []EstimateFeeFlag
 		blockID       BlockID
 		expectedError *RPCError
 	}
@@ -977,7 +977,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []SimulationFlag{},
+				simFlags: []EstimateFeeFlag{},
 				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
@@ -985,7 +985,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags: []SimulationFlag{SkipValidate},
+				simFlags: []EstimateFeeFlag{EstimateFeeSkipValidate},
 				blockID:  WithBlockTag(BlockTagLatest),
 			},
 			{
@@ -1011,7 +1011,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
+				simFlags:      []EstimateFeeFlag{},
 				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 			},
@@ -1020,7 +1020,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					sepoliaInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
+				simFlags:      []EstimateFeeFlag{EstimateFeeSkipValidate},
 				blockID:       WithBlockNumber(574447),
 				expectedError: nil,
 			},
@@ -1049,7 +1049,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{},
+				simFlags:      []EstimateFeeFlag{},
 				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},
@@ -1058,7 +1058,7 @@ func TestEstimateFee(t *testing.T) {
 				txs: []BroadcastTxn{
 					integrationInvokeV3,
 				},
-				simFlags:      []SimulationFlag{SkipValidate},
+				simFlags:      []EstimateFeeFlag{EstimateFeeSkipValidate},
 				blockID:       WithBlockNumber(1_300_000),
 				expectedError: nil,
 			},

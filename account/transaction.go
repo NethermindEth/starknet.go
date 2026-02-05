@@ -75,7 +75,7 @@ func (account *Account) BuildAndSendInvokeTxn(
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastInvokeTxnV3},
-		opts.SimulationFlags(),
+		opts.EstimateFlags(),
 		opts.BlockID(),
 	)
 	if err != nil {
@@ -176,7 +176,7 @@ func (account *Account) BuildAndSendDeclareTxn(
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastDeclareTxnV3},
-		opts.SimulationFlags(),
+		opts.EstimateFlags(),
 		opts.BlockID(),
 	)
 	if err != nil {
@@ -269,7 +269,7 @@ func (account *Account) BuildAndEstimateDeployAccountTxn(
 	estimateFee, err := account.Provider.EstimateFee(
 		ctx,
 		[]rpc.BroadcastTxn{broadcastDepAccTxnV3},
-		opts.SimulationFlags(),
+		opts.EstimateFlags(),
 		opts.BlockID(),
 	)
 	if err != nil {

@@ -41,6 +41,8 @@ func (account *Account) Sign(ctx context.Context, msg *felt.Felt) ([]*felt.Felt,
 //
 // Returns:
 //   - error: an error if there was an error in the signing or invoking process
+//
+//nolint:dupl // The code is similar, but they handle different tx types.
 func (account *Account) SignInvokeTransaction(
 	ctx context.Context,
 	invokeTx rpc.InvokeTxnType,
@@ -59,6 +61,12 @@ func (account *Account) SignInvokeTransaction(
 		}
 		invoke.Signature = signature
 	case *rpc.InvokeTxnV3:
+		signature, err := signInvokeTransaction(ctx, account, invoke)
+		if err != nil {
+			return err
+		}
+		invoke.Signature = signature
+	case *rpc.BroadcastInvokeTxnV3:
 		signature, err := signInvokeTransaction(ctx, account, invoke)
 		if err != nil {
 			return err
@@ -157,6 +165,8 @@ func signDeployAccountTransaction[T rpc.DeployAccountType](
 //
 // Returns:
 //   - error: an error if any
+//
+//nolint:dupl // The code is similar, but they handle different tx types.
 func (account *Account) SignDeclareTransaction(ctx context.Context, tx rpc.DeclareTxnType) error {
 	switch declare := tx.(type) {
 	case *rpc.DeclareTxnV1:

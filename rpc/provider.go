@@ -131,9 +131,17 @@ type RPCProvider interface {
 	BlockHashAndNumber(ctx context.Context) (*BlockHashAndNumberOutput, error)
 	BlockNumber(ctx context.Context) (uint64, error)
 	BlockTransactionCount(ctx context.Context, blockID BlockID) (uint64, error)
-	BlockWithReceipts(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithReceipts(
+		ctx context.Context,
+		blockID BlockID,
+		responseFlags []TxnResponseFlag,
+	) (interface{}, error)
 	BlockWithTxHashes(ctx context.Context, blockID BlockID) (interface{}, error)
-	BlockWithTxs(ctx context.Context, blockID BlockID) (interface{}, error)
+	BlockWithTxs(
+		ctx context.Context,
+		blockID BlockID,
+		responseFlags []TxnResponseFlag,
+	) (interface{}, error)
 	Call(ctx context.Context, call FunctionCall, block BlockID) ([]*felt.Felt, error)
 	ChainID(ctx context.Context) (string, error)
 	Class(ctx context.Context, blockID BlockID, classHash *felt.Felt) (ClassOutput, error)
@@ -147,7 +155,7 @@ type RPCProvider interface {
 	EstimateFee(
 		ctx context.Context,
 		requests []BroadcastTxn,
-		simulationFlags []SimulationFlag,
+		simulationFlags []EstimateFeeFlag,
 		blockID BlockID,
 	) ([]FeeEstimation, error)
 	EstimateMessageFee(
@@ -163,7 +171,7 @@ type RPCProvider interface {
 		blockID BlockID,
 		txns []BroadcastTxn,
 		simulationFlags []SimulationFlag,
-	) ([]SimulatedTransaction, error)
+	) (SimulateTxResult, error)
 	SpecVersion(ctx context.Context) (string, error)
 	StateUpdate(ctx context.Context, blockID BlockID) (*StateUpdateOutput, error)
 	StorageAt(
@@ -177,14 +185,23 @@ type RPCProvider interface {
 		storageProofInput StorageProofInput,
 	) (*StorageProofResult, error)
 	Syncing(ctx context.Context) (SyncStatus, error)
-	TraceBlockTransactions(ctx context.Context, blockID BlockID) ([]Trace, error)
+	TraceBlockTransactions(
+		ctx context.Context,
+		blockID BlockID,
+		traceFlags []TraceFlag,
+	) (TraceBlockTxsResult, error)
 	TraceTransaction(ctx context.Context, transactionHash *felt.Felt) (TxnTrace, error)
 	TransactionByBlockIDAndIndex(
 		ctx context.Context,
 		blockID BlockID,
 		index uint64,
+		responseFlags []TxnResponseFlag,
 	) (*BlockTransaction, error)
-	TransactionByHash(ctx context.Context, hash *felt.Felt) (*BlockTransaction, error)
+	TransactionByHash(
+		ctx context.Context,
+		hash *felt.Felt,
+		responseFlags []TxnResponseFlag,
+	) (*BlockTransaction, error)
 	TransactionReceipt(
 		ctx context.Context,
 		transactionHash *felt.Felt,

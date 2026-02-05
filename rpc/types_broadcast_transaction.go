@@ -15,7 +15,28 @@ var (
 	_ BroadcastTxn = (*BroadcastDeployAccountTxnV3)(nil)
 )
 
-type BroadcastInvokeTxnV3 = InvokeTxnV3
+type BroadcastInvokeTxnV3 struct {
+	Type           TransactionType        `json:"type"`
+	SenderAddress  *felt.Felt             `json:"sender_address"`
+	Calldata       []*felt.Felt           `json:"calldata"`
+	Version        TransactionVersion     `json:"version"`
+	Signature      []*felt.Felt           `json:"signature"`
+	Nonce          *felt.Felt             `json:"nonce"`
+	ResourceBounds *ResourceBoundsMapping `json:"resource_bounds"`
+	Tip            U64                    `json:"tip"`
+	// The data needed to allow the paymaster to pay for the transaction in native tokens
+	PayMasterData []*felt.Felt `json:"paymaster_data"`
+	// The data needed to deploy the account contract from which this tx will be initiated
+	AccountDeploymentData []*felt.Felt `json:"account_deployment_data"`
+	// The storage domain of the account's nonce (an account has a nonce per DA mode)
+	NonceDataMode DataAvailabilityMode `json:"nonce_data_availability_mode"`
+	// The storage domain of the account's balance from which fee will be charged
+	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
+	// Optional proof facts for the transaction
+	ProofFacts []*felt.Felt `json:"proof_facts"`
+	// Optional proof for the transaction
+	Proof []int `json:"proof"`
+}
 
 type BroadcastDeployAccountTxnV3 = DeployAccountTxnV3
 

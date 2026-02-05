@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"encoding/json"
+	"slices"
 	"testing"
 	"time"
 
@@ -241,7 +242,7 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "from address only",
 			input: &EventSubscriptionInput{
-				FromAddress: fromAddress,
+				FromAddress: AddressList{fromAddress},
 			},
 		},
 		{
@@ -273,7 +274,7 @@ func TestSubscribeEvents(t *testing.T) {
 		{
 			description: "all filters",
 			input: &EventSubscriptionInput{
-				FromAddress:    fromAddress,
+				FromAddress:    AddressList{fromAddress},
 				Keys:           [][]*felt.Felt{{key}},
 				SubBlockID:     new(SubscriptionBlockID).WithBlockNumber(blockNumber - 1000),
 				FinalityStatus: TxnFinalityStatusAcceptedOnL2,
@@ -793,6 +794,12 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			},
 		},
 		{
+			description: "with tag INCLUDE_PROOF_FACTS",
+			input: &SubNewTxnsInput{
+				Tags: []SubscriptionTag{SubTagIncludeProofFacts},
+			},
+		},
+		{
 			description: "all filters",
 			input: &SubNewTxnsInput{
 				SenderAddress: []*felt.Felt{randAddress},
@@ -802,6 +809,7 @@ func TestSubscribeNewTransactions(t *testing.T) {
 					TxnStatusPreConfirmed,
 					TxnStatusAcceptedOnL2,
 				},
+				Tags: []SubscriptionTag{SubTagIncludeProofFacts},
 			},
 		},
 		{
@@ -845,11 +853,20 @@ func TestSubscribeNewTransactions(t *testing.T) {
 							}
 						}
 
-						msg := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
-							t,
-							"./testData/ws/sepoliaNewTxns.json",
-							"params", "result",
-						)
+						var msg json.RawMessage
+						if input.Tags != nil &&
+							slices.Contains(input.Tags, SubTagIncludeProofFacts) {
+							t.Fatal("waiting for nodes to implement rpcv0.10.1")
+							msg = json.RawMessage(
+								"waiting for nodes to implement rpcv0.10.1, so that we can get the data",
+							)
+						} else {
+							msg = internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
+								t,
+								"./testData/ws/sepoliaNewTxns.json",
+								"params", "result",
+							)
+						}
 
 						go func() {
 							for {
@@ -1013,11 +1030,13 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		)
 		t.Parallel()
 
-		tsetup := BeforeEach(t, true)
+		// a separate setup in order to avoid race conditions
+		// (the WS spy only works with a single subscription)
+		tempsetup := BeforeEach(t, true)
 
 		// getting a random new PRE_CONFIRMED transaction
 		txns := make(chan *TxnWithHashAndStatus)
-		sub, err := tsetup.WsProvider.SubscribeNewTransactions(
+		sub, err := tempsetup.WsProvider.SubscribeNewTransactions(
 			t.Context(),
 			txns,
 			&SubNewTxnsInput{
@@ -1029,6 +1048,8 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 
 		txn := <-txns
 		require.NotNil(t, txn)
+
+		tsetup := BeforeEach(t, true)
 
 		status := make(chan *NewTxnStatus)
 		sub2, err := tsetup.WsProvider.SubscribeTransactionStatus(

@@ -72,9 +72,9 @@ func main() {
 
 	eventChunk, err := provider.Events(context.Background(), rpc.EventsInput{
 		EventFilter: rpc.EventFilter{
-			FromBlock: rpc.WithBlockNumber(660000), // from block 660000
-			ToBlock:   rpc.WithBlockNumber(660100), // to block 660100
-			Address:   contractAddress,             // sent from this contract address
+			FromBlock: rpc.WithBlockNumber(660000),   // from block 660000
+			ToBlock:   rpc.WithBlockNumber(660100),   // to block 660100
+			Address:   []*felt.Felt{contractAddress}, // sent from this contract address
 			Keys: [][]*felt.Felt{
 				// Here we are filtering all 'Transfer', 'Approval' and 'GameStarted' events.
 				// (all events that have one of these selectors as the first key)
@@ -185,7 +185,7 @@ func callWithBlockAndAddressFilters(provider *rpc.Provider) {
 		EventFilter: rpc.EventFilter{
 			FromBlock: rpc.WithBlockNumber(0),
 			ToBlock:   rpc.WithBlockNumber(100),
-			Address:   contractAddress,
+			Address:   []*felt.Felt{contractAddress},
 		},
 		ResultPageRequest: rpc.ResultPageRequest{
 			ChunkSize: 1000,
@@ -355,7 +355,7 @@ func filterWithWebsocket(provider *rpc.Provider, websocketURL string) {
 		eventsChan,
 		&rpc.EventSubscriptionInput{
 			// Only events from this contract address
-			FromAddress: contractAddress,
+			FromAddress: rpc.AddressList{contractAddress},
 			// Subscribe to events from the latest block minus 10 (it'll return
 			// events from the last 10 blocks and progressively update as new blocks are added)
 			SubBlockID: new(rpc.SubscriptionBlockID).WithBlockNumber(blockNumber - 10),

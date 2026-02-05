@@ -43,8 +43,8 @@ type TxnOptions struct {
 	// A boolean flag indicating whether to use the latest block tag
 	// when estimating fees instead of the pre_confirmed block. Default: `false`.
 	UseLatest bool
-	// The simulation flag to be used when estimating fees. Default: none.
-	SimulationFlag rpc.SimulationFlag
+	// The estimate fee flags to be used when estimating fees. Default: none.
+	EstimateFeeFlags []rpc.EstimateFeeFlag
 
 	// ONLY FOR THE `BuildAndSendDeclareTxn` METHOD: A pointer to a boolean flag
 	// indicating whether to use the Blake2s hash function to calculate the compiled
@@ -66,14 +66,14 @@ func (opts *TxnOptions) BlockID() rpc.BlockID {
 	return rpc.WithBlockTag(rpc.BlockTagPreConfirmed)
 }
 
-// Returns a `[]rpc.SimulationFlag` containing the SimulationFlag.
-// If the flag is not set, returns an empty slice.
-func (opts *TxnOptions) SimulationFlags() []rpc.SimulationFlag {
-	if opts.SimulationFlag == "" {
-		return []rpc.SimulationFlag{}
+// Returns a `[]rpc.EstimateFeeFlag` containing the EstimateFeeFlag.
+// If no flags are set/is nil, returns an empty slice.
+func (opts *TxnOptions) EstimateFlags() []rpc.EstimateFeeFlag {
+	if len(opts.EstimateFeeFlags) == 0 {
+		return []rpc.EstimateFeeFlag{}
 	}
 
-	return []rpc.SimulationFlag{opts.SimulationFlag}
+	return opts.EstimateFeeFlags
 }
 
 // FmtFeeMultiplier returns the fee multiplier specified in the options.

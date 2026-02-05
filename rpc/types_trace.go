@@ -9,16 +9,49 @@ import (
 	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
+// Flags that indicate how to estimate the fee of a given transaction.
+// By default, the sequencer behaviour is replicated locally.
+type EstimateFeeFlag string
+
+const (
+	EstimateFeeSkipValidate EstimateFeeFlag = "SKIP_VALIDATE"
+)
+
 // Flags that indicate how to simulate a given transaction. By default, the
 // sequencer behaviour is replicated locally (enough funds are expected to be
 // in the account, and fee will be deducted from the balance before the
 // simulation of the next transaction). To skip the fee charge, use
-// the SKIP_FEE_CHARGE flag.
+// the SKIP_FEE_CHARGE flag. When RETURN_INITIAL_READS is present, the node
+// returns the minimal set of concrete state values fetched from the underlying
+// state reader during execution for all transactions in the simulation."
 type SimulationFlag string
 
 const (
+	// Flag to skip the fee charge when simulating a transaction.
 	SkipFeeCharge SimulationFlag = "SKIP_FEE_CHARGE"
-	SkipValidate  SimulationFlag = "SKIP_VALIDATE"
+	// Flag to skip the validation when simulating a transaction.
+	SkipValidate SimulationFlag = "SKIP_VALIDATE"
+	// With this flag, the node returns the minimal set of concrete state values
+	// fetched from the underlying state reader during execution for all
+	// transactions in the simulation.
+	ReturnInitialReads SimulationFlag = "RETURN_INITIAL_READS"
+)
+
+// Flags that indicate what additional information should be included in the trace.
+// When RETURN_INITIAL_READS is present, the node returns the minimal set of concrete
+// state values fetched from the underlying state reader during execution for all
+// transactions in the block. Returns an empty object instead of INITIAL_READS when
+// the execution trace for the referenced block is inconsistent with the canonical
+// block trace.
+type TraceFlag string
+
+const (
+	// Flag to return the minimal set of concrete
+	// state values fetched from the underlying state reader during execution for all
+	// transactions in the block. Returns an empty object instead of INITIAL_READS when
+	// the execution trace for the referenced block is inconsistent with the canonical
+	// block trace.
+	TraceFlagReturnInitialReads TraceFlag = "RETURN_INITIAL_READS"
 )
 
 type SimulatedTransaction struct {
@@ -277,4 +310,127 @@ func unmarshalTraceTxn(t interface{}) (TxnTrace, error) {
 	}
 
 	return nil, fmt.Errorf("unknown transaction type: %v", t)
+}
+
+// TraceBlockTxResult is the response of the `starknet_traceBlockTransactions`
+// RPC method. It contains an array of traces of all transactions in the block.
+type TraceBlockTxsResult struct {
+	// The traces of all transactions in the block
+	Traces []Trace `json:"traces"`
+	// The set of state values fetched from the underlying state reader during
+	// execution for all transactions in the block. Returns an empty object
+	// instead of INITIAL_READS when the execution trace for the referenced
+	// block is inconsistent with the canonical block trace. Only present when
+	// RETURN_INITIAL_READS is present in trace_flags, otherwise, is nil.
+	InitialReads *InitialReads `json:"initial_reads"`
+}
+
+// UnmarshalJSON unmarshals the data into a TraceBlockTxsResult object.
+func (t *TraceBlockTxsResult) UnmarshalJSON(data []byte) error {
+	var txs []Trace
+	if err := json.Unmarshal(data, &txs); err != nil {
+		type aux TraceBlockTxsResult
+		var tresp aux
+		err2 := json.Unmarshal(data, &tresp)
+		if err2 != nil {
+			return errors.Join(
+				errors.New("failed to unmarshal traces"),
+				err,
+				err2,
+			)
+		}
+		*t = TraceBlockTxsResult(tresp)
+
+		return nil
+	}
+	*t = TraceBlockTxsResult{
+		Traces:       txs,
+		InitialReads: nil,
+	}
+
+	return nil
+}
+
+// SimutaleTxResult is the response of the `starknet_simulateTransactions`
+// RPC method. It contains an array of simulated transactions,
+type SimulateTxResult struct {
+	// The execution trace and consumed resources of the required transactions.
+	SimulatedTransactions []SimulatedTransaction `json:"simulated_transactions"`
+	// The set of state values fetched from the underlying state reader during
+	// execution for all transactions in the simulation. Only present when the
+	// RETURN_INITIAL_READS flag is present in simulation_flags, otherwise, is nil.
+	InitialReads *InitialReads `json:"initial_reads"`
+}
+
+// UnmarshalJSON unmarshals the data into a SimulateTxResult object.
+func (s *SimulateTxResult) UnmarshalJSON(data []byte) error {
+	var txs []SimulatedTransaction
+	if err := json.Unmarshal(data, &txs); err != nil {
+		type aux SimulateTxResult
+		var sresp aux
+		err2 := json.Unmarshal(data, &sresp)
+		if err2 != nil {
+			return errors.Join(
+				errors.New("failed to unmarshal simulated transactions"),
+				err,
+				err2,
+			)
+		}
+		*s = SimulateTxResult(sresp)
+
+		return nil
+	}
+	*s = SimulateTxResult{
+		SimulatedTransactions: txs,
+		InitialReads:          nil,
+	}
+
+	return nil
+}
+
+// The set of state values fetched from the underlying state reader
+// during execution. This is a complete witness sufficient to reconstruct
+// the cached state needed for re-execution.
+type InitialReads struct {
+	// Storage entries that were read during simulation:
+	// (contract_address, storage_key) -> value
+	Storage []TraceStorageEntry `json:"storage"`
+	// Contract nonces that were read during simulation:
+	// contract_address -> nonce
+	Nonces []TraceNonce `json:"nonces"`
+	// Contract class hashes that were read during simulation:
+	// contract_address -> class_hash
+	ClassHashes []TraceClassHash `json:"class_hashes"`
+	// Class declaration statuses that were read during simulation:
+	// class_hash -> is_declared
+	DeclaredContracts []TraceDeclaredContract `json:"declared_contracts"`
+}
+
+// TraceStorageEntry is a storage entry that was read during simulation.
+// (contract_address, key) -> value
+type TraceStorageEntry struct {
+	ContractAddress *felt.Felt `json:"contract_address"`
+	Key             StorageKey `json:"key"`
+	Value           *felt.Felt `json:"value"`
+}
+
+// Contract nonce that was read during simulation.
+// contract_address -> nonce
+type TraceNonce struct {
+	ContractAddress *felt.Felt `json:"contract_address"`
+	Nonce           *felt.Felt `json:"nonce"`
+}
+
+// Contract class hashes that were read during simulation:
+// contract_address -> class_hash
+type TraceClassHash struct {
+	ContractAddress *felt.Felt `json:"contract_address"`
+	ClassHash       *felt.Felt `json:"class_hash"`
+}
+
+// Class declaration status that was read during simulation.
+// class_hash -> is_declared
+type TraceDeclaredContract struct {
+	ClassHash  *felt.Felt `json:"class_hash"`
+	IsDeclared bool       `json:"is_declared"`
 }

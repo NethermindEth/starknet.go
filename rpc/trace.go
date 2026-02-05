@@ -76,37 +76,37 @@ func (provider *Provider) TraceTransaction(
 // Parameters:
 //   - ctx: the context.Context object for controlling the request
 //   - blockID: the block to retrieve the traces from. `pre_confirmed` tag is not allowed
+//   - traceFlags: Flags that indicate what additional information should be included in
+//     the trace
 //
 // Returns:
-//   - []Trace: a slice of Trace objects representing the traces of transactions in the block
+//   - TraceBlockTxsResult: a TraceBlockTxsResult object representing the traces of
+//     all transactions in the block
 //   - error: an error if there was a problem retrieving the traces.
 func (provider *Provider) TraceBlockTransactions(
 	ctx context.Context,
 	blockID BlockID,
-) ([]Trace, error) {
+	traceFlags []TraceFlag,
+) (TraceBlockTxsResult, error) {
+	var output TraceBlockTxsResult
 	err := checkForPreConfirmed(blockID)
 	if err != nil {
-		return nil, err
+		return output, err
 	}
 
-	var output []Trace
 	if err := do(
-		ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID,
+		ctx, provider.c, "starknet_traceBlockTransactions", &output, blockID, traceFlags,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
+		return output, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
 	return output, nil
 }
 
-// SimulateTransactions simulates transactions on the blockchain.
-// Simulate a given sequence of transactions on the requested state, and generate
-// the execution traces.
-// Note that some of the transactions may revert, in which case no error is thrown,
-// but revert details can be seen on the returned trace object.
-// Note that some of the transactions may revert, this will be reflected by the
-// revert_error property in the trace. Other types of failures (e.g. unexpected error
-// or failure in the validation phase) will result in TRANSACTION_EXECUTION_ERROR.
+// SimulateTransactions returns the execution trace and consumed resources of the
+// required transactions. When RETURN_INITIAL_READS is not present in simulation_flags,
+// returns an array. When RETURN_INITIAL_READS is present in simulation_flags, returns an
+// object with simulated_transactions and initial_reads fields.
 //
 // Parameters:
 //   - ctx: The context of the function call
@@ -118,20 +118,20 @@ func (provider *Provider) TraceBlockTransactions(
 //   - simulationFlags: Describes what parts of the transaction should be executed
 //
 // Returns:
-//   - []SimulatedTransaction: The execution trace and consumed resources of the
-//     required transactions
+//   - SimulateTxResult: The execution trace and consumed resources of the
+//     required transactions + initial reads if the RETURN_INITIAL_READS flag was set.
 //   - error: An error if any occurred during the execution
 func (provider *Provider) SimulateTransactions(
 	ctx context.Context,
 	blockID BlockID,
 	txns []BroadcastTxn,
 	simulationFlags []SimulationFlag,
-) ([]SimulatedTransaction, error) {
-	var output []SimulatedTransaction
+) (SimulateTxResult, error) {
+	var output SimulateTxResult
 	if err := do(
 		ctx, provider.c, "starknet_simulateTransactions", &output, blockID, txns, simulationFlags,
 	); err != nil {
-		return nil, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
+		return output, rpcerr.UnwrapToRPCErr(err, ErrTxnExec, ErrBlockNotFound)
 	}
 
 	return output, nil
