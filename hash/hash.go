@@ -488,7 +488,7 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Fe
 		return nil, err
 	}
 
-	return curve.PoseidonArray(
+	hashContent := []*felt.Felt{
 		prefixInvoke,
 		txnVersionFelt,
 		txn.SenderAddress,
@@ -499,7 +499,13 @@ func TransactionHashInvokeV3(txn *rpc.InvokeTxnV3, chainID *felt.Felt) (*felt.Fe
 		felt.NewFromUint64[felt.Felt](DAUint64),
 		curve.PoseidonArray(txn.AccountDeploymentData...),
 		curve.PoseidonArray(txn.Calldata...),
-	), nil
+	}
+
+	if txn.ProofFacts != nil {
+		hashContent = append(hashContent, curve.PoseidonArray(txn.ProofFacts...))
+	}
+
+	return curve.PoseidonArray(hashContent...), nil
 }
 
 // TransactionHashDeclareV1 calculates the transaction hash for a declare V1 transaction.
