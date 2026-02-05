@@ -74,6 +74,43 @@ func (account *Account) TransactionHashInvoke(tx rpc.InvokeTxnType) (*felt.Felt,
 		return hash.TransactionHashInvokeV3(txn, account.ChainID)
 	case rpc.InvokeTxnV3:
 		return hash.TransactionHashInvokeV3(&txn, account.ChainID)
+	// broadcast invoke v3, pointer and struct
+	case *rpc.BroadcastInvokeTxnV3:
+		invokeTxn := rpc.InvokeTxnV3{
+			Type:                  txn.Type,
+			SenderAddress:         txn.SenderAddress,
+			Calldata:              txn.Calldata,
+			Version:               txn.Version,
+			Signature:             txn.Signature,
+			Nonce:                 txn.Nonce,
+			ResourceBounds:        txn.ResourceBounds,
+			Tip:                   txn.Tip,
+			PayMasterData:         txn.PayMasterData,
+			AccountDeploymentData: txn.AccountDeploymentData,
+			NonceDataMode:         txn.NonceDataMode,
+			FeeMode:               txn.FeeMode,
+			ProofFacts:            txn.ProofFacts,
+		}
+
+		return hash.TransactionHashInvokeV3(&invokeTxn, account.ChainID)
+	case rpc.BroadcastInvokeTxnV3:
+		invokeTxn := rpc.InvokeTxnV3{
+			Type:                  txn.Type,
+			SenderAddress:         txn.SenderAddress,
+			Calldata:              txn.Calldata,
+			Version:               txn.Version,
+			Signature:             txn.Signature,
+			Nonce:                 txn.Nonce,
+			ResourceBounds:        txn.ResourceBounds,
+			Tip:                   txn.Tip,
+			PayMasterData:         txn.PayMasterData,
+			AccountDeploymentData: txn.AccountDeploymentData,
+			NonceDataMode:         txn.NonceDataMode,
+			FeeMode:               txn.FeeMode,
+			ProofFacts:            txn.ProofFacts,
+		}
+
+		return hash.TransactionHashInvokeV3(&invokeTxn, account.ChainID)
 	default:
 		return nil, fmt.Errorf(
 			"%w: got '%T' instead of a valid invoke txn type",
