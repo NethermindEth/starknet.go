@@ -122,6 +122,8 @@ func BuildInvokeTxn(
 		AccountDeploymentData: []*felt.Felt{},
 		NonceDataMode:         rpc.DAModeL1,
 		FeeMode:               rpc.DAModeL1,
+		ProofFacts:            []*felt.Felt{},
+		Proof:                 []int{},
 	}
 
 	return &invokeTxn
