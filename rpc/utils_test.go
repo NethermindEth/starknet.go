@@ -103,6 +103,12 @@ func TestProvider_EstimateTip(t *testing.T) {
 
 // getTipAverageFromBlock returns the average of the tips from all transactions in the block
 func getTipAverageFromBlock(t *testing.T, block *Block) uint64 {
+	t.Helper()
+
+	if len(block.Transactions) == 0 {
+		return 0
+	}
+
 	var tipCounter uint64
 	for _, tnx := range block.Transactions {
 		// get the tip from the transaction
