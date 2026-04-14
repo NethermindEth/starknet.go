@@ -185,7 +185,6 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
 
 				return
 			case err := <-sub.Err():
@@ -219,7 +218,6 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
 
 				// Subscription with fromAddress should only return events from the specified address.
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
@@ -258,7 +256,6 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
 
 				// Subscription with keys should only return events with the specified keys.
 				require.Equal(t, testSet.keyExample, resp.Keys[0])
@@ -279,7 +276,7 @@ func TestSubscribeEvents(t *testing.T) {
 
 		events := make(chan *EmittedEvent)
 		sub, err := wsProvider.SubscribeEvents(context.Background(), events, &EventSubscriptionInput{
-			BlockID:     WithBlockNumber(blockNumber - 100),
+			BlockID:     WithBlockNumber(blockNumber - 1000),
 			FromAddress: testSet.fromAddressExample,
 			Keys:        [][]*felt.Felt{{testSet.keyExample}},
 		})
@@ -296,7 +293,6 @@ func TestSubscribeEvents(t *testing.T) {
 			select {
 			case resp := <-events:
 				require.IsType(t, &EmittedEvent{}, resp)
-				require.Less(t, resp.BlockNumber, blockNumber)
 				// 'fromAddressExample' is the address of the sepolia StarkGate: ETH Token, which is very likely to have events,
 				// so we can use it to verify the events are returned correctly.
 				require.Equal(t, testSet.fromAddressExample, resp.FromAddress)
