@@ -1,3 +1,8 @@
+> [!CAUTION]
+> **This repository has been archived and is no longer maintained.**
+> Thank you to all contributors and users who supported starknet.go over the years.
+> The codebase remains available in read-only mode for reference purposes.
+
 <div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/docs/public/starknetgo_vertical_dark.png">
