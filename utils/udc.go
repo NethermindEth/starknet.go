@@ -21,7 +21,7 @@ var (
 	// https://docs.openzeppelin.com/contracts-cairo/1.0.0/udc#udc_contract_address
 	udcAddressCairoV2, _ = new(
 		felt.Felt,
-	).SetString("0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221")
+	).SetString("0x02ceed65a4bd731034c01113685c831b01c15d7d432f71afb1cf1634b53a2125")
 
 	errInvalidUDCVersion    = errors.New("invalid UDC version")
 	errClassHashNotProvided = errors.New("classHash not provided")
@@ -48,7 +48,15 @@ type UDCOptions struct {
 	//nolint:lll // The links would be unclickable if we break the line.
 	OriginIndependent bool
 	// The UDC version to be used. If not provided, UDCCairoV0 will be used.
-	UDCVersion UDCVersion
+	UDCVersion UDCVersion;
+}
+
+// Creates a new UDCOptions instance
+// UDCCairoV2 will be used as the default UDC version
+func NewUDCOptions() *UDCOptions {
+	return &UDCOptions{
+		UDCVersion: UDCCairoV2,
+	}
 }
 
 // Enum representing the UDC version to be used
@@ -59,7 +67,7 @@ const (
 	// address 0x041a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf
 	UDCCairoV0 UDCVersion = iota
 	// Represents the UDC version with Cairo v2 code, with the
-	// address 0x04a64cd09a853868621d94cae9952b106f2c36a3f81260f85de6696c6b050221
+	// address 0x02ceed65a4bd731034c01113685c831b01c15d7d432f71afb1cf1634b53a2125
 	UDCCairoV2
 )
 
@@ -86,7 +94,7 @@ func BuildUDCCalldata(
 	}
 
 	if opts == nil {
-		opts = new(UDCOptions)
+		opts = NewUDCOptions()
 	}
 
 	// salt
