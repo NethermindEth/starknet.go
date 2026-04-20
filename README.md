@@ -1,5 +1,5 @@
 > [!CAUTION]
-> **This repository has been archived and is no longer maintained.**
+> **This repository is no longer under maintenance and will be archived soon.**
 > Thank you to all contributors and users who supported starknet.go over the years.
 > The codebase remains available in read-only mode for reference purposes.
 
