@@ -43,7 +43,6 @@ devNet := devnet.NewDevNet("http://192.168.1.100:5050")
 DevNet provides the following methods:
 
 - `Accounts()` - Retrieve pre-funded test accounts
-- `FeeToken()` - Get fee token information
 - `IsAlive()` - Check if DevNet is running
 - `Mint()` - Mint tokens to an address
 
@@ -333,215 +332,6 @@ Test accounts should only be used in development and testing environments. Never
 
 ---
 
-## FeeToken
-
-Represents the token used for transaction fees on the DevNet network.
-
-### Type Definition
-
-```go
-type FeeToken struct {
-	Symbol  string
-	Address *felt.Felt
-}
-```
-
-**Source:** [devnet.go:L172-L175](https://github.com/NethermindEth/starknet.go/blob/main/devnet/devnet.go#L172-L175)
-
-### Fields
-
-#### Symbol
-
-```go
-Symbol string
-```
-
-Token symbol identifying the fee token.
-
-**Common values**:
-- `"ETH"` - Ethereum token
-- `"STRK"` - Starknet token
-
-**Example**: `"ETH"`
-
-#### Address
-
-```go
-Address *felt.Felt
-```
-
-Contract address of the fee token on the DevNet network as a felt value.
-
-**Example**: `0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7` (ETH on Sepolia)
-
-### Usage Example
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/starknet.go/devnet"
-)
-
-func main() {
-	devNet := devnet.NewDevNet()
-
-	// Get fee token information
-	feeToken, err := devNet.FeeToken()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Fee Token Information:\n")
-	fmt.Printf("  Symbol: %s\n", feeToken.Symbol)
-	fmt.Printf("  Address: %s\n", feeToken.Address.String())
-	fmt.Printf("  Address (hex): 0x%s\n", feeToken.Address.Text(16))
-}
-```
-
-### Usage Example with RPC
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/devnet"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	// Get fee token info from DevNet
-	devNet := devnet.NewDevNet()
-	feeToken, err := devNet.FeeToken()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Create RPC provider
-	provider, err := rpc.NewProvider("http://localhost:5050/rpc")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Query token balance
-	accounts, _ := devNet.Accounts()
-	accountAddress, _ := utils.HexToFelt(accounts[0].Address)
-
-	// Get balance selector
-	balanceOfSelector := utils.GetSelectorFromNameFelt("balanceOf")
-
-	// Call balanceOf
-	result, err := provider.Call(
-		context.Background(),
-		rpc.FunctionCall{
-			ContractAddress:    feeToken.Address,
-			EntryPointSelector: balanceOfSelector,
-			Calldata:           []*felt.Felt{accountAddress},
-		},
-		rpc.WithBlockTag("latest"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// result[0] contains the balance (low), result[1] contains high bits
-	fmt.Printf("Account balance of %s: %s\n",
-		feeToken.Symbol,
-		result[0].String())
-}
-```
-
-### Usage Example with Token Contract
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/NethermindEth/juno/core/felt"
-	"github.com/NethermindEth/starknet.go/account"
-	"github.com/NethermindEth/starknet.go/devnet"
-	"github.com/NethermindEth/starknet.go/rpc"
-	"github.com/NethermindEth/starknet.go/utils"
-)
-
-func main() {
-	devNet := devnet.NewDevNet()
-
-	// Get fee token
-	feeToken, err := devNet.FeeToken()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Setup account (simplified)
-	provider, _ := rpc.NewProvider("http://localhost:5050/rpc")
-	accounts, _ := devNet.Accounts()
-	// ... create acc from accounts[0] ...
-
-	var acc *account.Account // Assume created
-
-	// Transfer fee tokens
-	recipientAddress, _ := utils.HexToFelt("0x1234...")
-	amount := felt.Zero.SetUint64(1000000000000000000) // 1 token
-	lowBits := amount
-	highBits := felt.Zero
-
-	functionCalls := []rpc.InvokeFunctionCall{
-		{
-			ContractAddress:    feeToken.Address,
-			EntryPointSelector: utils.GetSelectorFromNameFelt("transfer"),
-			Calldata:           []*felt.Felt{recipientAddress, lowBits, highBits},
-		},
-	}
-
-	response, err := acc.BuildAndSendInvokeTxn(
-		context.Background(),
-		functionCalls,
-		nil,
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("Transferred %s tokens\n", feeToken.Symbol)
-	fmt.Printf("Transaction hash: %s\n", response.TransactionHash)
-}
-```
-
-### Description
-
-FeeToken provides information about the token used for paying transaction fees on the DevNet network. This information is useful for:
-
-- **Balance Queries**: Check fee token balances before transactions
-- **Token Transfers**: Transfer fee tokens between accounts
-- **Contract Interactions**: Approve token spending for contracts
-- **Testing**: Verify correct fee token usage in contracts
-
-The fee token address can be used with the RPC provider to interact with the token contract directly, enabling operations like:
-- `balanceOf(account)` - Query balance
-- `transfer(to, amount)` - Transfer tokens
-- `approve(spender, amount)` - Approve spending
-
-### Related Methods
-
-- [FeeToken](/docs/devnet/methods/fee-token) - Retrieve fee token information
-- [Mint](/docs/devnet/methods/mint) - Mint fee tokens
-
----
-
 ## MintResponse
 
 Represents the response from a token minting operation.
@@ -793,11 +583,10 @@ fmt.Printf("Minted: %s wei\n", mintedAmount.String())
 
 ## Summary
 
-The DevNet package provides four main types for local development:
+The DevNet package provides three main types for local development:
 
 - **DevNet**: Connection to DevNet instance
 - **TestAccount**: Pre-funded test account with keys
-- **FeeToken**: Fee token metadata
 - **MintResponse**: Token minting result
 
 These types work together to enable seamless local testing without external dependencies or gas costs.
@@ -808,8 +597,6 @@ These types work together to enable seamless local testing without external depe
 DevNet
   |
   +-- Accounts() -> []TestAccount
-  |
-  +-- FeeToken() -> *FeeToken
   |
   +-- Mint() -> *MintResponse
 ```

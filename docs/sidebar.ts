@@ -307,7 +307,6 @@ export const sidebar: Sidebar = {
             { text: "IsAlive", link: "/docs/devnet/methods/is-alive" },
             { text: "Accounts", link: "/docs/devnet/methods/accounts" },
             { text: "Mint", link: "/docs/devnet/methods/mint" },
-            { text: "FeeToken", link: "/docs/devnet/methods/fee-token" },
           ],
         },
       ],
