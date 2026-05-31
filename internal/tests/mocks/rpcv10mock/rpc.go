@@ -390,10 +390,10 @@ func (mr *MockRPCProviderMockRecorder) StateUpdate(ctx, blockID any) *gomock.Cal
 }
 
 // StorageAt mocks base method.
-func (m *MockRPCProvider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key string, blockID rpc.BlockID) (string, error) {
+func (m *MockRPCProvider) StorageAt(ctx context.Context, contractAddress *felt.Felt, key rpc.StorageKey, blockID rpc.BlockID) (*felt.Felt, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "StorageAt", ctx, contractAddress, key, blockID)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*felt.Felt)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

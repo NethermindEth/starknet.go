@@ -177,9 +177,9 @@ type RPCProvider interface {
 	StorageAt(
 		ctx context.Context,
 		contractAddress *felt.Felt,
-		key string,
+		key StorageKey,
 		blockID BlockID,
-	) (string, error)
+	) (*felt.Felt, error)
 	StorageProof(
 		ctx context.Context,
 		storageProofInput StorageProofInput,

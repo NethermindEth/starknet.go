@@ -502,29 +502,32 @@ func TestStorageAt(t *testing.T) {
 	type testSetType struct {
 		Description     string
 		ContractAddress *felt.Felt
-		StorageKey      string
+		StorageKey      StorageKey
 		Block           BlockID
 		ExpectedError   error
+	}
+	storageKeyFromName := func(name string) StorageKey {
+		return StorageKey(fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(name)))
 	}
 	testSet := map[tests.TestEnv][]testSetType{
 		tests.MockEnv: {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
@@ -533,7 +536,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				StorageKey:      "ERC20_name",
+				StorageKey:      storageKeyFromName("ERC20_name"),
 				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
@@ -541,20 +544,20 @@ func TestStorageAt(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x0200AB5CE3D7aDE524335Dc57CaF4F821A0578BBb2eFc2166cb079a3D29cAF9A"),
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
@@ -563,7 +566,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"),
-				StorageKey:      "ERC20_decimals",
+				StorageKey:      storageKeyFromName("ERC20_decimals"),
 				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
@@ -571,7 +574,7 @@ func TestStorageAt(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x8d17e6a3B92a2b5Fa21B8e7B5a3A794B05e06C5FD6C6451C6F2695Ba77101"),
-				StorageKey:      "_signer",
+				StorageKey:      storageKeyFromName("_signer"),
 				Block:           WithBlockTag(BlockTagLatest),
 			},
 		},
@@ -586,8 +589,7 @@ func TestStorageAt(t *testing.T) {
 						gomock.Any(),
 						"starknet_getStorageAt",
 						test.ContractAddress,
-						// the StorateAt function is not compliant with the spec
-						fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(test.StorageKey)),
+						test.StorageKey,
 						test.Block,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {

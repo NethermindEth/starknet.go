@@ -3,12 +3,10 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/NethermindEth/juno/core/felt"
 	"github.com/NethermindEth/starknet.go/client/rpcerr"
 	"github.com/NethermindEth/starknet.go/contracts"
-	internalUtils "github.com/NethermindEth/starknet.go/internal/utils"
 )
 
 // Class retrieves the class information from the Provider with the given hash.
@@ -121,24 +119,23 @@ func (provider *Provider) ClassHashAt(
 // Parameters:
 //   - ctx: The context.Context for the function
 //   - contractAddress: The address of the contract
-//   - key: The key for which to retrieve the storage value
+//   - key: The storage key for which to retrieve the storage value
 //   - blockID: The ID of the block at which to retrieve the storage value
 //
 // Returns:
-//   - string: The value of the storage
+//   - *felt.Felt: The value of the storage
 //   - error: An error if any occurred during the execution
 func (provider *Provider) StorageAt(
 	ctx context.Context,
 	contractAddress *felt.Felt,
-	key string,
+	key StorageKey,
 	blockID BlockID,
-) (string, error) {
-	var value string
-	hashKey := fmt.Sprintf("0x%x", internalUtils.GetSelectorFromName(key))
+) (*felt.Felt, error) {
+	var value *felt.Felt
 	if err := do(
-		ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, hashKey, blockID,
+		ctx, provider.c, "starknet_getStorageAt", &value, contractAddress, key, blockID,
 	); err != nil {
-		return "", rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
+		return nil, rpcerr.UnwrapToRPCErr(err, ErrContractNotFound, ErrBlockNotFound)
 	}
 
 	return value, nil
