@@ -8,9 +8,9 @@ Retrieves the storage value of a contract at a specific key and block state. Thi
 func (provider *Provider) StorageAt(
     ctx context.Context,
     contractAddress *felt.Felt,
-    key string,
+    key StorageKey,
     blockID BlockID,
-) (string, error)
+) (*felt.Felt, error)
 ```
 
 **Source:** [contract.go:L130-L145](https://github.com/NethermindEth/starknet.go/blob/main/rpc/contract.go#L130-L145)
@@ -19,19 +19,29 @@ func (provider *Provider) StorageAt(
 
 - `ctx` (context.Context): Context for request cancellation and timeout
 - `contractAddress` (*felt.Felt): The address of the contract
-- `key` (string): The storage key to retrieve (can be a variable name or hex string)
+- `key` (StorageKey): The storage key to retrieve
 - `blockID` (BlockID): Block identifier (number, hash, or tag)
 
 ## Returns
 
-- `string`: The storage value at the given key (as hex string)
+- `*felt.Felt`: The storage value at the given key
 - `error`: Error if the request fails
 
 :::note
-This can return `ErrContractNotFound` if the contract address doesn't exist, or `ErrBlockNotFound` if the block doesn't exist. The key is automatically converted using `GetSelectorFromName` if it's a variable name.
+This can return `ErrContractNotFound` if the contract address doesn't exist, or `ErrBlockNotFound` if the block doesn't exist. Pass the storage key directly; variable names are not automatically converted.
 :::
 
 ## Type Definitions
+
+### StorageKey
+
+The `key` parameter is a storage key encoded as a hex string.
+
+```go
+type StorageKey string
+```
+
+**Source:** [types_contract.go:L24](https://github.com/NethermindEth/starknet.go/blob/main/rpc/types_contract.go#L24)
 
 ### BlockID
 
@@ -118,42 +128,45 @@ func main() {
         log.Fatal(err)
     }
 
-    // Read token name from storage using variable name
-    // The method automatically converts "ERC20_name" to its storage key
-    nameValue, err := provider.StorageAt(ctx, ethContract, "ERC20_name", rpc.WithBlockTag("latest"))
+    // Read token name from storage
+    nameValue, err := provider.StorageAt(ctx, ethContract, storageKeyFromName("ERC20_name"), rpc.WithBlockTag("latest"))
     if err != nil {
         log.Fatal(err)
     }
 
     // Decode the hex-encoded string to readable text
-    tokenName := decodeShortString(nameValue)
+    tokenName := decodeShortString(nameValue.String())
     fmt.Printf("Token Name: %s (raw: %s)\n", tokenName, nameValue)
 
     // Read token symbol from storage
-    symbolValue, err := provider.StorageAt(ctx, ethContract, "ERC20_symbol", rpc.WithBlockTag("latest"))
+    symbolValue, err := provider.StorageAt(ctx, ethContract, storageKeyFromName("ERC20_symbol"), rpc.WithBlockTag("latest"))
     if err != nil {
         log.Fatal(err)
     }
-    tokenSymbol := decodeShortString(symbolValue)
+    tokenSymbol := decodeShortString(symbolValue.String())
     fmt.Printf("Token Symbol: %s (raw: %s)\n", tokenSymbol, symbolValue)
 
     // Read decimals value and convert to integer
-    decimalsValue, err := provider.StorageAt(ctx, ethContract, "ERC20_decimals", rpc.WithBlockTag("latest"))
+    decimalsValue, err := provider.StorageAt(ctx, ethContract, storageKeyFromName("ERC20_decimals"), rpc.WithBlockTag("latest"))
     if err != nil {
         log.Fatal(err)
     }
     decimals := new(big.Int)
-    decimals.SetString(strings.TrimPrefix(decimalsValue, "0x"), 16)
+    decimals.SetString(strings.TrimPrefix(decimalsValue.String(), "0x"), 16)
     fmt.Printf("Token Decimals: %s (raw: %s)\n", decimals.String(), decimalsValue)
 
     // Query historical total supply at a specific block number
-    totalSupplyValue, err := provider.StorageAt(ctx, ethContract, "ERC20_total_supply", rpc.WithBlockNumber(100000))
+    totalSupplyValue, err := provider.StorageAt(ctx, ethContract, storageKeyFromName("ERC20_total_supply"), rpc.WithBlockNumber(100000))
     if err != nil {
         log.Fatal(err)
     }
     totalSupply := new(big.Int)
-    totalSupply.SetString(strings.TrimPrefix(totalSupplyValue, "0x"), 16)
+    totalSupply.SetString(strings.TrimPrefix(totalSupplyValue.String(), "0x"), 16)
     fmt.Printf("Total Supply at block 100000: %s (raw: %s)\n", totalSupply.String(), totalSupplyValue)
+}
+
+func storageKeyFromName(name string) rpc.StorageKey {
+    return rpc.StorageKey(fmt.Sprintf("0x%x", utils.GetSelectorFromName(name)))
 }
 
 // decodeShortString decodes a hex-encoded short string (Cairo felt string)
@@ -198,9 +211,9 @@ fmt.Printf("Storage value: %s\n", storageValue)
 
 ## Common Use Cases
 
-- ead public state variables from deployed contracts. 
-- Check token balances stored in contract storage. 
-- Retrieve contract configuration values and settings. 
+- Read public state variables from deployed contracts.
+- Check token balances stored in contract storage.
+- Retrieve contract configuration values and settings.
 
 
 

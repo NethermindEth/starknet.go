@@ -514,20 +514,20 @@ func TestStorageAt(t *testing.T) {
 			{
 				Description:     "normal call",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
-				StorageKey:      storageKeyFromName("_signer"),
+				StorageKey:      StorageKey("0x123"),
 				Block:           WithBlockTag(BlockTagLatest),
 			},
 			{
 				Description:     "invalid block",
 				ContractAddress: internalUtils.TestHexToFelt(t, "0x123"),
-				StorageKey:      storageKeyFromName("_signer"),
+				StorageKey:      StorageKey("0x456"),
 				Block:           WithBlockHash(internalUtils.DeadBeef),
 				ExpectedError:   ErrBlockNotFound,
 			},
 			{
 				Description:     "invalid contract address",
 				ContractAddress: internalUtils.DeadBeef,
-				StorageKey:      storageKeyFromName("_signer"),
+				StorageKey:      StorageKey("0x789"),
 				Block:           WithBlockTag(BlockTagLatest),
 				ExpectedError:   ErrContractNotFound,
 			},
