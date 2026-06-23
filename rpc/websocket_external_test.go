@@ -138,7 +138,11 @@ func TestSubscribeTransactionStatus(t *testing.T) {
 		require.NoError(t, innerErr, "Error subscribing to txn status")
 		defer sub.Unsubscribe()
 
+		timeout := time.After(30 * time.Second)
+
 		select {
+		case <-timeout:
+			t.Fatal("timeout waiting for txn status")
 		case txnStatus := <-txnStatus:
 			assert.NotEmpty(t, txnStatus.Status)
 		case innerErr = <-sub.Err():
