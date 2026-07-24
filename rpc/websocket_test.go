@@ -833,6 +833,11 @@ func TestSubscribeNewTransactions(t *testing.T) {
 			t.Parallel()
 			tsetup := BeforeEach(t, true)
 
+			if tests.TEST_ENV == tests.MockEnv &&
+				slices.Contains(test.input.Tags, SubTagIncludeProofFacts) {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 proof_facts responses")
+			}
+
 			if tests.TEST_ENV == tests.MockEnv {
 				tsetup.MockClient.EXPECT().
 					Subscribe(

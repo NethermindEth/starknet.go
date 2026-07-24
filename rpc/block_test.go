@@ -313,6 +313,9 @@ func TestBlockWithTxs(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(fmt.Sprintf("BlockID: %v", string(blockID)), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && len(test.ResponseFlags) > 0 {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 proof_facts responses")
+			}
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,
@@ -657,8 +660,8 @@ func TestBlockWithReceipts(t *testing.T) {
 				BlockID: WithBlockTag(BlockTagLatest),
 			},
 			{
-				BlockID:     WithBlockHash(felt.NewFromUint64[felt.Felt](1)),
-				ExpectedErr: ErrBlockNotFound,
+				BlockID:       WithBlockHash(felt.NewFromUint64[felt.Felt](1)),
+				ResponseFlags: []TxnResponseFlag{TxnFlagIncludeProofFacts},
 			},
 			{
 				BlockID:     WithBlockHash(internalUtils.DeadBeef),
@@ -710,6 +713,9 @@ func TestBlockWithReceipts(t *testing.T) {
 	for _, test := range testSet {
 		blockID, _ := test.BlockID.MarshalJSON()
 		t.Run(string(blockID), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && len(test.ResponseFlags) > 0 {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 proof_facts responses")
+			}
 			if tests.TEST_ENV == tests.MockEnv {
 				blockSepolia3100000 := internalUtils.TestUnmarshalJSONFileToType[json.RawMessage](
 					t,

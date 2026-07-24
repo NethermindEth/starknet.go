@@ -69,6 +69,9 @@ func TestTransactionByHash(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(test.TxHash.String(), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && slices.Contains(test.ResponseFlags, TxnFlagIncludeProofFacts) {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 proof_facts responses")
+			}
 			if tests.TEST_ENV == tests.MockEnv {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
@@ -200,6 +203,9 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 	}[tests.TEST_ENV]
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("Index: %d, BlockID: %v", test.Index, test.BlockID), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && slices.Contains(test.ResponseFlags, TxnFlagIncludeProofFacts) {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 proof_facts responses")
+			}
 			if tests.TEST_ENV == tests.MockEnv {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
@@ -208,6 +214,7 @@ func TestTransactionByBlockIdAndIndex(t *testing.T) {
 						"starknet_getTransactionByBlockIdAndIndex",
 						test.BlockID,
 						test.Index,
+						test.ResponseFlags,
 					).
 					DoAndReturn(func(_, result, _ any, args ...any) error {
 						rawResp := result.(*json.RawMessage)

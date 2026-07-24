@@ -213,6 +213,9 @@ func TestSimulateTransaction(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(test.Description, func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && slices.Contains(test.SimulationFlags, ReturnInitialReads) {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 initial_reads responses")
+			}
 			if tests.TEST_ENV == tests.MockEnv {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
@@ -358,6 +361,9 @@ func TestTraceBlockTransactions(t *testing.T) {
 
 	for _, test := range testSet {
 		t.Run(fmt.Sprintf("blockID: %v", test.blockID), func(t *testing.T) {
+			if tests.TEST_ENV == tests.MockEnv && slices.Contains(test.traceFlags, TraceFlagReturnInitialReads) {
+				t.Skip("waiting for nodes to implement rpcv0.10.1 initial_reads responses")
+			}
 			if tests.TEST_ENV == tests.MockEnv && test.blockID.Tag != BlockTagPreConfirmed {
 				testConfig.MockClient.EXPECT().
 					CallContextWithSliceArgs(
