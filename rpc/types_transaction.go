@@ -54,7 +54,7 @@ type InvokeTxnV3 struct {
 	// The storage domain of the account's balance from which fee will be charged
 	FeeMode DataAvailabilityMode `json:"fee_data_availability_mode"`
 	// Optional proof facts for the transaction
-	ProofFacts []*felt.Felt `json:"proof_facts"`
+	ProofFacts []*felt.Felt `json:"proof_facts,omitempty"`
 }
 
 type L1HandlerTxn struct {
