@@ -167,7 +167,13 @@ func (provider *Provider) BlockTransactionCount(
 	blockID BlockID,
 ) (uint64, error) {
 	var result uint64
-	if err := do(ctx, provider.c, "starknet_getBlockTransactionCount", &result, blockID); err != nil {
+	if err := do(
+		ctx,
+		provider.c,
+		"starknet_getBlockTransactionCount",
+		&result,
+		blockID,
+	); err != nil {
 		return 0, rpcerr.UnwrapToRPCErr(err, ErrBlockNotFound)
 	}
 
