@@ -35,7 +35,7 @@ type BroadcastInvokeTxnV3 struct {
 	// Optional proof facts for the transaction
 	ProofFacts []*felt.Felt `json:"proof_facts"`
 	// Optional proof for the transaction
-	Proof []int `json:"proof,omitempty"`
+	Proof []string `json:"proof,omitempty"`
 }
 
 type BroadcastDeployAccountTxnV3 = DeployAccountTxnV3

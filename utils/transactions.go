@@ -123,7 +123,7 @@ func BuildInvokeTxn(
 		NonceDataMode:         rpc.DAModeL1,
 		FeeMode:               rpc.DAModeL1,
 		ProofFacts:            []*felt.Felt{},
-		Proof:                 []int{},
+		Proof:                 []string{},
 	}
 
 	return &invokeTxn
