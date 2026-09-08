@@ -272,7 +272,7 @@ func Poseidon(a, b *felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: a pointer to a felt.Felt storing the resulting hash.
 func Blake2s(a, b *felt.Felt) *felt.Felt {
-	hash := blake2s.Blake2s(a, b)
+	hash := blake2s.Blake2sArray([]felt.Felt{*a, *b})
 	hashFelt := felt.Felt(hash)
 
 	return &hashFelt
@@ -288,7 +288,7 @@ func Blake2s(a, b *felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func PedersenArray(felts ...*felt.Felt) *felt.Felt {
-	hash := junoCrypto.PedersenArray(felts...)
+	hash := junoCrypto.PedersenElems(felts...)
 
 	return &hash
 }
@@ -303,7 +303,7 @@ func PedersenArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
-	hash := junoCrypto.PoseidonArray(felts...)
+	hash := junoCrypto.PoseidonElems(felts...)
 
 	return &hash
 }
@@ -318,10 +318,13 @@ func PoseidonArray(felts ...*felt.Felt) *felt.Felt {
 // Returns:
 //   - *felt.Felt: pointer to a felt.Felt
 func Blake2sArray(felts ...*felt.Felt) *felt.Felt {
-	hash := blake2s.Blake2sArray(felts...)
-	hashFelt := felt.Felt(hash)
+	digest := blake2s.NewDigest()
+	for _, felt := range felts {
+		digest.Update(felt)
+	}
+	hash := digest.Finish()
 
-	return &hashFelt
+	return &hash
 }
 
 // StarknetKeccak computes the Starknet Keccak hash of the given byte slice.
