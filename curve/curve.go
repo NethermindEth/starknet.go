@@ -13,6 +13,7 @@ import (
 	starkcurve "github.com/consensys/gnark-crypto/ecc/stark-curve"
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/ecdsa"
 	"github.com/consensys/gnark-crypto/ecc/stark-curve/fp"
+	"github.com/consensys/gnark-crypto/ecc/stark-curve/fr"
 )
 
 // Verify verifies the validity of the signature for a given message hash using
@@ -29,12 +30,12 @@ import (
 //   - bool: true if the signature is valid, false otherwise
 //   - error: An error if any occurred during the verification process
 func Verify(msgHash, r, s, pubX *big.Int) (bool, error) {
-	pubKey := junoCrypto.NewPublicKey(new(felt.Felt).SetBigInt(pubX))
 	msgHashFelt := new(felt.Felt).SetBigInt(msgHash)
 	rFelt := new(felt.Felt).SetBigInt(r)
 	sFelt := new(felt.Felt).SetBigInt(s)
+	pubXFelt := new(felt.Felt).SetBigInt(pubX)
 
-	return pubKey.Verify(&junoCrypto.Signature{R: *rFelt, S: *sFelt}, msgHashFelt)
+	return VerifyFelts(msgHashFelt, rFelt, sFelt, pubXFelt)
 }
 
 // VerifyFelts verifies the validity of the signature for a given message hash
@@ -54,7 +55,31 @@ func Verify(msgHash, r, s, pubX *big.Int) (bool, error) {
 func VerifyFelts(msgHash, r, s, pubX *felt.Felt) (bool, error) {
 	pubKey := junoCrypto.NewPublicKey(pubX)
 
-	return pubKey.Verify(&junoCrypto.Signature{R: *r, S: *s}, msgHash)
+	return pubKey.Verify(&junoCrypto.Signature{R: *r, S: *normaliseS(s)}, msgHash)
+}
+
+// normaliseS returns the "low-s" form of the signature's s component.
+//
+// Newer gnark-crypto versions (v0.21.0, unlike v0.18.0) make the stark-curve
+// ECDSA Verify function reject signatures whose s component is greater than
+// half the curve order (a malleability check). Starknet signatures are not
+// low-s normalised, so roughly half of all valid signatures would otherwise
+// fail verification.
+// As (r, s) and (r, n-s) are both valid signatures for the same message and
+// public key, replacing s by n-s when s > n/2 does not change the
+// verification result.
+func normaliseS(s *felt.Felt) *felt.Felt {
+	order := fr.Modulus()
+	halfOrder := new(big.Int).Rsh(order, 1)
+
+	sBig := s.BigInt(new(big.Int))
+	if sBig.Cmp(halfOrder) <= 0 {
+		return s
+	}
+
+	sBig.Sub(order, sBig)
+
+	return new(felt.Felt).SetBigInt(sBig)
 }
 
 // Sign calculates the signature of a message using the StarkCurve algorithm.
